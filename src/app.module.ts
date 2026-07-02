@@ -16,6 +16,7 @@ import { OwnersModule } from './modules/owners/owners.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { LeasingModule } from './modules/leasing/leasing.module';
 import { ListingsModule } from './modules/listings/listings.module';
+import { InspectionsModule } from './modules/inspections/inspections.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
@@ -49,6 +50,7 @@ import { EsignModule } from './providers/esign/esign.module';
     PropertiesModule,
     LeasingModule,
     ListingsModule,
+    InspectionsModule,
     BillingModule,
     AccountingModule,
     MaintenanceModule,
