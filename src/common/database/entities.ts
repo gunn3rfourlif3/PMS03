@@ -25,6 +25,7 @@ import { Expense } from '@modules/expenses/expense.entity';
 import { Listing } from '@modules/listings/listing.entity';
 import { Application } from '@modules/listings/application.entity';
 import { Inspection } from '@modules/inspections/inspection.entity';
+import { ApiKey } from '@modules/api-keys/api-key.entity';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 
 export const ENTITIES = [
@@ -50,5 +51,6 @@ export const ENTITIES = [
   Listing,
   Application,
   Inspection,
+  ApiKey,
   OtpChallenge,
 ];
