@@ -1,0 +1,61 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+
+// Infrastructure
+import { DatabaseModule } from './common/database/database.module';
+import { TenancyModule } from './common/tenancy/tenancy.module';
+import { QueueModule } from './common/queue/queue.module';
+
+// Auth
+import { AuthModule } from './modules/auth/auth.module';
+
+// Domain modules (modular monolith — clean boundaries, single deploy)
+import { IdentityModule } from './modules/identity/identity.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
+import { OwnersModule } from './modules/owners/owners.module';
+import { PropertiesModule } from './modules/properties/properties.module';
+import { LeasingModule } from './modules/leasing/leasing.module';
+import { ListingsModule } from './modules/listings/listings.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
+import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { CommsModule } from './modules/comms/comms.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ReportingModule } from './modules/reporting/reporting.module';
+
+// Cross-cutting provider layers
+import { PaymentModule } from './providers/payment/payment.module';
+import { PolicyModule } from './providers/policy/policy.module';
+import { NotificationProvidersModule } from './providers/notification/notification-providers.module';
+import { StorageModule } from './providers/storage/storage.module';
+import { EsignModule } from './providers/esign/esign.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    DatabaseModule,
+    QueueModule,
+    TenancyModule,
+    AuthModule,
+    PaymentModule,
+    PolicyModule,
+    NotificationProvidersModule,
+    StorageModule,
+    EsignModule,
+    IdentityModule,
+    ExpensesModule,
+    OwnersModule,
+    PropertiesModule,
+    LeasingModule,
+    ListingsModule,
+    BillingModule,
+    AccountingModule,
+    MaintenanceModule,
+    DocumentsModule,
+    CommsModule,
+    NotificationsModule,
+    ReportingModule,
+  ],
+})
+export class AppModule {}

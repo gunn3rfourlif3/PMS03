@@ -1,0 +1,28 @@
+import { Entity, Column, Index } from 'typeorm';
+import { ImmutableTenantEntity } from '@common/base.entity';
+
+export type InvoiceStatus =
+  | 'draft' | 'issued' | 'partly_paid' | 'paid' | 'overdue' | 'void';
+
+export interface InvoiceLineItem {
+  kind: 'rent' | 'utility' | 'levy' | 'late_fee' | 'tax';
+  description: string;
+  amount: number;
+}
+
+/**
+ * Rent/charges invoice. Append-only: status changes are tracked via ledger
+ * postings + payment allocation, and a void is a reversing entry, not an edit.
+ */
+@Entity('invoices')
+@Index(['vendorId', 'leaseId', 'period'], { unique: true })
+export class Invoice extends ImmutableTenantEntity {
+  @Column('uuid', { name: 'lease_id' }) leaseId: string;
+  @Column('uuid', { name: 'tenant_id', nullable: true }) tenantId?: string;
+  @Column() period: string;                 // 'YYYY-MM'
+  @Column({ name: 'due_date', type: 'date' }) dueDate: string;
+  @Index() @Column({ type: 'text', default: 'issued' }) status: InvoiceStatus;
+  @Column('numeric') total: number;
+  @Column('jsonb', { name: 'line_items', default: [] }) lineItems: InvoiceLineItem[];
+  @Column('uuid', { name: 'ledger_txn_id', nullable: true }) ledgerTxnId?: string;
+  

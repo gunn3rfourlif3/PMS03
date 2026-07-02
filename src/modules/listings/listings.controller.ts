@@ -1,0 +1,62 @@
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ListingsService, CreateListingInput } from './listings.service';
+import { ApplicationsService, ApplyInput } from './applications.service';
+import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/roles.guard';
+import { Roles } from '@modules/auth/roles.decorator';
+
+@Controller('listings')
+export class ListingsController {
+  constructor(
+    private readonly listings: ListingsService,
+    private readonly applications: ApplicationsService,
+  ) {}
+
+  // ---- Manager-facing listing management ----
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post()
+  create(@Body() body: CreateListingInput) {
+    return this.listings.create(body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post(':id/publish')
+  publish(@Param('id') id: string) {
+    return this.listings.setStatus(id, 'published');
+  }
+
+  // ---- Public browse ----
+  @Get('published')
+  browse() {
+    return this.listings.listPublished();
+  }
+
+  // ---- Applicant funnel ----
+  @Post('applications')
+  apply(@Body() body: ApplyInput) {
+    return this.applications.apply(body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post('applications/:id/screen')
+  screen(@Param('id') id: string, @Body() body: { monthlyIncome?: number; creditScore?: number }) {
+    return this.applications.screenApplication(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post('applications/:id/approve')
+  approve(@Param('id') id: string, @Body() body: { startDate: string }) {
+    return this.applications.approve(id, body.startDate);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post('applications/:id/reject')
+  reject(@Param('id') id: string) {
+    return this.applications.reject(id);
+  }
+}
