@@ -3,6 +3,7 @@ import { DocumentsService, RequestUploadInput } from './documents.service';
 import { EsignService } from './esign.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
+import { WebhookSignatureGuard } from '@common/webhooks/webhook-signature.guard';
 import { DocOwnerType } from './document.entity';
 import { SignatureStatus } from './signature-request.entity';
 
@@ -48,7 +49,8 @@ export class DocumentsController {
     return this.esign.requestSignature(id, body.signerEmail, body.signerName);
   }
 
-  /** E-sign provider webhook. Verify provider signature before production. */
+  /** E-sign provider webhook. HMAC-verified via ESIGN_WEBHOOK_SECRET. */
+  @UseGuards(WebhookSignatureGuard('ESIGN_WEBHOOK_SECRET'))
   @Post('signature/webhook')
   signatureWebhook(@Body() body: { providerRef: string; status: SignatureStatus }) {
     return this.esign.handleCallback(body.providerRef, body.status);

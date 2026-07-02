@@ -1,6 +1,7 @@
 import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { WebhookSignatureGuard } from '@common/webhooks/webhook-signature.guard';
 
 @Controller('payments')
 export class PaymentController {
@@ -17,10 +18,10 @@ export class PaymentController {
   }
 
   /**
-   * Provider webhook. In production, verify the provider signature BEFORE
-   * trusting the body, and resolve vendor context from the payload/reference.
-   * Left as a TODO — do not ship without signature verification.
+   * Provider webhook. HMAC-verified over the raw body via STITCH_WEBHOOK_SECRET
+   * before the body is trusted; vendor context is resolved from the reference.
    */
+  @UseGuards(WebhookSignatureGuard('STITCH_WEBHOOK_SECRET'))
   @Post('webhook/stitch')
   webhook(@Body() body: { gatewayRef: string; status: 'succeeded' | 'failed' }) {
     return this.payments.confirm(body.gatewayRef, body.status === 'succeeded');
