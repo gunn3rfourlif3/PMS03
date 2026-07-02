@@ -1,9 +1,14 @@
 # dependencies
-/node_modules
+node_modules/
 
 # build
-/dist
+dist/
 *.tsbuildinfo
+
+# mobile native / expo build targets
+.expo/
+ios/
+android/
 
 # env & secrets
 .env
@@ -18,8 +23,7 @@ npm-debug.log*
 # os / editor
 .DS_Store
 .idea
-.vscode/*
-!.vscode/extensions.json
+.vscode/
 
 # test
-/coverage
+coverage/
