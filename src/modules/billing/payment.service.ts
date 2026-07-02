@@ -1,5 +1,5 @@
 import {
-  Inject, Injectable, Logger, NotFoundException,
+  ConflictException, Inject, Injectable, Logger, NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -16,10 +16,10 @@ import { applyPayment } from './payment-alloc';
 
 /**
  * Money-in loop. initiate() (authenticated) creates a pending Payment and asks
- * the provider to collect. confirm() (public webhook, no auth) resolves the
- * payment's vendor via a SECURITY DEFINER lookup, then settles inside that
- * vendor's context: Dr Bank / Cr AR, allocate to invoice, advance status.
- * Idempotent by gatewayRef.
+ * the provider to collect; it is idempotent per invoice (a repeat tap returns
+ * the existing pending intent instead of creating a duplicate). confirm()
+ * (public webhook) resolves the payment's vendor via a SECURITY DEFINER lookup
+ * and settles inside that vendor's context: Dr Bank / Cr AR, allocate, advance.
  *
  * ZA PPRA: rent for an owner lands in trust and the platform fee settles
  * separately — no gateway auto-split of client money.
@@ -41,10 +41,23 @@ export class PaymentService {
   async initiate(
     invoiceId: string,
     method: 'eft' | 'card' = 'eft',
-  ): Promise<{ paymentId: string; redirectUrl?: string }> {
+  ): Promise<{ paymentId: string; redirectUrl?: string; reused?: boolean }> {
     const invoices = this.tenant.getRepository(Invoice);
     const invoice = await invoices.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
+    if (invoice.status === 'paid') throw new ConflictException('Invoice already paid');
+
+    const payments = this.tenant.getRepository(Payment);
+
+    // Idempotency: reuse an existing pending intent for this invoice.
+    const existing = await payments
+      .createQueryBuilder('p')
+      .where('p.allocation @> cast(:a as jsonb)', { a: JSON.stringify([{ invoiceId: invoice.id }]) })
+      .andWhere("p.status = 'pending'")
+      .getOne();
+    if (existing) {
+      return { paymentId: existing.id, reused: true };
+    }
 
     const result = await this.provider.collect({
       vendorId: this.tenant.vendorId ?? '',
@@ -54,7 +67,6 @@ export class PaymentService {
       method,
     });
 
-    const payments = this.tenant.getRepository(Payment);
     const payment = await payments.save(
       payments.create({
         vendorId: this.tenant.vendorId ?? undefined,
