@@ -15,6 +15,13 @@ export class ListingsController {
   // ---- Manager-facing listing management ----
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
+  @Get()
+  listAll() {
+    return this.listings.listAll();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
   @Post()
   create(@Body() body: CreateListingInput) {
     return this.listings.create(body);
@@ -34,6 +41,13 @@ export class ListingsController {
   }
 
   // ---- Applicant funnel ----
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Get('applications')
+  listApplications() {
+    return this.applications.list();
+  }
+
   @Post('applications')
   apply(@Body() body: ApplyInput) {
     return this.applications.apply(body);

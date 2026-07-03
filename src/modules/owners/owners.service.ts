@@ -16,4 +16,8 @@ export class OwnersService {
     if (!owner) throw new NotFoundException('Owner not found');
     return owner;
   }
+
+  list(): Promise<Owner[]> {
+    return this.tenant.getRepository(Owner).find({ order: { createdAt: 'DESC' } });
+  }
 }

@@ -1,0 +1,25 @@
+'use client';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { auth } from '@/lib/api';
+
+export default function Nav() {
+  const path = usePathname();
+  const router = useRouter();
+  if (path === '/login') return null;
+  const logout = () => { auth.clear(); router.replace('/login'); };
+  const link = (href: string, label: string) => (
+    <Link href={href} className={path === href ? 'active' : ''}>{label}</Link>
+  );
+  return (
+    <div className="nav">
+      <span className="brand">Demo Agency</span>
+      {link('/', 'Dashboard')}
+      {link('/listings', 'Listings')}
+      {link('/applications', 'Applications')}
+      {link('/owners', 'Owners')}
+      <span className="spacer" />
+      <a onClick={logout} style={{ cursor: 'pointer' }}>Sign out</a>
+    </div>
+  );
+}

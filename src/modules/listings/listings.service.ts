@@ -32,4 +32,9 @@ export class ListingsService {
   listPublished(): Promise<Listing[]> {
     return this.tenant.getRepository(Listing).find({ where: { status: 'published' } });
   }
+
+  /** Manager: all listings for the vendor (incl. drafts/filled). */
+  listAll(): Promise<Listing[]> {
+    return this.tenant.getRepository(Listing).find({ order: { createdAt: 'DESC' } });
+  }
 }

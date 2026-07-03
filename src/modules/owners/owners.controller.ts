@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { OwnersService } from './owners.service';
 import { OwnerStatementService } from './owner-statement.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
@@ -13,6 +13,11 @@ export class OwnersController {
     private readonly owners: OwnersService,
     private readonly statements: OwnerStatementService,
   ) {}
+
+  @Get()
+  list() {
+    return this.owners.list();
+  }
 
   @Post()
   create(@Body() body: { name: string; managementFeePct?: number; payoutSubaccount?: string }) {

@@ -18,11 +18,6 @@ export interface ApplyInput {
   applicantPhone?: string;
 }
 
-/**
- * The applicant funnel: submitted -> screening -> approved/rejected/withdrawn.
- * Approval provisions the tenant end-to-end (user + membership, active lease,
- * unit occupied, listing filled) inside the request's tenant transaction.
- */
 @Injectable()
 export class ApplicationsService {
   private readonly logger = new Logger(ApplicationsService.name);
@@ -36,10 +31,15 @@ export class ApplicationsService {
     private readonly identity: IdentityService,
   ) {}
 
+  /** Manager: all applications for the vendor. */
+  list(): Promise<Application[]> {
+    return this.tenant.getRepository(Application).find({ order: { createdAt: 'DESC' } });
+  }
+
   /**
    * Public submission: no auth/vendor context. Resolve the published listing's
-   * vendor via a SECURITY DEFINER function, then insert the application inside
-   * that vendor's tenant context (RLS-safe).
+   * vendor via a SECURITY DEFINER function, then insert inside that vendor's
+   * tenant context (RLS-safe).
    */
   async apply(input: ApplyInput): Promise<Application> {
     const rows = await this.dataSource.query(
@@ -64,7 +64,6 @@ export class ApplicationsService {
     });
   }
 
-  /** Move to screening and attach a screening recommendation. */
   async screenApplication(applicationId: string, input: Omit<ScreeningInput, 'rent'>): Promise<Application> {
     const { app, listing } = await this.load(applicationId);
     this.assertTransition(app.status, 'screening');
@@ -88,7 +87,6 @@ export class ApplicationsService {
     return this.tenant.getRepository(Application).save(app);
   }
 
-  /** Approve -> provision tenant, lease, occupy unit, fill listing. */
   async approve(applicationId: string, startDate: string): Promise<Application> {
     const { app, listing } = await this.load(applicationId);
     this.assertTransition(app.status, 'approved');
