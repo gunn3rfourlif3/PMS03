@@ -1,14 +1,18 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TextInput, TouchableOpacity,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
-import { BRAND } from '../config';
 import { useAuth } from '../auth-context';
+import { Branding, useTheme, fontFamily } from '../theme';
+import { Card, Pill, BrandFooter, money } from '../ui';
 
-const money = (n: number) => 'R' + Number(n).toLocaleString('en-ZA');
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
 export default function DashboardScreen() {
+  const t = useTheme();
+  const s = useMemo(() => makeStyles(t), [t]);
   const { signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [rentRoll, setRentRoll] = useState<any[]>([]);
@@ -25,58 +29,82 @@ export default function DashboardScreen() {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  if (loading) return <View style={s.center}><ActivityIndicator color={BRAND.color} /></View>;
+  if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
 
   return (
-    <ScrollView style={s.wrap} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={BRAND.color} />}>
+    <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
+      <Text style={s.heading}>Portfolio overview</Text>
+
       <View style={s.grid}>
-        <Metric label="Active leases" value={String(rentRoll.length)} />
-        <Metric label={`Collected · ${period}`} value={collection ? money(collection.collected) : '—'} />
-        <Metric label="Collection rate" value={collection ? `${collection.collectionRate}%` : '—'} />
-        <Metric label="Arrears" value={arrears ? money(arrears.total) : '—'} />
+        <Metric t={t} label="Active leases" value={String(rentRoll.length)} />
+        <Metric t={t} label={`Collected - ${period}`} value={collection ? money(collection.collected) : '-'} />
+        <Metric t={t} label="Collection rate" value={collection ? `${collection.collectionRate}%` : '-'} accent />
+        <Metric t={t} label="Outstanding" value={arrears ? money(arrears.total) : '-'} tone={arrears && arrears.arrears > 0 ? 'danger' : undefined} />
       </View>
 
       <View style={s.periodRow}>
         <Text style={s.muted}>Period</Text>
         <TextInput style={s.periodInput} value={period} onChangeText={setPeriod} onSubmitEditing={load} />
-        <TouchableOpacity style={s.refresh} onPress={load}><Text style={{ color: BRAND.color }}>Refresh</Text></TouchableOpacity>
+        <TouchableOpacity style={s.refresh} onPress={load}><Text style={{ color: t.colors.brand, fontWeight: '600', fontFamily: fontFamily(t) }}>Refresh</Text></TouchableOpacity>
       </View>
 
-      <Text style={s.section}>Portfolio</Text>
+      <Text style={s.section}>Properties</Text>
       {rentRoll.map((r) => (
-        <View key={r.lease_id} style={s.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.unit}>{r.unit}</Text>
-            <Text style={s.muted}>{r.status}</Text>
+        <Card key={r.lease_id} style={{ marginBottom: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.unit}>{r.unit}</Text>
+              <View style={{ marginTop: 6, alignSelf: 'flex-start' }}>
+                <Pill label={r.status} tone={r.status === 'active' ? 'success' : 'muted'} />
+              </View>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={s.rent}>{money(r.rent_amount)}<Text style={s.perMonth}> /mo</Text></Text>
+              {Number(r.outstanding) > 0 && <Text style={s.due}>{money(r.outstanding)} due</Text>}
+            </View>
           </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={s.unit}>{money(r.rent_amount)}</Text>
-            {Number(r.outstanding) > 0 && <Text style={s.due}>{money(r.outstanding)} due</Text>}
-          </View>
-        </View>
+        </Card>
       ))}
-      {rentRoll.length === 0 && <Text style={s.muted}>No active leases.</Text>}
+      {rentRoll.length === 0 && <Card><Text style={s.muted}>No active leases yet.</Text></Card>}
 
-      <TouchableOpacity style={s.signout} onPress={signOut}><Text style={{ color: BRAND.color }}>Sign out</Text></TouchableOpacity>
+      <TouchableOpacity style={s.signout} onPress={signOut}><Text style={{ color: t.colors.muted, fontFamily: fontFamily(t) }}>Sign out</Text></TouchableOpacity>
+      <BrandFooter />
     </ScrollView>
   );
 }
-function Metric({ label, value }: { label: string; value: string }) {
-  return <View style={s.metric}><Text style={s.muted}>{label}</Text><Text style={s.value}>{value}</Text></View>;
+
+function Metric({ t, label, value, accent, tone }: { t: Branding; label: string; value: string; accent?: boolean; tone?: 'danger' }) {
+  const valueColor = tone === 'danger' ? t.colors.danger : accent ? t.colors.brand : t.colors.ink;
+  return (
+    <View style={[metricCard(t), accent && { borderColor: t.colors.brand, borderWidth: 1.5 }]}>
+      <Text style={{ color: t.colors.muted, fontSize: 13, fontFamily: fontFamily(t) }}>{label}</Text>
+      <Text style={{ fontSize: 23, fontWeight: '700', marginTop: 6, color: valueColor, fontFamily: fontFamily(t, true) }}>{value}</Text>
+    </View>
+  );
 }
-const s = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#f6f6f4', padding: 16 },
-  center: { flex: 1, justifyContent: 'center' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
-  metric: { width: '47%', backgroundColor: '#fff', borderRadius: 12, padding: 14 },
-  muted: { color: '#777', fontSize: 13 },
-  value: { fontSize: 22, fontWeight: '600', marginTop: 4 },
-  periodRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 12 },
-  periodInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 8, width: 110, backgroundColor: '#fff' },
-  refresh: { padding: 8 },
-  section: { fontSize: 15, fontWeight: '600', marginBottom: 8 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 8 },
-  unit: { fontSize: 15, color: '#111' },
-  due: { fontSize: 12, color: '#993C1D' },
-  signout: { alignItems: 'center', padding: 18 },
-});
+
+function metricCard(t: Branding) {
+  return {
+    width: '47%' as const, backgroundColor: t.colors.card, borderRadius: 14, borderWidth: 1, borderColor: t.colors.line, padding: 15,
+    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1,
+  };
+}
+
+function makeStyles(t: Branding) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: t.colors.bg },
+    center: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.bg },
+    heading: { fontSize: 20, fontWeight: '700', color: t.colors.ink, marginBottom: 14, fontFamily: fontFamily(t, true) },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 8 },
+    muted: { color: t.colors.muted, fontSize: 13, fontFamily: fontFamily(t) },
+    periodRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 16 },
+    periodInput: { borderWidth: 1, borderColor: t.colors.line, borderRadius: 8, padding: 9, width: 110, backgroundColor: t.colors.card, color: t.colors.ink, fontFamily: fontFamily(t) },
+    refresh: { padding: 8 },
+    section: { fontSize: 15, fontWeight: '700', marginBottom: 10, color: t.colors.ink, fontFamily: fontFamily(t, true) },
+    unit: { fontSize: 16, color: t.colors.ink, fontWeight: '600', fontFamily: fontFamily(t) },
+    rent: { fontSize: 16, color: t.colors.ink, fontWeight: '700', fontFamily: fontFamily(t, true) },
+    perMonth: { fontSize: 12, color: t.colors.muted, fontWeight: '400' },
+    due: { fontSize: 12, color: t.colors.danger, marginTop: 4, fontWeight: '600', fontFamily: fontFamily(t) },
+    signout: { alignItems: 'center', padding: 16 },
+  });
+}

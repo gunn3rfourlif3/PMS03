@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { api } from '../api';
-import { BRAND } from '../config';
-
-const money = (n: number) => 'R' + Number(n).toLocaleString('en-ZA');
+import { Branding, useTheme, fontFamily } from '../theme';
+import { Card, money } from '../ui';
 
 export default function LeaseScreen() {
+  const t = useTheme();
+  const s = useMemo(() => makeStyles(t), [t]);
   const [lease, setLease] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,8 +14,8 @@ export default function LeaseScreen() {
     api.myLease().then(setLease).catch(() => setLease(null)).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color={BRAND.color} /></View>;
-  if (!lease) return <View style={styles.center}><Text style={styles.muted}>No active lease found.</Text></View>;
+  if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
+  if (!lease) return <View style={s.center}><Text style={s.muted}>No active lease found.</Text></View>;
 
   const rows: [string, string][] = [
     ['Status', lease.status],
@@ -22,29 +23,32 @@ export default function LeaseScreen() {
     ['Monthly rent', money(lease.rentAmount)],
     ['Billing cycle', lease.billingCycle],
     ['Start date', lease.startDate],
-    ['End date', lease.endDate || '—'],
+    ['End date', lease.endDate || '-'],
   ];
 
   return (
-    <ScrollView style={styles.wrap}>
-      <View style={styles.card}>
-        {rows.map(([k, v]) => (
-          <View key={k} style={styles.row}>
-            <Text style={styles.k}>{k}</Text>
-            <Text style={styles.v}>{v}</Text>
+    <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }}>
+      <Text style={s.heading}>Lease details</Text>
+      <Card style={{ padding: 4 }}>
+        {rows.map(([k, v], idx) => (
+          <View key={k} style={[s.row, idx === rows.length - 1 && { borderBottomWidth: 0 }]}>
+            <Text style={s.k}>{k}</Text>
+            <Text style={s.v}>{v}</Text>
           </View>
         ))}
-      </View>
+      </Card>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: '#f6f6f4', padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  muted: { color: '#777' },
-  card: { backgroundColor: '#fff', borderRadius: 14, padding: 6 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', padding: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  k: { color: '#777', fontSize: 14 },
-  v: { color: '#111', fontSize: 14, fontWeight: '500', textTransform: 'capitalize' },
-});
+function makeStyles(t: Branding) {
+  return StyleSheet.create({
+    wrap: { flex: 1, backgroundColor: t.colors.bg },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.colors.bg },
+    muted: { color: t.colors.muted, fontFamily: fontFamily(t) },
+    heading: { fontSize: 20, fontWeight: '700', color: t.colors.ink, marginBottom: 14, fontFamily: fontFamily(t, true) },
+    row: { flexDirection: 'row', justifyContent: 'space-between', padding: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.line },
+    k: { color: t.colors.muted, fontSize: 14, fontFamily: fontFamily(t) },
+    v: { color: t.colors.ink, fontSize: 14, fontWeight: '600', textTransform: 'capitalize', fontFamily: fontFamily(t) },
+  });
+}

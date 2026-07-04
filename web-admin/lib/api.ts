@@ -24,7 +24,8 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
     const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;
     throw new Error(msg || `Request failed (${res.status})`);
   }
-  return res.status === 204 ? null : res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export const api = {

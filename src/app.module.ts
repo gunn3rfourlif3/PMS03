@@ -28,6 +28,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { MeModule } from './modules/me/me.module';
+import { BrandingModule } from './modules/branding/branding.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -67,6 +68,7 @@ import { EsignModule } from './providers/esign/esign.module';
     ReportingModule,
     ApiKeysModule,
     MeModule,
+    BrandingModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

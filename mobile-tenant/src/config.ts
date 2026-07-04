@@ -4,9 +4,6 @@
 // - Physical device (Expo Go): http://<your-computer-LAN-IP>:3000/api
 export const API_BASE = 'http://localhost:3000/api';
 
-// White-label brand — served per vendor from Vendor.config in production.
-export const BRAND = {
-  name: 'Rivonia Rentals',
-  color: '#0F6E56',
-  tint: '#E1F5EE',
-};
+// Which vendor's white-label theme to load (public /branding/:slug).
+// In production this comes from the host/subdomain. Try 'demo' or 'rivonia'.
+export const VENDOR_SLUG = 'demo';

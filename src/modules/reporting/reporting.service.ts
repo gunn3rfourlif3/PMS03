@@ -28,10 +28,16 @@ export class ReportingService {
     `);
   }
 
-  /** Outstanding invoice value bucketed by days past due. */
+  /**
+   * Outstanding invoice value split into "not yet due" plus days-past-due
+   * buckets. The buckets always reconcile to the total:
+   *   notYetDue + 0-30 + 31-60 + 61-90 + 90+ = total (outstanding)
+   * True arrears (money actually late) = total - notYetDue.
+   */
   async arrearsAging(): Promise<Record<string, number>> {
     const rows = await this.tenant.getManager().query(`
       SELECT
+        COALESCE(SUM(CASE WHEN due_date > CURRENT_DATE THEN total ELSE 0 END),0) AS "not_due",
         COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 0 AND 30  THEN total ELSE 0 END),0) AS "d0_30",
         COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 31 AND 60 THEN total ELSE 0 END),0) AS "d31_60",
         COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 61 AND 90 THEN total ELSE 0 END),0) AS "d61_90",
@@ -41,12 +47,16 @@ export class ReportingService {
       WHERE status IN ('issued','partly_paid','overdue');
     `);
     const r = rows[0] ?? {};
+    const notYetDue = Number(r.not_due ?? 0);
+    const total = Number(r.total_outstanding ?? 0);
     return {
+      notYetDue,
       '0-30': Number(r.d0_30 ?? 0),
       '31-60': Number(r.d31_60 ?? 0),
       '61-90': Number(r.d61_90 ?? 0),
       '90+': Number(r.d90_plus ?? 0),
-      total: Number(r.total_outstanding ?? 0),
+      arrears: total - notYetDue,
+      total,
     };
   }
 

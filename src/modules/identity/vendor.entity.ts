@@ -8,6 +8,7 @@ export type VendorType = 'individual_landlord' | 'agency';
 export class Vendor {
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column() name: string;
+  @Column({ type: 'varchar', nullable: true }) slug?: string;
   @Column({ type: 'text', default: 'individual_landlord' }) type: VendorType;
   @Column({ default: 'active' }) status: string;
 

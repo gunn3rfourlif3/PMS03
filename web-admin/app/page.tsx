@@ -51,8 +51,8 @@ export default function Dashboard() {
       <div className="metrics">
         <div className="metric"><div className="label">Active leases</div><div className="value">{occupied}</div></div>
         <div className="metric"><div className="label">Collected · {period}</div><div className="value">{collection ? money(collection.collected) : '—'}</div></div>
-        <div className="metric"><div className="label">Collection rate</div><div className="value">{collection ? `${collection.collectionRate}%` : '—'}</div></div>
-        <div className="metric"><div className="label">Arrears (total)</div><div className="value">{arrears ? money(arrears.total) : '—'}</div></div>
+        <div className="metric accent"><div className="label">Collection rate</div><div className="value">{collection ? `${collection.collectionRate}%` : '—'}</div></div>
+        <div className="metric"><div className="label">Outstanding</div><div className="value">{arrears ? money(arrears.total) : '—'}</div></div>
       </div>
 
       <div className="card">
@@ -88,12 +88,17 @@ export default function Dashboard() {
 
       {arrears && (
         <div className="card">
-          <div className="h1" style={{ fontSize: 16, marginBottom: 12 }}>Arrears aging</div>
+          <div className="h1" style={{ fontSize: 16, marginBottom: 4 }}>Outstanding by age</div>
+          <p className="sub" style={{ marginBottom: 12 }}>
+            “Not yet due” is billed but not past its due date. Arrears is the overdue portion. The columns reconcile to the total.
+          </p>
           <table>
-            <thead><tr><th>0–30</th><th>31–60</th><th>61–90</th><th>90+</th><th>Total</th></tr></thead>
+            <thead><tr><th>Not yet due</th><th>0–30</th><th>31–60</th><th>61–90</th><th>90+</th><th>Arrears</th><th>Total</th></tr></thead>
             <tbody><tr>
+              <td>{money(arrears.notYetDue)}</td>
               <td>{money(arrears['0-30'])}</td><td>{money(arrears['31-60'])}</td>
               <td>{money(arrears['61-90'])}</td><td>{money(arrears['90+'])}</td>
+              <td>{arrears.arrears > 0 ? <span className="badge warn">{money(arrears.arrears)}</span> : money(0)}</td>
               <td><strong>{money(arrears.total)}</strong></td>
             </tr></tbody>
           </table>

@@ -27,7 +27,8 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
     const b = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(Array.isArray(b.message) ? b.message.join(', ') : b.message || `Request failed (${res.status})`);
   }
-  return res.status === 204 ? null : res.json();
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export const api = {

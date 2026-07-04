@@ -2,10 +2,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth } from '@/lib/api';
+import { useBrand } from './brand-provider';
 
 export default function Nav() {
   const path = usePathname();
   const router = useRouter();
+  const b = useBrand();
   if (path === '/login') return null;
   const logout = () => { auth.clear(); router.replace('/login'); };
   const link = (href: string, label: string) => (
@@ -13,7 +15,12 @@ export default function Nav() {
   );
   return (
     <div className="nav">
-      <span className="brand">Demo Agency</span>
+      <span className="brand">
+        {b.logo.imageUrl
+          ? <img className="brand-logo" src={b.logo.imageUrl} alt="" />
+          : <span className="brand-tile">{b.logo.text.trim()[0]?.toUpperCase() ?? 'P'}</span>}
+        {b.logo.text}
+      </span>
       {link('/', 'Dashboard')}
       {link('/listings', 'Listings')}
       {link('/applications', 'Applications')}
