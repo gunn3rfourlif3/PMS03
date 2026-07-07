@@ -11,6 +11,11 @@ import { Roles } from '@modules/auth/roles.decorator';
 export class InspectionsController {
   constructor(private readonly service: InspectionsService) {}
 
+  @Get()
+  list() {
+    return this.service.list();
+  }
+
   @Post()
   create(@Body() body: { unitId: string; leaseId?: string; type: InspectionType }) {
     return this.service.create(body);

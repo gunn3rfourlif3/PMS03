@@ -1,5 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { LeasingService } from './leasing.service';
+import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/roles.guard';
+import { Roles } from '@modules/auth/roles.decorator';
 
 @Controller('leasing')
 export class LeasingController {
@@ -8,5 +11,19 @@ export class LeasingController {
   @Get('health')
   health(): { status: string } {
     return { status: this.service.ping() };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Get()
+  list() {
+    return this.service.list();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post(':id/renew')
+  renew(@Param('id') id: string, @Body() body: { escalationPct?: number; months?: number; newEndDate?: string }) {
+    return this.service.renew(id, body);
   }
 }

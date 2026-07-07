@@ -37,6 +37,7 @@ export const api = {
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),
   collection: (period: string) => req(`/reporting/collection/${period}`),
+  income: (period: string) => req(`/reporting/income/${period}`),
   runBilling: (period: string, dueDate: string) =>
     req('/billing/run', { method: 'POST', body: JSON.stringify({ period, dueDate }) }),
 
@@ -58,8 +59,40 @@ export const api = {
   owners: () => req('/owners'),
   createOwner: (b: { name: string; managementFeePct?: number }) =>
     req('/owners', { method: 'POST', body: JSON.stringify(b) }),
+  ownerStatements: (ownerId: string) => req(`/owners/${ownerId}/statements`),
+
+  listDocuments: (ownerType: string, ownerId: string) => req(`/documents?ownerType=${ownerType}&ownerId=${ownerId}`),
+  docUploadUrl: (b: { ownerType: string; ownerId: string; type: string; filename: string; contentType: string }) =>
+    req('/documents/upload-url', { method: 'POST', body: JSON.stringify(b) }),
+  docConfirm: (id: string) => req(`/documents/${id}/confirm`, { method: 'POST' }),
+  docDownloadUrl: (id: string) => req(`/documents/${id}/download-url`),
+  requestSignature: (id: string, signerEmail: string, signerName?: string) =>
+    req(`/documents/${id}/signature`, { method: 'POST', body: JSON.stringify({ signerEmail, signerName }) }),
+
+  listInspections: () => req('/inspections'),
+  createInspection: (b: { unitId: string; type: string; leaseId?: string }) =>
+    req('/inspections', { method: 'POST', body: JSON.stringify(b) }),
+  recordInspectionItems: (id: string, items: any[]) =>
+    req(`/inspections/${id}/items`, { method: 'POST', body: JSON.stringify({ items }) }),
+  signoffInspection: (id: string) => req(`/inspections/${id}/signoff`, { method: 'POST' }),
+
+  listApiKeys: () => req('/api-keys'),
+  createApiKey: (name: string, scopes: string[]) => req('/api-keys', { method: 'POST', body: JSON.stringify({ name, scopes }) }),
+  revokeApiKey: (id: string) => req(`/api-keys/${id}/revoke`, { method: 'POST' }),
+  listNotifications: () => req('/notifications'),
+  listLeases: () => req('/leasing'),
+  renewLease: (id: string, escalationPct: number, months: number) =>
+    req(`/leasing/${id}/renew`, { method: 'POST', body: JSON.stringify({ escalationPct, months }) }),
+  updateOwnerBanking: (id: string, banking: any) => req(`/owners/${id}/banking`, { method: 'PUT', body: JSON.stringify(banking) }),
+  listProviders: (category?: string) => req(`/service-providers${category ? `?category=${category}` : ''}`),
+  createProvider: (b: any) => req('/service-providers', { method: 'POST', body: JSON.stringify(b) }),
+  updateProvider: (id: string, b: any) => req(`/service-providers/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  setProviderStatus: (id: string, status: string) => req(`/service-providers/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
   generateStatement: (ownerId: string, period: string) =>
     req(`/owners/${ownerId}/statements/${period}`, { method: 'POST' }),
   payoutStatement: (statementId: string) =>
     req(`/owners/statements/${statementId}/payout`, { method: 'POST' }),
+
+  brandingSettings: () => req('/settings/branding'),
+  updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
 };

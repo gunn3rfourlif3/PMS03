@@ -52,6 +52,7 @@ export const api = {
     req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: (destination: string, code: string) =>
     req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
+  profile: () => req('/me/profile'),
   myInvoices: () => req('/me/invoices'),
   myLease: () => req('/me/lease'),
   initiatePayment: (invoiceId: string, method = 'eft') =>
@@ -59,4 +60,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ method }),
     }),
+
+  // Maintenance (tenant self-service)
+  myTickets: () => req('/maintenance/tickets/mine'),
+  createTicket: (b: { unitId: string; category: string; description: string; priority?: string }) =>
+    req('/maintenance/tickets', { method: 'POST', body: JSON.stringify(b) }),
+  approveTicket: (id: string) => req(`/maintenance/tickets/${id}/approve`, { method: 'POST' }),
 };

@@ -28,7 +28,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: t.colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: 'transparent' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={s.wrap}>
         <View style={s.card}>
           <View style={{ alignItems: 'center', marginBottom: 8 }}>
@@ -70,7 +70,7 @@ function makeStyles(t: Branding) {
     label: { fontSize: 13, color: t.colors.muted, marginBottom: 6, fontFamily: fontFamily(t) },
     input: {
       borderWidth: 1, borderColor: t.colors.line, borderRadius: 10, padding: 14, fontSize: 16,
-      marginBottom: 8, color: t.colors.ink, backgroundColor: t.colors.bg, fontFamily: fontFamily(t),
+      marginBottom: 8, color: t.colors.ink, backgroundColor: 'transparent', fontFamily: fontFamily(t),
     },
     link: { color: t.colors.brand, fontSize: 13, textAlign: 'center', marginTop: 16, fontFamily: fontFamily(t) },
   });

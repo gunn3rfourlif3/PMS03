@@ -1,7 +1,6 @@
 import './globals.css';
-import Nav from '@/components/nav';
-import Footer from '@/components/footer';
 import BrandProvider from '@/components/brand-provider';
+import Shell from '@/components/shell';
 
 export const metadata = { title: 'Back-office' };
 
@@ -10,9 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <BrandProvider>
-          <Nav />
-          <main className="app-main">{children}</main>
-          <Footer />
+          <Shell>{children}</Shell>
         </BrandProvider>
       </body>
     </html>

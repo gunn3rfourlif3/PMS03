@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { OwnersService } from './owners.service';
 import { OwnerStatementService } from './owner-statement.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
@@ -22,6 +22,16 @@ export class OwnersController {
   @Post()
   create(@Body() body: { name: string; managementFeePct?: number; payoutSubaccount?: string }) {
     return this.owners.create(body);
+  }
+
+  @Put(':ownerId/banking')
+  updateBanking(@Param('ownerId') ownerId: string, @Body() body: Record<string, unknown>) {
+    return this.owners.updateBanking(ownerId, body);
+  }
+
+  @Get(':ownerId/statements')
+  listStatements(@Param('ownerId') ownerId: string) {
+    return this.statements.listForOwner(ownerId);
   }
 
   @Post(':ownerId/statements/:period')

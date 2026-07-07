@@ -71,6 +71,11 @@ export class MaintenanceService {
     return this.tenant.getRepository(Ticket).find({ order: { createdAt: 'DESC' } });
   }
 
+  /** All work orders for the vendor (manager view maps these onto tickets). */
+  listWorkOrders(): Promise<WorkOrder[]> {
+    return this.tenant.getRepository(WorkOrder).find({ order: { createdAt: 'DESC' } });
+  }
+
   async assign(ticketId: string, contractorId?: string, scheduledFor?: string): Promise<WorkOrder> {
     const tickets = this.tenant.getRepository(Ticket);
     const ticket = await tickets.findOne({ where: { id: ticketId } });

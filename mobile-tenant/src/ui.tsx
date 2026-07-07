@@ -3,7 +3,62 @@ import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
   Linking, Image, StyleProp, ViewStyle,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { Branding, useTheme, fontFamily } from './theme';
+
+/** #rrggbb (+optional aa) -> rgba() string. */
+export function hexToRgba(hex: string, alpha = 1): string {
+  let h = (hex || '#000000').replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+/** Lighten/darken a hex by a factor (>1 lighter, <1 darker). */
+export function shade(hex: string, factor: number): string {
+  let h = (hex || '#000000').replace('#', '');
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const cl = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
+  const r = cl(parseInt(h.slice(0, 2), 16) * factor);
+  const g = cl(parseInt(h.slice(2, 4), 16) * factor);
+  const b = cl(parseInt(h.slice(4, 6), 16) * factor);
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Full-screen brand-tinted aurora backdrop for glass to sit on. */
+export function GradientBackground({ children }: { children: React.ReactNode }) {
+  const t = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: t.colors.bg }}>
+      <LinearGradient
+        colors={[hexToRgba(t.colors.brand, 0.18), hexToRgba(t.colors.accent, 0.10), hexToRgba(t.colors.brand, 0.04)]}
+        start={{ x: 0.9, y: 0 }} end={{ x: 0.1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {children}
+    </View>
+  );
+}
+
+/** Frosted glass surface (blur + translucent tint + hairline). */
+export function Card({ children, style, intensity = 34 }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; intensity?: number }) {
+  const t = useTheme();
+  return (
+    <View style={[glassBase(t), style]}>
+      <BlurView intensity={intensity} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 16, zIndex: -1 }]} pointerEvents="none" />
+      {children}
+    </View>
+  );
+}
+export function glassBase(t: Branding): ViewStyle {
+  return {
+    borderRadius: 16, padding: 16, overflow: 'hidden',
+    backgroundColor: hexToRgba(t.colors.card, 0.55),
+    borderWidth: 1, borderColor: hexToRgba('#ffffff', 0.5),
+  };
+}
+export function cardStyle(t: Branding): ViewStyle { return glassBase(t); }
 
 /** Brand logo: image if provided, else a colored initial tile + wordmark. */
 export function Logo({ size = 40, showName = true, light = false }: { size?: number; showName?: boolean; light?: boolean }) {
@@ -14,10 +69,13 @@ export function Logo({ size = 40, showName = true, light = false }: { size?: num
       {t.logo.imageUrl ? (
         <Image source={{ uri: t.logo.imageUrl }} style={{ width: size, height: size, borderRadius: size * 0.28 }} resizeMode="contain" />
       ) : (
-        <View style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: light ? 'rgba(255,255,255,0.18)' : t.colors.brand, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: t.colors.onBrand, fontSize: size * 0.46, fontWeight: '700', fontFamily: fontFamily(t, true) }}>
-            {t.logo.text.trim()[0]?.toUpperCase() ?? 'P'}
-          </Text>
+        <View style={{ width: size, height: size, borderRadius: size * 0.28, overflow: 'hidden' }}>
+          <LinearGradient colors={[shade(t.colors.brand, 1.18), t.colors.brand]} style={StyleSheet.absoluteFill} />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: t.colors.onBrand, fontSize: size * 0.46, fontWeight: '700', fontFamily: fontFamily(t, true) }}>
+              {t.logo.text.trim()[0]?.toUpperCase() ?? 'P'}
+            </Text>
+          </View>
         </View>
       )}
       {showName && (
@@ -31,60 +89,40 @@ export function Logo({ size = 40, showName = true, light = false }: { size?: num
 
 export function Pill({ label, tone = 'brand' }: { label: string; tone?: 'brand' | 'danger' | 'success' | 'muted' }) {
   const t = useTheme();
-  const map = {
-    brand: { bg: t.colors.tint, fg: t.colors.brand },
-    danger: { bg: t.colors.dangerBg, fg: t.colors.danger },
-    success: { bg: t.colors.tint, fg: t.colors.success },
-    muted: { bg: '#eef0f2', fg: t.colors.muted },
-  }[tone];
+  const base = { brand: t.colors.brand, danger: t.colors.danger, success: t.colors.success, muted: t.colors.muted }[tone];
   return (
-    <Text style={{ backgroundColor: map.bg, color: map.fg, fontSize: 12, fontWeight: '600', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, overflow: 'hidden', fontFamily: fontFamily(t) }}>
+    <Text style={{ backgroundColor: hexToRgba(base, 0.14), color: base, borderColor: hexToRgba(base, 0.28), borderWidth: 1, fontSize: 12, fontWeight: '700', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, overflow: 'hidden', fontFamily: fontFamily(t) }}>
       {label}
     </Text>
   );
 }
 
-export function Button({ label, onPress, busy, variant = 'primary', style }: {
-  label: string; onPress: () => void; busy?: boolean; variant?: 'primary' | 'secondary'; style?: StyleProp<ViewStyle>;
+export function Button({ label, onPress, busy, variant = 'primary', icon, style }: {
+  label: string; onPress: () => void; busy?: boolean; variant?: 'primary' | 'secondary';
+  icon?: keyof typeof Ionicons.glyphMap; style?: StyleProp<ViewStyle>;
 }) {
   const t = useTheme();
   const primary = variant === 'primary';
+  const fg = primary ? t.colors.onBrand : t.colors.ink;
   return (
     <TouchableOpacity
-      onPress={onPress}
-      disabled={busy}
-      activeOpacity={0.85}
+      onPress={onPress} disabled={busy} activeOpacity={0.85}
       style={[{
-        backgroundColor: primary ? t.colors.brand : t.colors.card,
-        borderColor: primary ? t.colors.brand : t.colors.line,
-        borderWidth: 1, borderRadius: 10, paddingVertical: 13, paddingHorizontal: 18,
-        alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1,
+        flexDirection: 'row', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden', opacity: busy ? 0.65 : 1,
+        borderWidth: 1, borderColor: primary ? 'transparent' : hexToRgba('#ffffff', 0.5),
+        backgroundColor: primary ? undefined : hexToRgba(t.colors.card, 0.5),
       }, style]}
     >
-      {busy ? <ActivityIndicator color={primary ? t.colors.onBrand : t.colors.brand} />
-        : <Text style={{ color: primary ? t.colors.onBrand : t.colors.ink, fontSize: 15, fontWeight: '600', fontFamily: fontFamily(t) }}>{label}</Text>}
+      {primary && <LinearGradient colors={[shade(t.colors.brand, 1.14), t.colors.brand]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />}
+      {busy ? <ActivityIndicator color={primary ? t.colors.onBrand : t.colors.brand} /> : (
+        <>
+          {icon && <Ionicons name={icon} size={16} color={fg} style={{ marginRight: 8 }} />}
+          <Text style={{ color: fg, fontSize: 15, fontWeight: '700', fontFamily: fontFamily(t) }}>{label}</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
-}
-
-export function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
-  const t = useTheme();
-  return <View style={[cardStyle(t), style]}>{children}</View>;
-}
-
-export function cardStyle(t: Branding): ViewStyle {
-  return {
-    backgroundColor: t.colors.card,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: t.colors.line,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1,
-  };
 }
 
 /** Contact strip shown at the foot of primary screens. */

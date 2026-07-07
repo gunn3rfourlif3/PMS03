@@ -43,8 +43,8 @@ export default function LeaseScreen() {
 
 function makeStyles(t: Branding) {
   return StyleSheet.create({
-    wrap: { flex: 1, backgroundColor: t.colors.bg },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: t.colors.bg },
+    wrap: { flex: 1, backgroundColor: 'transparent' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
     muted: { color: t.colors.muted, fontFamily: fontFamily(t) },
     heading: { fontSize: 20, fontWeight: '700', color: t.colors.ink, marginBottom: 14, fontFamily: fontFamily(t, true) },
     row: { flexDirection: 'row', justifyContent: 'space-between', padding: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.line },

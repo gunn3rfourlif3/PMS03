@@ -7,6 +7,8 @@ import {
 } from '@common/queue/queue.constants';
 import { TemplateKey } from './templates';
 import { Channel } from '@providers/notification/notification-provider.interface';
+import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import { Notification } from './notification.entity';
 
 export interface NotifyInput {
   vendorId: string;
@@ -24,7 +26,20 @@ export interface NotifyInput {
  */
 @Injectable()
 export class NotificationsService {
-  constructor(@InjectQueue(QUEUE_NOTIFICATIONS) private readonly queue: Queue) {}
+  constructor(
+    @InjectQueue(QUEUE_NOTIFICATIONS) private readonly queue: Queue,
+    private readonly tenant: TenantContextService,
+  ) {}
+
+  /** Recent notifications across the vendor (manager activity feed). */
+  recent(limit = 40): Promise<Notification[]> {
+    return this.tenant.getRepository(Notification).find({ order: { createdAt: 'DESC' }, take: limit });
+  }
+
+  /** Recent notifications for a single recipient. */
+  forUser(userId: string, limit = 40): Promise<Notification[]> {
+    return this.tenant.getRepository(Notification).find({ where: { userId }, order: { createdAt: 'DESC' }, take: limit });
+  }
 
   ping(): string {
     return 'Notifications module ready';

@@ -9,6 +9,16 @@ import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
 export class MeController {
   constructor(private readonly me: MeService) {}
 
+  @Get('profile')
+  profile(@CurrentTenant() principal: { userId: string }) {
+    return this.me.profile(principal.userId);
+  }
+
+  @Get('notifications')
+  notifications(@CurrentTenant() principal: { userId: string }) {
+    return this.me.notifications(principal.userId);
+  }
+
   @Get('invoices')
   invoices(@CurrentTenant() principal: { userId: string }) {
     return this.me.invoices(principal.userId);

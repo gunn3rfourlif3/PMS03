@@ -36,7 +36,9 @@ export async function fetchBranding(slug: string): Promise<Branding> {
 }
 
 const SYSTEM_STACK =
-  '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  '"Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const HEADING_STACK =
+  '"Sora", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 /** Push a resolved theme into CSS custom properties + inject the web font. */
 export function applyTheme(b: Branding) {
@@ -57,7 +59,7 @@ export function applyTheme(b: Branding) {
   r.setProperty('--success', c.success);
 
   const body = b.font.family && b.font.family !== 'System' ? `"${b.font.family}", ${SYSTEM_STACK}` : SYSTEM_STACK;
-  const head = b.font.headingFamily && b.font.headingFamily !== 'System' ? `"${b.font.headingFamily}", ${SYSTEM_STACK}` : body;
+  const head = b.font.headingFamily && b.font.headingFamily !== 'System' ? `"${b.font.headingFamily}", ${SYSTEM_STACK}` : HEADING_STACK;
   r.setProperty('--font', body);
   r.setProperty('--font-heading', head);
 

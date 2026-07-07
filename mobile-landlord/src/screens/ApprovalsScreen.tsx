@@ -33,7 +33,7 @@ export default function ApprovalsScreen() {
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
 
   return (
-    <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
+    <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
       <Text style={s.heading}>Applications</Text>
       {apps.map((a) => (
         <Card key={a.id} style={{ marginBottom: 12 }}>
@@ -78,8 +78,8 @@ export default function ApprovalsScreen() {
 
 function makeStyles(t: Branding) {
   return StyleSheet.create({
-    wrap: { flex: 1, backgroundColor: t.colors.bg },
-    center: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.bg },
+    wrap: { flex: 1, backgroundColor: 'transparent' },
+    center: { flex: 1, justifyContent: 'center', backgroundColor: 'transparent' },
     heading: { fontSize: 20, fontWeight: '700', color: t.colors.ink, marginBottom: 14, fontFamily: fontFamily(t, true) },
     name: { fontSize: 16, fontWeight: '700', color: t.colors.ink, fontFamily: fontFamily(t) },
     muted: { color: t.colors.muted, fontSize: 13, marginTop: 2, fontFamily: fontFamily(t) },

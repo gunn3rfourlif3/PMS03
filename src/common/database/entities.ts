@@ -28,6 +28,7 @@ import { Inspection } from '@modules/inspections/inspection.entity';
 import { Ticket } from '@modules/maintenance/ticket.entity';
 import { WorkOrder } from '@modules/maintenance/work-order.entity';
 import { ApiKey } from '@modules/api-keys/api-key.entity';
+import { ServiceProvider } from '@modules/service-providers/service-provider.entity';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 
 export const ENTITIES = [
@@ -56,5 +57,6 @@ export const ENTITIES = [
   Ticket,
   WorkOrder,
   ApiKey,
+  ServiceProvider,
   OtpChallenge,
 ];

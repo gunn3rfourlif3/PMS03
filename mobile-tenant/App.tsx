@@ -1,20 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import {
+  PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import { Ionicons } from '@expo/vector-icons';
 import { loadToken, setToken, clearToken } from './src/api';
 import { AuthContext } from './src/auth-context';
 import { ThemeProvider, useTheme, fontFamily } from './src/theme';
-import { Logo } from './src/ui';
+import { Logo, GradientBackground } from './src/ui';
 import LoginScreen from './src/screens/LoginScreen';
-import DashboardScreen from './src/screens/DashboardScreen';
-import LeaseScreen from './src/screens/LeaseScreen';
+import MainScreen from './src/screens/MainScreen';
+import MaintenanceScreen from './src/screens/MaintenanceScreen';
 
 const Stack = createNativeStackNavigator();
+const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent' } };
 
 function Shell() {
   const t = useTheme();
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+    PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
+  });
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
 
@@ -25,32 +37,41 @@ function Shell() {
     signOut: async () => { await clearToken(); setAuthed(false); },
   }), []);
 
-  if (!ready) {
-    return <View style={{ flex: 1, justifyContent: 'center', backgroundColor: t.colors.bg }}><ActivityIndicator color={t.colors.brand} /></View>;
+  if (!ready || !fontsLoaded) {
+    return <GradientBackground><View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={t.colors.brand} /></View></GradientBackground>;
   }
 
   return (
     <AuthContext.Provider value={auth}>
-      <NavigationContainer>
-        <StatusBar style="light" />
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: t.colors.brand },
-            headerTintColor: t.colors.onBrand,
-            headerTitleStyle: { fontWeight: '700', fontFamily: fontFamily(t, true) },
-            contentStyle: { backgroundColor: t.colors.bg },
-          }}
-        >
-          {authed ? (
-            <>
-              <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ headerTitle: () => <Logo size={28} light /> }} />
-              <Stack.Screen name="Lease" component={LeaseScreen} options={{ title: 'Your lease' }} />
-            </>
-          ) : (
-            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+      <GradientBackground>
+        <NavigationContainer theme={navTheme}>
+          <StatusBar style="light" />
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: { backgroundColor: t.colors.brand },
+              headerTintColor: t.colors.onBrand,
+              headerTitleStyle: { fontWeight: '700', fontFamily: fontFamily(t, true) },
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          >
+            {authed ? (
+              <>
+                <Stack.Screen
+                  name="Main"
+                  component={MainScreen}
+                  options={{
+                    headerTitle: () => <Logo size={28} light />,
+                    headerRight: () => <Ionicons name="notifications-outline" size={22} color={t.colors.onBrand} />,
+                  }}
+                />
+                <Stack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: 'Report an issue' }} />
+              </>
+            ) : (
+              <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GradientBackground>
     </AuthContext.Provider>
   );
 }

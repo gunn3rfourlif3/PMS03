@@ -43,6 +43,13 @@ export class MaintenanceController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
+  @Get('work-orders')
+  workOrders() {
+    return this.service.listWorkOrders();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
   @Post('tickets/:id/work-order')
   assign(@Param('id') id: string, @Body() body: { contractorId?: string; scheduledFor?: string }) {
     return this.service.assign(id, body.contractorId, body.scheduledFor);

@@ -17,6 +17,14 @@ export class OwnersService {
     return owner;
   }
 
+  async updateBanking(id: string, banking: Record<string, unknown>): Promise<Owner> {
+    const repo = this.tenant.getRepository(Owner);
+    const owner = await repo.findOne({ where: { id } });
+    if (!owner) throw new NotFoundException('Owner not found');
+    owner.banking = { ...(owner.banking ?? {}), ...banking };
+    return repo.save(owner);
+  }
+
   list(): Promise<Owner[]> {
     return this.tenant.getRepository(Owner).find({ order: { createdAt: 'DESC' } });
   }

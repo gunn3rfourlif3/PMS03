@@ -60,6 +60,32 @@ export class ReportingService {
     };
   }
 
+  /**
+   * Period income statement (cash basis): rent collected in the period, less
+   * expenses incurred, plus management-fee income earned on owner statements.
+   */
+  async incomeStatement(period: string): Promise<{
+    period: string; rentCollected: number; managementFees: number; expenses: number; netOperating: number;
+  }> {
+    const rows = await this.tenant.getManager().query(
+      `
+      SELECT
+        (SELECT COALESCE(SUM(p.amount),0)
+           FROM payments p
+           JOIN invoices i ON i.id = (p.allocation->0->>'invoiceId')::uuid
+          WHERE p.status = 'succeeded' AND i.period = $1) AS rent_collected,
+        (SELECT COALESCE(SUM(management_fee),0) FROM owner_statements WHERE period = $1) AS mgmt_fees,
+        (SELECT COALESCE(SUM(amount),0) FROM expenses WHERE to_char(incurred_on,'YYYY-MM') = $1) AS expenses;
+      `,
+      [period],
+    );
+    const r = rows[0] ?? {};
+    const rentCollected = Number(r.rent_collected ?? 0);
+    const managementFees = Number(r.mgmt_fees ?? 0);
+    const expenses = Number(r.expenses ?? 0);
+    return { period, rentCollected, managementFees, expenses, netOperating: rentCollected + managementFees - expenses };
+  }
+
   /** Billed vs collected for a 'YYYY-MM' period, with collection rate. */
   async collectionSummary(period: string): Promise<{
     period: string; billed: number; collected: number; collectionRate: number;

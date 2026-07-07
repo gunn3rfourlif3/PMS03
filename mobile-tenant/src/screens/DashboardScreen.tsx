@@ -54,6 +54,7 @@ export default function DashboardScreen({ navigation }: any) {
       <View style={s.actions}>
         <Action t={t} icon="R" label="Pay" onPress={pay} disabled={!due} />
         <Action t={t} icon="L" label="Lease" onPress={() => navigation.navigate('Lease')} />
+        <Action t={t} icon="+" label="Report" onPress={() => navigation.navigate('Maintenance')} />
         <Action t={t} icon="->" label="Sign out" onPress={signOut} />
       </View>
 
@@ -85,8 +86,8 @@ function Action({ t, icon, label, onPress, disabled }: { t: Branding; icon: stri
 
 function makeStyles(t: Branding) {
   return StyleSheet.create({
-    wrap: { flex: 1, backgroundColor: t.colors.bg },
-    center: { flex: 1, justifyContent: 'center', backgroundColor: t.colors.bg },
+    wrap: { flex: 1, backgroundColor: 'transparent' },
+    center: { flex: 1, justifyContent: 'center', backgroundColor: 'transparent' },
     rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     muted: { color: t.colors.muted, fontSize: 13, fontFamily: fontFamily(t) },
     amount: { fontSize: 32, fontWeight: '700', color: t.colors.ink, marginVertical: 6, fontFamily: fontFamily(t, true) },

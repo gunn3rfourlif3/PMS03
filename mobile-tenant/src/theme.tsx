@@ -34,9 +34,9 @@ export const DEFAULT_BRANDING: Branding = {
 
 /** Resolve a font family that will actually render on the current platform. */
 export function fontFamily(t: Branding, heading = false): string | undefined {
-  const fam = heading ? t.font.headingFamily : t.font.family;
-  if (!fam || fam === 'System') return undefined; // RN default
-  return fam;
+  // Premium default typeface (loaded in App via expo-font). Custom vendor fonts
+  // are a web feature; on native we always use the bundled premium family.
+  return heading ? 'PlusJakartaSans_700Bold' : 'PlusJakartaSans_500Medium';
 }
 
 const ThemeContext = createContext<Branding>(DEFAULT_BRANDING);

@@ -15,6 +15,10 @@ export class InspectionsService {
     return 'Inspections module ready';
   }
 
+  list(): Promise<Inspection[]> {
+    return this.tenant.getRepository(Inspection).find({ order: { createdAt: 'DESC' } });
+  }
+
   create(input: { unitId: string; leaseId?: string; type: InspectionType }): Promise<Inspection> {
     const repo = this.tenant.getRepository(Inspection);
     return repo.save(

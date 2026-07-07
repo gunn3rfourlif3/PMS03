@@ -25,6 +25,7 @@ export default function Nav() {
       {link('/listings', 'Listings')}
       {link('/applications', 'Applications')}
       {link('/owners', 'Owners')}
+      {link('/settings', 'Settings')}
       <span className="spacer" />
       <a onClick={logout} style={{ cursor: 'pointer' }}>Sign out</a>
     </div>

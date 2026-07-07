@@ -12,4 +12,5 @@ export class Owner extends TenantEntity {
   @Column('jsonb', { default: {} }) contact: Record<string, unknown>;
   @Column({ name: 'payout_subaccount', nullable: true }) payoutSubaccount?: string;
   @Column('numeric', { name: 'management_fee_pct', default: 0 }) managementFeePct: number;
+  @Column('jsonb', { default: {} }) banking: Record<string, unknown>;
 }

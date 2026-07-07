@@ -33,4 +33,11 @@ export class ReportingController {
   collection(@Param('period') period: string) {
     return this.service.collectionSummary(period);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Get('income/:period')
+  income(@Param('period') period: string) {
+    return this.service.incomeStatement(period);
+  }
 }

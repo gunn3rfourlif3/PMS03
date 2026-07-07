@@ -34,6 +34,7 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
 export const api = {
   requestOtp: (destination: string) => req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: (destination: string, code: string) => req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
+  profile: () => req('/me/profile'),
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),
   collection: (period: string) => req(`/reporting/collection/${period}`),
@@ -41,4 +42,11 @@ export const api = {
   screen: (id: string) => req(`/listings/applications/${id}/screen`, { method: 'POST', body: JSON.stringify({ monthlyIncome: 30000, creditScore: 710 }) }),
   approve: (id: string, startDate: string) => req(`/listings/applications/${id}/approve`, { method: 'POST', body: JSON.stringify({ startDate }) }),
   reject: (id: string) => req(`/listings/applications/${id}/reject`, { method: 'POST' }),
+
+  // Maintenance / ticketing
+  tickets: () => req('/maintenance/tickets'),
+  workOrders: () => req('/maintenance/work-orders'),
+  assignTicket: (id: string) => req(`/maintenance/tickets/${id}/work-order`, { method: 'POST', body: JSON.stringify({}) }),
+  startWorkOrder: (id: string) => req(`/maintenance/work-orders/${id}/progress`, { method: 'POST' }),
+  completeWorkOrder: (id: string, cost: number) => req(`/maintenance/work-orders/${id}/complete`, { method: 'POST', body: JSON.stringify({ cost }) }),
 };

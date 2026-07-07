@@ -25,6 +25,13 @@ export interface PayoutRequest {
   ownerId: string;
   amount: number;
   currency: string;
+  bankAccount?: {
+    bankName?: string;
+    accountHolder?: string;
+    accountNumber?: string;
+    branchCode?: string;
+    accountType?: string;
+  };
 }
 
 export interface PayoutResult {

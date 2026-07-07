@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { LedgerService } from '@modules/accounting/ledger.service';
@@ -47,6 +47,11 @@ export class OwnerStatementService {
       [period, ownerId],
     );
     return Number(rows[0]?.gross ?? 0);
+  }
+
+  /** Statement history for an owner, newest first. */
+  listForOwner(ownerId: string): Promise<OwnerStatement[]> {
+    return this.tenant.getRepository(OwnerStatement).find({ where: { ownerId }, order: { period: 'DESC' } });
   }
 
   async generate(ownerId: string, period: string): Promise<OwnerStatement> {
@@ -112,12 +117,28 @@ export class OwnerStatementService {
     });
     if (!owner) throw new NotFoundException('Owner not found');
 
+    // Payouts go to the owner's captured bank account. Refuse if it's missing.
+    const banking = (owner.banking ?? {}) as {
+      bankName?: string; accountHolder?: string; accountNumber?: string; branchCode?: string; accountType?: string;
+    };
+    if (!banking.accountNumber) {
+      throw new BadRequestException("Add this owner's banking details before paying out.");
+    }
+
     const result = await this.provider.payout({
       vendorId: this.tenant.vendorId ?? '',
       ownerId: owner.id,
       amount: Number(statement.netPayout),
       currency: 'ZAR',
+      bankAccount: {
+        bankName: banking.bankName,
+        accountHolder: banking.accountHolder,
+        accountNumber: banking.accountNumber,
+        branchCode: banking.branchCode,
+        accountType: banking.accountType,
+      },
     });
+    this.logger.debug(`Paying owner ${owner.id} to ${banking.bankName ?? 'bank'} ****${String(banking.accountNumber).slice(-4)}`);
 
     const [ownerPayable, bank] = await Promise.all([
       this.accounting.resolveAccount('OWNER_PAYABLE'),
