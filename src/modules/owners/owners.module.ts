@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OwnersController } from './owners.controller';
+import { PortalController } from './portal.controller';
 import { OwnersService } from './owners.service';
 import { OwnerStatementService } from './owner-statement.service';
+import { PortalService } from './portal.service';
 import { Owner } from './owner.entity';
 import { OwnerStatement } from './owner-statement.entity';
 import { Payout } from './payout.entity';
@@ -17,8 +19,8 @@ import { PaymentModule } from '@providers/payment/payment.module';
     ExpensesModule,
     PaymentModule,
   ],
-  controllers: [OwnersController],
-  providers: [OwnersService, OwnerStatementService],
+  controllers: [OwnersController, PortalController],
+  providers: [OwnersService, OwnerStatementService, PortalService],
   exports: [OwnersService],
 })
 export class OwnersModule {}

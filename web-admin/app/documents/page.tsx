@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Upload, Download, PenLine } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal } from '@/components/ui';
 
 export default function DocumentsPage() {
   const router = useRouter();
@@ -16,6 +16,9 @@ export default function DocumentsPage() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [signFor, setSignFor] = useState<string | null>(null);
+  const [signerEmail, setSignerEmail] = useState('');
+  const [signerName, setSignerName] = useState('');
 
   useEffect(() => {
     if (!auth.get()) { router.replace('/login'); return; }
@@ -54,12 +57,16 @@ export default function DocumentsPage() {
     try { const url = await api.docDownloadUrl(id); window.open(url as any, '_blank'); }
     catch (e: any) { setErr(e.message); }
   };
-  const sign = async (id: string) => {
-    const email = window.prompt('Signer email'); if (!email) return;
-    const name = window.prompt('Signer name (optional)') || undefined;
-    setErr(''); setMsg('');
-    try { const r = await api.requestSignature(id, email, name); setMsg(`Signature requested — signing link: ${r.signUrl}`); await loadDocs(leaseId); }
-    catch (e: any) { setErr(e.message); }
+  const openSign = (id: string) => { setSignerEmail(''); setSignerName(''); setSignFor(id); };
+  const sign = async () => {
+    if (!signFor || !signerEmail) return;
+    setErr(''); setMsg(''); setBusy(true);
+    try {
+      const r = await api.requestSignature(signFor, signerEmail, signerName || undefined);
+      setSignFor(null);
+      setMsg(`Signature requested — signing link: ${r.signUrl}`);
+      await loadDocs(leaseId);
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
 
   if (!ready) return null;
@@ -104,7 +111,7 @@ export default function DocumentsPage() {
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
                       <Button variant="ghost" onClick={() => download(d.id)}><Download size={15} /> Download</Button>
-                      <Button variant="ghost" onClick={() => sign(d.id)}><PenLine size={15} /> Send to sign</Button>
+                      <Button variant="ghost" onClick={() => openSign(d.id)}><PenLine size={15} /> Send to sign</Button>
                     </div>
                   </td>
                 </tr>
@@ -114,6 +121,17 @@ export default function DocumentsPage() {
           </table>
         </div>
       </GlassCard>
+
+      <Modal open={!!signFor} onClose={() => setSignFor(null)} title="Send for e-signature"
+        footer={<>
+          <Button variant="ghost" onClick={() => setSignFor(null)} disabled={busy}>Cancel</Button>
+          <Button onClick={sign} loading={busy} disabled={!signerEmail}><PenLine size={15} /> Request signature</Button>
+        </>}>
+        <div className="space-y-4">
+          <Field label="Signer email"><input className="input" type="email" value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} placeholder="tenant@example.com" /></Field>
+          <Field label="Signer name (optional)"><input className="input" value={signerName} onChange={(e) => setSignerName(e.target.value)} /></Field>
+        </div>
+      </Modal>
     </div>
   );
 }

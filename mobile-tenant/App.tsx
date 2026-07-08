@@ -16,6 +16,7 @@ import { Logo, GradientBackground } from './src/ui';
 import LoginScreen from './src/screens/LoginScreen';
 import MainScreen from './src/screens/MainScreen';
 import MaintenanceScreen from './src/screens/MaintenanceScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 
 const Stack = createNativeStackNavigator();
 const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent' } };
@@ -65,6 +66,7 @@ function Shell() {
                   }}
                 />
                 <Stack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: 'Report an issue' }} />
+                <Stack.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
               </>
             ) : (
               <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />

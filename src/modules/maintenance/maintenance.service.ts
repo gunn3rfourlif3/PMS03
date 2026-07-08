@@ -71,9 +71,17 @@ export class MaintenanceService {
     return this.tenant.getRepository(Ticket).find({ order: { createdAt: 'DESC' } });
   }
 
-  /** All work orders for the vendor (manager view maps these onto tickets). */
-  listWorkOrders(): Promise<WorkOrder[]> {
-    return this.tenant.getRepository(WorkOrder).find({ order: { createdAt: 'DESC' } });
+  /** All work orders for the vendor, enriched with the assigned provider's name. */
+  listWorkOrders(): Promise<unknown[]> {
+    return this.tenant.getManager().query(`
+      SELECT w.id, w.ticket_id AS "ticketId", w.contractor_id AS "contractorId",
+             w.status, w.scheduled_for AS "scheduledFor", w.cost, w.notes,
+             w.expense_id AS "expenseId", w.created_at AS "createdAt",
+             sp.name AS "contractorName", sp.category AS "contractorCategory"
+      FROM work_orders w
+      LEFT JOIN service_providers sp ON sp.id = w.contractor_id
+      ORDER BY w.created_at DESC;
+    `);
   }
 
   async assign(ticketId: string, contractorId?: string, scheduledFor?: string): Promise<WorkOrder> {

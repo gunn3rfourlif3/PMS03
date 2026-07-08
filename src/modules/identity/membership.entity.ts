@@ -2,7 +2,7 @@ import { Entity, Column, Index } from 'typeorm';
 import { TenantEntity } from '@common/base.entity';
 
 export type Role =
-  | 'platform_admin' | 'vendor_owner' | 'property_manager' | 'tenant' | 'contractor';
+  | 'platform_admin' | 'vendor_owner' | 'property_manager' | 'tenant' | 'contractor' | 'owner';
 
 @Entity('memberships')
 @Index(['vendorId', 'userId'], { unique: true })

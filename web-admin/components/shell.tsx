@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark } from 'lucide-react';
 import { auth } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import { cn } from '@/lib/cn';
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/properties', label: 'Properties', icon: Building2 },
   { href: '/leases', label: 'Leases', icon: CalendarClock },
   { href: '/listings', label: 'Listings', icon: Tags },
   { href: '/applications', label: 'Applications', icon: ClipboardList },
@@ -19,7 +20,15 @@ const NAV = [
   { href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
   { href: '/api-keys', label: 'API keys', icon: KeyRound },
   { href: '/notifications', label: 'Notifications', icon: Bell },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
+];
+
+const PORTAL_NAV = [
+  { href: '/portal', label: 'Overview', icon: LayoutGrid },
+  { href: '/portal/statements', label: 'Statements', icon: Receipt },
+  { href: '/portal/properties', label: 'Properties', icon: Building2 },
+  { href: '/portal/banking', label: 'Banking', icon: Landmark },
 ];
 
 function BrandMark({ size = 34 }: { size?: number }) {
@@ -39,11 +48,11 @@ function BrandMark({ size = 34 }: { size?: number }) {
   );
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?: typeof NAV }) {
   const path = usePathname();
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon }) => {
+      {items.map(({ href, label, icon: Icon }) => {
         const active = path === href;
         return (
           <Link key={href} href={href} onClick={onNavigate}
@@ -89,6 +98,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   if (path === '/login') return <main className="min-h-screen">{children}</main>;
+  const portal = path.startsWith('/portal');
+  const nav = portal ? PORTAL_NAV : NAV;
 
   return (
     <div className="min-h-screen lg:pl-[264px]">
@@ -96,7 +107,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <aside className="glass-strong fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
         <div>
           <div className="px-2 py-3"><BrandMark /></div>
-          <div className="mt-4"><NavLinks /></div>
+          <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
         <div className="border-t border-white/40 pt-3"><SignOut /></div>
       </aside>
@@ -118,7 +129,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <BrandMark size={30} />
                 <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-white/40"><X size={18} /></button>
               </div>
-              <div className="mt-4"><NavLinks onNavigate={() => setOpen(false)} /></div>
+              <div className="mt-4"><NavLinks items={nav} onNavigate={() => setOpen(false)} /></div>
             </div>
             <div className="border-t border-white/40 pt-3"><SignOut onDone={() => setOpen(false)} /></div>
           </div>

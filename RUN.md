@@ -6,6 +6,23 @@ Do the **backend first** — everything else talks to it — then start whicheve
 
 ---
 
+## What's inside
+
+Four surfaces over one NestJS API (multi-vendor, per-vendor white-label branding):
+
+| Surface | Who | Highlights |
+| --- | --- | --- |
+| Web back-office | Agency staff | Dashboard, properties/units, leases & renewals, listings & applications, owners, service providers, reports/exports, documents & e-sign, inspections, API keys, notifications, **messaging**, settings/branding |
+| Owner portal (web) | Property owners | `/portal` — statements, payouts, properties, banking (role-scoped view of the same console) |
+| Tenant app (Expo) | Tenants | Home, pay rent, documents, maintenance, **messaging**, profile |
+| Landlord app (Expo) | Agency staff on the go | Dashboard, approvals, maintenance (assign to service providers), **messaging**, profile |
+
+Cross-cutting: passwordless OTP auth, Postgres row-level security per vendor,
+double-entry ledger, VAT invoicing, owner statements + provider-gated split
+payouts, and in-app messaging between tenants and staff.
+
+---
+
 ## 1. Backend + database (the API)
 
 ```powershell
@@ -24,7 +41,9 @@ policies, and demo data:
 Get-Content scripts/setup-app-role.sql | docker compose exec -T postgres psql -U pms -d pms
 
 npm run migration:run           # tables + RLS policies (re-run whenever there are new migrations)
-npm run seed                    # demo vendor, owner, unit, tenant
+npm run seed                    # full demo: vendors, owners, properties, leases,
+                                # invoices, tickets/work-orders, statements, listings,
+                                # applications, service providers, messages
 ```
 
 **Start the API** (leave this window running):
@@ -77,6 +96,15 @@ console, and enter it.
 | --- | --- |
 | Web console & landlord app | `owner@demo.test` |
 | Tenant app | `thabo@demo.test` |
+| Owner portal (web) | `sipho@owner.demo.test` |
+
+The **owner portal** is a role-scoped area of the web console: signing in as a
+property owner (role `owner`) lands on `/portal` — showing only their statements,
+payouts, properties and banking. Staff logins see the full back-office as before.
+
+**Messaging demo:** sign into the tenant app as `thabo@demo.test` (seeded threads
+incl. the geyser leak) and reply from the web console or landlord app as
+`owner@demo.test` — both sides see unread markers and read receipts.
 
 ---
 
@@ -117,7 +145,21 @@ cd C:\xampp\htdocs\development\PMS0.3\web-admin;  npm run dev
 cd C:\xampp\htdocs\development\PMS0.3\mobile-tenant;   npm start
 ```
 
-- Re-run `npm run migration:run` **only** when there are new migrations.
+**Or start everything at once** with the launcher — it frees the ports, brings up
+Docker, and opens each app in its own window:
+
+```powershell
+cd C:\xampp\htdocs\development\PMS0.3
+.\scripts\start-all.ps1            # start the whole stack
+.\scripts\start-all.ps1 -Setup     # first run / after new migrations (install + migrate + seed)
+.\scripts\start-all.ps1 -NoMobile  # API + web only
+```
+
+> If PowerShell blocks the script ("running scripts is disabled"), allow it for
+> your user once: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+- Re-run `npm run migration:run` (then `npm run seed` + restart the API) after pulling
+  new migrations — e.g. the messaging and owner-portal tables were added recently.
 - Re-run `npm install` / `npx expo install` **only** when packages were added.
 - Make sure Docker is running (`docker compose up -d`) before starting the API.
 

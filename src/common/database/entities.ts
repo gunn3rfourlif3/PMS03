@@ -30,6 +30,8 @@ import { WorkOrder } from '@modules/maintenance/work-order.entity';
 import { ApiKey } from '@modules/api-keys/api-key.entity';
 import { ServiceProvider } from '@modules/service-providers/service-provider.entity';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
+import { Conversation } from '@modules/comms/conversation.entity';
+import { Message } from '@modules/comms/message.entity';
 
 export const ENTITIES = [
   Vendor,
@@ -59,4 +61,6 @@ export const ENTITIES = [
   ApiKey,
   ServiceProvider,
   OtpChallenge,
+  Conversation,
+  Message,
 ];

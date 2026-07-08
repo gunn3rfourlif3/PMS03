@@ -69,6 +69,7 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
         <Tile t={t} icon="card-outline" label="Pay" onPress={() => goTab('pay')} />
         <Tile t={t} icon="construct-outline" label="Log ticket" onPress={() => navigation.navigate('Maintenance')} />
         <Tile t={t} icon="document-text-outline" label="Lease" onPress={() => goTab('docs')} />
+        <Tile t={t} icon="chatbubbles-outline" label="Messages" onPress={() => navigation.navigate('Messages')} />
       </View>
 
       <Text style={s.section}>Recent</Text>

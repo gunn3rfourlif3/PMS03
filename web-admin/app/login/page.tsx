@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, auth } from '@/lib/api';
+import { api, auth, isOwner } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button, Field } from '@/components/ui';
 
@@ -23,7 +23,7 @@ export default function LoginPage() {
     setErr(''); setBusy(true);
     try {
       const { accessToken } = await api.verifyOtp(destination.trim(), code.trim());
-      auth.set(accessToken); router.replace('/');
+      auth.set(accessToken); router.replace(isOwner() ? '/portal' : '/');
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
 

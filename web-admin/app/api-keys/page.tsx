@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Copy, Trash2 } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, ConfirmModal } from '@/components/ui';
 
 const SCOPES = ['read', 'write'];
 const statusOf = (k: any): { label: string; tone: 'success' | 'danger' | 'muted' } => {
@@ -21,6 +21,8 @@ export default function ApiKeysPage() {
   const [created, setCreated] = useState<any>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [revokeId, setRevokeId] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
   const load = async () => { setErr(''); try { setKeys(await api.listApiKeys()); } catch (e: any) { setErr(e.message); } };
@@ -32,9 +34,11 @@ export default function ApiKeysPage() {
     try { const r = await api.createApiKey(name, scopes); setCreated(r); setName(''); await load(); }
     catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
-  const revoke = async (id: string) => {
-    if (!window.confirm('Revoke this key? Apps using it will stop working immediately.')) return;
-    setErr(''); try { await api.revokeApiKey(id); await load(); } catch (e: any) { setErr(e.message); }
+  const revoke = async () => {
+    if (!revokeId) return;
+    setErr(''); setRevoking(true);
+    try { await api.revokeApiKey(revokeId); setRevokeId(null); await load(); }
+    catch (e: any) { setErr(e.message); } finally { setRevoking(false); }
   };
   const copy = (v: string) => navigator.clipboard?.writeText(v);
 
@@ -91,7 +95,7 @@ export default function ApiKeysPage() {
                     <td className="px-5 py-3 text-muted">{(k.scopes ?? []).join(', ') || '—'}</td>
                     <td className="px-5 py-3"><Badge tone={st.tone}>{st.label}</Badge></td>
                     <td className="px-5 py-3 text-muted">{k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '—'}</td>
-                    <td className="px-5 py-3">{!k.revokedAt && <Button variant="ghost" onClick={() => revoke(k.id)}><Trash2 size={15} /> Revoke</Button>}</td>
+                    <td className="px-5 py-3">{!k.revokedAt && <Button variant="ghost" onClick={() => setRevokeId(k.id)}><Trash2 size={15} /> Revoke</Button>}</td>
                   </tr>
                 );
               })}
@@ -100,6 +104,17 @@ export default function ApiKeysPage() {
           </table>
         </div>
       </GlassCard>
+
+      <ConfirmModal
+        open={!!revokeId}
+        onClose={() => setRevokeId(null)}
+        onConfirm={revoke}
+        loading={revoking}
+        tone="danger"
+        confirmLabel="Revoke key"
+        title="Revoke this key?"
+        message="Apps using it will stop working immediately. This can't be undone."
+      />
     </div>
   );
 }

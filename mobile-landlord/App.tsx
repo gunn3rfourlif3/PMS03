@@ -17,6 +17,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import ApprovalsScreen from './src/screens/ApprovalsScreen';
 import TicketsScreen from './src/screens/TicketsScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import GlassTabBar from './src/components/GlassTabBar';
 
@@ -76,6 +77,11 @@ function Shell() {
                 name="Tickets"
                 component={TicketsScreen}
                 options={{ title: 'Maintenance', tabBarIcon: ({ color, size }) => <Ionicons name="construct-outline" color={color} size={size} /> }}
+              />
+              <Tab.Screen
+                name="Messages"
+                component={MessagesScreen}
+                options={{ title: 'Messages', tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" color={color} size={size} /> }}
               />
               <Tab.Screen
                 name="Profile"

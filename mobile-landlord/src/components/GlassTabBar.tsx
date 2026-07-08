@@ -9,6 +9,7 @@ const ICONS: Record<string, [keyof typeof Ionicons.glyphMap, keyof typeof Ionico
   Dashboard: ['grid-outline', 'grid'],
   Approvals: ['people-outline', 'people'],
   Tickets: ['construct-outline', 'construct'],
+  Messages: ['chatbubbles-outline', 'chatbubbles'],
   Profile: ['person-outline', 'person'],
 };
 

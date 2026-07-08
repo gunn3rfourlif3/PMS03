@@ -78,6 +78,24 @@ async function main() {
              VALUES ($1,$2,$3,'eft',$4,'succeeded',$5,$6::jsonb) ON CONFLICT (gateway_ref) DO NOTHING`,
       [vendor, tenantId, amount, ref, now.toISOString(), JSON.stringify([{ invoiceId, amount }])]);
   }
+  async function conversation(vendor: string, tenantId: string, subject: string, msgs: { role: 'tenant' | 'staff'; body: string; sender: string }[], status = 'open'): Promise<void> {
+    const existing = await first(`SELECT id FROM conversations WHERE vendor_id=$1 AND tenant_user_id=$2 AND subject=$3`, [vendor, tenantId, subject]);
+    if (existing) return;
+    const last = msgs[msgs.length - 1];
+    const preview = last.body.length > 120 ? last.body.slice(0, 117) + '…' : last.body;
+    const staffRead = status === 'closed' || last.role === 'staff' ? now.toISOString() : null;
+    const tenantRead = last.role === 'tenant' ? now.toISOString() : null;
+    const conv = await first(`INSERT INTO conversations (vendor_id,subject,tenant_user_id,status,last_message_at,last_message_preview,staff_last_read_at,tenant_last_read_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [vendor, subject, tenantId, status, now.toISOString(), preview, staffRead, tenantRead]);
+    let i = 0;
+    for (const m of msgs) {
+      const ts = new Date(now.getTime() - (msgs.length - i) * 3600 * 1000).toISOString();
+      await q(`INSERT INTO messages (vendor_id,conversation_id,sender_user_id,sender_role,body,created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
+        [vendor, conv.id, m.sender, m.role, m.body, ts]);
+      i++;
+    }
+  }
   async function statement(vendor: string, ownerId: string, period: string, gross: number, fee: number, exp: number, net: number, status: string): Promise<string> {
     await q(`INSERT INTO owner_statements (vendor_id,owner_id,period,gross_collected,management_fee,expenses,net_payout,status)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT (vendor_id,owner_id,period) DO NOTHING`, [vendor, ownerId, period, gross, fee, exp, net, status]);
@@ -145,6 +163,11 @@ async function main() {
   const sipho = await owner(V, 'Sipho Dlamini', 0.08);
   const acme = await owner(V, 'Acme Holdings', 0.10);
 
+  // owner-portal login (property investor signs in to see their statements)
+  const siphoUser = await user('Sipho Dlamini', 'sipho@owner.demo.test', '+27820000020');
+  await membership(V, siphoUser, 'owner');
+  await q(`UPDATE owners SET user_id = $2 WHERE id = $1`, [sipho, siphoUser]);
+
   // properties + units
   const demoCourt = await property(V, 'Demo Court', null);
   const sandton = await property(V, 'Sandton Heights', sipho);
@@ -197,6 +220,7 @@ async function main() {
   // owner statements + payout
   const stSipho = await statement(V, sipho, prev, 13800, 1104, 0, 12696, 'paid_out');
   await payout(`seed-payout-sipho-${prev}`, V, sipho, stSipho, 12696);
+  await statement(V, sipho, cur, 13800, 1104, 0, 12696, 'finalized');       // owner portal: awaiting payout
   await statement(V, acme, cur, 10000, 1000, 0, 9000, 'finalized');                         // ready to pay
 
   // listings + applicant funnel (submitted / screening / approved / rejected)
@@ -231,6 +255,22 @@ async function main() {
   await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [sipho, JSON.stringify({ bankName: 'FNB', accountHolder: 'Sipho Dlamini', accountNumber: '62012345678', branchCode: '250655', accountType: 'Cheque' })]);
   await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [acme, JSON.stringify({ bankName: 'Standard Bank', accountHolder: 'Acme Holdings (Pty) Ltd', accountNumber: '001234567', branchCode: '051001', accountType: 'Business' })]);
 
+  // conversations / in-app messaging
+  await conversation(V, thabo, 'Geyser leaking in the ceiling', [
+    { role: 'tenant', sender: thabo, body: 'Hi, the geyser is leaking into the ceiling of the bathroom. Water is coming through the light fitting.' },
+    { role: 'staff', sender: ownerUser, body: 'Thanks Thabo — that sounds urgent. I have logged a maintenance ticket and a plumber will be in touch today. Please switch off the geyser at the DB board in the meantime.' },
+    { role: 'tenant', sender: thabo, body: 'Done, switched it off. Thank you!' },
+  ]);
+  await conversation(V, kagiso, 'Parking bay allocation', [
+    { role: 'tenant', sender: kagiso, body: 'Could I please get a second parking bay? We now have two cars.' },
+    { role: 'staff', sender: ownerUser, body: 'Let me check availability with the body corporate and revert. There may be a small monthly charge.' },
+  ]);
+  await conversation(V, lerato, 'Lease renewal query', [
+    { role: 'tenant', sender: lerato, body: 'My lease is up for renewal soon — what would the new rent be?' },
+    { role: 'staff', sender: ownerUser, body: 'We are proposing a 6% escalation. I will send the renewal document through the app for e-signature this week.' },
+    { role: 'tenant', sender: lerato, body: 'That works, thank you for letting me know.' },
+  ], 'closed');
+
   // service providers
   await provider(V, 'FixIt Plumbing', 'plumbing', 'Sipho M', '+27831110001', 'fixit@example.com');
   await provider(V, 'BrightSpark Electrical', 'electrical', 'Nadia P', '+27831110002', 'spark@example.com');
@@ -250,7 +290,8 @@ async function main() {
   console.log('\nLogins (OTP prints to the API console):');
   console.log('  owner@demo.test   — web console + landlord app');
   console.log('  thabo@demo.test   — tenant app (has a due invoice + a resolved ticket to approve)');
-  console.log('  lerato@ / naledi@ / johan@ / kagiso@demo.test — more tenants\n');
+  console.log('  lerato@ / naledi@ / johan@ / kagiso@demo.test — more tenants');
+  console.log('  sipho@owner.demo.test — owner portal (statements, payouts, banking)\n');
 
   await dataSource.destroy();
 }

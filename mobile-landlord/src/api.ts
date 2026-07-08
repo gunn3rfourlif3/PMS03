@@ -46,7 +46,14 @@ export const api = {
   // Maintenance / ticketing
   tickets: () => req('/maintenance/tickets'),
   workOrders: () => req('/maintenance/work-orders'),
-  assignTicket: (id: string) => req(`/maintenance/tickets/${id}/work-order`, { method: 'POST', body: JSON.stringify({}) }),
+  assignTicket: (id: string, contractorId?: string) => req(`/maintenance/tickets/${id}/work-order`, { method: 'POST', body: JSON.stringify({ contractorId }) }),
+  providers: () => req('/service-providers'),
   startWorkOrder: (id: string) => req(`/maintenance/work-orders/${id}/progress`, { method: 'POST' }),
   completeWorkOrder: (id: string, cost: number) => req(`/maintenance/work-orders/${id}/complete`, { method: 'POST', body: JSON.stringify({ cost }) }),
+
+  // Messaging (staff)
+  messageInbox: () => req('/messages/inbox'),
+  messageThread: (id: string) => req(`/messages/conversations/${id}`),
+  messageReply: (id: string, body: string) => req(`/messages/conversations/${id}/reply`, { method: 'POST', body: JSON.stringify({ body }) }),
+  messageSetStatus: (id: string, status: 'open' | 'closed') => req(`/messages/conversations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
 };

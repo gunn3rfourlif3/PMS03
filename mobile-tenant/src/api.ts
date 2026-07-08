@@ -66,4 +66,12 @@ export const api = {
   createTicket: (b: { unitId: string; category: string; description: string; priority?: string }) =>
     req('/maintenance/tickets', { method: 'POST', body: JSON.stringify(b) }),
   approveTicket: (id: string) => req(`/maintenance/tickets/${id}/approve`, { method: 'POST' }),
+
+  // Messaging
+  myMessages: () => req('/messages/mine'),
+  messageThread: (id: string) => req(`/messages/conversations/${id}`),
+  startConversation: (subject: string, body: string) =>
+    req('/messages/conversations', { method: 'POST', body: JSON.stringify({ subject, body }) }),
+  messageReply: (id: string, body: string) =>
+    req(`/messages/conversations/${id}/reply`, { method: 'POST', body: JSON.stringify({ body }) }),
 };

@@ -9,6 +9,17 @@ export const auth = {
   clear: () => window.localStorage.removeItem(KEY),
 };
 
+/** Decode the roles claim from the stored JWT (no verification — display only). */
+export function rolesFromToken(): string[] {
+  const t = auth.get();
+  if (!t) return [];
+  try {
+    const payload = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return Array.isArray(payload.roles) ? payload.roles : [];
+  } catch { return []; }
+}
+export const isOwner = () => rolesFromToken().includes('owner');
+
 async function req(path: string, opts: RequestInit = {}): Promise<any> {
   const token = auth.get();
   const res = await fetch(`${API_BASE}${path}`, {
@@ -42,6 +53,14 @@ export const api = {
     req('/billing/run', { method: 'POST', body: JSON.stringify({ period, dueDate }) }),
 
   units: () => req('/properties/units'),
+  listProperties: () => req('/properties'),
+  createProperty: (b: any) => req('/properties', { method: 'POST', body: JSON.stringify(b) }),
+  updateProperty: (id: string, b: any) => req(`/properties/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  deleteProperty: (id: string) => req(`/properties/${id}`, { method: 'DELETE' }),
+  unitsForProperty: (propertyId: string) => req(`/properties/units?propertyId=${propertyId}`),
+  createUnit: (propertyId: string, b: any) => req(`/properties/${propertyId}/units`, { method: 'POST', body: JSON.stringify(b) }),
+  updateUnit: (id: string, b: any) => req(`/properties/units/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  deleteUnit: (id: string) => req(`/properties/units/${id}`, { method: 'DELETE' }),
   publishedListings: () => req('/listings/published'),
   allListings: () => req('/listings'),
   createListing: (b: { unitId: string; advertisedRent: number; availableFrom: string; description?: string }) =>
@@ -92,6 +111,18 @@ export const api = {
     req(`/owners/${ownerId}/statements/${period}`, { method: 'POST' }),
   payoutStatement: (statementId: string) =>
     req(`/owners/statements/${statementId}/payout`, { method: 'POST' }),
+
+  portalSummary: () => req('/portal/summary'),
+  portalProperties: () => req('/portal/properties'),
+  portalStatements: () => req('/portal/statements'),
+  portalBanking: () => req('/portal/banking'),
+  updatePortalBanking: (b: any) => req('/portal/banking', { method: 'PUT', body: JSON.stringify(b) }),
+
+  messageInbox: () => req('/messages/inbox'),
+  messageThread: (id: string) => req(`/messages/conversations/${id}`),
+  messageReply: (id: string, body: string) => req(`/messages/conversations/${id}/reply`, { method: 'POST', body: JSON.stringify({ body }) }),
+  messageSetStatus: (id: string, status: 'open' | 'closed') => req(`/messages/conversations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+  messageUnread: () => req('/messages/unread-count'),
 
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
