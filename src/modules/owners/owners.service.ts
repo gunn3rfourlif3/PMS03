@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { Owner } from './owner.entity';
+import { maskBanking } from '@common/security/pii-crypto';
 
 @Injectable()
 export class OwnersService {
@@ -25,7 +26,16 @@ export class OwnersService {
     return repo.save(owner);
   }
 
-  list(): Promise<Owner[]> {
-    return this.tenant.getRepository(Owner).find({ order: { createdAt: 'DESC' } });
+  /** Owner directory. Account numbers are masked here — full details are only
+   *  returned by getBanking() on an explicit, manager-gated request. */
+  async list(): Promise<Owner[]> {
+    const owners = await this.tenant.getRepository(Owner).find({ order: { createdAt: 'DESC' } });
+    return owners.map((o) => ({ ...o, banking: maskBanking(o.banking as any) })) as unknown as Owner[];
+  }
+
+  /** Full (unmasked) banking for a single owner — for the banking editor. */
+  async getBanking(id: string): Promise<Record<string, unknown>> {
+    const owner = await this.get(id);
+    return owner.banking ?? {};
   }
 }

@@ -103,6 +103,7 @@ export const api = {
   renewLease: (id: string, escalationPct: number, months: number) =>
     req(`/leasing/${id}/renew`, { method: 'POST', body: JSON.stringify({ escalationPct, months }) }),
   updateOwnerBanking: (id: string, banking: any) => req(`/owners/${id}/banking`, { method: 'PUT', body: JSON.stringify(banking) }),
+  ownerBanking: (id: string) => req(`/owners/${id}/banking`),
   listProviders: (category?: string) => req(`/service-providers${category ? `?category=${category}` : ''}`),
   createProvider: (b: any) => req('/service-providers', { method: 'POST', body: JSON.stringify(b) }),
   updateProvider: (id: string, b: any) => req(`/service-providers/${id}`, { method: 'PUT', body: JSON.stringify(b) }),

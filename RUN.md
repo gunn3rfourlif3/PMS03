@@ -21,6 +21,11 @@ Cross-cutting: passwordless OTP auth, Postgres row-level security per vendor,
 double-entry ledger, VAT invoicing, owner statements + provider-gated split
 payouts, and in-app messaging between tenants and staff.
 
+Owner **banking details are encrypted at rest** (AES-256-GCM) — set a stable
+`PII_ENCRYPTION_KEY` in `.env` for production; blank uses an insecure dev key.
+Staff see masked account numbers in the owners list; full numbers are only
+returned on an explicit, manager-gated request.
+
 ---
 
 ## 1. Backend + database (the API)

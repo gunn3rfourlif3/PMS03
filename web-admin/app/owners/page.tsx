@@ -39,7 +39,11 @@ export default function OwnersPage() {
     try { await api.generateStatement(selected.id, period); await open(selected); }
     catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
-  const openBanking = (o: any) => { setBankingOwner(o); setBank(o.banking ?? {}); };
+  const openBanking = async (o: any) => {
+    setBankingOwner(o);
+    // The list only carries a masked account number; fetch the full details to edit.
+    try { setBank(await api.ownerBanking(o.id)); } catch { setBank(o.banking ?? {}); }
+  };
   const setB = (k: string, v: string) => setBank((b: any) => ({ ...b, [k]: v }));
   const saveBanking = async () => {
     setBusy(true); setErr('');

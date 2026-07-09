@@ -29,6 +29,11 @@ export class OwnersController {
     return this.owners.updateBanking(ownerId, body);
   }
 
+  @Get(':ownerId/banking')
+  banking(@Param('ownerId') ownerId: string) {
+    return this.owners.getBanking(ownerId);
+  }
+
   @Get(':ownerId/statements')
   listStatements(@Param('ownerId') ownerId: string) {
     return this.statements.listForOwner(ownerId);

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import dataSource from '../src/common/database/data-source';
+import { encryptJson } from '../src/common/security/pii-crypto';
 
 /**
  * Comprehensive demo seed — exercises every UI scenario.
@@ -252,8 +253,8 @@ async function main() {
   await notification(V, johan, 'email', 'rent_invoice_issued', 'johan@demo.test', 'delivered');
 
   // owner banking (payout details)
-  await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [sipho, JSON.stringify({ bankName: 'FNB', accountHolder: 'Sipho Dlamini', accountNumber: '62012345678', branchCode: '250655', accountType: 'Cheque' })]);
-  await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [acme, JSON.stringify({ bankName: 'Standard Bank', accountHolder: 'Acme Holdings (Pty) Ltd', accountNumber: '001234567', branchCode: '051001', accountType: 'Business' })]);
+  await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [sipho, JSON.stringify(encryptJson({ bankName: 'FNB', accountHolder: 'Sipho Dlamini', accountNumber: '62012345678', branchCode: '250655', accountType: 'Cheque' }))]);
+  await q(`UPDATE owners SET banking = $2::jsonb WHERE id = $1`, [acme, JSON.stringify(encryptJson({ bankName: 'Standard Bank', accountHolder: 'Acme Holdings (Pty) Ltd', accountNumber: '001234567', branchCode: '051001', accountType: 'Business' }))]);
 
   // conversations / in-app messaging
   await conversation(V, thabo, 'Geyser leaking in the ceiling', [
