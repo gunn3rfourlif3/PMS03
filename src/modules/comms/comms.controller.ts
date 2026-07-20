@@ -1,4 +1,8 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Sse, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
+import { CommsEvents } from './comms.events';
 import { CommsService, Principal } from './comms.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
@@ -7,11 +11,36 @@ import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
 
 @Controller('messages')
 export class CommsController {
-  constructor(private readonly service: CommsService) {}
+  constructor(
+    private readonly service: CommsService,
+    private readonly events: CommsEvents,
+    private readonly jwt: JwtService,
+  ) {}
 
   @Get('health')
   health(): { status: string } {
     return { status: this.service.ping() };
+  }
+
+  /**
+   * Live message stream (Server-Sent Events). EventSource can't set headers, so
+   * the JWT is passed as ?token= and verified here. Staff receive all of their
+   * vendor's activity; a tenant receives only their own conversations'.
+   */
+  @Sse('stream')
+  stream(@Query('token') token: string): Observable<{ data: unknown }> {
+    let principal: { userId: string; vendorId: string; roles: string[] };
+    try {
+      const p: any = this.jwt.verify(token, { secret: process.env.JWT_SECRET ?? 'change-me-in-prod' });
+      principal = { userId: p.sub ?? p.userId, vendorId: p.vendorId, roles: p.roles ?? [] };
+    } catch {
+      throw new UnauthorizedException('Invalid stream token');
+    }
+    const staff = (principal.roles ?? []).some((r) => r === 'vendor_owner' || r === 'property_manager');
+    return this.events.stream().pipe(
+      filter((e) => e.vendorId === principal.vendorId && (staff || e.tenantUserId === principal.userId)),
+      map((e) => ({ data: e })),
+    );
   }
 
   // ---- Any authenticated user ----

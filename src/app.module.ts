@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ObservabilityModule } from './common/observability/observability.module';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
@@ -41,6 +42,7 @@ import { EsignModule } from './providers/esign/esign.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ObservabilityModule,
     // Global rate limit: 120 requests / minute / IP. (Use a Redis storage in
     // multi-instance production so the limit is shared across instances.)
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),

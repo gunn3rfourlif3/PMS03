@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { Conversation } from './conversation.entity';
 import { Message, SenderRole } from './message.entity';
+import { CommsEvents } from './comms.events';
 
 export interface Principal {
   userId: string;
@@ -19,7 +20,10 @@ const preview = (body: string) => (body.length > 120 ? body.slice(0, 117) + '…
  */
 @Injectable()
 export class CommsService {
-  constructor(private readonly tenant: TenantContextService) {}
+  constructor(
+    private readonly tenant: TenantContextService,
+    private readonly events: CommsEvents,
+  ) {}
 
   ping(): string {
     return 'Comms module ready';
@@ -143,6 +147,7 @@ export class CommsService {
     // Sender has implicitly read their own thread up to now.
     if (role === 'staff') c.staffLastReadAt = now; else c.tenantLastReadAt = now;
     await this.convos().save(c);
+    this.events.publish({ vendorId: c.vendorId, tenantUserId: c.tenantUserId, conversationId: c.id, at: now.toISOString() });
     return msg;
   }
 

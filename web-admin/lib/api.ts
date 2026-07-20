@@ -20,6 +20,9 @@ export function rolesFromToken(): string[] {
 }
 export const isOwner = () => rolesFromToken().includes('owner');
 
+/** SSE stream URL for live message updates (token in query — EventSource can't set headers). */
+export const messageStreamUrl = () => `${API_BASE}/messages/stream?token=${encodeURIComponent(auth.get() ?? '')}`;
+
 async function req(path: string, opts: RequestInit = {}): Promise<any> {
   const token = auth.get();
   const res = await fetch(`${API_BASE}${path}`, {

@@ -12,6 +12,7 @@ export interface CollectRequest {
   amount: number;
   currency: string; // 'ZAR'
   method?: 'eft' | 'card';
+  payerEmail?: string;
 }
 
 export interface CollectResult {
@@ -39,7 +40,8 @@ export interface PayoutResult {
   status: 'scheduled' | 'paid' | 'failed';
 }
 
-export const PAYMENT_PROVIDER = Symbol('PAYMENT_PROVIDER');
+export const PAYMENT_PROVIDER = Symbol('PAYMENT_PROVIDER'); // collection (money-in)
+export const PAYOUT_PROVIDER = Symbol('PAYOUT_PROVIDER');   // disbursement (money-out)
 
 export interface PaymentProvider {
   readonly name: string;

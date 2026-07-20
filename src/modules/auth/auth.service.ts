@@ -25,6 +25,8 @@ import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
 export class AuthService {
   private readonly secret = process.env.JWT_SECRET ?? 'change-me-in-prod';
   private readonly ttl = Number(process.env.OTP_TTL_SECONDS ?? 300);
+  /** Max wrong guesses before a challenge is burned (anti brute-force). */
+  private readonly maxAttempts = Number(process.env.OTP_MAX_ATTEMPTS ?? 5);
 
   constructor(
     @InjectRepository(OtpChallenge) private readonly otps: Repository<OtpChallenge>,
@@ -53,8 +55,16 @@ export class AuthService {
     if (!challenge || challenge.consumedAt || isExpired(challenge.expiresAt)) {
       throw new UnauthorizedException('OTP invalid or expired');
     }
+    // Anti brute-force: a challenge is burned after too many wrong guesses, so a
+    // 6-digit code can't be walked through by repeated requests.
+    if (challenge.attempts >= this.maxAttempts) {
+      challenge.consumedAt = new Date();
+      await this.otps.save(challenge);
+      throw new UnauthorizedException('OTP invalid or expired');
+    }
     if (!verifyOtp(code, challenge.codeHash, this.secret)) {
       challenge.attempts += 1;
+      if (challenge.attempts >= this.maxAttempts) challenge.consumedAt = new Date();
       await this.otps.save(challenge);
       throw new UnauthorizedException('OTP invalid or expired');
     }

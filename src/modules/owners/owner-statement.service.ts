@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { LedgerService } from '@modules/accounting/ledger.service';
 import { AccountingService } from '@modules/accounting/accounting.service';
-import { PAYMENT_PROVIDER } from '@providers/payment/payment-provider.interface';
+import { PAYOUT_PROVIDER } from '@providers/payment/payment-provider.interface';
 import type { PaymentProvider } from '@providers/payment/payment-provider.interface';
 import { ExpensesService } from '@modules/expenses/expenses.service';
 import { Owner } from './owner.entity';
@@ -27,7 +27,7 @@ export class OwnerStatementService {
     private readonly ledger: LedgerService,
     private readonly accounting: AccountingService,
     private readonly expenses: ExpensesService,
-    @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
+    @Inject(PAYOUT_PROVIDER) private readonly provider: PaymentProvider,
   ) {}
 
   /** Sum of succeeded payments for the owner's leases in the given period. */

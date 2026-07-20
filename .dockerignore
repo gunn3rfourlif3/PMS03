@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.github
+mobile-tenant
+mobile-landlord
+web-admin/node_modules
+web-admin/.next
+**/*.log
+.env
+.env.*
+!.env.example
+tsconfig.*check*.json

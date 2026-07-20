@@ -184,6 +184,14 @@ cd C:\xampp\htdocs\development\PMS0.3\scripts\api-tests
 
 ---
 
+## Deployment (CI/CD)
+
+CI/CD, Docker images, health probes and required production env vars are
+documented in **`DEPLOY.md`**. In short: GitHub Actions runs tests + builds on
+every PR, and a version tag builds and publishes container images to GHCR.
+
+---
+
 ## Troubleshooting
 
 - **`Module not found` / build error in web-admin** — run `npm install` in `web-admin` (Tailwind + lucide-react aren't installed yet).

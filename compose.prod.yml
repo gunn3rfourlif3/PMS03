@@ -1,0 +1,50 @@
+# Production-style stack: API + web console + Postgres + Redis.
+# Pull pre-built images (from CI) or `docker compose -f compose.prod.yml up --build`.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pms}
+      POSTGRES_DB: pms
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: { context: ., dockerfile: Dockerfile }
+    image: ghcr.io/your-org/pms-api:latest
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://pms:${POSTGRES_PASSWORD:-pms}@postgres:5432/pms
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?set PII_ENCRYPTION_KEY}
+    ports: ["3000:3000"]
+
+  web:
+    build:
+      context: ./web-admin
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:3000/api}
+    image: ghcr.io/your-org/pms-web:latest
+    depends_on: [api]
+    ports: ["3001:3001"]
+
+volumes:
+  pgdata:

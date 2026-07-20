@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, CheckCircle2, RotateCcw, Inbox, ChevronLeft } from 'lucide-react';
-import { api, auth } from '@/lib/api';
+import { api, auth, messageStreamUrl } from '@/lib/api';
 import { GlassCard, PageHeader, Badge, Button, EmptyState } from '@/components/ui';
 
 const when = (d?: string) => (d ? new Date(d).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
@@ -18,6 +18,8 @@ export default function MessagesPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const endRef = useRef<HTMLDivElement>(null);
+  const activeIdRef = useRef<string | null>(null);
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
 
   const loadInbox = () => api.messageInbox().then(setRows).catch((e) => setErr(e.message));
 
@@ -25,6 +27,23 @@ export default function MessagesPage() {
     if (!auth.get()) { router.replace('/login'); return; }
     setReady(true);
     loadInbox();
+  }, []);
+
+  // Live updates via Server-Sent Events: refresh the inbox (and the open thread).
+  useEffect(() => {
+    if (!auth.get()) return;
+    const es = new EventSource(messageStreamUrl());
+    es.onmessage = (ev) => {
+      loadInbox();
+      try {
+        const data = JSON.parse(ev.data);
+        if (data?.conversationId && data.conversationId === activeIdRef.current) {
+          api.messageThread(data.conversationId).then(setThread).catch(() => {});
+        }
+      } catch { /* ignore keep-alives */ }
+    };
+    es.onerror = () => { /* browser auto-reconnects */ };
+    return () => es.close();
   }, []);
 
   const open = async (id: string) => {
