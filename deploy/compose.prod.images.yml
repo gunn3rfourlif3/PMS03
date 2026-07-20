@@ -1,0 +1,69 @@
+# Registry-based production stack — pulls pre-built images from GHCR (built by
+# .github/workflows/deploy.yml) instead of building on the server.
+# The SSH deploy job exports API_IMAGE / WEB_IMAGE before running this.
+#
+#   API_IMAGE=ghcr.io/OWNER/REPO-api:1.2.3 WEB_IMAGE=ghcr.io/OWNER/REPO-web:1.2.3 \
+#   docker compose -f deploy/compose.prod.images.yml --env-file deploy/.env.prod up -d
+#
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [web, api]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: pms
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U pms"], interval: 10s, timeout: 5s, retries: 5 }
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 10s, timeout: 5s, retries: 5 }
+
+  api:
+    image: ${API_IMAGE:?set API_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://pms:${POSTGRES_PASSWORD}@postgres:5432/pms
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?set PII_ENCRYPTION_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
+      OTP_CHANNEL: ${OTP_CHANNEL:-email}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY:-}
+      SENDGRID_FROM: ${SENDGRID_FROM:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM: ${TWILIO_FROM:-}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-payfast}
+      PAYOUT_PROVIDER: ${PAYOUT_PROVIDER:-paystack}
+      PAYFAST_MERCHANT_ID: ${PAYFAST_MERCHANT_ID:-}
+      PAYFAST_MERCHANT_KEY: ${PAYFAST_MERCHANT_KEY:-}
+      PAYFAST_PASSPHRASE: ${PAYFAST_PASSPHRASE:-}
+      PAYFAST_SANDBOX: ${PAYFAST_SANDBOX:-false}
+      STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
+
+  web:
+    image: ${WEB_IMAGE:?set WEB_IMAGE}
+    restart: unless-stopped
+    depends_on: [api]
+
+volumes: { pgdata: {}, redisdata: {}, caddy_data: {}, caddy_config: {} }

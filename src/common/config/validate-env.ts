@@ -24,9 +24,15 @@ export function validateEnv(): void {
   require('DATABASE_URL');
   require('REDIS_URL');
 
-  // OTP codes must never be printed to logs in production.
-  if ((process.env.OTP_CHANNEL ?? 'console') === 'console') {
-    (isProd ? errors : warns).push('OTP_CHANNEL=console prints one-time codes to the logs — configure a real SMS/email channel');
+  // OTP codes must never be printed to logs in production, and the chosen
+  // channel must actually have a provider configured to deliver them.
+  const otpChannel = process.env.OTP_CHANNEL ?? 'console';
+  if (otpChannel === 'console') {
+    (isProd ? errors : warns).push('OTP_CHANNEL=console prints one-time codes to the logs — set it to email or sms with a provider configured');
+  } else if (otpChannel === 'email' && !process.env.SENDGRID_API_KEY) {
+    (isProd ? errors : warns).push('OTP_CHANNEL=email but SENDGRID_API_KEY is unset — codes cannot be delivered');
+  } else if (otpChannel === 'sms' && !process.env.TWILIO_ACCOUNT_SID) {
+    (isProd ? errors : warns).push('OTP_CHANNEL=sms but TWILIO_ACCOUNT_SID is unset — codes cannot be delivered');
   }
   // Webhooks are unauthenticated without their signing secrets.
   for (const s of ['STITCH_WEBHOOK_SECRET']) {

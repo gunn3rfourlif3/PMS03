@@ -1,5 +1,5 @@
 import {
-  Injectable, UnauthorizedException, NotFoundException,
+  Injectable, UnauthorizedException, NotFoundException, Optional, Inject, Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 import { User } from '@modules/identity/user.entity';
 import { JwtPayload } from './jwt-payload.interface';
 import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
+import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 
 /**
  * Passwordless OTP auth.
@@ -33,7 +34,10 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly jwt: JwtService,
     private readonly dataSource: DataSource,
+    @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
+
+  private readonly log = new Logger('OtpDelivery');
 
   async requestOtp(destination: string): Promise<{ sent: true }> {
     const code = generateOtpCode();
@@ -98,10 +102,9 @@ export class AuthService {
       roles: active ? [active.role] : [],
     };
     return {
-      accessToken: await this.jwt.signAsync(payload, {
-        secret: this.secret,
-        expiresIn: process.env.JWT_EXPIRES_IN ?? '1h',
-      }),
+      // Expiry is configured on JwtModule.register (JWT_EXPIRES_IN, default 1h);
+      // only the secret is passed here to stay within the typed sign options.
+      accessToken: await this.jwt.signAsync(payload, { secret: this.secret }),
     };
   }
 
@@ -112,11 +115,31 @@ export class AuthService {
   }
 
   /** Dev delivery = console. Swap for an SMS/WhatsApp provider in prod. */
+  /**
+   * Deliver the OTP out-of-band. In dev (OTP_CHANNEL=console) it prints to the
+   * server log. In production it is sent through the configured notification
+   * channel — email (SendGrid) for an email destination, SMS (Twilio) otherwise
+   * — so the code never touches the logs. Falls back to a log line if no channel
+   * provider is wired, so the app never silently drops a login.
+   */
   private async deliver(destination: string, code: string): Promise<void> {
-    if ((process.env.OTP_CHANNEL ?? 'console') === 'console') {
-      // eslint-disable-next-line no-console
-      console.log(`[OTP] ${destination} -> ${code}`);
+    const channel = process.env.OTP_CHANNEL ?? 'console';
+    const minutes = Math.round(this.ttl / 60);
+    if (channel === 'console' || !this.channels) {
+      this.log.log(`[OTP] ${destination} -> ${code}`);
+      return;
     }
-    // TODO: integrate SMS/WhatsApp provider (e.g. via NotificationsModule).
+    const isEmail = destination.includes('@');
+    const provider = this.channels.get(isEmail ? 'email' : 'sms');
+    if (!provider) {
+      this.log.warn(`No ${isEmail ? 'email' : 'sms'} provider configured — OTP not delivered to ${destination}`);
+      return;
+    }
+    const res = await provider.send({
+      to: destination,
+      subject: 'Your sign-in code',
+      body: `Your one-time sign-in code is ${code}. It expires in ${minutes} minute${minutes === 1 ? '' : 's'}. If you didn't request it, ignore this message.`,
+    });
+    if (!res.ok) this.log.error(`OTP delivery to ${destination} failed: ${res.error ?? 'unknown'}`);
   }
 }

@@ -27,3 +27,7 @@ npm-debug.log*
 
 # test
 coverage/
+
+# deployment secrets & backups
+deploy/.env.prod
+deploy/backups/

@@ -1,6 +1,7 @@
 name: Deploy
 
-# Build + publish container images to GHCR on a version tag or manual dispatch.
+# On a version tag (or manual run): build+push images to GHCR, then deploy to the
+# VPS over SSH by pulling those images.
 on:
   push:
     tags: ['v*']
@@ -42,8 +43,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.name }}
           tags: |
             type=semver,pattern={{version}}
+            type=raw,value=latest
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
       - name: Build & push
         uses: docker/build-push-action@v6
         with:
@@ -52,19 +53,44 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # The web bundle bakes the API base at build time — supply the prod one.
+          build-args: |
+            NEXT_PUBLIC_API_BASE=${{ vars.NEXT_PUBLIC_API_BASE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   deploy:
-    name: Deploy to environment
+    name: Deploy to VPS (SSH)
     needs: images
     runs-on: ubuntu-latest
-    environment: production   # add required reviewers / secrets in GitHub settings
+    environment: production   # protect with required reviewers in repo settings
     steps:
-      - name: Roll out
+      - name: Resolve image tag
+        id: tag
         run: |
-          echo "Images published to GHCR. Wire this step to your host, e.g.:"
-          echo "  - SSH + 'docker compose pull && docker compose up -d', or"
-          echo "  - kubectl set image / helm upgrade, or"
-          echo "  - a managed-platform deploy hook."
-          echo "Run DB migrations first:  npm run migration:run"
+          REF="${{ github.ref_name }}"
+          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"   # v1.2.3 -> 1.2.3; branch stays as-is
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.VPS_APP_DIR }}"
+            git fetch --all --tags
+            git checkout --force "${{ github.ref_name }}"
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+            TAG="${{ steps.tag.outputs.version }}"
+            export API_IMAGE="ghcr.io/${{ github.repository }}-api:${TAG}"
+            export WEB_IMAGE="ghcr.io/${{ github.repository }}-web:${TAG}"
+            COMPOSE="docker compose -f deploy/compose.prod.images.yml --env-file deploy/.env.prod"
+            $COMPOSE pull
+            $COMPOSE up -d
+            # apply DB migrations, then confirm health
+            $COMPOSE exec -T api npm run migration:run
+            sleep 5
+            $COMPOSE exec -T api wget -qO- http://127.0.0.1:3000/api/health/ready
+            docker image prune -f
