@@ -104,7 +104,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod \
   exec -T postgres psql -U pms -d pms < scripts/setup-app-role.sql
 
 # migrations + demo data (run inside the api container so it uses the same env):
-docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run:prod
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run seed   # optional demo data
 ```
 
@@ -168,7 +168,7 @@ enabling in addition to the logical DB dumps for defence in depth.
 # update to a new release
 git pull
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --build
-docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run:prod
 
 # restart / stop / logs
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod restart api

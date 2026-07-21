@@ -90,7 +90,7 @@ jobs:
             $COMPOSE pull
             $COMPOSE up -d
             # apply DB migrations, then confirm health
-            $COMPOSE exec -T api npm run migration:run
+            $COMPOSE exec -T api npm run migration:run:prod
             sleep 5
             $COMPOSE exec -T api wget -qO- http://127.0.0.1:3000/api/health/ready
             docker image prune -f

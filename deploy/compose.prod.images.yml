@@ -42,7 +42,10 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: postgres://pms:${POSTGRES_PASSWORD}@postgres:5432/pms
+      # App connects as the least-privileged role so Row-Level Security is enforced
+      # (pms is a superuser and would BYPASS RLS). Migrations use the owner URL below.
+      DATABASE_URL: postgres://pms_app:pms_app@postgres:5432/pms
+      MIGRATION_DATABASE_URL: postgres://pms:${POSTGRES_PASSWORD}@postgres:5432/pms
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?set PII_ENCRYPTION_KEY}

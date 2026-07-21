@@ -1,0 +1,1 @@
+# Keeps web-admin/public/ present so the Docker build's `COPY /app/public ./public` step succeeds even when there are no static assets.
