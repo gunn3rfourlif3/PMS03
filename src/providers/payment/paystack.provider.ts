@@ -30,7 +30,8 @@ export class PaystackPaymentProvider implements PaymentProvider {
 
   async collect(req: CollectRequest): Promise<CollectResult> {
     const reference = `inv_${req.invoiceId}`;
-    if (!this.key) return { providerRef: reference, status: 'pending' }; // dev stub
+    // Stubbed unless explicitly enabled (first deploy uses iKhokha only).
+    if (process.env.PAYSTACK_LIVE !== 'true' || !this.key) return { providerRef: reference, status: 'pending' };
     // Payer email would come from the invoice's tenant in production; kept generic here.
     const email = req.payerEmail ?? `invoice_${req.invoiceId}@pay.local`;
     const data = await this.call<{ authorization_url: string; reference: string }>(
@@ -43,7 +44,7 @@ export class PaystackPaymentProvider implements PaymentProvider {
   async payout(req: PayoutRequest): Promise<PayoutResult> {
     const ref = `ps_payout_${req.ownerId}`;
     const bank = req.bankAccount;
-    if (!this.key || !bank?.accountNumber) return { providerRef: ref, status: 'scheduled' }; // dev stub
+    if (process.env.PAYSTACK_LIVE !== 'true' || !this.key || !bank?.accountNumber) return { providerRef: ref, status: 'scheduled' };
 
     // 1) upsert a transfer recipient (NUBAN), 2) initiate the transfer.
     const recipient = await this.call<{ recipient_code: string }>('/transferrecipient', {

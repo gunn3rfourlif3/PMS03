@@ -6,6 +6,7 @@ import { PaystackPaymentProvider } from './paystack.provider';
 import { PayfastPaymentProvider } from './payfast.provider';
 import { YocoPaymentProvider } from './yoco.provider';
 import { PeachPaymentProvider } from './peach.provider';
+import { IkhokhaPaymentProvider } from './ikhokha.provider';
 
 /**
  * Two independently-selected rails:
@@ -18,15 +19,16 @@ import { PeachPaymentProvider } from './peach.provider';
 @Module({
   providers: [
     StitchPaymentProvider, PaystackPaymentProvider,
-    PayfastPaymentProvider, YocoPaymentProvider, PeachPaymentProvider,
+    PayfastPaymentProvider, YocoPaymentProvider, PeachPaymentProvider, IkhokhaPaymentProvider,
     {
       provide: PAYMENT_PROVIDER,
-      inject: [StitchPaymentProvider, PaystackPaymentProvider, PayfastPaymentProvider, YocoPaymentProvider, PeachPaymentProvider],
-      useFactory: (stitch, paystack, payfast, yoco, peach): PaymentProvider => {
+      inject: [StitchPaymentProvider, PaystackPaymentProvider, PayfastPaymentProvider, YocoPaymentProvider, PeachPaymentProvider, IkhokhaPaymentProvider],
+      useFactory: (stitch, paystack, payfast, yoco, peach, ikhokha): PaymentProvider => {
         const registry: Record<string, PaymentProvider> = {
-          stitch, paystack, payfast, yoco, peach,
+          stitch, paystack, payfast, yoco, peach, ikhokha,
         };
-        const chosen = registry[(process.env.PAYMENT_PROVIDER ?? 'stitch').toLowerCase()] ?? stitch;
+        // First deploy: iKhokha is the only live collection rail.
+        const chosen = registry[(process.env.PAYMENT_PROVIDER ?? 'ikhokha').toLowerCase()] ?? ikhokha;
         new Logger('Payments').log(`collection rail: ${chosen.name}`);
         return chosen;
       },

@@ -19,7 +19,7 @@ export class PeachPaymentProvider implements PaymentProvider {
 
   async collect(req: CollectRequest): Promise<CollectResult> {
     const ref = `peach_${req.invoiceId}`;
-    if (!this.url) return { providerRef: ref, status: 'pending' };
+    if (process.env.PEACH_LIVE !== 'true' || !this.url) return { providerRef: ref, status: 'pending' };
     try {
       const res = await fetch(this.url, {
         method: 'POST',

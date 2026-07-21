@@ -125,12 +125,30 @@ stops the app with a clear message — by design.
 
 ---
 
-## 7. Payments (when going live)
-Set `PAYMENT_PROVIDER` (payfast / yoco / peach / paystack / stitch) and the
-matching keys in `.env.prod`, plus `PAYOUT_PROVIDER` for owner payouts. Point each
-gateway's webhook at `https://api.example.com/api/payments/webhook/<provider>` and
-set the corresponding `*_WEBHOOK_SECRET`. Run one sandbox transaction per gateway
-before taking real money.
+## 7. Payments — iKhokha (first deploy)
+This deploy uses **iKhokha only** as the live collection rail; every other gateway
+is stubbed (they no-op unless you set their `*_LIVE` flag).
+
+1. In `deploy/.env.prod` set `PAYMENT_PROVIDER=ikhokha` and fill:
+   `IKHOKHA_APP_ID`, `IKHOKHA_APP_SECRET`, `IKHOKHA_ENTITY_ID`, and the URLs
+   (`IKHOKHA_CALLBACK_URL=https://api.example.com/api/payments/webhook/ikhokha`,
+   plus success / fail / cancel pages).
+2. In the iKhokha dashboard, set the payment callback/notify URL to that
+   `…/webhook/ikhokha` endpoint.
+3. Run one **test transaction** end to end (initiate → pay on the iKhokha page →
+   confirm the invoice flips to paid via the callback) before taking real money.
+   iKhokha's exact request/callback field names and the callback signature scheme
+   should be confirmed against your current iKhokha API docs — the endpoint,
+   payment path and signing are env-configurable and lenient by default.
+
+**Owner payouts** are not automated on the first deploy (iKhokha is collection-only):
+statements are finalised and recorded as paid, and the agency disburses to owners
+by **manual EFT**. To automate later, set `PAYOUT_PROVIDER` + `PAYSTACK_LIVE=true`
+with Paystack credentials, or another payout rail.
+
+To enable another collection gateway later, set e.g. `PAYFAST_LIVE=true` (or
+`YOCO_LIVE` / `PEACH_LIVE` / `PAYSTACK_LIVE`) with its credentials and switch
+`PAYMENT_PROVIDER`.
 
 ---
 

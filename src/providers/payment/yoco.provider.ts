@@ -16,7 +16,7 @@ export class YocoPaymentProvider implements PaymentProvider {
 
   async collect(req: CollectRequest): Promise<CollectResult> {
     const ref = `yoco_${req.invoiceId}`;
-    if (!this.key) return { providerRef: ref, status: 'pending' };
+    if (process.env.YOCO_LIVE !== 'true' || !this.key) return { providerRef: ref, status: 'pending' };
     try {
       const res = await fetch('https://payments.yoco.com/api/checkouts', {
         method: 'POST',

@@ -33,8 +33,8 @@ export class PayfastPaymentProvider implements PaymentProvider {
     const merchantId = process.env.PAYFAST_MERCHANT_ID;
     const merchantKey = process.env.PAYFAST_MERCHANT_KEY;
     const providerRef = `pf_${req.invoiceId}`;
-    if (!merchantId || !merchantKey) {
-      // dev stub: no signed URL without credentials
+    // Stubbed unless explicitly enabled (first deploy uses iKhokha only).
+    if (process.env.PAYFAST_LIVE !== 'true' || !merchantId || !merchantKey) {
       return { providerRef, status: 'pending' };
     }
     const fields: Record<string, string> = {

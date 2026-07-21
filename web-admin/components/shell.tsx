@@ -97,7 +97,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  if (path === '/login') return <main className="min-h-screen">{children}</main>;
+  // Login and the public payment-return pages render bare (no sidebar / auth chrome).
+  if (path === '/login' || path.startsWith('/pay/')) return <main className="min-h-screen">{children}</main>;
   const portal = path.startsWith('/portal');
   const nav = portal ? PORTAL_NAV : NAV;
 
