@@ -1,20 +1,20 @@
 # Reverse proxy with automatic HTTPS (Let's Encrypt).
 # Replace the two hostnames and the email, then Caddy handles TLS certs for you.
-# DNS: create A records  app.example.com  and  api.example.com  ->  169.58.46.223
+# DNS: create A records  app.dantalan.co.za  and  api.dantalan.co.za  ->  169.58.46.223
 #      (and AAAA -> 2a02:c207:2345:3343::1 if you want IPv6).
 
 {
-	email admin@example.com
+	email admin@dantalan.co.za
 }
 
 # Web back-office (Next.js)
-app.example.com {
+app.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy web:3001
 }
 
 # API (NestJS). CORS is enforced by the app via CORS_ORIGINS.
-api.example.com {
+api.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy api:3000
 }
