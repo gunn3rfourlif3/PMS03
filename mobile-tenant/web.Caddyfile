@@ -1,0 +1,8 @@
+# Serves the exported Expo web bundle as a single-page app on :80.
+# The outer Caddy (deploy/Caddyfile) terminates TLS and reverse-proxies here.
+:80 {
+	root * /srv
+	encode zstd gzip
+	try_files {path} /index.html
+	file_server
+}

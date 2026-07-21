@@ -14,7 +14,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [web, api]
+    depends_on: [web, api, tenant, landlord]
 
   postgres:
     image: postgres:16-alpine
@@ -76,6 +76,16 @@ services:
 
   web:
     image: ${WEB_IMAGE:?set WEB_IMAGE}
+    restart: unless-stopped
+    depends_on: [api]
+
+  tenant:
+    image: ${TENANT_IMAGE:?set TENANT_IMAGE}
+    restart: unless-stopped
+    depends_on: [api]
+
+  landlord:
+    image: ${LANDLORD_IMAGE:?set LANDLORD_IMAGE}
     restart: unless-stopped
     depends_on: [api]
 

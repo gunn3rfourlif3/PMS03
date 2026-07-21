@@ -15,7 +15,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [web, api]
+    depends_on: [web, api, tenant, landlord]
 
   postgres:
     image: postgres:16-alpine
@@ -92,6 +92,26 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+    restart: unless-stopped
+    depends_on: [api]
+
+  # Tenant mobile app served as a static web bundle (Expo web export).
+  tenant:
+    build:
+      context: ../mobile-tenant
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+    restart: unless-stopped
+    depends_on: [api]
+
+  # Landlord mobile app served as a static web bundle (Expo web export).
+  landlord:
+    build:
+      context: ../mobile-landlord
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
     restart: unless-stopped
     depends_on: [api]
 

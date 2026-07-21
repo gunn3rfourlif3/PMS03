@@ -1,6 +1,6 @@
 # Reverse proxy with automatic HTTPS (Let's Encrypt).
 # Replace the two hostnames and the email, then Caddy handles TLS certs for you.
-# DNS: create A records  app.dantalan.co.za  and  api.dantalan.co.za  ->  169.58.46.223
+# DNS: create A records  app / api / tenant / landlord .dantalan.co.za  ->  169.58.46.223
 #      (and AAAA -> 2a02:c207:2345:3343::1 if you want IPv6).
 
 {
@@ -17,4 +17,16 @@ app.dantalan.co.za {
 api.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy api:3000
+}
+
+# Tenant app (Expo web export)
+tenant.dantalan.co.za {
+	encode zstd gzip
+	reverse_proxy tenant:80
+}
+
+# Landlord app (Expo web export)
+landlord.dantalan.co.za {
+	encode zstd gzip
+	reverse_proxy landlord:80
 }
