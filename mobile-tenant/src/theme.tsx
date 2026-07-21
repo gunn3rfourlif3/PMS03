@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
-import { API_BASE, VENDOR_SLUG } from './config';
+import { API_BASE, brandKey } from './config';
 
 /** White-label theme contract (mirrors the backend Branding type). */
 export interface Branding {
@@ -67,7 +67,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-    fetchBranding(VENDOR_SLUG)
+    fetchBranding(brandKey())
       .then((t) => { if (alive) { injectWebFont(t); setTheme(t); } })
       .catch(() => { if (alive) setTheme(DEFAULT_BRANDING); });
     return () => { alive = false; };

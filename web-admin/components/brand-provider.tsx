@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Branding, DEFAULT_BRANDING, VENDOR_SLUG, fetchBranding, applyTheme } from '@/lib/branding';
+import { Branding, DEFAULT_BRANDING, brandKey, fetchBranding, applyTheme } from '@/lib/branding';
 
 const BrandContext = createContext<Branding>(DEFAULT_BRANDING);
 export const useBrand = () => useContext(BrandContext);
@@ -10,7 +10,7 @@ export default function BrandProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     let alive = true;
-    fetchBranding(VENDOR_SLUG)
+    fetchBranding(brandKey())
       .then((b) => { if (alive) { applyTheme(b); setBrand(b); } })
       .catch(() => applyTheme(DEFAULT_BRANDING));
     return () => { alive = false; };

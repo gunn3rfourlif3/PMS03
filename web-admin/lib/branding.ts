@@ -15,7 +15,18 @@ export interface Branding {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3000/api';
-export const VENDOR_SLUG = process.env.NEXT_PUBLIC_VENDOR_SLUG ?? 'demo';
+export const VENDOR_SLUG = process.env.NEXT_PUBLIC_VENDOR_SLUG ?? 'dantalan';
+
+// Resolve the brand key from the hostname so each subdomain loads its agency's
+// theme: app.dantalan.co.za -> dantalan.co.za (matched via vendors.custom_domain).
+// Falls back to VENDOR_SLUG when there's no usable hostname (SSR/localhost).
+const APP_LABELS = new Set(['tenant', 'landlord', 'app', 'www']);
+export function brandKey(): string {
+  const host = typeof window !== 'undefined' && window.location ? window.location.hostname : '';
+  if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return VENDOR_SLUG;
+  const labels = host.split('.');
+  return labels.length > 2 && APP_LABELS.has(labels[0]) ? labels.slice(1).join('.') : host;
+}
 
 export const DEFAULT_BRANDING: Branding = {
   name: 'Property Manager', slug: 'default', tagline: 'Rentals, managed.',
