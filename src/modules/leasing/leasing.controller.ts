@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { LeasingService } from './leasing.service';
+import { AddTenantInput, LeasingService } from './leasing.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
@@ -18,6 +18,13 @@ export class LeasingController {
   @Get()
   list() {
     return this.service.list();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post('tenants')
+  addTenant(@Body() body: AddTenantInput) {
+    return this.service.addTenant(body);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

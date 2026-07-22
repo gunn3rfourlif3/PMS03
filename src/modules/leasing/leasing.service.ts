@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import { IdentityService } from '@modules/identity/identity.service';
 import { Lease, LeaseType } from './lease.entity';
 
 export interface CreateLeaseInput {
@@ -12,9 +13,23 @@ export interface CreateLeaseInput {
   billingCycle?: string;
 }
 
+export interface AddTenantInput {
+  name: string;
+  email: string;
+  phone?: string;
+  unitId: string;
+  rentAmount: number;
+  startDate: string;      // 'YYYY-MM-DD'
+  endDate?: string;
+  type?: LeaseType;
+}
+
 @Injectable()
 export class LeasingService {
-  constructor(private readonly tenant: TenantContextService) {}
+  constructor(
+    private readonly tenant: TenantContextService,
+    private readonly identity: IdentityService,
+  ) {}
 
   ping(): string {
     return 'Leasing module ready';
@@ -52,6 +67,32 @@ export class LeasingService {
     if (newEnd) lease.endDate = newEnd;
     lease.escalation = { history } as any;
     return repo.save(lease);
+  }
+
+  /**
+   * Staff onboards a tenant directly to a unit: get-or-create the tenant's user
+   * + tenant membership (by email), create the active lease, and mark the unit
+   * occupied — all in one step, skipping the listing/application funnel.
+   */
+  async addTenant(input: AddTenantInput): Promise<{ leaseId: string; tenantId: string }> {
+    if (!input.email?.trim()) throw new BadRequestException('Tenant email is required.');
+    if (!input.unitId) throw new BadRequestException('A unit is required.');
+    if (!input.rentAmount || input.rentAmount <= 0) throw new BadRequestException('A rent amount is required.');
+    if (!input.startDate) throw new BadRequestException('A lease start date is required.');
+
+    const tenantId = await this.identity.ensureTenantUser(
+      input.email.trim(), input.name?.trim(), input.phone?.trim(),
+    );
+    const lease = await this.createLease({
+      unitId: input.unitId,
+      tenantId,
+      rentAmount: input.rentAmount,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      type: input.type,
+    });
+    await this.tenant.getManager().query(`UPDATE units SET status = 'occupied' WHERE id = $1`, [input.unitId]);
+    return { leaseId: lease.id, tenantId };
   }
 
   /** Create an active lease (used by the applicant funnel on approval). */

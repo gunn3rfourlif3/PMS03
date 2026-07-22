@@ -103,6 +103,8 @@ export const api = {
   revokeApiKey: (id: string) => req(`/api-keys/${id}/revoke`, { method: 'POST' }),
   listNotifications: () => req('/notifications'),
   listLeases: () => req('/leasing'),
+  addTenant: (b: { name: string; email: string; phone?: string; unitId: string; rentAmount: number; startDate: string; endDate?: string }) =>
+    req('/leasing/tenants', { method: 'POST', body: JSON.stringify(b) }),
   renewLease: (id: string, escalationPct: number, months: number) =>
     req(`/leasing/${id}/renew`, { method: 'POST', body: JSON.stringify({ escalationPct, months }) }),
   updateOwnerBanking: (id: string, banking: any) => req(`/owners/${id}/banking`, { method: 'PUT', body: JSON.stringify(banking) }),

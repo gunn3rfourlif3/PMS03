@@ -3,9 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LeasingController } from './leasing.controller';
 import { LeasingService } from './leasing.service';
 import { Lease } from './lease.entity';
+import { IdentityModule } from '@modules/identity/identity.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Lease])],
+  imports: [TypeOrmModule.forFeature([Lease]), IdentityModule],
   controllers: [LeasingController],
   providers: [LeasingService],
   exports: [LeasingService],
