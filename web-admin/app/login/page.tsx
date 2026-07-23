@@ -9,7 +9,7 @@ export default function LoginPage() {
   const router = useRouter();
   const b = useBrand();
   const [stage, setStage] = useState<'request' | 'verify'>('request');
-  const [destination, setDestination] = useState('owner@demo.test');
+  const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -49,14 +49,15 @@ export default function LoginPage() {
 
         {stage === 'request' ? (
           <div className="space-y-4">
-            <Field label="Email or phone">
-              <input className="input" value={destination} onChange={(e) => setDestination(e.target.value)} />
+            <Field label="Email or mobile number">
+              <input className="input" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="you@example.com or +27…" />
             </Field>
-            <Button className="w-full" onClick={request} loading={busy}>Send code</Button>
+            <p className="-mt-2 text-xs text-muted">We’ll send a one-time code to your email or by SMS. Use the international format for phone numbers (e.g. +27…).</p>
+            <Button className="w-full" onClick={request} loading={busy} disabled={!destination.trim()}>Send code</Button>
           </div>
         ) : (
           <div className="space-y-4">
-            <Field label="6-digit code (from the API server console)">
+            <Field label="6-digit code (sent to your email or phone)">
               <input className="input tracking-[0.4em] text-center text-lg" value={code} maxLength={6} onChange={(e) => setCode(e.target.value)} />
             </Field>
             <Button className="w-full" onClick={verify} loading={busy}>Verify &amp; sign in</Button>

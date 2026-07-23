@@ -12,13 +12,13 @@ export default function LoginScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const { signIn } = useAuth();
   const [stage, setStage] = useState<'request' | 'verify'>('request');
-  const [destination, setDestination] = useState('thabo@demo.test');
+  const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
 
   const request = async () => {
     setBusy(true);
-    try { await api.requestOtp(destination.trim()); setStage('verify'); Alert.alert('Code sent', 'In dev, the OTP prints to the API server console.'); }
+    try { await api.requestOtp(destination.trim()); setStage('verify'); Alert.alert('Code sent', `We sent a 6-digit code to ${destination.trim()}.`); }
     catch (e: any) { Alert.alert('Could not send code', e.message); } finally { setBusy(false); }
   };
   const verify = async () => {
@@ -39,8 +39,9 @@ export default function LoginScreen() {
 
           {stage === 'request' ? (
             <>
-              <Text style={s.label}>Email or phone</Text>
-              <TextInput style={s.input} value={destination} onChangeText={setDestination} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={t.colors.muted} />
+              <Text style={s.label}>Email or mobile number</Text>
+              <TextInput style={s.input} value={destination} onChangeText={setDestination} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com or +27…" placeholderTextColor={t.colors.muted} />
+              <Text style={s.hint}>We’ll send a code to your email or by SMS. Use +27… for phone numbers.</Text>
               <Button label="Send code" onPress={request} busy={busy} style={{ marginTop: 8 }} />
             </>
           ) : (
@@ -68,6 +69,7 @@ function makeStyles(t: Branding) {
     title: { fontSize: 24, fontWeight: '700', color: t.colors.ink, textAlign: 'center', fontFamily: fontFamily(t, true) },
     sub: { fontSize: 14, color: t.colors.muted, marginBottom: 24, textAlign: 'center', fontFamily: fontFamily(t) },
     label: { fontSize: 13, color: t.colors.muted, marginBottom: 6, fontFamily: fontFamily(t) },
+    hint: { fontSize: 12, color: t.colors.muted, marginTop: -2, marginBottom: 4, fontFamily: fontFamily(t) },
     input: {
       borderWidth: 1, borderColor: t.colors.line, borderRadius: 10, padding: 14, fontSize: 16,
       marginBottom: 8, color: t.colors.ink, backgroundColor: 'transparent', fontFamily: fontFamily(t),
