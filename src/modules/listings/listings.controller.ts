@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ListingsService, CreateListingInput } from './listings.service';
 import { ApplicationsService, ApplyInput } from './applications.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
@@ -34,7 +34,17 @@ export class ListingsController {
     return this.listings.setStatus(id, 'published');
   }
 
-  // ---- Public browse ----
+  // ---- Public browse (no auth; used by the rentals.<domain> site) ----
+  @Get('public')
+  publicBrowse(@Query('vendor') vendor: string) {
+    return this.listings.publicList(vendor);
+  }
+
+  @Get('public/:id')
+  publicOne(@Param('id') id: string) {
+    return this.listings.publicOne(id);
+  }
+
   @Get('published')
   browse() {
     return this.listings.listPublished();

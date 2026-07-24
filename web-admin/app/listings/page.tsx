@@ -1,9 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Plus, Copy, Check, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
+
+/** Public rentals URL for a listing, derived from the current host (app.<domain> -> rentals.<domain>). */
+function rentalsUrl(listingId: string): string {
+  if (typeof window === 'undefined') return '';
+  const h = window.location.hostname.split('.');
+  const base = h.length > 2 ? h.slice(1).join('.') : window.location.hostname;
+  return `${window.location.protocol}//rentals.${base}/l/${listingId}`;
+}
 
 export default function ListingsPage() {
   const router = useRouter();
@@ -15,6 +23,13 @@ export default function ListingsPage() {
   const [availableFrom, setAvailableFrom] = useState('2026-08-01');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const copyLink = async (id: string) => {
+    const url = rentalsUrl(id);
+    try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
+    setCopied(id); setTimeout(() => setCopied((c) => (c === id ? null : c)), 1800);
+  };
 
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
 
@@ -65,7 +80,7 @@ export default function ListingsPage() {
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Available</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Description</th>
+              <th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Available</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Description</th><th className="px-5 py-3 font-semibold">Share</th>
             </tr></thead>
             <tbody>
               {listings.map((l) => (
@@ -74,9 +89,19 @@ export default function ListingsPage() {
                   <td className="px-5 py-3">{l.availableFrom}</td>
                   <td className="px-5 py-3"><Badge tone={l.status === 'published' ? 'success' : l.status === 'filled' ? 'brand' : 'muted'}>{l.status}</Badge></td>
                   <td className="px-5 py-3 text-muted">{l.description}</td>
+                  <td className="px-5 py-3">
+                    {l.status === 'published' ? (
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" onClick={() => copyLink(l.id)}>
+                          {copied === l.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy link</>}
+                        </Button>
+                        <a href={rentalsUrl(l.id)} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="Open public page"><ExternalLink size={15} /></a>
+                      </div>
+                    ) : <span className="text-muted">—</span>}
+                  </td>
                 </tr>
               ))}
-              {listings.length === 0 && <tr><td colSpan={4}><EmptyState>No listings yet — create one above.</EmptyState></td></tr>}
+              {listings.length === 0 && <tr><td colSpan={5}><EmptyState>No listings yet — create one above.</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>

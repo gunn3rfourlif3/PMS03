@@ -1,6 +1,6 @@
 # Reverse proxy with automatic HTTPS (Let's Encrypt).
 # Replace the two hostnames and the email, then Caddy handles TLS certs for you.
-# DNS: create A records  app / api / tenant / landlord .dantalan.co.za  ->  169.58.46.223
+# DNS: create A records  app / api / tenant / landlord / rentals .dantalan.co.za  ->  169.58.46.223
 #      (and AAAA -> 2a02:c207:2345:3343::1 if you want IPv6).
 
 {
@@ -29,4 +29,10 @@ tenant.dantalan.co.za {
 landlord.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy landlord:80
+}
+
+# Public rentals site (served by the Next.js web container; public routes only)
+rentals.dantalan.co.za {
+	encode zstd gzip
+	reverse_proxy web:3001
 }

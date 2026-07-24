@@ -13,7 +13,7 @@ export const VENDOR_SLUG = process.env.EXPO_PUBLIC_VENDOR_SLUG ?? 'dantalan';
 // App-role subdomains that are NOT vendor keys; strip them to get the agency's
 // domain (e.g. tenant.dantalan.co.za -> dantalan.co.za), which the backend
 // resolves via vendors.custom_domain. Off-web falls back to VENDOR_SLUG.
-const APP_LABELS = new Set(['tenant', 'landlord', 'app', 'www']);
+const APP_LABELS = new Set(['tenant', 'landlord', 'app', 'www', 'rentals']);
 export function brandKey(): string {
   const host =
     typeof window !== 'undefined' && window.location ? window.location.hostname : '';

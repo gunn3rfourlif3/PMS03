@@ -16,6 +16,7 @@ export interface ApplyInput {
   applicantName: string;
   applicantEmail: string;
   applicantPhone?: string;
+  details?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -58,6 +59,7 @@ export class ApplicationsService {
           applicantName: input.applicantName,
           applicantEmail: input.applicantEmail,
           applicantPhone: input.applicantPhone,
+          details: input.details ?? {},
           status: 'submitted',
         }),
       );

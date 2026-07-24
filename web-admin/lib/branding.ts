@@ -20,7 +20,7 @@ export const VENDOR_SLUG = process.env.NEXT_PUBLIC_VENDOR_SLUG ?? 'dantalan';
 // Resolve the brand key from the hostname so each subdomain loads its agency's
 // theme: app.dantalan.co.za -> dantalan.co.za (matched via vendors.custom_domain).
 // Falls back to VENDOR_SLUG when there's no usable hostname (SSR/localhost).
-const APP_LABELS = new Set(['tenant', 'landlord', 'app', 'www']);
+const APP_LABELS = new Set(['tenant', 'landlord', 'app', 'www', 'rentals']);
 export function brandKey(): string {
   const host = typeof window !== 'undefined' && window.location ? window.location.hostname : '';
   if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return VENDOR_SLUG;

@@ -70,6 +70,12 @@ export const api = {
     req('/listings', { method: 'POST', body: JSON.stringify(b) }),
   publishListing: (id: string) => req(`/listings/${id}/publish`, { method: 'POST' }),
 
+  // Public rentals site (no auth) — used by rentals.<domain>
+  publicListings: (vendor: string) => req(`/listings/public?vendor=${encodeURIComponent(vendor)}`),
+  publicListing: (id: string) => req(`/listings/public/${id}`),
+  applyToListing: (b: { listingId: string; applicantName: string; applicantEmail: string; applicantPhone?: string; details?: Record<string, unknown> }) =>
+    req('/listings/applications', { method: 'POST', body: JSON.stringify(b) }),
+
   applications: () => req('/listings/applications'),
   screenApplication: (id: string, b: { monthlyIncome?: number; creditScore?: number }) =>
     req(`/listings/applications/${id}/screen`, { method: 'POST', body: JSON.stringify(b) }),

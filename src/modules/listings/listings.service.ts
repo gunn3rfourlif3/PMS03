@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { Listing } from './listing.entity';
 
@@ -11,7 +13,29 @@ export interface CreateListingInput {
 
 @Injectable()
 export class ListingsService {
-  constructor(private readonly tenant: TenantContextService) {}
+  constructor(
+    private readonly tenant: TenantContextService,
+    @InjectDataSource() private readonly dataSource: DataSource,
+  ) {}
+
+  /**
+   * PUBLIC (no auth/tenant context): published listings for a vendor resolved by
+   * slug or custom domain, via a SECURITY DEFINER function that bypasses RLS.
+   */
+  async publicList(vendorKey: string): Promise<unknown[]> {
+    const rows = await this.dataSource.query('SELECT public_listings($1) AS d', [vendorKey]);
+    const d = rows[0]?.d;
+    return (typeof d === 'string' ? JSON.parse(d) : d) ?? [];
+  }
+
+  /** PUBLIC: a single published listing with unit/property detail. */
+  async publicOne(id: string): Promise<unknown> {
+    const rows = await this.dataSource.query('SELECT public_listing($1) AS d', [id]);
+    const d = rows[0]?.d;
+    const parsed = typeof d === 'string' ? JSON.parse(d) : d;
+    if (!parsed) throw new NotFoundException('Listing not found or no longer available');
+    return parsed;
+  }
 
   create(input: CreateListingInput): Promise<Listing> {
     const repo = this.tenant.getRepository(Listing);

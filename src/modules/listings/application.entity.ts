@@ -14,5 +14,7 @@ export class Application extends TenantEntity {
   @Index() @Column({ type: 'text', default: 'submitted' }) status: ApplicationStatus;
   @Column('jsonb', { name: 'screening_result', nullable: true })
   screeningResult?: Record<string, unknown>;
+  /** Rich applicant info from the public apply form (income, employment, move-in, consent…). */
+  @Column('jsonb', { default: {} }) details?: Record<string, unknown>;
   @Column('uuid', { name: 'lease_id', nullable: true }) leaseId?: string;
 }

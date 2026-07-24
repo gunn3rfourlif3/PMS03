@@ -21,6 +21,7 @@ export default function ApplicationsPage() {
   const [approveFor, setApproveFor] = useState<any>(null);
   const [startDate, setStartDate] = useState('');
   const [rejectFor, setRejectFor] = useState<any>(null);
+  const [viewFor, setViewFor] = useState<any>(null);
 
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
 
@@ -68,6 +69,7 @@ export default function ApplicationsPage() {
                   <td className="px-5 py-3">{a.screeningResult?.recommendation ?? '—'}</td>
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
+                      <Button variant="ghost" onClick={() => setViewFor(a)}>View</Button>
                       {a.status === 'submitted' && <Button variant="ghost" onClick={() => setScreenFor(a)}>Screen</Button>}
                       {a.status === 'screening' && (<>
                         <Button onClick={() => openApprove(a)}>Approve</Button>
@@ -116,6 +118,52 @@ export default function ApplicationsPage() {
         title={`Reject ${rejectFor?.applicantName ?? 'this applicant'}?`}
         message="The applicant will be marked rejected. You can't undo this."
       />
+
+      {/* View application details */}
+      <Modal open={!!viewFor} onClose={() => setViewFor(null)} title={viewFor?.applicantName ?? 'Application'}
+        footer={<Button variant="ghost" onClick={() => setViewFor(null)}>Close</Button>}>
+        {viewFor && <ApplicationDetails a={viewFor} />}
+      </Modal>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: any }) {
+  if (value === undefined || value === null || value === '') return null;
+  return (
+    <div className="flex justify-between gap-4 border-b border-white/40 py-1.5 text-sm last:border-0">
+      <span className="text-muted">{label}</span>
+      <span className="text-right font-medium text-ink">{String(value)}</span>
+    </div>
+  );
+}
+
+function ApplicationDetails({ a }: { a: any }) {
+  const d = a.details ?? {};
+  const money = (n: any) => (n ? `R${Number(n).toLocaleString('en-ZA')}` : undefined);
+  return (
+    <div>
+      <Row label="Email" value={a.applicantEmail} />
+      <Row label="Phone" value={a.applicantPhone} />
+      <Row label="ID / passport" value={d.idNumber} />
+      <Row label="Date of birth" value={d.dateOfBirth} />
+      <Row label="Current address" value={d.currentAddress} />
+      <Row label="Employment" value={d.employmentStatus} />
+      <Row label="Employer" value={d.employer} />
+      <Row label="Gross monthly income" value={money(d.monthlyIncome)} />
+      <Row label="Occupants" value={d.occupants} />
+      <Row label="Preferred move-in" value={d.moveInDate} />
+      <Row label="Pets" value={d.pets ? (d.petDetails ? `Yes — ${d.petDetails}` : 'Yes') : 'No'} />
+      <Row label="Consent given" value={d.consent ? 'Yes' : undefined} />
+      {d.message && (
+        <div className="mt-3">
+          <div className="text-sm text-muted">Message</div>
+          <p className="mt-1 whitespace-pre-line text-sm text-ink">{d.message}</p>
+        </div>
+      )}
+      {!a.applicantPhone && !d.idNumber && !d.message && (
+        <p className="text-sm text-muted">No extra details were captured for this application.</p>
+      )}
     </div>
   );
 }
