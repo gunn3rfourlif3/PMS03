@@ -15,7 +15,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [web, api, tenant, landlord]
+    depends_on: [web, api, tenant, landlord, marketing]
 
   postgres:
     image: postgres:16-alpine
@@ -85,6 +85,7 @@ services:
       PAYFAST_PASSPHRASE: ${PAYFAST_PASSPHRASE:-}
       PAYFAST_SANDBOX: ${PAYFAST_SANDBOX:-false}
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
+      LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
 
   web:
     build:
@@ -114,6 +115,13 @@ services:
         EXPO_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
     restart: unless-stopped
     depends_on: [api]
+
+  # Static marketing / product website.
+  marketing:
+    build:
+      context: ../marketing
+      dockerfile: Dockerfile
+    restart: unless-stopped
 
 volumes:
   pgdata:

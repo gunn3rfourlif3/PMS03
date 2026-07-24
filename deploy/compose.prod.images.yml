@@ -14,7 +14,7 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    depends_on: [web, api, tenant, landlord]
+    depends_on: [web, api, tenant, landlord, marketing]
 
   postgres:
     image: postgres:16-alpine
@@ -73,6 +73,7 @@ services:
       PAYFAST_PASSPHRASE: ${PAYFAST_PASSPHRASE:-}
       PAYFAST_SANDBOX: ${PAYFAST_SANDBOX:-false}
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
+      LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
 
   web:
     image: ${WEB_IMAGE:?set WEB_IMAGE}
@@ -88,5 +89,9 @@ services:
     image: ${LANDLORD_IMAGE:?set LANDLORD_IMAGE}
     restart: unless-stopped
     depends_on: [api]
+
+  marketing:
+    image: ${MARKETING_IMAGE:?set MARKETING_IMAGE}
+    restart: unless-stopped
 
 volumes: { pgdata: {}, redisdata: {}, caddy_data: {}, caddy_config: {} }

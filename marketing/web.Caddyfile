@@ -1,0 +1,7 @@
+# Serves the static marketing site on :80. The outer Caddy terminates TLS and
+# reverse-proxies here.
+:80 {
+	root * /srv
+	encode zstd gzip
+	file_server
+}

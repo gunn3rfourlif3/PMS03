@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kaya — Property management, beautifully run</title>
+<meta name="description" content="Kaya is the operating system for modern property management — leasing, rent collection, trust accounting, owner & tenant apps, and a white-label rentals site. Built for South Africa." />
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SWAP POINTS (only 3 things to change to rebrand):
+       1. Product name:  find/replace "Kaya"
+       2. Accent colour: --accent below
+       3. API base:      window.KAYA_CONFIG.apiBase (used by the forms)
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+  window.KAYA_CONFIG = { apiBase: "https://api.dantalan.co.za/api" };
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+:root{
+  --ink:#15161b; --ink-soft:#3a3d47; --muted:#7a7e88; --line:#e8e7e1;
+  --bg:#faf9f6; --card:#ffffff; --accent:#b0893f; --accent-soft:#f2ebdd;
+  --radius:18px; --maxw:1120px;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.08;color:var(--ink)}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:999px;font-weight:500;font-size:15px;cursor:pointer;border:1px solid transparent;transition:.2s}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:#000;transform:translateY(-1px)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{filter:brightness(1.05);transform:translatey(-1px)}
+
+/* Nav */
+header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(180%) blur(14px);background:rgba(250,249,246,.75);border-bottom:1px solid var(--line)}
+nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.02em}
+.logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,var(--accent),#8a6a2c);display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600}
+.nav-links{display:flex;align-items:center;gap:30px;font-size:15px}
+.nav-links a{color:var(--ink-soft)}.nav-links a:hover{color:var(--ink)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+@media(max-width:860px){.nav-links{display:none}.nav-cta .btn-ghost{display:none}}
+
+/* Hero */
+.hero{padding:96px 0 80px;text-align:center}
+.hero h1{font-size:clamp(40px,6vw,74px)}
+.hero p.lead{font-size:clamp(17px,2vw,21px);color:var(--ink-soft);max-width:620px;margin:24px auto 0}
+.hero .cta-row{display:flex;gap:14px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+.hero .sub{margin-top:20px;font-size:13px;color:var(--muted);letter-spacing:.02em}
+.frame{max-width:960px;margin:64px auto 0;border:1px solid var(--line);border-radius:24px;background:
+  linear-gradient(180deg,#fff, #fbfaf7);padding:14px;box-shadow:0 40px 80px -50px rgba(20,22,27,.35)}
+.frame .screen{border-radius:14px;background:#fff;border:1px solid var(--line);height:360px;display:grid;place-items:center;overflow:hidden;position:relative}
+.frame .screen .kpi{position:absolute;font-family:var(--serif)}
+.screen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;height:100%;padding:26px}
+.screen-card{border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;background:#fff}
+.screen-card .n{font-family:var(--serif);font-size:30px}
+.screen-card .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.bar{height:8px;border-radius:6px;background:var(--accent-soft);overflow:hidden;margin-top:12px}
+.bar>span{display:block;height:100%;background:var(--accent)}
+
+/* Strip */
+.strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0}
+.strip .wrap{display:flex;gap:38px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--muted);letter-spacing:.02em}
+.strip b{color:var(--ink-soft);font-weight:600}
+
+/* Sections */
+section{padding:96px 0}
+.section-head{max-width:640px}
+.section-head h2{font-size:clamp(30px,4vw,46px);margin-top:14px}
+.section-head p{color:var(--ink-soft);margin-top:16px;font-size:17px}
+.center{margin-left:auto;margin-right:auto;text-align:center}
+
+/* Features */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-top:56px}
+.feature{background:var(--bg);padding:32px}
+.feature .ic{width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:16px}
+.feature h3{font-size:19px;font-family:var(--sans);font-weight:600;letter-spacing:-.01em}
+.feature p{color:var(--muted);font-size:14.5px;margin-top:8px}
+@media(max-width:860px){.features{grid-template-columns:1fr}}
+
+/* Steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:56px;counter-reset:s}
+.step{padding-top:26px;border-top:2px solid var(--ink)}
+.step:before{counter-increment:s;content:"0" counter(s);font-family:var(--serif);font-size:15px;color:var(--accent);font-weight:600}
+.step h3{font-size:21px;font-family:var(--sans);font-weight:600;margin-top:10px}
+.step p{color:var(--muted);margin-top:10px;font-size:15px}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+
+/* Pricing */
+.pricing{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:56px;max-width:900px;margin-left:auto;margin-right:auto}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:36px}
+.plan.pro{border-color:var(--ink);position:relative}
+.plan .tag{position:absolute;top:-12px;right:28px;background:var(--ink);color:#fff;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px}
+.plan h3{font-family:var(--sans);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.plan .price{font-family:var(--serif);font-size:48px;margin:14px 0 4px}
+.plan .price small{font-size:16px;color:var(--muted);font-family:var(--sans)}
+.plan ul{list-style:none;margin:24px 0 28px;display:flex;flex-direction:column;gap:12px}
+.plan li{display:flex;gap:10px;font-size:15px;color:var(--ink-soft)}
+.plan li svg{flex:none;color:var(--accent);margin-top:3px}
+.plan .btn{width:100%;justify-content:center}
+@media(max-width:760px){.pricing{grid-template-columns:1fr}}
+
+/* Docs */
+.docs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.doc{border:1px solid var(--line);border-radius:var(--radius);padding:28px;background:var(--card)}
+.doc h3{font-family:var(--sans);font-size:18px;font-weight:600}
+.doc p{color:var(--muted);font-size:14.5px;margin-top:8px}
+.doc a{color:var(--accent);font-weight:500;font-size:14px;margin-top:14px;display:inline-block}
+@media(max-width:860px){.docs{grid-template-columns:1fr}}
+
+/* Split (agent) */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+@media(max-width:860px){.split{grid-template-columns:1fr;gap:36px}}
+
+/* Forms */
+form.lead{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column;gap:14px}
+form.lead .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){form.lead .row{grid-template-columns:1fr}}
+label{font-size:13px;color:var(--ink-soft);font-weight:500;display:block;margin-bottom:6px}
+input,textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:.15s}
+input:focus,textarea:focus{border-color:var(--accent);background:#fff}
+textarea{min-height:96px;resize:vertical}
+.form-note{font-size:12.5px;color:var(--muted)}
+.form-ok{background:var(--accent-soft);border:1px solid var(--accent);color:#5c4718;border-radius:14px;padding:16px 18px;font-size:15px}
+.form-err{color:#a23a26;font-size:13.5px}
+
+/* CTA band */
+.band{background:var(--ink);color:#fff;border-radius:28px;padding:64px 40px;text-align:center}
+.band h2{color:#fff;font-size:clamp(30px,4vw,44px)}
+.band p{color:rgba(255,255,255,.7);margin:16px auto 0;max-width:520px}
+.band .btn-accent{margin-top:30px}
+
+/* Footer */
+footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
+.foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:14px}
+.foot a{color:var(--ink-soft)}.foot a:hover{color:var(--ink)}
+.foot .links{display:flex;gap:24px;flex-wrap:wrap}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap"><nav>
+    <a class="logo" href="#top"><span class="mark">K</span> Kaya</a>
+    <div class="nav-links">
+      <a href="#features">Product</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#docs">Guides</a>
+      <a href="#agents">Partners</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://app.dantalan.co.za">Sign in</a>
+      <a class="btn btn-primary" href="#demo">Book a demo</a>
+    </div>
+  </nav></div>
+</header>
+
+<a id="top"></a>
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow reveal">Property management, beautifully run</p>
+    <h1 class="reveal">The operating system for<br />modern rental portfolios</h1>
+    <p class="lead reveal">Kaya runs the whole lifecycle — leasing, rent collection, trust accounting, owner payouts and beautiful tenant &amp; landlord apps — under your own brand. Built for South African property.</p>
+    <div class="cta-row reveal">
+      <a class="btn btn-primary" href="#demo">Book a demo</a>
+      <a class="btn btn-ghost" href="#pricing">See pricing</a>
+    </div>
+    <p class="sub reveal">ZAR &amp; VAT-ready · POPIA-aligned · PPRA-aware trust accounting</p>
+
+    <div class="frame reveal">
+      <div class="screen">
+        <div class="screen-grid">
+          <div class="screen-card"><div><div class="l">Collected</div><div class="n">R482k</div></div><div class="bar"><span style="width:86%"></span></div></div>
+          <div class="screen-card"><div><div class="l">Occupancy</div><div class="n">94%</div></div><div class="bar"><span style="width:94%"></span></div></div>
+          <div class="screen-card"><div><div class="l">Arrears</div><div class="n">R21k</div></div><div class="bar"><span style="width:12%"></span></div></div>
+          <div class="screen-card" style="grid-column:span 2"><div><div class="l">Owner payouts this month</div><div class="n">R356,900</div></div><div class="bar"><span style="width:74%"></span></div></div>
+          <div class="screen-card"><div><div class="l">Units</div><div class="n">128</div></div><div class="bar"><span style="width:60%"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="wrap">
+    <span><b>Leasing</b> &amp; tenant onboarding</span>
+    <span><b>Rent collection</b> via iKhokha</span>
+    <span><b>Trust accounting</b> &amp; owner payouts</span>
+    <span><b>Tenant &amp; landlord</b> apps</span>
+    <span><b>White-label</b> rentals site</span>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Everything, in one place</p>
+      <h2>One platform for the entire rental lifecycle</h2>
+      <p>From the first listing to the monthly owner statement — Kaya replaces the spreadsheets, the messaging apps and the accounting workarounds with a single, elegant system.</p>
+    </div>
+    <div class="features reveal">
+      <div class="feature"><div class="ic">◱</div><h3>Leasing &amp; tenants</h3><p>Properties, units and leases with renewals, escalations and one-step tenant onboarding.</p></div>
+      <div class="feature"><div class="ic">₹</div><h3>Rent collection</h3><p>Automated invoicing and online payments, reconciled to a proper double-entry ledger.</p></div>
+      <div class="feature"><div class="ic">⛁</div><h3>Trust &amp; payouts</h3><p>Deposit trust handling, owner statements and split payouts — audit-ready by design.</p></div>
+      <div class="feature"><div class="ic">▤</div><h3>Owner portal</h3><p>Give owners their own live view of properties, statements and banking details.</p></div>
+      <div class="feature"><div class="ic">◲</div><h3>Tenant &amp; landlord apps</h3><p>Branded mobile apps for rent, maintenance, documents and messaging.</p></div>
+      <div class="feature"><div class="ic">⌂</div><h3>Public rentals site</h3><p>A white-label listings site with an online application funnel that feeds your pipeline.</p></div>
+      <div class="feature"><div class="ic">✎</div><h3>Documents &amp; e-sign</h3><p>Lease packs, inspections and signatures — stored and tracked in one place.</p></div>
+      <div class="feature"><div class="ic">◷</div><h3>Maintenance</h3><p>Tickets, work orders and service providers, from tenant request to sign-off.</p></div>
+      <div class="feature"><div class="ic">▦</div><h3>Reports &amp; API</h3><p>Rent roll, arrears, income statements, CSV exports and developer API keys.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">How it works</p>
+      <h2>Live in an afternoon</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Set up your portfolio</h3><p>Add properties, units and owners — or import them. Brand the platform as your own in minutes.</p></div>
+      <div class="step reveal"><h3>Onboard tenants &amp; collect</h3><p>Place tenants to a unit, auto-generate invoices, and collect rent online with instant reconciliation.</p></div>
+      <div class="step reveal"><h3>Give everyone their app</h3><p>Owners, landlords and tenants each get a branded portal — you stay in control from the back-office.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <p class="eyebrow">Pricing</p>
+      <h2>Start free. Scale when you do.</h2>
+      <p>Manage a handful of units at no cost. Upgrade to Pro when you need payments, white-label and owner payouts.</p>
+    </div>
+    <div class="pricing">
+      <div class="plan reveal">
+        <h3>Starter</h3>
+        <div class="price">Free<small> / forever</small></div>
+        <p class="muted" style="font-size:14px">For independent landlords getting organised.</p>
+        <ul>
+          <li>✓ Up to 10 units</li>
+          <li>✓ Properties, units &amp; leases</li>
+          <li>✓ Tenant onboarding + tenant app</li>
+          <li>✓ Rent invoicing &amp; tracking</li>
+          <li>✓ In-app messaging</li>
+          <li>✓ Email sign-in</li>
+        </ul>
+        <a class="btn btn-ghost" href="#demo">Get started</a>
+      </div>
+      <div class="plan pro reveal">
+        <span class="tag">Most popular</span>
+        <h3>Pro</h3>
+        <div class="price">Custom<small> / let’s talk</small></div>
+        <p class="muted" style="font-size:14px">For agencies and growing portfolios.</p>
+        <ul>
+          <li>✓ Everything in Starter, unlimited units</li>
+          <li>✓ White-label branding + custom domains</li>
+          <li>✓ Online payment collection &amp; reconciliation</li>
+          <li>✓ Owner portal, trust accounting &amp; payouts</li>
+          <li>✓ Public rentals site + applications</li>
+          <li>✓ Documents, e-signature &amp; inspections</li>
+          <li>✓ Reports, CSV exports &amp; API access</li>
+          <li>✓ Multiple staff seats, SMS sign-in &amp; priority support</li>
+        </ul>
+        <a class="btn btn-primary" href="#demo">Talk to us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="docs" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Guides &amp; manuals</p>
+      <h2>Everyone knows exactly what to do</h2>
+      <p>Clear, role-based guides for your team and your customers — so onboarding is effortless.</p>
+    </div>
+    <div class="docs">
+      <div class="doc reveal"><h3>Staff guide</h3><p>Run the back-office: properties, leasing, rent runs, owner payouts, reports and settings.</p><a href="#demo">Request the guide →</a></div>
+      <div class="doc reveal"><h3>Tenant app guide</h3><p>How tenants pay rent, log maintenance, sign documents and message your team.</p><a href="#demo">Request the guide →</a></div>
+      <div class="doc reveal"><h3>Landlord app guide</h3><p>How owners track properties, view statements and manage their banking details.</p><a href="#demo">Request the guide →</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="agents">
+  <div class="wrap split">
+    <div class="reveal">
+      <p class="eyebrow">Partner programme</p>
+      <h2 style="font-size:clamp(30px,4vw,44px);margin-top:14px">Earn with every introduction</h2>
+      <p class="muted" style="font-size:17px;margin-top:16px">Bring landlords or tenants to Kaya and earn commission. Register as a partner agent and we’ll set you up with everything you need to start referring.</p>
+      <ul style="list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:12px;font-size:15px;color:var(--ink-soft)">
+        <li>— Commission for every property or tenant you introduce</li>
+        <li>— Transparent tracking of your referrals</li>
+        <li>— Paid out to your account, on your terms</li>
+      </ul>
+    </div>
+    <form class="lead reveal" onsubmit="return submitLead(event,'agent')">
+      <div style="font-family:var(--serif);font-size:22px">Register as a partner</div>
+      <div class="row">
+        <div><label>Full name</label><input name="name" required placeholder="Your name" /></div>
+        <div><label>Phone</label><input name="phone" placeholder="+27…" /></div>
+      </div>
+      <div><label>Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
+      <div><label>Where do you operate / who can you refer?</label><textarea name="message" placeholder="Area, and the kind of landlords or tenants you work with"></textarea></div>
+      <button class="btn btn-accent" type="submit">Register interest</button>
+      <p class="form-note">By registering you agree to be contacted about the Kaya partner programme.</p>
+    </form>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="band reveal">
+      <h2>See Kaya on your portfolio</h2>
+      <p>Book a 20-minute walkthrough, or send us a note — we’ll show you exactly how it fits your agency.</p>
+      <form class="lead" style="max-width:520px;margin:28px auto 0;text-align:left" onsubmit="return submitLead(event,'demo')">
+        <div class="row">
+          <div><label style="color:#fff">Name</label><input name="name" required placeholder="Your name" /></div>
+          <div><label style="color:#fff">Company</label><input name="company" placeholder="Agency / portfolio" /></div>
+        </div>
+        <div class="row">
+          <div><label style="color:#fff">Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
+          <div><label style="color:#fff">Phone</label><input name="phone" placeholder="+27…" /></div>
+        </div>
+        <div><label style="color:#fff">Anything specific you’d like to see?</label><textarea name="message"></textarea></div>
+        <button class="btn btn-accent" type="submit">Request a demo</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="logo" style="font-size:19px"><span class="mark" style="width:26px;height:26px;font-size:14px">K</span> Kaya</div>
+    <div class="links">
+      <a href="#features">Product</a><a href="#pricing">Pricing</a><a href="#docs">Guides</a>
+      <a href="#agents">Partners</a><a href="https://app.dantalan.co.za">Sign in</a>
+    </div>
+    <div>© <span id="yr"></span> Kaya. Made for South African property.</div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+// Reveal on scroll
+const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// Lead form submit
+async function submitLead(ev, type){
+  ev.preventDefault();
+  const form = ev.target;
+  const btn = form.querySelector('button[type=submit]');
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.type = type;
+  btn.disabled = true; const label = btn.textContent; btn.textContent = 'Sending…';
+  try{
+    const res = await fetch(window.KAYA_CONFIG.apiBase + '/leads', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error('Something went wrong. Please try again or email us.');
+    const ok = document.createElement('div');
+    ok.className='form-ok';
+    ok.textContent = type==='agent'
+      ? 'Thanks — your partner registration is in. We’ll be in touch shortly.'
+      : 'Thanks — we’ve got your request and will reach out soon.';
+    form.replaceWith(ok);
+  }catch(e){
+    let err = form.querySelector('.form-err');
+    if(!err){err=document.createElement('p');err.className='form-err';form.appendChild(err);}
+    err.textContent = e.message;
+    btn.disabled=false; btn.textContent=label;
+  }
+  return false;
+}
+</script>
+</body>
+</html>
