@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
@@ -6,6 +6,8 @@ import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { LeasingService } from '@modules/leasing/leasing.service';
 import { PropertiesService } from '@modules/properties/properties.service';
 import { IdentityService } from '@modules/identity/identity.service';
+import { InvoiceService } from '@modules/billing/invoice.service';
+import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
 import { Application, ApplicationStatus } from './application.entity';
 import { screen, ScreeningInput } from './screening';
@@ -30,6 +32,8 @@ export class ApplicationsService {
     private readonly leasing: LeasingService,
     private readonly properties: PropertiesService,
     private readonly identity: IdentityService,
+    private readonly invoices: InvoiceService,
+    @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
 
   /** Manager: all applications for the vendor. */
@@ -111,7 +115,59 @@ export class ApplicationsService {
     app.leaseId = lease.id;
     const saved = await this.tenant.getRepository(Application).save(app);
     this.logger.debug(`Application ${app.id} approved -> lease ${lease.id}, unit occupied`);
+
+    // (b) Raise the first rent invoice for the lease's start month. Tolerant of
+    // failure so a billing hiccup never blocks the approval itself.
+    try {
+      await this.invoices.generateRentInvoice({
+        leaseId: lease.id,
+        tenantId: tenantUserId,
+        period: startDate.slice(0, 7),      // 'YYYY-MM'
+        dueDate: startDate,
+        rentAmount: Number(listing.advertisedRent),
+      });
+    } catch (e: any) {
+      this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
+    }
+
+    // (a) Tell the applicant they're approved and how to sign in.
+    await this.notifyApproved(app, listing, startDate).catch((e) =>
+      this.logger.error(`Approval notification failed: ${e.message}`),
+    );
+
     return saved;
+  }
+
+  /** Email/SMS the applicant that they're approved, with sign-in instructions. */
+  private async notifyApproved(app: Application, listing: Listing, startDate: string): Promise<void> {
+    if (!this.channels) return;
+    const isEmail = !!app.applicantEmail;
+    const to = app.applicantEmail || app.applicantPhone;
+    if (!to) return;
+    const provider = this.channels.get(isEmail ? 'email' : 'sms');
+    if (!provider) return;
+
+    const url = process.env.TENANT_APP_URL?.trim();
+    const where = url ? ` at ${url}` : '';
+    const signInWith = app.applicantEmail || app.applicantPhone;
+    const firstName = app.applicantName?.trim().split(/\s+/)[0];
+    const greeting = firstName ? `Welcome home, ${firstName}!` : 'Welcome home!';
+
+    // Sign off with the agency's name (vendor is RLS-scoped to the caller here).
+    const rows = await this.tenant.getManager().query('SELECT name FROM vendors WHERE id = $1', [this.tenant.vendorId]);
+    const agency = (rows?.[0]?.name ?? '').trim();
+
+    const body =
+      `${greeting} We're delighted to let you know your rental application has been approved, ` +
+      `and your lease begins on ${startDate}. ` +
+      `To get started, simply sign in${where} with ${signInWith} — from there you can view your lease, ` +
+      `pay your rent, log any maintenance and message our team whenever you need us. ` +
+      `We're excited to have you with us. Welcome aboard!` +
+      (agency ? `\n\n— The ${agency} team` : '');
+
+    const subject = agency ? `Welcome home — you're approved at ${agency} 🎉` : 'Welcome home — your application is approved 🎉';
+    const res = await provider.send({ to, subject, body });
+    if (!res.ok) this.logger.error(`Approval notify to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 
   private async load(applicationId: string): Promise<{ app: Application; listing: Listing }> {

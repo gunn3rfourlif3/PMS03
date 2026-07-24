@@ -8,6 +8,7 @@ import { Application } from './application.entity';
 import { LeasingModule } from '@modules/leasing/leasing.module';
 import { PropertiesModule } from '@modules/properties/properties.module';
 import { IdentityModule } from '@modules/identity/identity.module';
+import { BillingModule } from '@modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { IdentityModule } from '@modules/identity/identity.module';
     LeasingModule,
     PropertiesModule,
     IdentityModule,
+    BillingModule,
   ],
   controllers: [ListingsController],
   providers: [ListingsService, ApplicationsService],
