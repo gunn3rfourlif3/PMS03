@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
-import { Listing } from './listing.entity';
+import { Listing, ListingStatus } from './listing.entity';
 
 export interface CreateListingInput {
   unitId: string;
@@ -50,6 +50,13 @@ export class ListingsService {
     if (!listing) throw new NotFoundException('Listing not found');
     listing.status = status;
     return repo.save(listing);
+  }
+
+  /** Manager status changes from the back-office (publish/pause/close/draft). */
+  changeStatus(listingId: string, status: ListingStatus): Promise<Listing> {
+    const allowed: ListingStatus[] = ['draft', 'published', 'paused', 'closed'];
+    if (!allowed.includes(status)) throw new BadRequestException('Invalid listing status');
+    return this.setStatus(listingId, status);
   }
 
   /** Public browse: only published vacancies. */

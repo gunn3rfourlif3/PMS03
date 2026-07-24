@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ListingsService, CreateListingInput } from './listings.service';
+import { ListingStatus } from './listing.entity';
 import { ApplicationsService, ApplyInput } from './applications.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
@@ -32,6 +33,13 @@ export class ListingsController {
   @Post(':id/publish')
   publish(@Param('id') id: string) {
     return this.listings.setStatus(id, 'published');
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post(':id/status')
+  setStatus(@Param('id') id: string, @Body() body: { status: ListingStatus }) {
+    return this.listings.changeStatus(id, body.status);
   }
 
   // ---- Public browse (no auth; used by the rentals.<domain> site) ----

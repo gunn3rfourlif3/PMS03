@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Copy, Check, ExternalLink } from 'lucide-react';
+import { Plus, Copy, Check, ExternalLink, Play, Pause, Ban } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
 
@@ -24,6 +24,13 @@ export default function ListingsPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [statusBusy, setStatusBusy] = useState<string | null>(null);
+
+  const changeStatus = async (id: string, status: 'draft' | 'published' | 'paused' | 'closed') => {
+    setStatusBusy(id + status); setErr('');
+    try { await api.setListingStatus(id, status); await load(); }
+    catch (e: any) { setErr(e.message); } finally { setStatusBusy(null); }
+  };
 
   const copyLink = async (id: string) => {
     const url = rentalsUrl(id);
@@ -80,7 +87,7 @@ export default function ListingsPage() {
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Available</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Description</th><th className="px-5 py-3 font-semibold">Share</th>
+              <th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Available</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Description</th><th className="px-5 py-3 font-semibold">Share</th><th className="px-5 py-3 font-semibold">Manage</th>
             </tr></thead>
             <tbody>
               {listings.map((l) => (
@@ -99,9 +106,22 @@ export default function ListingsPage() {
                       </div>
                     ) : <span className="text-muted">—</span>}
                   </td>
+                  <td className="px-5 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {['draft', 'paused', 'closed'].includes(l.status) && (
+                        <Button variant="ghost" onClick={() => changeStatus(l.id, 'published')} loading={statusBusy === l.id + 'published'}><Play size={14} /> Publish</Button>
+                      )}
+                      {l.status === 'published' && (
+                        <Button variant="ghost" onClick={() => changeStatus(l.id, 'paused')} loading={statusBusy === l.id + 'paused'}><Pause size={14} /> Pause</Button>
+                      )}
+                      {['published', 'paused'].includes(l.status) && (
+                        <Button variant="ghost" onClick={() => changeStatus(l.id, 'closed')} loading={statusBusy === l.id + 'closed'}><Ban size={14} /> Close</Button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
-              {listings.length === 0 && <tr><td colSpan={5}><EmptyState>No listings yet — create one above.</EmptyState></td></tr>}
+              {listings.length === 0 && <tr><td colSpan={6}><EmptyState>No listings yet — create one above.</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>

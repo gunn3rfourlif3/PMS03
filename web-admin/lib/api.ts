@@ -69,6 +69,8 @@ export const api = {
   createListing: (b: { unitId: string; advertisedRent: number; availableFrom: string; description?: string }) =>
     req('/listings', { method: 'POST', body: JSON.stringify(b) }),
   publishListing: (id: string) => req(`/listings/${id}/publish`, { method: 'POST' }),
+  setListingStatus: (id: string, status: 'draft' | 'published' | 'paused' | 'closed') =>
+    req(`/listings/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
 
   // Public rentals site (no auth) — used by rentals.<domain>
   publicListings: (vendor: string) => req(`/listings/public?vendor=${encodeURIComponent(vendor)}`),
