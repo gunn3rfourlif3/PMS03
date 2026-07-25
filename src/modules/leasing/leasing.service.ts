@@ -1,6 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { IdentityService } from '@modules/identity/identity.service';
+import { InvoiceService } from '@modules/billing/invoice.service';
+import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { Lease, LeaseType } from './lease.entity';
 
 export interface CreateLeaseInput {
@@ -26,9 +28,12 @@ export interface AddTenantInput {
 
 @Injectable()
 export class LeasingService {
+  private readonly log = new Logger('Leasing');
+
   constructor(
     private readonly tenant: TenantContextService,
     private readonly identity: IdentityService,
+    private readonly invoices: InvoiceService,
   ) {}
 
   ping(): string {
@@ -92,6 +97,24 @@ export class LeasingService {
       type: input.type,
     });
     await this.tenant.getManager().query(`UPDATE units SET status = 'occupied' WHERE id = $1`, [input.unitId]);
+
+    // Raise the first (pro-rated) rent invoice for the start month. Tolerant of
+    // failure so a billing hiccup never blocks tenant onboarding.
+    try {
+      const period = input.startDate.slice(0, 7);
+      const pr = prorateFirstMonth(Number(input.rentAmount), input.startDate);
+      await this.invoices.generateRentInvoice({
+        leaseId: lease.id,
+        tenantId,
+        period,
+        dueDate: input.startDate,
+        rentAmount: pr.amount,
+        description: pr.prorated ? `Rent ${period} (pro-rata ${pr.days}/${pr.daysInMonth} days)` : `Rent ${period}`,
+      });
+    } catch (e: any) {
+      this.log.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
+    }
+
     return { leaseId: lease.id, tenantId };
   }
 
