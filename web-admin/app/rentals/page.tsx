@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { api, thumbUrl } from '@/lib/api';
 import { brandKey } from '@/lib/branding';
 import { useBrand } from '@/components/brand-provider';
 import { GlassCard, Button, Badge, EmptyState, money } from '@/components/ui';
@@ -38,6 +38,7 @@ export default function RentalsPage() {
               return (
                 <Link key={l.id} href={`/l/${l.id}`} className="block">
                   <GlassCard className="flex h-full flex-col transition hover:shadow-lg">
+                    {l.media?.[0] && <img src={thumbUrl(l.media[0])} onError={(e) => { (e.currentTarget as HTMLImageElement).src = l.media[0]; }} alt={l.propertyName} className="mb-3 h-44 w-full rounded-xl object-cover" />}
                     <div className="flex items-start justify-between gap-2">
                       <div className="font-heading text-lg font-bold text-ink">{l.propertyName}</div>
                       <Badge tone="success">Available</Badge>

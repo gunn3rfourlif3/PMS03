@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Save, CheckCircle2 } from 'lucide-react';
-import { api, auth } from '@/lib/api';
+import { Plus, Save, CheckCircle2, X, ImagePlus } from 'lucide-react';
+import { api, auth, thumbUrl } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
 
 const AREAS = ['Kitchen', 'Bathroom', 'Bedroom', 'Living room', 'General'];
@@ -41,10 +41,24 @@ export default function InspectionsPage() {
     setItems(insp.checklist?.length ? insp.checklist : AREAS.map((area) => ({ area, condition: 'good', deductionAmount: 0 })));
   };
   const setItem = (i: number, k: string, v: any) => setItems(items.map((it, idx) => idx === i ? { ...it, [k]: v } : it));
+  const uploadItemPhoto = async (i: number, file?: File) => {
+    if (!file) return;
+    setBusy(true); setErr('');
+    try {
+      const { url } = await api.uploadMedia(file);
+      setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, photos: [...(it.photos ?? []), url] } : it));
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+  };
+  const removeItemPhoto = (i: number, url: string) =>
+    setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, photos: (it.photos ?? []).filter((u: string) => u !== url) } : it));
   const saveItems = async (id: string) => {
     setBusy(true); setErr('');
     try {
-      const clean = items.map((i) => ({ area: i.area, condition: i.condition, deductionAmount: Number(i.deductionAmount) || 0 }));
+      const clean = items.map((i) => ({
+        area: i.area, condition: i.condition,
+        deductionAmount: Number(i.deductionAmount) || 0,
+        photos: i.photos ?? [],
+      }));
       await api.recordInspectionItems(id, clean); setEditing(null); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
@@ -103,12 +117,31 @@ export default function InspectionsPage() {
             <div className="mt-4 border-t border-white/40 pt-4">
               <div className="space-y-2">
                 {items.map((it, i) => (
-                  <div key={i} className="flex flex-wrap items-center gap-2">
-                    <span className="w-28 text-sm">{it.area}</span>
-                    <select className="input w-32" value={it.condition} onChange={(e) => setItem(i, 'condition', e.target.value)}>
-                      {CONDS.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <input className="input w-32" placeholder="Deduction R" value={it.deductionAmount} onChange={(e) => setItem(i, 'deductionAmount', e.target.value)} />
+                  <div key={i} className="rounded-xl border border-white/40 p-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="w-28 text-sm">{it.area}</span>
+                      <select className="input w-32" value={it.condition} onChange={(e) => setItem(i, 'condition', e.target.value)}>
+                        {CONDS.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <input className="input w-32" placeholder="Deduction R" value={it.deductionAmount} onChange={(e) => setItem(i, 'deductionAmount', e.target.value)} />
+                      <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/40 px-2.5 py-2 text-sm text-ink/70 hover:text-brand">
+                        <ImagePlus size={15} /> Photo
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadItemPhoto(i, e.target.files?.[0])} />
+                      </label>
+                    </div>
+                    {(it.photos?.length ?? 0) > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {it.photos.map((url: string) => (
+                          <div key={url} className="group relative h-16 w-16 overflow-hidden rounded-lg border border-white/40">
+                            <img src={thumbUrl(url)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = url; }} alt="" className="h-full w-full object-cover" />
+                            <button onClick={() => removeItemPhoto(i, url)} title="Remove"
+                              className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded bg-black/55 text-white opacity-0 transition group-hover:opacity-100 hover:bg-danger">
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

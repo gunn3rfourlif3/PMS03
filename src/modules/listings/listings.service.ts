@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { Listing, ListingStatus } from './listing.entity';
 
 export interface CreateListingInput {
@@ -16,7 +17,28 @@ export class ListingsService {
   constructor(
     private readonly tenant: TenantContextService,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly media: MediaService,
   ) {}
+
+  /** Upload a photo and append its public URL to the listing's media gallery. */
+  async addPhoto(listingId: string, file: UploadedFileLike): Promise<string[]> {
+    const repo = this.tenant.getRepository(Listing);
+    const listing = await repo.findOne({ where: { id: listingId } });
+    if (!listing) throw new NotFoundException('Listing not found');
+    const { url } = await this.media.save(file);
+    listing.media = [...((listing.media as string[]) ?? []), url];
+    await repo.save(listing);
+    return listing.media as string[];
+  }
+
+  async removePhoto(listingId: string, url: string): Promise<string[]> {
+    const repo = this.tenant.getRepository(Listing);
+    const listing = await repo.findOne({ where: { id: listingId } });
+    if (!listing) throw new NotFoundException('Listing not found');
+    listing.media = ((listing.media as string[]) ?? []).filter((m) => m !== url);
+    await repo.save(listing);
+    return listing.media as string[];
+  }
 
   /**
    * PUBLIC (no auth/tenant context): published listings for a vendor resolved by

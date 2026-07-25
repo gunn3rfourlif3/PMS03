@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Copy, Check, ExternalLink, Play, Pause, Ban } from 'lucide-react';
-import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
+import { useRef } from 'react';
+import { Plus, Copy, Check, ExternalLink, Play, Pause, Ban, Image as ImageIcon, X, Upload } from 'lucide-react';
+import { api, auth, thumbUrl } from '@/lib/api';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
 
 /** Public rentals URL for a listing, derived from the current host (app.<domain> -> rentals.<domain>). */
 function rentalsUrl(listingId: string): string {
@@ -25,6 +26,27 @@ export default function ListingsPage() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
+
+  // Photos modal
+  const [photoFor, setPhotoFor] = useState<any>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [upBusy, setUpBusy] = useState(false);
+  const [photoErr, setPhotoErr] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const openPhotos = (l: any) => { setPhotoFor(l); setPhotos(l.media ?? []); setPhotoErr(''); };
+  const uploadPhoto = async (file?: File) => {
+    if (!file || !photoFor) return;
+    setUpBusy(true); setPhotoErr('');
+    try { const media = await api.addListingPhoto(photoFor.id, file); setPhotos(media); await load(); }
+    catch (e: any) { setPhotoErr(e.message); } finally { setUpBusy(false); if (fileRef.current) fileRef.current.value = ''; }
+  };
+  const deletePhoto = async (url: string) => {
+    if (!photoFor) return;
+    setPhotoErr('');
+    try { const media = await api.removeListingPhoto(photoFor.id, url); setPhotos(media); await load(); }
+    catch (e: any) { setPhotoErr(e.message); }
+  };
 
   const changeStatus = async (id: string, status: 'draft' | 'published' | 'paused' | 'closed') => {
     setStatusBusy(id + status); setErr('');
@@ -108,6 +130,7 @@ export default function ListingsPage() {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex flex-wrap gap-1">
+                      <Button variant="ghost" onClick={() => openPhotos(l)}><ImageIcon size={14} /> Photos{l.media?.length ? ` (${l.media.length})` : ''}</Button>
                       {['draft', 'paused', 'closed'].includes(l.status) && (
                         <Button variant="ghost" onClick={() => changeStatus(l.id, 'published')} loading={statusBusy === l.id + 'published'}><Play size={14} /> Publish</Button>
                       )}
@@ -126,6 +149,30 @@ export default function ListingsPage() {
           </table>
         </div>
       </GlassCard>
+
+      <Modal open={!!photoFor} onClose={() => setPhotoFor(null)} title="Listing photos"
+        footer={<Button variant="ghost" onClick={() => setPhotoFor(null)}>Done</Button>}>
+        {photoErr && <div className="mb-3 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{photoErr}</div>}
+        {photos.length === 0 ? (
+          <p className="mb-4 text-sm text-muted">No photos yet. Add a few to show this listing off on your rentals site.</p>
+        ) : (
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            {photos.map((url) => (
+              <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-white/40">
+                <img src={thumbUrl(url)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = url; }} alt="" className="h-full w-full object-cover" />
+                <button onClick={() => deletePhoto(url)} title="Remove"
+                  className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-lg bg-black/55 text-white opacity-0 transition group-hover:opacity-100 hover:bg-danger">
+                  <X size={15} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <input ref={fileRef} type="file" accept="image/*" className="hidden"
+          onChange={(e) => uploadPhoto(e.target.files?.[0])} />
+        <Button onClick={() => fileRef.current?.click()} loading={upBusy}><Upload size={15} /> Upload photo</Button>
+        <p className="mt-2 text-xs text-muted">JPG, PNG or WebP · up to 10MB. The first photo is used as the cover.</p>
+      </Modal>
     </div>
   );
 }

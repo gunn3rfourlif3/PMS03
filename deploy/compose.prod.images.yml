@@ -75,6 +75,10 @@ services:
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       TENANT_APP_URL: ${TENANT_APP_URL:-}
+      MEDIA_DIR: /data/media
+      PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+    volumes:
+      - mediadata:/data/media
 
   web:
     image: ${WEB_IMAGE:?set WEB_IMAGE}
@@ -95,4 +99,4 @@ services:
     image: ${MARKETING_IMAGE:?set MARKETING_IMAGE}
     restart: unless-stopped
 
-volumes: { pgdata: {}, redisdata: {}, caddy_data: {}, caddy_config: {} }
+volumes: { pgdata: {}, redisdata: {}, caddy_data: {}, caddy_config: {}, mediadata: {} }

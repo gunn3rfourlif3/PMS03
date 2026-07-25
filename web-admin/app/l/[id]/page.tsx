@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { api, thumbUrl } from '@/lib/api';
 import { GlassCard, Button, Field, Badge, money } from '@/components/ui';
 import { PublicHeader, PublicFooter, formatAddress, formatDate } from '@/components/public-chrome';
 
@@ -81,6 +81,15 @@ export default function ListingDetailPage() {
               <div className="mt-4 text-3xl font-bold text-brand">{money(l.rent)}<span className="text-base font-normal text-muted">/month</span></div>
               <div className="mt-1 text-sm text-muted">{l.bedrooms} bed · {l.bathrooms} bath · available from {formatDate(l.availableFrom)}</div>
               {l.description && <p className="mt-4 whitespace-pre-line text-sm text-ink/80">{l.description}</p>}
+              {Array.isArray(l.media) && l.media.length > 0 && (
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {l.media.map((url: string) => (
+                    <a key={url} href={url} target="_blank" rel="noreferrer">
+                      <img src={thumbUrl(url)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = url; }} alt="" className="aspect-[4/3] w-full rounded-xl object-cover transition hover:opacity-90" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </GlassCard>
 
             {done ? (

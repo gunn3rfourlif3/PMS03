@@ -42,7 +42,37 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
   return text ? JSON.parse(text) : null;
 }
 
+/** Multipart upload (no JSON Content-Type — the browser sets the boundary). */
+async function reqForm(path: string, form: FormData): Promise<any> {
+  const token = auth.get();
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: form,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;
+    throw new Error(msg || `Upload failed (${res.status})`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function fileForm(file: File): FormData { const f = new FormData(); f.append('file', file); return f; }
+
+/** Derive the thumbnail URL for a stored image (server writes <id>_thumb.<ext>). */
+export function thumbUrl(url: string): string {
+  return url ? url.replace(/\.([a-zA-Z0-9]+)(\?.*)?$/, '_thumb.$1$2') : url;
+}
+
 export const api = {
+  // Media / photos
+  uploadMedia: (file: File): Promise<{ key: string; url: string }> => reqForm('/media', fileForm(file)),
+  addListingPhoto: (id: string, file: File): Promise<string[]> => reqForm(`/listings/${id}/media`, fileForm(file)),
+  removeListingPhoto: (id: string, url: string): Promise<string[]> =>
+    req(`/listings/${id}/media`, { method: 'DELETE', body: JSON.stringify({ url }) }),
+
   requestOtp: (destination: string) =>
     req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: (destination: string, code: string) =>
