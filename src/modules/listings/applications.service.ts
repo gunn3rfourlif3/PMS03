@@ -7,6 +7,7 @@ import { LeasingService } from '@modules/leasing/leasing.service';
 import { PropertiesService } from '@modules/properties/properties.service';
 import { IdentityService } from '@modules/identity/identity.service';
 import { InvoiceService } from '@modules/billing/invoice.service';
+import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
 import { Application, ApplicationStatus } from './application.entity';
@@ -119,12 +120,17 @@ export class ApplicationsService {
     // (b) Raise the first rent invoice for the lease's start month. Tolerant of
     // failure so a billing hiccup never blocks the approval itself.
     try {
+      const period = startDate.slice(0, 7);               // 'YYYY-MM'
+      const pr = prorateFirstMonth(Number(listing.advertisedRent), startDate);
       await this.invoices.generateRentInvoice({
         leaseId: lease.id,
         tenantId: tenantUserId,
-        period: startDate.slice(0, 7),      // 'YYYY-MM'
+        period,
         dueDate: startDate,
-        rentAmount: Number(listing.advertisedRent),
+        rentAmount: pr.amount,
+        description: pr.prorated
+          ? `Rent ${period} (pro-rata ${pr.days}/${pr.daysInMonth} days)`
+          : `Rent ${period}`,
       });
     } catch (e: any) {
       this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);

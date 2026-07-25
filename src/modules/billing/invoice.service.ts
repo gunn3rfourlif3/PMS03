@@ -14,6 +14,7 @@ export interface GenerateRentInvoiceInput {
   period: string;
   dueDate: string;
   rentAmount: number;
+  description?: string; // overrides the default "Rent <period>" line label
 }
 
 /**
@@ -35,7 +36,7 @@ export class InvoiceService {
 
   async generateRentInvoice(input: GenerateRentInvoiceInput): Promise<Invoice> {
     const { lineItems, total } = buildRentInvoice(
-      [{ kind: 'rent', description: `Rent ${input.period}`, amount: input.rentAmount }],
+      [{ kind: 'rent', description: input.description ?? `Rent ${input.period}`, amount: input.rentAmount }],
       this.tax,
     );
 
