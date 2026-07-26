@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, Type, Phone, ImageIcon, Save } from 'lucide-react';
+import { Palette, Type, Phone, ImageIcon, Save, FileText } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { applyTheme } from '@/lib/branding';
 import { GlassCard, PageHeader, Button, Field } from '@/components/ui';
@@ -20,11 +20,22 @@ export default function SettingsPage() {
   const [err, setErr] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [tpl, setTpl] = useState<string | null>(null);
+  const [placeholders, setPlaceholders] = useState<string[]>([]);
+  const [tplBusy, setTplBusy] = useState(false);
+  const [tplMsg, setTplMsg] = useState('');
 
   useEffect(() => {
     if (!auth.get()) { router.replace('/login'); return; }
     api.brandingSettings().then((res) => { setB(res); setReady(true); }).catch((e) => { setErr(e.message); setReady(true); });
+    api.getLeaseTemplate().then((res) => { setTpl(res.template ?? ''); setPlaceholders(res.placeholders ?? []); }).catch(() => setTpl(''));
   }, []);
+
+  const saveTpl = async () => {
+    setTplBusy(true); setTplMsg(''); setErr('');
+    try { await api.setLeaseTemplate(tpl ?? ''); setTplMsg('Lease template saved — new lease agreements will use it.'); }
+    catch (e: any) { setErr(e.message); } finally { setTplBusy(false); }
+  };
 
   if (!ready) return null;
   if (!b) return <div><PageHeader title="Branding" /><div className="rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err || 'Could not load branding.'}</div></div>;
@@ -93,6 +104,20 @@ export default function SettingsPage() {
           <Field label="Website"><input className="input" value={b.contact?.website ?? ''} onChange={(e) => setContact('website', e.target.value)} /></Field>
           <Field label="Address"><input className="input" value={b.contact?.address ?? ''} onChange={(e) => setContact('address', e.target.value)} /></Field>
         </div>
+      </GlassCard>
+
+      <GlassCard className="mt-4">
+        <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><FileText size={18} /> Lease agreement template</div>
+        <p className="mb-3 text-sm text-muted">
+          Paste your own lease agreement (plain text or HTML). Use placeholders like <code className="rounded bg-white/50 px-1">{'{{tenant_name}}'}</code> and they’ll be filled in automatically when a lease is generated on approval. Leave blank to use the built-in South African starter template.
+        </p>
+        {tplMsg && <div className="mb-3 rounded-xl px-3 py-2 text-sm text-brand" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)' }}>{tplMsg}</div>}
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {placeholders.map((p) => <code key={p} className="rounded-md bg-white/50 px-2 py-1 text-xs text-ink/70">{`{{${p}}}`}</code>)}
+        </div>
+        <textarea className="input min-h-[260px] font-mono text-[13px]" value={tpl ?? ''} onChange={(e) => setTpl(e.target.value)}
+          placeholder="Paste your lease agreement here. Include {{signature}} where the electronic signature block should appear (otherwise it's added at the end)." />
+        <div className="mt-3"><Button onClick={saveTpl} loading={tplBusy}><Save size={16} /> Save template</Button></div>
       </GlassCard>
     </div>
   );

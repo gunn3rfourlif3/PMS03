@@ -8,6 +8,7 @@ import { PropertiesService } from '@modules/properties/properties.service';
 import { IdentityService } from '@modules/identity/identity.service';
 import { InvoiceService } from '@modules/billing/invoice.service';
 import { prorateFirstMonth } from '@modules/billing/invoice-calc';
+import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
 import { Application, ApplicationStatus } from './application.entity';
@@ -34,6 +35,7 @@ export class ApplicationsService {
     private readonly properties: PropertiesService,
     private readonly identity: IdentityService,
     private readonly invoices: InvoiceService,
+    private readonly leaseAgreements: LeaseAgreementService,
     @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
 
@@ -140,6 +142,18 @@ export class ApplicationsService {
     await this.notifyApproved(app, listing, startDate).catch((e) =>
       this.logger.error(`Approval notification failed: ${e.message}`),
     );
+
+    // (c) Generate the lease agreement and email the applicant a signing link.
+    await this.leaseAgreements.createForLease({
+      leaseId: lease.id,
+      tenantId: tenantUserId,
+      unitId: listing.unitId,
+      tenantName: app.applicantName,
+      tenantEmail: app.applicantEmail,
+      tenantIdNumber: (app.details as any)?.idNumber,
+      rentAmount: Number(listing.advertisedRent),
+      startDate,
+    }).catch((e) => this.logger.error(`Lease agreement generation failed: ${e.message}`));
 
     return saved;
   }

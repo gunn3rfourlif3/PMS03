@@ -77,6 +77,7 @@ services:
       TENANT_APP_URL: ${TENANT_APP_URL:-}
       MEDIA_DIR: /data/media
       PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+      SIGN_BASE: ${SIGN_BASE:-}
     volumes:
       - mediadata:/data/media
 

@@ -3,6 +3,7 @@ import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { IdentityService } from '@modules/identity/identity.service';
 import { InvoiceService } from '@modules/billing/invoice.service';
 import { prorateFirstMonth } from '@modules/billing/invoice-calc';
+import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
 import { Lease, LeaseType } from './lease.entity';
 
 export interface CreateLeaseInput {
@@ -34,6 +35,7 @@ export class LeasingService {
     private readonly tenant: TenantContextService,
     private readonly identity: IdentityService,
     private readonly invoices: InvoiceService,
+    private readonly leaseAgreements: LeaseAgreementService,
   ) {}
 
   ping(): string {
@@ -114,6 +116,18 @@ export class LeasingService {
     } catch (e: any) {
       this.log.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
     }
+
+    // Generate the lease agreement and email the tenant a signing link.
+    await this.leaseAgreements.createForLease({
+      leaseId: lease.id,
+      tenantId,
+      unitId: input.unitId,
+      tenantName: input.name,
+      tenantEmail: input.email,
+      rentAmount: Number(input.rentAmount),
+      startDate: input.startDate,
+      endDate: input.endDate,
+    }).catch((e) => this.log.error(`Lease agreement generation failed: ${e.message}`));
 
     return { leaseId: lease.id, tenantId };
   }

@@ -104,7 +104,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     path.startsWith('/pay/') ||
     path === '/rentals' ||
     path.startsWith('/rentals/') ||
-    path.startsWith('/l/')
+    path.startsWith('/l/') ||
+    path.startsWith('/sign/')
   ) return <main className="min-h-screen">{children}</main>;
   const portal = path.startsWith('/portal');
   const nav = portal ? PORTAL_NAV : NAV;

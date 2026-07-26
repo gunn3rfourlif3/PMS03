@@ -9,6 +9,7 @@ import { LeasingModule } from '@modules/leasing/leasing.module';
 import { PropertiesModule } from '@modules/properties/properties.module';
 import { IdentityModule } from '@modules/identity/identity.module';
 import { BillingModule } from '@modules/billing/billing.module';
+import { LeaseAgreementModule } from '@modules/lease-agreement/lease-agreement.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BillingModule } from '@modules/billing/billing.module';
     PropertiesModule,
     IdentityModule,
     BillingModule,
+    LeaseAgreementModule,
   ],
   controllers: [ListingsController],
   providers: [ListingsService, ApplicationsService],

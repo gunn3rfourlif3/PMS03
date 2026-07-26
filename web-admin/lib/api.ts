@@ -174,6 +174,14 @@ export const api = {
   messageSetStatus: (id: string, status: 'open' | 'closed') => req(`/messages/conversations/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
   messageUnread: () => req('/messages/unread-count'),
 
+  // Lease e-sign
+  getLeaseToSign: (ref: string) => req(`/lease-agreements/sign/${ref}`),
+  signLease: (ref: string, fullName: string) =>
+    req(`/lease-agreements/sign/${ref}/complete`, { method: 'POST', body: JSON.stringify({ fullName }) }),
+  getLeaseTemplate: () => req('/lease-agreements/template'),
+  setLeaseTemplate: (template: string) =>
+    req('/lease-agreements/template', { method: 'PUT', body: JSON.stringify({ template }) }),
+
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
 };

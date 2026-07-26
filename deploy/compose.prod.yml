@@ -90,6 +90,8 @@ services:
       # Photo/file storage on a persistent disk volume, served from GET /media/:key.
       MEDIA_DIR: /data/media
       PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+      # Base URL for the lease e-signing page (the back-office web origin).
+      SIGN_BASE: ${SIGN_BASE:-}
     volumes:
       - mediadata:/data/media
 

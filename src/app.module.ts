@@ -34,6 +34,7 @@ import { ServiceProvidersModule } from './modules/service-providers/service-prov
 import { LeadsModule } from './modules/leads/leads.module';
 import { MediaModule } from './modules/media/media.module';
 import { ProofOfPaymentModule } from './modules/proof-of-payment/proof-of-payment.module';
+import { LeaseAgreementModule } from './modules/lease-agreement/lease-agreement.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -79,6 +80,7 @@ import { EsignModule } from './providers/esign/esign.module';
     LeadsModule,
     MediaModule,
     ProofOfPaymentModule,
+    LeaseAgreementModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

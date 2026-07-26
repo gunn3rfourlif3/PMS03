@@ -22,6 +22,7 @@ const EXT_BY_MIME: Record<string, string> = {
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
   webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', pdf: 'application/pdf',
+  html: 'text/html',
 };
 
 /**
@@ -76,6 +77,13 @@ export class MediaService {
       return { key, url: this.url(key) };
     }
     throw new BadRequestException('Upload an image or PDF');
+  }
+
+  /** Store a generated HTML document (e.g. a lease agreement) and return its URL. */
+  async saveHtml(html: string): Promise<{ key: string; url: string }> {
+    const key = `${randomUUID()}.html`;
+    await writeFile(join(this.dir, key), Buffer.from(html, 'utf8'));
+    return { key, url: this.url(key) };
   }
 
   url(key: string): string {
