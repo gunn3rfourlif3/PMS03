@@ -44,6 +44,11 @@ export default function LeasesPage() {
     } catch (e: any) { setErr(e.message); }
   };
 
+  const [sendBusy, setSendBusy] = useState<string | null>(null);
+  const sendLease = async (leaseId: string) => {
+    setSendBusy(leaseId); setErr('');
+    try { await api.sendLeaseForSigning(leaseId); await load(); } catch (e: any) { setErr(e.message); } finally { setSendBusy(null); }
+  };
   const signLink = (ref: string) => (typeof window !== 'undefined' ? `${window.location.origin}/sign/${ref}` : `/sign/${ref}`);
   const copySign = async (ref: string) => {
     try { await navigator.clipboard.writeText(signLink(ref)); } catch { /* ignore */ }
@@ -109,7 +114,9 @@ export default function LeasesPage() {
                     <td className="px-5 py-3">
                       {(() => {
                         const a = agreements[l.id];
-                        if (!a) return <span className="text-muted">—</span>;
+                        if (!a) return (
+                          <Button variant="ghost" onClick={() => sendLease(l.id)} loading={sendBusy === l.id}><FileText size={14} /> Send lease</Button>
+                        );
                         if (a.status === 'signed') return (
                           <div className="flex items-center gap-2">
                             <Badge tone="success">Signed</Badge>

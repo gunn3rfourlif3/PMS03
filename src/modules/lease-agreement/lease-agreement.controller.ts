@@ -67,6 +67,13 @@ export class LeaseAgreementController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
+  @Post('for-lease/:leaseId')
+  generateForLease(@Param('leaseId') leaseId: string) {
+    return this.service.createForExistingLease(leaseId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
   @Get()
   list(@Query('leaseId') leaseId?: string) {
     return this.service.list(leaseId);

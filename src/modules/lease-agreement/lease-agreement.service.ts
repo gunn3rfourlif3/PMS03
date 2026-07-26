@@ -195,6 +195,32 @@ export class LeaseAgreementService {
     return { template: template ?? '' };
   }
 
+  /** Staff: generate + send a lease agreement for an EXISTING lease (e.g. leases created before this feature). */
+  async createForExistingLease(leaseId: string): Promise<{ ref: string; signUrl: string }> {
+    const [lease] = await this.tenant.getManager().query(
+      `SELECT id, unit_id AS "unitId", tenant_id AS "tenantId", rent_amount AS "rentAmount",
+              start_date AS "startDate", end_date AS "endDate"
+       FROM leases WHERE id = $1 AND deleted_at IS NULL`,
+      [leaseId],
+    );
+    if (!lease) throw new NotFoundException('Lease not found');
+    if (!lease.tenantId) throw new BadRequestException('This lease has no tenant to send to.');
+    const [user] = await this.ds.query('SELECT name, email FROM users WHERE id = $1', [lease.tenantId]);
+    const asDate = (v: any) => (v ? (typeof v === 'string' ? v.slice(0, 10) : new Date(v).toISOString().slice(0, 10)) : undefined);
+
+    const res = await this.createForLease({
+      leaseId: lease.id,
+      tenantId: lease.tenantId,
+      unitId: lease.unitId,
+      tenantName: user?.name ?? 'Tenant',
+      tenantEmail: user?.email,
+      rentAmount: Number(lease.rentAmount),
+      startDate: asDate(lease.startDate) ?? new Date().toISOString().slice(0, 10),
+      endDate: asDate(lease.endDate),
+    });
+    return { ref: res.ref, signUrl: res.signUrl };
+  }
+
   /** Tenant: their latest lease agreement (to review + sign in-app). */
   async mine(userId: string): Promise<{ ref: string; status: string; signUrl: string; fileUrl: string } | null> {
     const row = await this.tenant.getRepository(LeaseAgreement).findOne({
