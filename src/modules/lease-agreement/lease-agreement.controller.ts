@@ -1,8 +1,10 @@
 import {
-  Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards,
+  Body, Controller, Delete, Get, Param, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { LeaseAgreementService } from './lease-agreement.service';
+import { UploadedFileLike } from '@modules/media/media.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
@@ -38,6 +40,21 @@ export class LeaseAgreementController {
   @Put('template')
   setTemplate(@Body() body: { template: string }) {
     return this.service.setTemplate(body?.template);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Post('template-file')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 20 * 1024 * 1024 } }))
+  uploadTemplateFile(@UploadedFile() file: UploadedFileLike) {
+    return this.service.setTemplateFile(file);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Delete('template-file')
+  clearTemplateFile() {
+    return this.service.clearTemplateFile();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

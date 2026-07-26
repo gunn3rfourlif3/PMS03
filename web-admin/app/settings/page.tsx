@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, Type, Phone, ImageIcon, Save, FileText } from 'lucide-react';
+import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { applyTheme } from '@/lib/branding';
 import { GlassCard, PageHeader, Button, Field } from '@/components/ui';
@@ -24,17 +24,31 @@ export default function SettingsPage() {
   const [placeholders, setPlaceholders] = useState<string[]>([]);
   const [tplBusy, setTplBusy] = useState(false);
   const [tplMsg, setTplMsg] = useState('');
+  const [leaseFileUrl, setLeaseFileUrl] = useState('');
+  const [leaseBusy, setLeaseBusy] = useState(false);
+  const leaseFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!auth.get()) { router.replace('/login'); return; }
     api.brandingSettings().then((res) => { setB(res); setReady(true); }).catch((e) => { setErr(e.message); setReady(true); });
-    api.getLeaseTemplate().then((res) => { setTpl(res.template ?? ''); setPlaceholders(res.placeholders ?? []); }).catch(() => setTpl(''));
+    api.getLeaseTemplate().then((res) => { setTpl(res.template ?? ''); setPlaceholders(res.placeholders ?? []); setLeaseFileUrl(res.templateFileUrl ?? ''); }).catch(() => setTpl(''));
   }, []);
 
   const saveTpl = async () => {
     setTplBusy(true); setTplMsg(''); setErr('');
-    try { await api.setLeaseTemplate(tpl ?? ''); setTplMsg('Lease template saved — new lease agreements will use it.'); }
+    try { await api.setLeaseTemplate(tpl ?? ''); setTplMsg('Advanced template saved.'); }
     catch (e: any) { setErr(e.message); } finally { setTplBusy(false); }
+  };
+  const uploadLease = async (file?: File) => {
+    if (!file) return;
+    setLeaseBusy(true); setTplMsg(''); setErr('');
+    try { const res = await api.uploadLeaseTemplateFile(file); setLeaseFileUrl(res.templateFileUrl); setTplMsg('Lease uploaded — new tenants will be sent this to sign.'); }
+    catch (e: any) { setErr(e.message); } finally { setLeaseBusy(false); if (leaseFileRef.current) leaseFileRef.current.value = ''; }
+  };
+  const removeLease = async () => {
+    setLeaseBusy(true); setErr('');
+    try { await api.clearLeaseTemplateFile(); setLeaseFileUrl(''); setTplMsg('Lease removed — the built-in starter will be used until you upload one.'); }
+    catch (e: any) { setErr(e.message); } finally { setLeaseBusy(false); }
   };
 
   if (!ready) return null;
@@ -107,17 +121,39 @@ export default function SettingsPage() {
       </GlassCard>
 
       <GlassCard className="mt-4">
-        <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><FileText size={18} /> Lease agreement template</div>
-        <p className="mb-3 text-sm text-muted">
-          Paste your own lease agreement (plain text or HTML). Use placeholders like <code className="rounded bg-white/50 px-1">{'{{tenant_name}}'}</code> and they’ll be filled in automatically when a lease is generated on approval. Leave blank to use the built-in South African starter template.
+        <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><FileText size={18} /> Lease agreement</div>
+        <p className="mb-4 text-sm text-muted">
+          Upload your own lease agreement (PDF). When you approve a tenant, we automatically prepare a signing packet — a schedule with their details (name, unit, rent, deposit, dates) plus your lease — and email them a link to sign. No editing needed.
         </p>
         {tplMsg && <div className="mb-3 rounded-xl px-3 py-2 text-sm text-brand" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)' }}>{tplMsg}</div>}
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {placeholders.map((p) => <code key={p} className="rounded-md bg-white/50 px-2 py-1 text-xs text-ink/70">{`{{${p}}}`}</code>)}
-        </div>
-        <textarea className="input min-h-[260px] font-mono text-[13px]" value={tpl ?? ''} onChange={(e) => setTpl(e.target.value)}
-          placeholder="Paste your lease agreement here. Include {{signature}} where the electronic signature block should appear (otherwise it's added at the end)." />
-        <div className="mt-3"><Button onClick={saveTpl} loading={tplBusy}><Save size={16} /> Save template</Button></div>
+
+        <input ref={leaseFileRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => uploadLease(e.target.files?.[0])} />
+
+        {leaseFileUrl ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/50 bg-white/40 px-4 py-3">
+            <FileText size={20} className="text-brand" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-ink">Your lease is uploaded</div>
+              <a href={leaseFileUrl} target="_blank" rel="noreferrer" className="text-xs text-brand hover:underline">View current lease <ExternalLink size={11} className="inline" /></a>
+            </div>
+            <Button variant="ghost" onClick={() => leaseFileRef.current?.click()} loading={leaseBusy}><Upload size={15} /> Replace</Button>
+            <Button variant="ghost" onClick={removeLease} loading={leaseBusy}><Trash2 size={15} /> Remove</Button>
+          </div>
+        ) : (
+          <Button onClick={() => leaseFileRef.current?.click()} loading={leaseBusy}><Upload size={16} /> Upload lease (PDF)</Button>
+        )}
+
+        <details className="mt-5">
+          <summary className="cursor-pointer text-sm text-muted hover:text-ink">Advanced: use a text template with placeholders instead</summary>
+          <div className="mt-3">
+            <p className="mb-2 text-sm text-muted">Paste plain text or HTML with placeholders like <code className="rounded bg-white/50 px-1">{'{{tenant_name}}'}</code>. Only used when no lease file is uploaded above.</p>
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {placeholders.map((p) => <code key={p} className="rounded-md bg-white/50 px-2 py-1 text-xs text-ink/70">{`{{${p}}}`}</code>)}
+            </div>
+            <textarea className="input min-h-[200px] font-mono text-[13px]" value={tpl ?? ''} onChange={(e) => setTpl(e.target.value)} placeholder="Optional. Include {{signature}} where the signature block should appear." />
+            <div className="mt-3"><Button variant="ghost" onClick={saveTpl} loading={tplBusy}><Save size={15} /> Save text template</Button></div>
+          </div>
+        </details>
       </GlassCard>
     </div>
   );

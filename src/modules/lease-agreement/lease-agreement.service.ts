@@ -4,10 +4,10 @@ import { DataSource } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
-import { MediaService } from '@modules/media/media.service';
+import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { LeaseAgreement } from './lease-agreement.entity';
-import { renderLeaseAgreement, mergeLeaseTemplate, LEASE_PLACEHOLDERS, LeaseAgreementData } from './lease-agreement.html';
+import { renderLeaseAgreement, renderLeaseWithAttachment, mergeLeaseTemplate, LEASE_PLACEHOLDERS, LeaseAgreementData } from './lease-agreement.html';
 
 export interface CreateLeaseAgreementInput {
   leaseId: string;
@@ -137,19 +137,52 @@ export class LeaseAgreementService {
     return { status: 'signed' };
   }
 
-  /** Render the lease HTML using the agency's own template, or the built-in SA starter. */
+  /**
+   * Render the lease HTML. Priority: (1) the agency's UPLOADED lease document
+   * (schedule + attachment), (2) a pasted {{placeholder}} template, else (3) the
+   * built-in SA starter.
+   */
   private async renderHtml(data: LeaseAgreementData): Promise<string> {
-    const [row] = await this.tenant.getManager().query('SELECT config FROM vendors WHERE id = $1', [this.tenant.vendorId]);
-    const config = typeof row?.config === 'string' ? JSON.parse(row.config) : (row?.config ?? {});
+    const config = await this.vendorConfig();
+    const fileUrl: string = (config.leaseTemplateFileUrl ?? '').trim();
+    if (fileUrl) return renderLeaseWithAttachment(data, fileUrl);
     const template: string = (config.leaseTemplate ?? '').trim();
     return template ? mergeLeaseTemplate(template, data) : renderLeaseAgreement(data);
   }
 
-  /** Staff: read the agency's lease template + the list of usable placeholders. */
-  async getTemplate(): Promise<{ template: string; placeholders: string[] }> {
+  private async vendorConfig(): Promise<Record<string, any>> {
     const [row] = await this.tenant.getManager().query('SELECT config FROM vendors WHERE id = $1', [this.tenant.vendorId]);
-    const config = typeof row?.config === 'string' ? JSON.parse(row.config) : (row?.config ?? {});
-    return { template: config.leaseTemplate ?? '', placeholders: [...LEASE_PLACEHOLDERS] };
+    return typeof row?.config === 'string' ? JSON.parse(row.config) : (row?.config ?? {});
+  }
+
+  /** Staff: read the agency's lease template config. */
+  async getTemplate(): Promise<{ template: string; templateFileUrl: string; placeholders: string[] }> {
+    const config = await this.vendorConfig();
+    return {
+      template: config.leaseTemplate ?? '',
+      templateFileUrl: config.leaseTemplateFileUrl ?? '',
+      placeholders: [...LEASE_PLACEHOLDERS],
+    };
+  }
+
+  /** Staff: upload your own lease document (PDF or image). This becomes the lease used on approval. */
+  async setTemplateFile(file: UploadedFileLike): Promise<{ templateFileUrl: string }> {
+    const { url } = await this.media.saveProof(file);
+    await this.tenant.getManager().query(
+      `UPDATE vendors SET config = COALESCE(config, '{}'::jsonb) || jsonb_build_object('leaseTemplateFileUrl', $1::text),
+              updated_at = now() WHERE id = $2`,
+      [url, this.tenant.vendorId],
+    );
+    return { templateFileUrl: url };
+  }
+
+  /** Staff: remove the uploaded lease document (reverts to placeholder template / starter). */
+  async clearTemplateFile(): Promise<{ ok: true }> {
+    await this.tenant.getManager().query(
+      `UPDATE vendors SET config = (COALESCE(config, '{}'::jsonb) - 'leaseTemplateFileUrl'), updated_at = now() WHERE id = $1`,
+      [this.tenant.vendorId],
+    );
+    return { ok: true };
   }
 
   /** Staff: save the agency's lease template. Empty string reverts to the built-in default. */

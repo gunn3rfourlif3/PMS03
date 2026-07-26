@@ -47,10 +47,44 @@ export const LEASE_PLACEHOLDERS = [
 ] as const;
 
 const SHELL_CSS = `body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1c22;line-height:1.55;margin:0;padding:28px;max-width:820px;margin:0 auto;font-size:14.5px}
-h1,h2{line-height:1.2}.plain{white-space:pre-wrap;font-family:inherit;font-size:inherit;margin:0}
+h1{font-size:20px;margin:0 0 10px}h1,h2{line-height:1.2}.plain{white-space:pre-wrap;font-family:inherit;font-size:inherit;margin:0}
+table.parties{width:100%;border-collapse:collapse;margin:0 0 16px}
+table.parties td{border:1px solid #e5e7eb;padding:8px 10px;font-size:13.5px;vertical-align:top}
+table.parties td.k{width:34%;color:#6b7280;background:#fafafa}
+.muted{color:#6b7280}
 .signblock{margin-top:26px;border-top:1px solid #e5e7eb;padding-top:16px}
 .signed{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:12px 14px}
 .sign-pending{background:#f9fafb;border:1px dashed #e5e7eb;border-radius:8px;padding:12px 14px;color:#6b7280}`;
+
+/**
+ * Agency uploaded their own lease document (PDF). We render an auto-filled deal
+ * schedule + embed their lease + the signature block — no placeholders needed.
+ */
+export function renderLeaseWithAttachment(d: LeaseAgreementData, fileUrl: string): string {
+  const cur = d.currency ?? 'R';
+  const deposit = d.depositAmount ?? d.rentAmount;
+  const premises = [d.propertyName, d.unitLabel, d.addressText].filter(Boolean).map(esc).join(', ');
+  const sig = d.signature
+    ? `<div class="signed">Electronically signed by ${esc(d.signature.name)} on ${fmtDate(d.signature.signedAt.slice(0, 10))}${d.signature.ip ? ` (IP ${esc(d.signature.ip)})` : ''}.</div>`
+    : `<div class="sign-pending">Awaiting the tenant's electronic signature.</div>`;
+  const isPdf = /\.pdf($|\?)/i.test(fileUrl);
+  const attachment = isPdf
+    ? `<iframe src="${esc(fileUrl)}" style="width:100%;height:78vh;border:1px solid #e5e7eb;border-radius:8px" title="Lease agreement"></iframe>`
+    : `<img src="${esc(fileUrl)}" alt="Lease agreement" style="width:100%;border:1px solid #e5e7eb;border-radius:8px"/>`;
+  const inner = `<h1>Lease schedule &mdash; ${esc(d.agencyName)}</h1>
+    <table class="parties">
+      <tr><td class="k">Landlord / Managing Agent</td><td>${esc(d.agencyName)}</td></tr>
+      <tr><td class="k">Tenant</td><td>${esc(d.tenantName)}${d.tenantEmail ? `<br/>${esc(d.tenantEmail)}` : ''}</td></tr>
+      <tr><td class="k">Leased premises</td><td>${premises || '—'}</td></tr>
+      <tr><td class="k">Lease period</td><td>${fmtDate(d.startDate)} &ndash; ${d.endDate ? fmtDate(d.endDate) : 'month-to-month'}</td></tr>
+      <tr><td class="k">Monthly rental</td><td>${money(d.rentAmount, cur)} per month</td></tr>
+      <tr><td class="k">Deposit</td><td>${money(deposit, cur)}</td></tr>
+    </table>
+    <p class="muted">By signing, the Tenant agrees to the schedule above and to the attached lease agreement below.</p>
+    ${attachment}
+    <div class="signblock"><h2>Signature</h2>${sig}</div>`;
+  return wrapHtml(inner, d.agencyName);
+}
 
 function wrapHtml(inner: string, title: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"/>

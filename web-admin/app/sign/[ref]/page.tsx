@@ -39,7 +39,7 @@ export default function SignLeasePage() {
         {doc && (
           <>
             <GlassCard className="!p-2">
-              <iframe title="Lease agreement" src={doc.fileUrl} sandbox=""
+              <iframe title="Lease agreement" src={doc.fileUrl} sandbox="allow-same-origin allow-popups"
                 className="h-[62vh] w-full rounded-xl border border-white/40 bg-white" />
               <div className="px-2 py-2 text-right">
                 <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-sm text-brand hover:underline">Open in a new tab</a>

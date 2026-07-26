@@ -182,6 +182,9 @@ export const api = {
   getLeaseTemplate: () => req('/lease-agreements/template'),
   setLeaseTemplate: (template: string) =>
     req('/lease-agreements/template', { method: 'PUT', body: JSON.stringify({ template }) }),
+  uploadLeaseTemplateFile: (file: File): Promise<{ templateFileUrl: string }> =>
+    reqForm('/lease-agreements/template-file', fileForm(file)),
+  clearLeaseTemplateFile: () => req('/lease-agreements/template-file', { method: 'DELETE' }),
 
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
