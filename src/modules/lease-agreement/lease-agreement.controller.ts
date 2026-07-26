@@ -8,10 +8,18 @@ import { UploadedFileLike } from '@modules/media/media.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
+import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
 
 @Controller('lease-agreements')
 export class LeaseAgreementController {
   constructor(private readonly service: LeaseAgreementService) {}
+
+  // ---- Tenant: their own agreement to review + sign ----
+  @UseGuards(JwtAuthGuard)
+  @Get('mine')
+  mine(@CurrentTenant() p: { userId: string }) {
+    return this.service.mine(p.userId);
+  }
 
   // ---- Public signing (no auth; resolved by unguessable ref) ----
   @Get('sign/:ref')

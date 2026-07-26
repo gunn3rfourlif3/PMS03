@@ -55,6 +55,7 @@ export const api = {
   profile: () => req('/me/profile'),
   myInvoices: () => req('/me/invoices'),
   myLease: () => req('/me/lease'),
+  myLeaseAgreement: () => req('/lease-agreements/mine'),
   initiatePayment: (invoiceId: string, method = 'eft') =>
     req(`/payments/invoices/${invoiceId}/initiate`, {
       method: 'POST',

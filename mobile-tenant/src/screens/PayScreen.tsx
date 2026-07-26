@@ -12,13 +12,16 @@ export default function PayScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [lease, setLease] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
-    try { setInvoices(await api.myInvoices()); }
-    catch (e: any) { Alert.alert('Could not load', e.message); }
+    try {
+      const [inv, la] = await Promise.all([api.myInvoices(), api.myLeaseAgreement().catch(() => null)]);
+      setInvoices(inv); setLease(la);
+    } catch (e: any) { Alert.alert('Could not load', e.message); }
     finally { setLoading(false); }
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -55,6 +58,20 @@ export default function PayScreen() {
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
       <Text style={s.heading}>Payments</Text>
+
+      {lease && lease.status !== 'signed' && (
+        <Card style={{ marginBottom: 16, borderWidth: 1, borderColor: t.colors.brand }}>
+          <Text style={s.section}>Lease agreement</Text>
+          <Text style={s.muted}>Please review and sign your lease agreement before paying your first rent.</Text>
+          <Button label="Review & sign lease" onPress={() => lease.signUrl && Linking.openURL(lease.signUrl)} style={{ marginTop: 12 }} />
+        </Card>
+      )}
+      {lease && lease.status === 'signed' && (
+        <Card style={{ marginBottom: 16 }}>
+          <View style={s.rowBetween}><Text style={s.muted}>Lease agreement</Text><Pill label="Signed" tone="success" /></View>
+        </Card>
+      )}
+
       <Card style={{ marginBottom: 16 }}>
         <View style={s.rowBetween}>
           <Text style={s.muted}>{due ? `${due.period} rent` : 'Rent'}</Text>

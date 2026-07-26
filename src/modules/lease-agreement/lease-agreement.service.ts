@@ -195,6 +195,15 @@ export class LeaseAgreementService {
     return { template: template ?? '' };
   }
 
+  /** Tenant: their latest lease agreement (to review + sign in-app). */
+  async mine(userId: string): Promise<{ ref: string; status: string; signUrl: string; fileUrl: string } | null> {
+    const row = await this.tenant.getRepository(LeaseAgreement).findOne({
+      where: { tenantId: userId }, order: { createdAt: 'DESC' },
+    });
+    if (!row) return null;
+    return { ref: row.ref, status: row.status, signUrl: `${this.signBase}/sign/${row.ref}`, fileUrl: row.fileUrl };
+  }
+
   /** Staff: agreements for a lease (or all). */
   list(leaseId?: string): Promise<LeaseAgreement[]> {
     const repo = this.tenant.getRepository(LeaseAgreement);
