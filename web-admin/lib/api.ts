@@ -178,6 +178,7 @@ export const api = {
   getLeaseToSign: (ref: string) => req(`/lease-agreements/sign/${ref}`),
   signLease: (ref: string, fullName: string) =>
     req(`/lease-agreements/sign/${ref}/complete`, { method: 'POST', body: JSON.stringify({ fullName }) }),
+  leaseAgreements: () => req('/lease-agreements'),
   getLeaseTemplate: () => req('/lease-agreements/template'),
   setLeaseTemplate: (template: string) =>
     req('/lease-agreements/template', { method: 'PUT', body: JSON.stringify({ template }) }),

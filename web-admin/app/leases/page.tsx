@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarClock, UserPlus } from 'lucide-react';
+import { CalendarClock, UserPlus, FileText, Copy, Check, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
 
@@ -28,8 +28,27 @@ export default function LeasesPage() {
   const [addBusy, setAddBusy] = useState(false);
   const [addErr, setAddErr] = useState('');
 
+  const [agreements, setAgreements] = useState<Record<string, any>>({});
+  const [copied, setCopied] = useState<string | null>(null);
+
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
-  const load = async () => { setErr(''); try { setRows(await api.listLeases()); } catch (e: any) { setErr(e.message); } };
+  const load = async () => {
+    setErr('');
+    try {
+      const [leases, agrs] = await Promise.all([api.listLeases(), api.leaseAgreements().catch(() => [])]);
+      setRows(leases);
+      // Latest agreement per lease (list is newest-first).
+      const map: Record<string, any> = {};
+      for (const a of agrs as any[]) if (!map[a.leaseId]) map[a.leaseId] = a;
+      setAgreements(map);
+    } catch (e: any) { setErr(e.message); }
+  };
+
+  const signLink = (ref: string) => (typeof window !== 'undefined' ? `${window.location.origin}/sign/${ref}` : `/sign/${ref}`);
+  const copySign = async (ref: string) => {
+    try { await navigator.clipboard.writeText(signLink(ref)); } catch { /* ignore */ }
+    setCopied(ref); setTimeout(() => setCopied((c) => (c === ref ? null : c)), 1800);
+  };
 
   const startRenew = (l: any) => { setEditing(l.id); setPct('8'); setMonths('12'); };
   const renew = async (id: string) => {
@@ -75,7 +94,7 @@ export default function LeasesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Unit</th><th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Type</th><th className="px-5 py-3 font-semibold">Start</th><th className="px-5 py-3 font-semibold">End</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3"></th>
+              <th className="px-5 py-3 font-semibold">Unit</th><th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Type</th><th className="px-5 py-3 font-semibold">Start</th><th className="px-5 py-3 font-semibold">End</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Lease agreement</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {rows.map((l) => (
@@ -87,11 +106,32 @@ export default function LeasesPage() {
                     <td className="px-5 py-3 text-muted">{l.start_date}</td>
                     <td className="px-5 py-3 text-muted">{l.end_date || '—'}</td>
                     <td className="px-5 py-3"><Badge tone="success">{l.status}</Badge></td>
+                    <td className="px-5 py-3">
+                      {(() => {
+                        const a = agreements[l.id];
+                        if (!a) return <span className="text-muted">—</span>;
+                        if (a.status === 'signed') return (
+                          <div className="flex items-center gap-2">
+                            <Badge tone="success">Signed</Badge>
+                            <a href={a.fileUrl} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="View signed agreement"><FileText size={14} /></a>
+                          </div>
+                        );
+                        return (
+                          <div className="flex items-center gap-1">
+                            <Badge tone="brand">Awaiting signature</Badge>
+                            <Button variant="ghost" onClick={() => copySign(a.ref)} title="Copy signing link">
+                              {copied === a.ref ? <Check size={13} /> : <Copy size={13} />}
+                            </Button>
+                            <a href={signLink(a.ref)} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="Open signing page"><ExternalLink size={14} /></a>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="px-5 py-3"><Button variant="ghost" onClick={() => startRenew(l)}><CalendarClock size={15} /> Renew</Button></td>
                   </tr>
                   {editing === l.id && (
                     <tr className="bg-white/30">
-                      <td colSpan={7} className="px-5 py-4">
+                      <td colSpan={8} className="px-5 py-4">
                         <div className="flex flex-wrap items-end gap-3">
                           <div className="w-32"><Field label="Escalation %"><input className="input" value={pct} onChange={(e) => setPct(e.target.value)} /></Field></div>
                           <div className="w-32"><Field label="Extend (months)"><input className="input" value={months} onChange={(e) => setMonths(e.target.value)} /></Field></div>
@@ -104,7 +144,7 @@ export default function LeasesPage() {
                   )}
                 </Fragment>
               ))}
-              {rows.length === 0 && <tr><td colSpan={7}><EmptyState>No active leases. Use “Add tenant” to onboard your first tenant.</EmptyState></td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8}><EmptyState>No active leases. Use “Add tenant” to onboard your first tenant.</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>
