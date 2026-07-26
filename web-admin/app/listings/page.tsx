@@ -67,9 +67,13 @@ export default function ListingsPage() {
     try {
       const [all, u] = await Promise.all([api.allListings(), api.units()]);
       setListings(all);
-      const vacant = u.filter((x: any) => x.status === 'vacant');
-      setUnits(vacant);
-      if (!unitId && vacant[0]) setUnitId(vacant[0].id);
+      // A unit with an existing open listing (draft/published/paused) can't be re-listed.
+      const openUnitIds = new Set(
+        all.filter((l: any) => ['draft', 'published', 'paused'].includes(l.status)).map((l: any) => l.unitId),
+      );
+      const available = u.filter((x: any) => x.status === 'vacant' && !openUnitIds.has(x.id));
+      setUnits(available);
+      if (available.every((x: any) => x.id !== unitId)) setUnitId(available[0]?.id ?? '');
     } catch (e: any) { setErr(e.message); }
   };
   const create = async () => {
