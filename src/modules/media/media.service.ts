@@ -21,7 +21,7 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png',
-  webp: 'image/webp', gif: 'image/gif', heic: 'image/heic',
+  webp: 'image/webp', gif: 'image/gif', heic: 'image/heic', pdf: 'application/pdf',
 };
 
 /**
@@ -64,6 +64,18 @@ export class MediaService {
       await writeFile(join(this.dir, key), file.buffer);
       return { key, url: this.url(key) };
     }
+  }
+
+  /** Like save(), but also accepts a PDF (stored as-is; images still resized). */
+  async saveProof(file: UploadedFileLike): Promise<{ key: string; url: string }> {
+    if (!file?.buffer?.length) throw new BadRequestException('No file uploaded');
+    if (file.mimetype?.startsWith('image/')) return this.save(file);
+    if (file.mimetype === 'application/pdf') {
+      const key = `${randomUUID()}.pdf`;
+      await writeFile(join(this.dir, key), file.buffer);
+      return { key, url: this.url(key) };
+    }
+    throw new BadRequestException('Upload an image or PDF');
   }
 
   url(key: string): string {

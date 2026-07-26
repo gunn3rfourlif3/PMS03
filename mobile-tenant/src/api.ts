@@ -61,6 +61,35 @@ export const api = {
       body: JSON.stringify({ method }),
     }),
 
+  // Proof of payment (manual EFT) — multipart upload.
+  uploadProof: async (
+    invoiceId: string,
+    asset: { uri: string; name?: string; mimeType?: string; file?: any },
+    extra?: { reference?: string; amount?: string },
+  ): Promise<any> => {
+    const form = new FormData();
+    if (asset.file || Platform.OS === 'web') {
+      const blob = asset.file ?? (await (await fetch(asset.uri)).blob());
+      form.append('file', blob, asset.name || 'proof.jpg');
+    } else {
+      form.append('file', { uri: asset.uri, name: asset.name || 'proof.jpg', type: asset.mimeType || 'image/jpeg' } as any);
+    }
+    form.append('invoiceId', invoiceId);
+    if (extra?.reference) form.append('reference', extra.reference);
+    if (extra?.amount) form.append('amount', extra.amount);
+    const res = await fetch(`${API_BASE}/proof-of-payment`, {
+      method: 'POST',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: form as any,
+    });
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error((Array.isArray(b.message) ? b.message.join(', ') : b.message) || `Upload failed (${res.status})`);
+    }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  },
+
   // Maintenance (tenant self-service)
   myTickets: () => req('/maintenance/tickets/mine'),
   createTicket: (b: { unitId: string; category: string; description: string; priority?: string }) =>

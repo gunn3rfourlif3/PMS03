@@ -85,6 +85,12 @@ export const api = {
   runBilling: (period: string, dueDate: string) =>
     req('/billing/run', { method: 'POST', body: JSON.stringify({ period, dueDate }) }),
 
+  // Proof of payment (manual EFT) review
+  listProofs: (status?: string) => req(`/proof-of-payment${status ? `?status=${status}` : ''}`),
+  acceptProof: (id: string) => req(`/proof-of-payment/${id}/accept`, { method: 'POST' }),
+  rejectProof: (id: string, reason?: string) =>
+    req(`/proof-of-payment/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
   units: () => req('/properties/units'),
   listProperties: () => req('/properties'),
   createProperty: (b: any) => req('/properties', { method: 'POST', body: JSON.stringify(b) }),

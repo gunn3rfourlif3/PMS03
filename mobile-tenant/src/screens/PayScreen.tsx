@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, RefreshControl, Linking,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
 import { Card, Pill, Button, money } from '../ui';
@@ -13,6 +14,7 @@ export default function PayScreen() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     try { setInvoices(await api.myInvoices()); }
@@ -34,6 +36,20 @@ export default function PayScreen() {
     finally { setPaying(false); }
   };
 
+  const uploadProof = async () => {
+    if (!due) return;
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.85 });
+    if (res.canceled || !res.assets?.[0]) return;
+    const a: any = res.assets[0];
+    setUploading(true);
+    try {
+      await api.uploadProof(due.id, { uri: a.uri, name: a.fileName ?? 'proof.jpg', mimeType: a.mimeType ?? 'image/jpeg', file: a.file });
+      Alert.alert('Proof sent', 'Thanks — we’ve received your proof of payment and will confirm it shortly.');
+      await load();
+    } catch (e: any) { Alert.alert('Upload failed', e.message); }
+    finally { setUploading(false); }
+  };
+
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
 
   return (
@@ -47,6 +63,7 @@ export default function PayScreen() {
         <Text style={s.amount}>{due ? money(due.total) : money(0)}</Text>
         <Text style={s.muted}>{due ? 'Includes VAT' : 'Nothing outstanding'}</Text>
         {due && <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 16 }} />}
+        {due && <Button label="Upload proof of payment" variant="secondary" onPress={uploadProof} busy={uploading} style={{ marginTop: 10 }} />}
       </Card>
 
       <Text style={s.section}>History</Text>

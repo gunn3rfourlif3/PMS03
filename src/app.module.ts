@@ -33,6 +33,7 @@ import { BrandingModule } from './modules/branding/branding.module';
 import { ServiceProvidersModule } from './modules/service-providers/service-providers.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { MediaModule } from './modules/media/media.module';
+import { ProofOfPaymentModule } from './modules/proof-of-payment/proof-of-payment.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -77,6 +78,7 @@ import { EsignModule } from './providers/esign/esign.module';
     ServiceProvidersModule,
     LeadsModule,
     MediaModule,
+    ProofOfPaymentModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

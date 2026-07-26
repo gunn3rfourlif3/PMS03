@@ -11,6 +11,7 @@ const NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/properties', label: 'Properties', icon: Building2 },
   { href: '/leases', label: 'Leases', icon: CalendarClock },
+  { href: '/payments', label: 'Payments', icon: Receipt },
   { href: '/listings', label: 'Listings', icon: Tags },
   { href: '/applications', label: 'Applications', icon: ClipboardList },
   { href: '/owners', label: 'Owners', icon: Users },
