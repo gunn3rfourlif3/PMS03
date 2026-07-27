@@ -35,6 +35,8 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { MediaModule } from './modules/media/media.module';
 import { ProofOfPaymentModule } from './modules/proof-of-payment/proof-of-payment.module';
 import { LeaseAgreementModule } from './modules/lease-agreement/lease-agreement.module';
+import { DocumentAiModule } from './providers/document-ai/document-ai.module';
+import { LeaseParsingModule } from './modules/lease-parsing/lease-parsing.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -81,6 +83,8 @@ import { EsignModule } from './providers/esign/esign.module';
     MediaModule,
     ProofOfPaymentModule,
     LeaseAgreementModule,
+    DocumentAiModule,
+    LeaseParsingModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

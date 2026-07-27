@@ -187,6 +187,10 @@ export const api = {
     reqForm('/lease-agreements/template-file', fileForm(file)),
   clearLeaseTemplateFile: () => req('/lease-agreements/template-file', { method: 'DELETE' }),
 
+  // Smart lease parsing
+  parseLeasePdf: (file: File) => reqForm('/lease-parsing', fileForm(file)),
+  confirmExtraction: (id: string) => req(`/lease-parsing/${id}/confirm`, { method: 'POST' }),
+
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
 };

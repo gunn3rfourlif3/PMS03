@@ -78,6 +78,9 @@ services:
       MEDIA_DIR: /data/media
       PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
       SIGN_BASE: ${SIGN_BASE:-}
+      DOCUMENT_AI_PROVIDER: ${DOCUMENT_AI_PROVIDER:-heuristic}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      DOCUMENT_AI_MODEL: ${DOCUMENT_AI_MODEL:-}
     volumes:
       - mediadata:/data/media
 
