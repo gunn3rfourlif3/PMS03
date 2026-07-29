@@ -62,7 +62,7 @@ export default function ApplicationsPage() {
             </tr></thead>
             <tbody>
               {apps.map((a) => (
-                <tr key={a.id} className="border-t border-white/40 hover:bg-white/30">
+                <tr key={a.id} className="border-t border-line hover:bg-black/[0.02]">
                   <td className="px-5 py-3 font-medium">{a.applicantName}</td>
                   <td className="px-5 py-3 text-muted">{a.applicantEmail}</td>
                   <td className="px-5 py-3"><Badge tone={tone(a.status)}>{a.status}</Badge></td>
@@ -131,7 +131,7 @@ export default function ApplicationsPage() {
 function Row({ label, value }: { label: string; value: any }) {
   if (value === undefined || value === null || value === '') return null;
   return (
-    <div className="flex justify-between gap-4 border-b border-white/40 py-1.5 text-sm last:border-0">
+    <div className="flex justify-between gap-4 border-b border-line py-1.5 text-sm last:border-0">
       <span className="text-muted">{label}</span>
       <span className="text-right font-medium text-ink">{String(value)}</span>
     </div>

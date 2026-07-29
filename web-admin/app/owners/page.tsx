@@ -84,7 +84,7 @@ export default function OwnersPage() {
             </tr></thead>
             <tbody>
               {owners.map((o) => (
-                <tr key={o.id} className={`border-t border-white/40 hover:bg-white/30 ${selected?.id === o.id ? 'bg-white/40' : ''}`}>
+                <tr key={o.id} className={`border-t border-line hover:bg-black/[0.02] ${selected?.id === o.id ? 'bg-black/[0.03]' : ''}`}>
                   <td className="px-5 py-3 font-medium">{o.name}</td>
                   <td className="px-5 py-3">{Math.round(Number(o.managementFeePct) * 100)}%</td>
                   <td className="px-5 py-3">{o.payoutSubaccount || '—'}</td>
@@ -118,7 +118,7 @@ export default function OwnersPage() {
               </tr></thead>
               <tbody>
                 {statements.map((st) => (
-                  <tr key={st.id} className="border-t border-white/40 hover:bg-white/30">
+                  <tr key={st.id} className="border-t border-line hover:bg-black/[0.02]">
                     <td className="px-5 py-3">{st.period}</td>
                     <td className="px-5 py-3">{money(st.grossCollected)}</td>
                     <td className="px-5 py-3">{money(st.managementFee)}</td>

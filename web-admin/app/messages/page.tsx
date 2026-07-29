@@ -91,10 +91,10 @@ export default function MessagesPage() {
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
         {/* Inbox list — hidden on mobile while a thread is open */}
         <GlassCard className={'!p-0 overflow-hidden ' + (activeId ? 'hidden lg:block' : '')}>
-          <div className="max-h-[70vh] divide-y divide-white/40 overflow-y-auto">
+          <div className="max-h-[70vh] divide-y divide-line overflow-y-auto">
             {rows.map((c) => (
               <button key={c.id} onClick={() => open(c.id)}
-                className={'flex w-full items-start gap-3 px-4 py-3.5 text-left transition ' + (activeId === c.id ? 'bg-white/60' : 'hover:bg-white/40')}>
+                className={'flex w-full items-start gap-3 px-4 py-3.5 text-left transition ' + (activeId === c.id ? 'bg-black/[0.04]' : 'hover:bg-black/5')}>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-semibold"
                   style={{ background: 'color-mix(in srgb, var(--brand) 14%, transparent)', color: 'var(--brand)' }}>
                   {initials(c.tenantName)}
@@ -128,9 +128,9 @@ export default function MessagesPage() {
             </div>
           ) : (
             <div className="flex h-[70vh] flex-col">
-              <div className="flex items-center justify-between gap-2 border-b border-white/40 px-4 py-3.5 sm:px-5">
+              <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3.5 sm:px-5">
                 <button onClick={back}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-white/50 hover:text-ink lg:hidden"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-black/5 hover:text-ink lg:hidden"
                   aria-label="Back to inbox"><ChevronLeft size={20} /></button>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold text-ink">{thread.conversation.subject}</div>
@@ -149,7 +149,7 @@ export default function MessagesPage() {
                   const staff = m.senderRole === 'staff';
                   return (
                     <div key={m.id} className={'flex ' + (staff ? 'justify-end' : 'justify-start')}>
-                      <div className={'max-w-[78%] rounded-2xl px-4 py-2.5 text-sm ' + (staff ? 'text-white' : 'bg-white/70 text-ink')}
+                      <div className={'max-w-[78%] rounded-2xl px-4 py-2.5 text-sm ' + (staff ? 'text-white' : 'bg-black/[0.04] text-ink')}
                         style={staff ? { background: 'var(--brand)' } : {}}>
                         <div className="whitespace-pre-wrap">{m.body}</div>
                         <div className={'mt-1 text-[10px] ' + (staff ? 'text-white/70' : 'text-muted')}>{when(m.createdAt)}</div>
@@ -160,12 +160,12 @@ export default function MessagesPage() {
                 <div ref={endRef} />
               </div>
 
-              <div className="flex items-end gap-2 border-t border-white/40 px-4 py-3">
+              <div className="flex items-end gap-2 border-t border-line px-4 py-3">
                 <textarea
                   value={draft} onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                   rows={1} placeholder="Type a reply…"
-                  className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-white/50 bg-white/60 px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted focus:border-[var(--brand)]"
+                  className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-line bg-black/[0.04] px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted focus:border-[var(--brand)]"
                 />
                 <Button onClick={send} loading={busy} disabled={!draft.trim()} className="!py-2.5"><Send size={16} /> Send</Button>
               </div>

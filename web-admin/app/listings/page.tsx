@@ -117,7 +117,7 @@ export default function ListingsPage() {
             </tr></thead>
             <tbody>
               {listings.map((l) => (
-                <tr key={l.id} className="border-t border-white/40 hover:bg-white/30">
+                <tr key={l.id} className="border-t border-line hover:bg-black/[0.02]">
                   <td className="px-5 py-3 font-medium">{money(l.advertisedRent)}</td>
                   <td className="px-5 py-3">{l.availableFrom}</td>
                   <td className="px-5 py-3"><Badge tone={l.status === 'published' ? 'success' : l.status === 'filled' ? 'brand' : 'muted'}>{l.status}</Badge></td>
@@ -128,7 +128,7 @@ export default function ListingsPage() {
                         <Button variant="ghost" onClick={() => copyLink(l.id)}>
                           {copied === l.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy link</>}
                         </Button>
-                        <a href={rentalsUrl(l.id)} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="Open public page"><ExternalLink size={15} /></a>
+                        <a href={rentalsUrl(l.id)} target="_blank" rel="noreferrer" className="grid h-8 w-8 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title="Open public page"><ExternalLink size={15} /></a>
                       </div>
                     ) : <span className="text-muted">—</span>}
                   </td>
@@ -162,7 +162,7 @@ export default function ListingsPage() {
         ) : (
           <div className="mb-4 grid grid-cols-3 gap-3">
             {photos.map((url) => (
-              <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-white/40">
+              <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-line">
                 <img src={thumbUrl(url)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = url; }} alt="" className="h-full w-full object-cover" />
                 <button onClick={() => deletePhoto(url)} title="Remove"
                   className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-lg bg-black/55 text-white opacity-0 transition group-hover:opacity-100 hover:bg-danger">

@@ -61,7 +61,7 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
         return (
           <Link key={href} href={href} onClick={onNavigate}
             className={cn('group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-              active ? 'text-onbrand shadow-soft' : 'text-ink/70 hover:text-ink hover:bg-white/40')}
+              active ? 'text-onbrand shadow-soft' : 'text-ink/70 hover:text-ink hover:bg-black/5')}
             style={active ? { background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 90%, white), var(--brand))' } : undefined}>
             <Icon size={18} className={active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'} />
             {label}
@@ -76,7 +76,7 @@ function SignOut({ onDone }: { onDone?: () => void }) {
   const router = useRouter();
   return (
     <button onClick={() => { auth.clear(); onDone?.(); router.replace('/login'); }}
-      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-white/40 hover:text-danger">
+      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-black/5 hover:text-danger">
       <LogOut size={18} /> Sign out
     </button>
   );
@@ -86,7 +86,7 @@ function Footer() {
   const b = useBrand();
   const c = b.contact;
   return (
-    <footer className="mt-10 border-t border-white/40 pt-6 text-xs text-muted">
+    <footer className="mt-10 border-t border-line pt-6 text-xs text-muted">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         <span className="font-semibold text-ink">{b.name}</span>
         {c.phone && <a href={`tel:${c.phone}`} className="hover:text-brand">{c.phone}</a>}
@@ -122,14 +122,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="px-2 py-3"><BrandMark /></div>
           <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
-        <div className="border-t border-white/40 pt-3"><SignOut /></div>
+        <div className="border-t border-line pt-3"><SignOut /></div>
       </aside>
 
       {/* Mobile top bar */}
       <header className="glass sticky top-0 z-30 flex items-center justify-between rounded-none px-4 py-3 lg:hidden">
-        <button onClick={() => setOpen(true)} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-white/40"><Menu size={20} /></button>
+        <button onClick={() => setOpen(true)} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Menu size={20} /></button>
         <BrandMark size={30} />
-        <button onClick={() => router.push('/notifications')} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-white/40"><Bell size={18} /></button>
+        <button onClick={() => router.push('/notifications')} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Bell size={18} /></button>
       </header>
 
       {/* Mobile drawer */}
@@ -140,11 +140,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div>
               <div className="flex items-center justify-between px-2 py-2">
                 <BrandMark size={30} />
-                <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-white/40"><X size={18} /></button>
+                <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-black/5"><X size={18} /></button>
               </div>
               <div className="mt-4"><NavLinks items={nav} onNavigate={() => setOpen(false)} /></div>
             </div>
-            <div className="border-t border-white/40 pt-3"><SignOut onDone={() => setOpen(false)} /></div>
+            <div className="border-t border-line pt-3"><SignOut onDone={() => setOpen(false)} /></div>
           </div>
         </div>
       )}

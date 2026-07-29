@@ -103,7 +103,7 @@ export default function DocumentsPage() {
             </tr></thead>
             <tbody>
               {docs.map((d) => (
-                <tr key={d.id} className="border-t border-white/40 hover:bg-white/30">
+                <tr key={d.id} className="border-t border-line hover:bg-black/[0.02]">
                   <td className="px-5 py-3 font-medium">{d.filename}</td>
                   <td className="px-5 py-3 text-muted">{d.type}</td>
                   <td className="px-5 py-3">v{d.version}</td>

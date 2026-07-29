@@ -130,7 +130,7 @@ export default function SettingsPage() {
         <input ref={leaseFileRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={(e) => uploadLease(e.target.files?.[0])} />
 
         {leaseFileUrl ? (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/50 bg-white/40 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-black/[0.03] px-4 py-3">
             <FileText size={20} className="text-brand" />
             <div className="flex-1">
               <div className="text-sm font-medium text-ink">Your lease is uploaded</div>
@@ -146,9 +146,9 @@ export default function SettingsPage() {
         <details className="mt-5">
           <summary className="cursor-pointer text-sm text-muted hover:text-ink">Advanced: use a text template with placeholders instead</summary>
           <div className="mt-3">
-            <p className="mb-2 text-sm text-muted">Paste plain text or HTML with placeholders like <code className="rounded bg-white/50 px-1">{'{{tenant_name}}'}</code>. Only used when no lease file is uploaded above.</p>
+            <p className="mb-2 text-sm text-muted">Paste plain text or HTML with placeholders like <code className="rounded bg-black/[0.03] px-1">{'{{tenant_name}}'}</code>. Only used when no lease file is uploaded above.</p>
             <div className="mb-3 flex flex-wrap gap-1.5">
-              {placeholders.map((p) => <code key={p} className="rounded-md bg-white/50 px-2 py-1 text-xs text-ink/70">{`{{${p}}}`}</code>)}
+              {placeholders.map((p) => <code key={p} className="rounded-md bg-black/[0.03] px-2 py-1 text-xs text-ink/70">{`{{${p}}}`}</code>)}
             </div>
             <textarea className="input min-h-[200px] font-mono text-[13px]" value={tpl ?? ''} onChange={(e) => setTpl(e.target.value)} placeholder="Optional. Include {{signature}} where the signature block should appear." />
             <div className="mt-3"><Button variant="ghost" onClick={saveTpl} loading={tplBusy}><Save size={15} /> Save text template</Button></div>

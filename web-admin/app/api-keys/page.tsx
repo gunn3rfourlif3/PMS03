@@ -53,7 +53,7 @@ export default function ApiKeysPage() {
         <GlassCard className="mb-4" style={{ borderColor: 'var(--brand)' } as any}>
           <div className="font-heading font-bold text-brand">Copy your new key now — it won’t be shown again.</div>
           <div className="mt-2 flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto rounded-lg bg-white/60 px-3 py-2 text-sm">{created.apiKey}</code>
+            <code className="flex-1 overflow-x-auto rounded-lg bg-black/[0.04] px-3 py-2 text-sm">{created.apiKey}</code>
             <Button variant="ghost" onClick={() => copy(created.apiKey)}><Copy size={15} /> Copy</Button>
           </div>
         </GlassCard>
@@ -89,7 +89,7 @@ export default function ApiKeysPage() {
               {keys.map((k) => {
                 const st = statusOf(k);
                 return (
-                  <tr key={k.id} className="border-t border-white/40 hover:bg-white/30">
+                  <tr key={k.id} className="border-t border-line hover:bg-black/[0.02]">
                     <td className="px-5 py-3 font-medium">{k.name}</td>
                     <td className="px-5 py-3"><code className="text-xs">{k.prefix}…</code></td>
                     <td className="px-5 py-3 text-muted">{(k.scopes ?? []).join(', ') || '—'}</td>

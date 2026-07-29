@@ -41,7 +41,7 @@ export default function PortalProperties() {
                 </div>
                 <Badge tone={pct === 100 ? 'success' : pct === 0 ? 'muted' : 'brand'}>{pct}% full</Badge>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-white/40 pt-3 text-sm">
+              <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm">
                 <span className="text-muted">{p.occupied}/{p.units} units occupied</span>
                 <span className="font-semibold text-ink">{money(p.monthlyRent)}<span className="text-muted">/mo</span></span>
               </div>

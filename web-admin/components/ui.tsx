@@ -50,7 +50,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
     <div className="mb-6 animate-fade-up">
       {showBack && (
         <button onClick={goBack}
-          className="mb-3 inline-flex items-center gap-1 rounded-lg py-1 pr-2.5 pl-1.5 text-sm font-medium text-muted transition hover:bg-white/50 hover:text-brand">
+          className="mb-3 inline-flex items-center gap-1 rounded-lg py-1 pr-2.5 pl-1.5 text-sm font-medium text-muted transition hover:bg-black/5 hover:text-brand">
           <ChevronLeft size={16} /> Back
         </button>
       )}
@@ -92,7 +92,7 @@ export function Modal({
         {title && (
           <div className="mb-4 flex items-start justify-between gap-4">
             <h2 className="font-heading text-lg font-bold text-ink">{title}</h2>
-            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-white/50 hover:text-ink"><X size={18} /></button>
+            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-black/5 hover:text-ink"><X size={18} /></button>
           </div>
         )}
         <div>{children}</div>

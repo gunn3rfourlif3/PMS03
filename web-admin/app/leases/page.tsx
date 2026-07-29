@@ -3,7 +3,7 @@ import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarClock, UserPlus, FileText, Copy, Check, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
 
 export default function LeasesPage() {
   const router = useRouter();
@@ -99,6 +99,13 @@ export default function LeasesPage() {
       </div>
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoTile tone="purple" value={String(rows.length)} label="Active leases" />
+        <BentoTile tone="teal" value={money(rows.reduce((s, l) => s + Number(l.rent_amount || 0), 0))} label="Monthly rent roll" />
+        <BentoTile tone="green" value={String(Object.values(agreements).filter((a: any) => a.status === 'signed').length)} label="Signed agreements" />
+        <BentoTile tone="amber" value={String(Object.values(agreements).filter((a: any) => a.status && a.status !== 'signed').length)} label="Awaiting signature" />
+      </div>
+
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -108,7 +115,7 @@ export default function LeasesPage() {
             <tbody>
               {rows.map((l) => (
                 <Fragment key={l.id}>
-                  <tr className="border-t border-white/40 hover:bg-white/30">
+                  <tr className="border-t border-line hover:bg-black/[0.02]">
                     <td className="px-5 py-3 font-medium">{l.unit}</td>
                     <td className="px-5 py-3">{money(l.rent_amount)}</td>
                     <td className="px-5 py-3 text-muted">{l.type}</td>
@@ -124,7 +131,7 @@ export default function LeasesPage() {
                         if (a.status === 'signed') return (
                           <div className="flex items-center gap-2">
                             <Badge tone="success">Signed</Badge>
-                            <a href={a.fileUrl} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="View signed agreement"><FileText size={14} /></a>
+                            <a href={a.fileUrl} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title="View signed agreement"><FileText size={14} /></a>
                           </div>
                         );
                         return (
@@ -133,7 +140,7 @@ export default function LeasesPage() {
                             <Button variant="ghost" onClick={() => copySign(a.ref)} title="Copy signing link">
                               {copied === a.ref ? <Check size={13} /> : <Copy size={13} />}
                             </Button>
-                            <a href={signLink(a.ref)} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-white/40 hover:text-brand" title="Open signing page"><ExternalLink size={14} /></a>
+                            <a href={signLink(a.ref)} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title="Open signing page"><ExternalLink size={14} /></a>
                           </div>
                         );
                       })()}
@@ -141,7 +148,7 @@ export default function LeasesPage() {
                     <td className="px-5 py-3"><Button variant="ghost" onClick={() => startRenew(l)}><CalendarClock size={15} /> Renew</Button></td>
                   </tr>
                   {editing === l.id && (
-                    <tr className="bg-white/30">
+                    <tr className="bg-black/[0.03]">
                       <td colSpan={8} className="px-5 py-4">
                         <div className="flex flex-wrap items-end gap-3">
                           <div className="w-32"><Field label="Escalation %"><input className="input" value={pct} onChange={(e) => setPct(e.target.value)} /></Field></div>

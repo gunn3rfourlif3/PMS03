@@ -30,7 +30,7 @@ export default function NotificationsPage() {
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <GlassCard className="!p-0 overflow-hidden">
-        <div className="divide-y divide-white/40">
+        <div className="divide-y divide-line">
           {rows.map((n) => (
             <div key={n.id} className="flex items-center gap-3 px-5 py-4">
               <span className="grid h-9 w-9 place-items-center rounded-xl" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)', color: 'var(--brand)' }}>

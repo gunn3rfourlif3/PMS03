@@ -24,10 +24,10 @@ export default function PortalStatements() {
       <PageHeader title="Statements" subtitle="Monthly collections, fees and payouts" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
       <GlassCard className="!p-0 overflow-hidden">
-        <div className="hidden grid-cols-[1fr_1fr_1fr_1fr_1.1fr] gap-3 border-b border-white/40 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted sm:grid">
+        <div className="hidden grid-cols-[1fr_1fr_1fr_1fr_1.1fr] gap-3 border-b border-line px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted sm:grid">
           <span>Period</span><span className="text-right">Collected</span><span className="text-right">Fee</span><span className="text-right">Net payout</span><span className="text-right">Status</span>
         </div>
-        <div className="divide-y divide-white/40">
+        <div className="divide-y divide-line">
           {rows.map((r) => (
             <div key={r.id} className="grid grid-cols-2 gap-2 px-5 py-4 sm:grid-cols-[1fr_1fr_1fr_1fr_1.1fr] sm:gap-3">
               <span className="font-medium text-ink">{r.period}</span>

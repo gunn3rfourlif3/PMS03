@@ -78,7 +78,7 @@ export default function ProvidersPage() {
             <tbody>
               {rows.map((p) => (
                 <Fragment key={p.id}>
-                  <tr className="border-t border-white/40 hover:bg-white/30">
+                  <tr className="border-t border-line hover:bg-black/[0.02]">
                     <td className="px-5 py-3 font-medium">{p.name}</td>
                     <td className="px-5 py-3"><Badge tone="brand">{cap(p.category)}</Badge></td>
                     <td className="px-5 py-3 text-muted">{p.contactName || '—'}</td>
@@ -93,7 +93,7 @@ export default function ProvidersPage() {
                     </td>
                   </tr>
                   {editing === p.id && (
-                    <tr className="bg-white/30"><td colSpan={7} className="px-5 py-4">
+                    <tr className="bg-black/[0.03]"><td colSpan={7} className="px-5 py-4">
                       <div className="flex flex-wrap items-end gap-3">
                         <div className="w-44"><Field label="Name"><input className="input" value={edit.name ?? ''} onChange={(e) => setE('name', e.target.value)} /></Field></div>
                         <div className="w-40"><Field label="Category">

@@ -63,7 +63,7 @@ export default function AgentsPage() {
 
       <div className="mb-4 flex gap-2">
         {(['agents', 'commissions'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition ${tab === t ? 'bg-ink text-white' : 'text-ink/70 hover:bg-white/50'}`}>{t}</button>
+          <button key={t} onClick={() => setTab(t)} className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition ${tab === t ? 'bg-ink text-white' : 'text-ink/70 hover:bg-black/5'}`}>{t}</button>
         ))}
       </div>
 
@@ -78,7 +78,7 @@ export default function AgentsPage() {
               </tr></thead>
               <tbody>
                 {agents.map((a) => (
-                  <tr key={a.id} className="border-t border-white/40 hover:bg-white/30">
+                  <tr key={a.id} className="border-t border-line hover:bg-black/[0.02]">
                     <td className="px-5 py-3"><div className="font-medium text-ink">{a.name}</div>{a.company && <div className="text-xs text-muted">{a.company}</div>}</td>
                     <td className="px-5 py-3 text-muted">{a.email || '—'}{a.phone ? ` · ${a.phone}` : ''}</td>
                     <td className="px-5 py-3">{terms(a)}</td>
@@ -104,7 +104,7 @@ export default function AgentsPage() {
         <>
           <div className="mb-4 flex flex-wrap gap-2">
             {['pending', 'approved', 'paid', 'all'].map((s) => (
-              <button key={s} onClick={() => setCFilter(s)} className={`rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition ${cFilter === s ? 'bg-ink text-white' : 'text-ink/70 hover:bg-white/50'}`}>{s}</button>
+              <button key={s} onClick={() => setCFilter(s)} className={`rounded-full px-3.5 py-1.5 text-sm font-medium capitalize transition ${cFilter === s ? 'bg-ink text-white' : 'text-ink/70 hover:bg-black/5'}`}>{s}</button>
             ))}
           </div>
           <GlassCard className="!p-0 overflow-hidden">
@@ -115,7 +115,7 @@ export default function AgentsPage() {
                 </tr></thead>
                 <tbody>
                   {comms.map((c) => (
-                    <tr key={c.id} className="border-t border-white/40 hover:bg-white/30">
+                    <tr key={c.id} className="border-t border-line hover:bg-black/[0.02]">
                       <td className="px-5 py-3 font-medium">{c.agentName}</td>
                       <td className="px-5 py-3 text-muted"><span className="capitalize">{c.type}</span> · {c.sourceLabel}</td>
                       <td className="px-5 py-3 font-medium">{money(c.amount)}</td>
@@ -186,13 +186,13 @@ export default function AgentsPage() {
         {stmt && (
           <div>
             <div className="mb-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-white/50 p-3"><div className="text-xs text-muted">Pending</div><div className="font-heading text-lg font-bold">{money(stmt.totals.pending)}</div></div>
-              <div className="rounded-xl bg-white/50 p-3"><div className="text-xs text-muted">Approved</div><div className="font-heading text-lg font-bold">{money(stmt.totals.approved)}</div></div>
-              <div className="rounded-xl bg-white/50 p-3"><div className="text-xs text-muted">Paid</div><div className="font-heading text-lg font-bold text-success">{money(stmt.totals.paid)}</div></div>
+              <div className="rounded-xl bg-black/[0.03] p-3"><div className="text-xs text-muted">Pending</div><div className="font-heading text-lg font-bold">{money(stmt.totals.pending)}</div></div>
+              <div className="rounded-xl bg-black/[0.03] p-3"><div className="text-xs text-muted">Approved</div><div className="font-heading text-lg font-bold">{money(stmt.totals.approved)}</div></div>
+              <div className="rounded-xl bg-black/[0.03] p-3"><div className="text-xs text-muted">Paid</div><div className="font-heading text-lg font-bold text-success">{money(stmt.totals.paid)}</div></div>
             </div>
             <div className="max-h-[40vh] overflow-y-auto">
               {stmt.commissions.map((c: any) => (
-                <div key={c.id} className="flex items-center justify-between border-b border-white/40 py-2 text-sm">
+                <div key={c.id} className="flex items-center justify-between border-b border-line py-2 text-sm">
                   <span><span className="capitalize">{c.type}</span> · {c.sourceLabel}</span>
                   <span className="flex items-center gap-2">{money(c.amount)} <Badge tone={cTone(c.status)}>{c.status}</Badge></span>
                 </div>

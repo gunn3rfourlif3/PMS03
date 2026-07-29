@@ -95,7 +95,7 @@ export default function LeaseParsingPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Left: the document */}
             <GlassCard className="!p-2">
-              <iframe title="Lease document" src={rec.sourceUrl} className="h-[72vh] w-full rounded-xl border border-white/40 bg-white" />
+              <iframe title="Lease document" src={rec.sourceUrl} className="h-[72vh] w-full rounded-xl border border-line bg-white" />
             </GlassCard>
 
             {/* Right: extracted, editable */}

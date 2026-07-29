@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Building2, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money, ConfirmModal } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, BentoTile, money, ConfirmModal } from '@/components/ui';
 
 type PendingDelete = { kind: 'property' | 'unit'; id: string; pid?: string; label: string };
 
@@ -87,11 +87,21 @@ export default function PropertiesPage() {
   };
 
   if (!ready) return null;
+  const totalUnits = props.reduce((s, p) => s + Number(p.unit_count || 0), 0);
+  const occupied = props.reduce((s, p) => s + Number(p.occupied_count || 0), 0);
+  const occRate = totalUnits ? Math.round((occupied / totalUnits) * 100) : 0;
 
   return (
     <div>
       <PageHeader title="Properties" subtitle="Manage your buildings and units" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoTile tone="blue" value={String(props.length)} label="Properties" />
+        <BentoTile tone="purple" value={String(totalUnits)} label="Units" />
+        <BentoTile tone="teal" value={String(occupied)} label="Occupied" chip={`${occRate}%`} />
+        <BentoTile tone="amber" value={String(totalUnits - occupied)} label="Vacant" />
+      </div>
 
       <GlassCard>
         <div className="mb-3 font-heading text-lg font-bold">Add property</div>
@@ -138,7 +148,7 @@ export default function PropertiesPage() {
           )}
 
           {openId === p.id && (
-            <div className="mt-4 border-t border-white/40 pt-4">
+            <div className="mt-4 border-t border-line pt-4">
               <div className="mb-3 flex flex-wrap items-end gap-2">
                 <div className="w-28"><Field label="Unit label"><input className="input" value={uForm.label ?? ''} onChange={(e) => setUF('label', e.target.value)} placeholder="A-101" /></Field></div>
                 <div className="w-36"><Field label="Status"><select className="input" value={uForm.status} onChange={(e) => setUF('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{label(st)}</option>)}</select></Field></div>
@@ -154,7 +164,7 @@ export default function PropertiesPage() {
                   </tr></thead>
                   <tbody>
                     {units.map((u) => editUnit === u.id ? (
-                      <tr key={u.id} className="border-t border-white/40">
+                      <tr key={u.id} className="border-t border-line">
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.label} onChange={(e) => setUE('label', e.target.value)} /></td>
                         <td className="py-2 pr-3"><select className="input w-32" value={uEdit.status} onChange={(e) => setUE('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{label(st)}</option>)}</select></td>
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.marketRent} onChange={(e) => setUE('marketRent', e.target.value)} /></td>
@@ -162,7 +172,7 @@ export default function PropertiesPage() {
                         <td className="py-2"><div className="flex gap-2"><Button onClick={() => saveUnit(u.id, p.id)} loading={busy}>Save</Button><Button variant="ghost" onClick={() => setEditUnit(null)}>Cancel</Button></div></td>
                       </tr>
                     ) : (
-                      <tr key={u.id} className="border-t border-white/40 hover:bg-white/30">
+                      <tr key={u.id} className="border-t border-line hover:bg-black/[0.02]">
                         <td className="py-2 pr-3 font-medium">{u.label}</td>
                         <td className="py-2 pr-3"><Badge tone={uTone(u.status)}>{u.status}</Badge></td>
                         <td className="py-2 pr-3">{money(u.marketRent)}</td>

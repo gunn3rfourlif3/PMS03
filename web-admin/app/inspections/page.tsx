@@ -114,17 +114,17 @@ export default function InspectionsPage() {
           </div>
 
           {editing === insp.id && (
-            <div className="mt-4 border-t border-white/40 pt-4">
+            <div className="mt-4 border-t border-line pt-4">
               <div className="space-y-2">
                 {items.map((it, i) => (
-                  <div key={i} className="rounded-xl border border-white/40 p-2">
+                  <div key={i} className="rounded-xl border border-line p-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="w-28 text-sm">{it.area}</span>
                       <select className="input w-32" value={it.condition} onChange={(e) => setItem(i, 'condition', e.target.value)}>
                         {CONDS.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                       <input className="input w-32" placeholder="Deduction R" value={it.deductionAmount} onChange={(e) => setItem(i, 'deductionAmount', e.target.value)} />
-                      <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-white/40 px-2.5 py-2 text-sm text-ink/70 hover:text-brand">
+                      <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-line px-2.5 py-2 text-sm text-ink/70 hover:text-brand">
                         <ImagePlus size={15} /> Photo
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => uploadItemPhoto(i, e.target.files?.[0])} />
                       </label>
@@ -132,7 +132,7 @@ export default function InspectionsPage() {
                     {(it.photos?.length ?? 0) > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {it.photos.map((url: string) => (
-                          <div key={url} className="group relative h-16 w-16 overflow-hidden rounded-lg border border-white/40">
+                          <div key={url} className="group relative h-16 w-16 overflow-hidden rounded-lg border border-line">
                             <img src={thumbUrl(url)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = url; }} alt="" className="h-full w-full object-cover" />
                             <button onClick={() => removeItemPhoto(i, url)} title="Remove"
                               className="absolute right-0.5 top-0.5 grid h-5 w-5 place-items-center rounded bg-black/55 text-white opacity-0 transition group-hover:opacity-100 hover:bg-danger">

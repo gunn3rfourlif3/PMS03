@@ -30,7 +30,7 @@ export function PublicFooter() {
   const c = b.contact ?? {};
   return (
     <footer className="mx-auto max-w-5xl px-4 pb-10 pt-4 text-xs text-muted sm:px-6">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-white/40 pt-6">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line pt-6">
         <span className="font-semibold text-ink">{b.name}</span>
         {c.phone && <a href={`tel:${c.phone}`} className="hover:text-brand">{c.phone}</a>}
         {c.email && <a href={`mailto:${c.email}`} className="hover:text-brand">{c.email}</a>}
