@@ -3,7 +3,6 @@ import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
   Linking, Image, StyleProp, ViewStyle,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Branding, useTheme, fontFamily } from './theme';
@@ -26,14 +25,14 @@ export function shade(hex: string, factor: number): string {
   return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
 }
 
-/** Full-screen brand-tinted aurora backdrop for glass to sit on. */
+/** Calm, near-white canvas with a whisper of brand at the top. */
 export function GradientBackground({ children }: { children: React.ReactNode }) {
   const t = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: t.colors.bg }}>
       <LinearGradient
-        colors={[hexToRgba(t.colors.brand, 0.18), hexToRgba(t.colors.accent, 0.10), hexToRgba(t.colors.brand, 0.04)]}
-        start={{ x: 0.9, y: 0 }} end={{ x: 0.1, y: 1 }}
+        colors={[hexToRgba(t.colors.brand, 0.06), 'transparent']}
+        start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.35 }}
         style={StyleSheet.absoluteFill}
       />
       {children}
@@ -41,21 +40,17 @@ export function GradientBackground({ children }: { children: React.ReactNode }) 
   );
 }
 
-/** Frosted glass surface (blur + translucent tint + hairline). */
-export function Card({ children, style, intensity = 34 }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; intensity?: number }) {
+/** Clean solid card with a hairline border and soft shadow. */
+export function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; intensity?: number }) {
   const t = useTheme();
-  return (
-    <View style={[glassBase(t), style]}>
-      <BlurView intensity={intensity} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 16, zIndex: -1 }]} pointerEvents="none" />
-      {children}
-    </View>
-  );
+  return <View style={[glassBase(t), style]}>{children}</View>;
 }
 export function glassBase(t: Branding): ViewStyle {
   return {
-    borderRadius: 16, padding: 16, overflow: 'hidden',
-    backgroundColor: hexToRgba(t.colors.card, 0.55),
-    borderWidth: 1, borderColor: hexToRgba('#ffffff', 0.5),
+    borderRadius: 16, padding: 16,
+    backgroundColor: t.colors.card,
+    borderWidth: 1, borderColor: t.colors.line,
+    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1,
   };
 }
 export function cardStyle(t: Branding): ViewStyle { return glassBase(t); }
