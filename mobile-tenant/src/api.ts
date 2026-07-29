@@ -98,6 +98,7 @@ export const api = {
   approveTicket: (id: string) => req(`/maintenance/tickets/${id}/approve`, { method: 'POST' }),
 
   // Messaging
+  messageUnread: () => req('/messages/unread-count'),
   myMessages: () => req('/messages/mine'),
   messageThread: (id: string) => req(`/messages/conversations/${id}`),
   startConversation: (subject: string, body: string) =>

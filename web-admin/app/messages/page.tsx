@@ -101,7 +101,7 @@ export default function MessagesPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-ink">{c.tenantName || 'Tenant'}</span>
+                    <span className="truncate text-sm font-semibold text-ink">{c.tenantName || 'Tenant'}{c.unitLabel ? ` · Unit ${c.unitLabel}` : ''}</span>
                     <span className="shrink-0 text-[11px] text-muted">{when(c.lastMessageAt)}</span>
                   </div>
                   <div className="truncate text-[13px] font-medium text-ink/80">{c.subject}</div>
@@ -135,7 +135,7 @@ export default function MessagesPage() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold text-ink">{thread.conversation.subject}</div>
                   <div className="text-xs text-muted">
-                    {rows.find((r) => r.id === thread.conversation.id)?.tenantName || 'Tenant'}
+                    {(() => { const r = rows.find((r) => r.id === thread.conversation.id); return `${r?.tenantName || 'Tenant'}${r?.unitLabel ? ` · Unit ${r.unitLabel}` : ''}`; })()}
                     {' · '}<Badge tone={thread.conversation.status === 'closed' ? 'muted' : 'success'}>{thread.conversation.status}</Badge>
                   </div>
                 </div>

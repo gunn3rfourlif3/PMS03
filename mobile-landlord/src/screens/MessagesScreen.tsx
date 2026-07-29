@@ -69,7 +69,7 @@ export default function MessagesScreen() {
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={s.threadTitle} numberOfLines={1}>{thread.conversation.subject}</Text>
-            <Text style={s.threadSub} numberOfLines={1}>{active.tenantName || 'Tenant'}</Text>
+            <Text style={s.threadSub} numberOfLines={1}>{active.tenantName || 'Tenant'}{active.unitLabel ? ` · Unit ${active.unitLabel}` : ''}</Text>
           </View>
           <TouchableOpacity onPress={toggleStatus}>
             <Pill label={thread.conversation.status === 'closed' ? 'Reopen' : 'Close'} tone={thread.conversation.status === 'closed' ? 'muted' : 'success'} />
@@ -111,7 +111,7 @@ export default function MessagesScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={s.name}>{c.tenantName || 'Tenant'}</Text>
+                  <Text style={s.name}>{c.tenantName || 'Tenant'}{c.unitLabel ? `  ·  Unit ${c.unitLabel}` : ''}</Text>
                   <Text style={s.time}>{when(c.lastMessageAt)}</Text>
                 </View>
                 <Text style={s.subject} numberOfLines={1}>{c.subject}</Text>

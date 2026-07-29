@@ -22,14 +22,20 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
   const s = useMemo(() => makeStyles(t), [t]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [name, setName] = useState<string>('');
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [inv, prof] = await Promise.all([api.myInvoices(), api.profile().catch(() => null)]);
+      const [inv, prof, unreadRes] = await Promise.all([
+        api.myInvoices(),
+        api.profile().catch(() => null),
+        api.messageUnread().catch(() => null),
+      ]);
       setInvoices(inv);
       setName((prof?.name || '').split(' ')[0] || '');
+      setUnread(Number(unreadRes?.count) || 0);
     } catch (e: any) { Alert.alert('Could not load', e.message); }
     finally { setLoading(false); }
   }, []);
@@ -69,7 +75,7 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
         <Tile t={t} icon="card-outline" label="Pay" onPress={() => goTab('pay')} />
         <Tile t={t} icon="construct-outline" label="Log ticket" onPress={() => navigation.navigate('Maintenance')} />
         <Tile t={t} icon="document-text-outline" label="Lease" onPress={() => goTab('docs')} />
-        <Tile t={t} icon="chatbubbles-outline" label="Messages" onPress={() => navigation.navigate('Messages')} />
+        <Tile t={t} icon="chatbubbles-outline" label="Messages" badge={unread} onPress={() => navigation.navigate('Messages')} />
       </View>
 
       <Text style={s.section}>Recent</Text>
@@ -89,11 +95,18 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
   );
 }
 
-function Tile({ t, icon, label, onPress }: { t: Branding; icon: any; label: string; onPress: () => void }) {
+function Tile({ t, icon, label, onPress, badge = 0 }: { t: Branding; icon: any; label: string; onPress: () => void; badge?: number }) {
   const s = makeStyles(t);
   return (
     <TouchableOpacity style={s.tile} onPress={onPress} activeOpacity={0.85}>
-      <View style={s.tileIcon}><Ionicons name={icon} size={22} color={t.colors.brand} /></View>
+      <View style={s.tileIcon}>
+        <Ionicons name={icon} size={22} color={t.colors.brand} />
+        {badge > 0 && (
+          <View style={s.tileBadge}>
+            <Text style={s.tileBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+          </View>
+        )}
+      </View>
       <Text style={s.tileLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -113,6 +126,8 @@ function makeStyles(t: Branding) {
       shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1,
     },
     tileIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+    tileBadge: { position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#e5484d', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: hexToRgba(t.colors.card, 0.9) },
+    tileBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', lineHeight: 13 },
     tileLabel: { fontSize: 12, color: t.colors.ink, fontWeight: '600', fontFamily: fontFamily(t) },
     section: { fontSize: 15, fontWeight: '700', marginBottom: 10, color: t.colors.ink, fontFamily: fontFamily(t, true) },
     activity: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },

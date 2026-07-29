@@ -35,13 +35,14 @@ export class CommsService {
   /** Staff inbox - every conversation, newest activity first. */
   async inbox(): Promise<unknown[]> {
     return this.tenant.getManager().query(`
-      SELECT c.id, c.subject, c.status, c.unit_id AS "unitId",
+      SELECT c.id, c.subject, c.status, c.unit_id AS "unitId", un.label AS "unitLabel",
              c.last_message_at AS "lastMessageAt", c.last_message_preview AS "lastMessagePreview",
              u.name AS "tenantName", u.email AS "tenantEmail",
              (c.last_message_at IS NOT NULL
                AND (c.staff_last_read_at IS NULL OR c.last_message_at > c.staff_last_read_at)) AS "unread"
       FROM conversations c
       LEFT JOIN users u ON u.id = c.tenant_user_id
+      LEFT JOIN units un ON un.id = c.unit_id
       ORDER BY c.last_message_at DESC NULLS LAST, c.created_at DESC;
     `);
   }
@@ -49,11 +50,12 @@ export class CommsService {
   /** A tenant's own conversations. */
   async mine(userId: string): Promise<unknown[]> {
     return this.tenant.getManager().query(`
-      SELECT c.id, c.subject, c.status, c.unit_id AS "unitId",
+      SELECT c.id, c.subject, c.status, c.unit_id AS "unitId", un.label AS "unitLabel",
              c.last_message_at AS "lastMessageAt", c.last_message_preview AS "lastMessagePreview",
              (c.last_message_at IS NOT NULL
                AND (c.tenant_last_read_at IS NULL OR c.last_message_at > c.tenant_last_read_at)) AS "unread"
       FROM conversations c
+      LEFT JOIN units un ON un.id = c.unit_id
       WHERE c.tenant_user_id = $1
       ORDER BY c.last_message_at DESC NULLS LAST, c.created_at DESC;
     `, [userId]);
@@ -103,13 +105,24 @@ export class CommsService {
     const tenantUserId = staff ? data.tenantUserId : p.userId;
     if (!tenantUserId) throw new ForbiddenException('A tenant is required to start a conversation.');
 
+    // Tag the conversation with the tenant's unit (from their active lease) so
+    // staff can see which unit it's about.
+    let unitId = data.unitId;
+    if (!unitId) {
+      const [row] = await this.tenant.getManager().query(
+        `SELECT unit_id AS "unitId" FROM leases
+         WHERE tenant_id = $1 AND status = 'active' AND deleted_at IS NULL
+         ORDER BY created_at DESC LIMIT 1`, [tenantUserId]);
+      unitId = row?.unitId ?? undefined;
+    }
+
     const now = new Date();
     const repo = this.convos();
     const c = await repo.save(repo.create({
       vendorId: this.tenant.vendorId ?? undefined,
       subject: data.subject?.trim() || 'New message',
       tenantUserId,
-      unitId: data.unitId,
+      unitId,
       status: 'open',
       lastMessageAt: now,
       lastMessagePreview: preview(data.body),

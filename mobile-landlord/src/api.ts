@@ -52,6 +52,7 @@ export const api = {
   completeWorkOrder: (id: string, cost: number) => req(`/maintenance/work-orders/${id}/complete`, { method: 'POST', body: JSON.stringify({ cost }) }),
 
   // Messaging (staff)
+  messageUnread: () => req('/messages/unread-count'),
   messageInbox: () => req('/messages/inbox'),
   messageThread: (id: string) => req(`/messages/conversations/${id}`),
   messageReply: (id: string, body: string) => req(`/messages/conversations/${id}/reply`, { method: 'POST', body: JSON.stringify({ body }) }),
