@@ -77,6 +77,7 @@ export class PropertiesService {
     if (data.marketRent !== undefined) u.marketRent = data.marketRent;
     if (data.bedrooms !== undefined) u.bedrooms = data.bedrooms;
     if (data.bathrooms !== undefined) u.bathrooms = data.bathrooms;
+    if (data.sizeSqm !== undefined) u.sizeSqm = data.sizeSqm;
     return repo.save(u);
   }
 

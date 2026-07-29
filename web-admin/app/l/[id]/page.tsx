@@ -79,7 +79,7 @@ export default function ListingDetailPage() {
                 <Badge tone="success">Available</Badge>
               </div>
               <div className="mt-4 text-3xl font-bold text-brand">{money(l.rent)}<span className="text-base font-normal text-muted">/month</span></div>
-              <div className="mt-1 text-sm text-muted">{l.bedrooms} bed · {l.bathrooms} bath · available from {formatDate(l.availableFrom)}</div>
+              <div className="mt-1 text-sm text-muted">{l.bedrooms} bed · {l.bathrooms} bath{l.sizeSqm ? ` · ${l.sizeSqm} m²` : ''} · available from {formatDate(l.availableFrom)}</div>
               {l.description && <p className="mt-4 whitespace-pre-line text-sm text-ink/80">{l.description}</p>}
               {Array.isArray(l.media) && l.media.length > 0 && (
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">

@@ -15,5 +15,7 @@ export class Unit extends TenantEntity {
 
   @Column('int', { default: 0 }) bedrooms: number;
   @Column('int', { default: 0 }) bathrooms: number;
+  /** Floor area in square metres (optional). */
+  @Column('numeric', { name: 'size_sqm', nullable: true }) sizeSqm?: number;
   @Column('jsonb', { default: {} }) attributes: Record<string, unknown>;
 }

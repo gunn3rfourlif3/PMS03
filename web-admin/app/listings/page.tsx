@@ -23,6 +23,7 @@ export default function ListingsPage() {
   const [rent, setRent] = useState('8000');
   const [deposit, setDeposit] = useState('');
   const [adminFee, setAdminFee] = useState('');
+  const [description, setDescription] = useState('');
   const [availableFrom, setAvailableFrom] = useState('2026-08-01');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -78,10 +79,18 @@ export default function ListingsPage() {
       if (available.every((x: any) => x.id !== unitId)) setUnitId(available[0]?.id ?? '');
     } catch (e: any) { setErr(e.message); }
   };
+  // Selecting a unit pulls its details: prefill the rent from the unit's market rent.
+  const pickUnit = (id: string) => {
+    setUnitId(id);
+    const u = units.find((x) => x.id === id);
+    if (u && Number(u.marketRent) > 0) setRent(String(Math.round(Number(u.marketRent))));
+  };
+  const selectedUnit = units.find((u) => u.id === unitId);
+
   const create = async () => {
     setBusy(true); setErr('');
     try {
-      const l = await api.createListing({ unitId, advertisedRent: Number(rent), availableFrom, description: 'Listed via back-office', deposit: Number(deposit) || 0, adminFee: Number(adminFee) || 0 });
+      const l = await api.createListing({ unitId, advertisedRent: Number(rent), availableFrom, description: description.trim() || 'Listed via back-office', deposit: Number(deposit) || 0, adminFee: Number(adminFee) || 0 });
       await api.publishListing(l.id); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
@@ -105,7 +114,7 @@ export default function ListingsPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[220px] flex-1">
             <Field label="Unit">
-              <select className="input" value={unitId} onChange={(e) => setUnitId(e.target.value)}>
+              <select className="input" value={unitId} onChange={(e) => pickUnit(e.target.value)}>
                 {units.length === 0 && <option value="">No vacant units</option>}
                 {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
               </select>
@@ -116,6 +125,19 @@ export default function ListingsPage() {
           <div className="w-28"><Field label="Admin fee"><input className="input" value={adminFee} onChange={(e) => setAdminFee(e.target.value)} placeholder="0" /></Field></div>
           <div className="w-40"><Field label="Available from"><input className="input" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} /></Field></div>
           <Button onClick={create} loading={busy} disabled={!unitId}><Plus size={16} /> Create &amp; publish</Button>
+        </div>
+
+        {selectedUnit && (
+          <p className="mt-3 text-sm text-muted">
+            Pulled from unit <span className="font-medium text-ink">{selectedUnit.label}</span>: {selectedUnit.bedrooms} bed · {selectedUnit.bathrooms} bath{selectedUnit.sizeSqm ? ` · ${selectedUnit.sizeSqm} m²` : ''}{Number(selectedUnit.marketRent) > 0 ? ` · market ${money(selectedUnit.marketRent)}` : ''}
+          </p>
+        )}
+
+        <div className="mt-3">
+          <Field label="Description (describe the room)">
+            <textarea className="input min-h-[80px]" value={description} onChange={(e) => setDescription(e.target.value)}
+              placeholder="Bright north-facing room, built-in cupboards, close to transport and shops…" />
+          </Field>
         </div>
       </GlassCard>
 

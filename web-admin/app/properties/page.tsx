@@ -74,15 +74,15 @@ export default function PropertiesPage() {
     if (!uForm.label) return;
     setBusy(true); setErr('');
     try {
-      await api.createUnit(pid, { label: uForm.label, status: uForm.status, marketRent: Number(uForm.marketRent) || 0, bedrooms: Number(uForm.bedrooms) || 0, bathrooms: Number(uForm.bathrooms) || 0 });
+      await api.createUnit(pid, { label: uForm.label, status: uForm.status, marketRent: Number(uForm.marketRent) || 0, bedrooms: Number(uForm.bedrooms) || 0, bathrooms: Number(uForm.bathrooms) || 0, sizeSqm: uForm.sizeSqm ? Number(uForm.sizeSqm) : undefined });
       setUForm({ status: 'vacant' }); await reloadUnits(pid); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
-  const startEditUnit = (u: any) => { setEditUnit(u.id); setUEdit({ label: u.label, status: u.status, marketRent: u.marketRent, bedrooms: u.bedrooms, bathrooms: u.bathrooms }); };
+  const startEditUnit = (u: any) => { setEditUnit(u.id); setUEdit({ label: u.label, status: u.status, marketRent: u.marketRent, bedrooms: u.bedrooms, bathrooms: u.bathrooms, sizeSqm: u.sizeSqm ?? '' }); };
   const setUE = (k: string, v: string) => setUEdit((e: any) => ({ ...e, [k]: v }));
   const saveUnit = async (id: string, pid: string) => {
     setBusy(true); setErr('');
-    try { await api.updateUnit(id, { label: uEdit.label, status: uEdit.status, marketRent: Number(uEdit.marketRent) || 0, bedrooms: Number(uEdit.bedrooms) || 0, bathrooms: Number(uEdit.bathrooms) || 0 }); setEditUnit(null); await reloadUnits(pid); await load(); }
+    try { await api.updateUnit(id, { label: uEdit.label, status: uEdit.status, marketRent: Number(uEdit.marketRent) || 0, bedrooms: Number(uEdit.bedrooms) || 0, bathrooms: Number(uEdit.bathrooms) || 0, sizeSqm: uEdit.sizeSqm ? Number(uEdit.sizeSqm) : null }); setEditUnit(null); await reloadUnits(pid); await load(); }
     catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
 
@@ -155,12 +155,13 @@ export default function PropertiesPage() {
                 <div className="w-28"><Field label="Rent"><input className="input" value={uForm.marketRent ?? ''} onChange={(e) => setUF('marketRent', e.target.value)} /></Field></div>
                 <div className="w-20"><Field label="Beds"><input className="input" value={uForm.bedrooms ?? ''} onChange={(e) => setUF('bedrooms', e.target.value)} /></Field></div>
                 <div className="w-20"><Field label="Baths"><input className="input" value={uForm.bathrooms ?? ''} onChange={(e) => setUF('bathrooms', e.target.value)} /></Field></div>
+                <div className="w-24"><Field label="Size m²"><input className="input" value={uForm.sizeSqm ?? ''} onChange={(e) => setUF('sizeSqm', e.target.value)} placeholder="65" /></Field></div>
                 <Button onClick={() => addUnit(p.id)} loading={busy} disabled={!uForm.label}><Plus size={15} /> Unit</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-                    <th className="py-2 pr-3 font-semibold">Unit</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 pr-3 font-semibold">Rent</th><th className="py-2 pr-3 font-semibold">Beds/Baths</th><th className="py-2"></th>
+                    <th className="py-2 pr-3 font-semibold">Unit</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 pr-3 font-semibold">Rent</th><th className="py-2 pr-3 font-semibold">Beds / Baths / m²</th><th className="py-2"></th>
                   </tr></thead>
                   <tbody>
                     {units.map((u) => editUnit === u.id ? (
@@ -168,7 +169,7 @@ export default function PropertiesPage() {
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.label} onChange={(e) => setUE('label', e.target.value)} /></td>
                         <td className="py-2 pr-3"><select className="input w-32" value={uEdit.status} onChange={(e) => setUE('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{label(st)}</option>)}</select></td>
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.marketRent} onChange={(e) => setUE('marketRent', e.target.value)} /></td>
-                        <td className="py-2 pr-3"><div className="flex gap-1"><input className="input w-14" value={uEdit.bedrooms} onChange={(e) => setUE('bedrooms', e.target.value)} /><input className="input w-14" value={uEdit.bathrooms} onChange={(e) => setUE('bathrooms', e.target.value)} /></div></td>
+                        <td className="py-2 pr-3"><div className="flex gap-1"><input className="input w-14" value={uEdit.bedrooms} onChange={(e) => setUE('bedrooms', e.target.value)} title="Beds" /><input className="input w-14" value={uEdit.bathrooms} onChange={(e) => setUE('bathrooms', e.target.value)} title="Baths" /><input className="input w-16" value={uEdit.sizeSqm ?? ''} onChange={(e) => setUE('sizeSqm', e.target.value)} placeholder="m²" title="Size m²" /></div></td>
                         <td className="py-2"><div className="flex gap-2"><Button onClick={() => saveUnit(u.id, p.id)} loading={busy}>Save</Button><Button variant="ghost" onClick={() => setEditUnit(null)}>Cancel</Button></div></td>
                       </tr>
                     ) : (
@@ -176,7 +177,7 @@ export default function PropertiesPage() {
                         <td className="py-2 pr-3 font-medium">{u.label}</td>
                         <td className="py-2 pr-3"><Badge tone={uTone(u.status)}>{u.status}</Badge></td>
                         <td className="py-2 pr-3">{money(u.marketRent)}</td>
-                        <td className="py-2 pr-3 text-muted">{u.bedrooms}bd / {u.bathrooms}ba</td>
+                        <td className="py-2 pr-3 text-muted">{u.bedrooms}bd / {u.bathrooms}ba{u.sizeSqm ? ` · ${u.sizeSqm}m²` : ''}</td>
                         <td className="py-2"><div className="flex gap-2"><Button variant="ghost" onClick={() => startEditUnit(u)}><Pencil size={14} /></Button><Button variant="ghost" onClick={() => setPendingDelete({ kind: 'unit', id: u.id, pid: p.id, label: u.label })}><Trash2 size={14} /></Button></div></td>
                       </tr>
                     ))}

@@ -45,7 +45,7 @@ export default function RentalsPage() {
                     </div>
                     <div className="text-sm text-muted">{l.unitLabel}{loc ? ` · ${loc}` : ''}</div>
                     <div className="mt-3 text-2xl font-bold text-brand">{money(l.rent)}<span className="text-sm font-normal text-muted">/mo</span></div>
-                    <div className="mt-1 text-sm text-muted">{l.bedrooms} bed · {l.bathrooms} bath · from {formatDate(l.availableFrom)}</div>
+                    <div className="mt-1 text-sm text-muted">{l.bedrooms} bed · {l.bathrooms} bath{l.sizeSqm ? ` · ${l.sizeSqm} m²` : ''} · from {formatDate(l.availableFrom)}</div>
                     {l.description && <p className="mt-3 line-clamp-3 text-sm text-ink/80">{l.description}</p>}
                     <div className="mt-4 pt-1"><Button className="w-full">View &amp; apply</Button></div>
                   </GlassCard>
