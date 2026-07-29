@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Banknote, Percent, Receipt, TrendingUp, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Metric, Button, Field, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Donut, BentoTile, money } from '@/components/ui';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
-/** Turn an array of flat objects into a CSV file and trigger a download. */
 function downloadCsv(filename: string, rows: any[]) {
   if (!rows || rows.length === 0) { rows = [{ note: 'no data' }]; }
   const cols = Array.from(rows.reduce((set: Set<string>, r) => { Object.keys(r).forEach((k) => set.add(k)); return set; }, new Set<string>()));
@@ -28,7 +28,7 @@ export default function ReportsPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
+  useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); /* eslint-disable-next-line */ }, []);
 
   const load = async () => {
     setErr('');
@@ -48,6 +48,13 @@ export default function ReportsPage() {
   };
 
   if (!ready) return null;
+  const rate = collection ? Math.round(Number(collection.collectionRate)) : 0;
+  const chartData = income ? [
+    { name: 'Rent collected', value: Number(income.rentCollected), fill: '#1D9E75' },
+    { name: 'Mgmt fees', value: Number(income.managementFees), fill: '#378ADD' },
+    { name: 'Expenses', value: Number(income.expenses), fill: '#D85A30' },
+    { name: 'Net operating', value: Number(income.netOperating), fill: '#534AB7' },
+  ] : [];
 
   return (
     <div>
@@ -58,27 +65,52 @@ export default function ReportsPage() {
         </div>} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Metric label="Rent collected" value={income ? money(income.rentCollected) : '—'} icon={<Banknote size={18} />} />
-        <Metric label="Management fees" value={income ? money(income.managementFees) : '—'} icon={<Percent size={18} />} />
-        <Metric label="Expenses" value={income ? money(income.expenses) : '—'} tone="danger" icon={<Receipt size={18} />} />
-        <Metric label="Net operating" value={income ? money(income.netOperating) : '—'} accent icon={<TrendingUp size={18} />} />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoTile tone="teal" value={income ? money(income.rentCollected) : '—'} label="Rent collected" />
+        <BentoTile tone="blue" value={income ? money(income.managementFees) : '—'} label="Management fees" />
+        <BentoTile tone="coral" value={income ? money(income.expenses) : '—'} label="Expenses" />
+        <BentoTile tone="purple" value={income ? money(income.netOperating) : '—'} label="Net operating" />
       </div>
 
-      <GlassCard className="mt-4">
-        <div className="mb-1 font-heading text-lg font-bold">Income statement · {period}</div>
-        <p className="mb-4 text-sm text-muted">Cash basis — rent actually collected in the period, plus management-fee income, less expenses incurred.</p>
-        <div className="divide-y divide-white/40 text-sm">
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
+        <GlassCard className="lg:col-span-2">
+          <div className="mb-1 font-heading text-base font-bold text-ink">Income breakdown · {period}</div>
+          <p className="mb-3 text-sm text-muted">Cash basis — rent collected plus management-fee income, less expenses incurred.</p>
+          <div style={{ height: 240 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+                <XAxis type="number" tickFormatter={(v) => 'R' + (v / 1000) + 'k'} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" width={104} tick={{ fontSize: 12, fill: 'var(--ink)' }} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} formatter={(v: any) => money(Number(v))} />
+                <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={26}>
+                  {chartData.map((d, i) => <Cell key={i} fill={d.fill} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="flex flex-col items-center justify-center gap-3">
+          <Donut value={rate} tone="teal" size={140} sub="collected" />
+          <div className="text-center">
+            <div className="font-heading text-base font-bold text-ink">Collection rate</div>
+            <div className="text-sm text-muted">{collection ? `${money(collection.collected)} of ${money(collection.billed)}` : '—'}</div>
+          </div>
+        </GlassCard>
+      </div>
+
+      <GlassCard className="mt-3">
+        <div className="mb-3 font-heading text-base font-bold text-ink">Income statement · {period}</div>
+        <div className="divide-y divide-line text-sm">
           <Row label="Rent collected" value={income ? money(income.rentCollected) : '—'} />
           <Row label="Management fee income" value={income ? money(income.managementFees) : '—'} />
           <Row label="Expenses" value={income ? `(${money(income.expenses)})` : '—'} danger />
           <Row label="Net operating income" value={income ? money(income.netOperating) : '—'} bold />
-          <Row label={`Collection rate · ${period}`} value={collection ? `${collection.collectionRate}%` : '—'} />
         </div>
       </GlassCard>
 
-      <GlassCard className="mt-4">
-        <div className="mb-3 font-heading text-lg font-bold">Exports</div>
+      <GlassCard className="mt-3">
+        <div className="mb-3 font-heading text-base font-bold text-ink">Exports</div>
         <div className="flex flex-wrap gap-2">
           <Button variant="ghost" loading={busy} onClick={() => exportCsv('rent-roll')}><Download size={16} /> Rent roll (CSV)</Button>
           <Button variant="ghost" loading={busy} onClick={() => exportCsv('arrears')}><Download size={16} /> Arrears aging (CSV)</Button>

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Check, X } from 'lucide-react';
 import { api, auth, thumbUrl } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
 
 const FILTERS = [
   { key: 'pending', label: 'Pending' },
@@ -43,15 +43,23 @@ export default function PaymentsPage() {
   };
 
   if (!ready) return null;
+  const pending = rows.filter((r) => r.status === 'pending').length;
+  const value = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
 
   return (
     <div>
       <PageHeader title="Payments" subtitle="Review tenant proof-of-payment submissions (manual EFT)" />
 
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <BentoTile tone="amber" value={String(pending)} label="Awaiting review" />
+        <BentoTile tone="teal" value={money(value)} label="Value in view" />
+        <BentoTile tone="blue" value={String(rows.length)} label="Submissions" />
+      </div>
+
       <div className="mb-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button key={f.key} onClick={() => setFilter(f.key)}
-            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${filter === f.key ? 'bg-ink text-white' : 'text-ink/70 hover:bg-white/50'}`}>
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${filter === f.key ? 'bg-ink text-white' : 'text-ink/70 hover:bg-black/5'}`}>
             {f.label}
           </button>
         ))}
@@ -63,7 +71,7 @@ export default function PaymentsPage() {
         {rows.map((p) => (
           <GlassCard key={p.id}>
             <div className="flex flex-wrap items-start gap-4">
-              <button onClick={() => setPreview(p.fileUrl)} className="h-24 w-24 flex-none overflow-hidden rounded-xl border border-white/40 bg-white/40">
+              <button onClick={() => setPreview(p.fileUrl)} className="h-24 w-24 flex-none overflow-hidden rounded-xl border border-line bg-black/[0.03]">
                 {isPdf(p.fileUrl)
                   ? <div className="grid h-full w-full place-items-center text-muted"><FileText size={26} /></div>
                   : <img src={thumbUrl(p.fileUrl)} onError={(e) => { (e.currentTarget as HTMLImageElement).src = p.fileUrl; }} alt="" className="h-full w-full object-cover" />}

@@ -139,6 +139,54 @@ export function Metric({
   );
 }
 
+/* ── Bento primitives ─────────────────────────────────────────────────────
+   A small palette of colour-blocked tiles used across the redesigned pages. */
+export const BENTO = {
+  purple: { bg: '#AFA9EC', text: '#26215C', sub: '#3C3489', chip: '#CECBF6', bar: '#534AB7' },
+  teal:   { bg: '#9FE1CB', text: '#04342C', sub: '#0F6E56', chip: '#C3ECDD', bar: '#0F6E56' },
+  coral:  { bg: '#F5C4B3', text: '#4A1B0C', sub: '#993C1D', chip: '#F0D7CD', bar: '#D85A30' },
+  amber:  { bg: '#FAC775', text: '#412402', sub: '#854F0B', chip: '#F6D9A2', bar: '#BA7517' },
+  blue:   { bg: '#B5D4F4', text: '#042C53', sub: '#185FA5', chip: '#CFE2F7', bar: '#378ADD' },
+  pink:   { bg: '#F4C0D1', text: '#4B1528', sub: '#993556', chip: '#F4D3DE', bar: '#D4537E' },
+  green:  { bg: '#C0DD97', text: '#173404', sub: '#3B6D11', chip: '#D3E8B6', bar: '#639922' },
+} as const;
+export type BentoTone = keyof typeof BENTO;
+
+export function BentoTile({ tone, icon, value, label, chip, className }: {
+  tone: BentoTone; icon?: React.ReactNode; value: React.ReactNode; label: string; chip?: string; className?: string;
+}) {
+  const c = BENTO[tone];
+  return (
+    <div className={cn('flex min-h-[104px] flex-col justify-between rounded-3xl p-5', className)} style={{ background: c.bg }}>
+      <div className="flex items-center justify-between">
+        {icon && <span style={{ color: c.sub }}>{icon}</span>}
+        {chip && <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: c.chip, color: c.text }}>{chip}</span>}
+      </div>
+      <div>
+        <div className="font-heading text-2xl font-bold leading-none" style={{ color: c.text }}>{value}</div>
+        <div className="mt-1 text-xs font-medium" style={{ color: c.sub }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+
+export function Donut({ value, tone = 'teal', size = 108, sub = 'on time' }: { value: number; tone?: BentoTone; size?: number; sub?: string }) {
+  const c = BENTO[tone];
+  const r = size * 0.39, circ = 2 * Math.PI * r, dash = (Math.max(0, Math.min(100, value)) / 100) * circ, ctr = size / 2;
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={ctr} cy={ctr} r={r} fill="none" stroke={c.chip} strokeWidth="12" />
+        <circle cx={ctr} cy={ctr} r={r} fill="none" stroke={c.bar} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} transform={`rotate(-90 ${ctr} ${ctr})`} />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="font-heading text-xl font-bold" style={{ color: c.text }}>{Math.round(value)}%</span>
+        <span className="text-[11px]" style={{ color: c.sub }}>{sub}</span>
+      </div>
+    </div>
+  );
+}
+
 export function Progress({ value }: { value: number }) {
   const v = Math.max(0, Math.min(100, value));
   return (
