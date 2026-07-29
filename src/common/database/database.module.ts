@@ -23,6 +23,10 @@ const runtimeUrl =
       ...(dataSourceOptions as any),
       url: runtimeUrl,
       installExtensions: false,
+      // Safety net: any entity a feature module registers via forFeature() is
+      // auto-added to this connection, so a new entity can't be missing from the
+      // explicit ENTITIES list and fail with "No metadata for ...".
+      autoLoadEntities: true,
     } as any),
   ],
 })

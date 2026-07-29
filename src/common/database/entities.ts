@@ -32,6 +32,11 @@ import { ServiceProvider } from '@modules/service-providers/service-provider.ent
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 import { Conversation } from '@modules/comms/conversation.entity';
 import { Message } from '@modules/comms/message.entity';
+import { Agent } from '@modules/agents/agent.entity';
+import { AgentCommission } from '@modules/agents/agent-commission.entity';
+import { LeaseAgreement } from '@modules/lease-agreement/lease-agreement.entity';
+import { LeaseExtractionRecord } from '@modules/lease-parsing/lease-extraction.entity';
+import { ProofOfPayment } from '@modules/proof-of-payment/proof-of-payment.entity';
 
 export const ENTITIES = [
   Vendor,
@@ -63,4 +68,9 @@ export const ENTITIES = [
   OtpChallenge,
   Conversation,
   Message,
+  Agent,
+  AgentCommission,
+  LeaseAgreement,
+  LeaseExtractionRecord,
+  ProofOfPayment,
 ];
