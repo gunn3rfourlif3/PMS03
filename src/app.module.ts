@@ -39,6 +39,7 @@ import { DocumentAiModule } from './providers/document-ai/document-ai.module';
 import { LeaseParsingModule } from './modules/lease-parsing/lease-parsing.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { PartnersModule } from './modules/partners/partners.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -89,6 +90,7 @@ import { EsignModule } from './providers/esign/esign.module';
     LeaseParsingModule,
     AgentsModule,
     SubscriptionsModule,
+    PartnersModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

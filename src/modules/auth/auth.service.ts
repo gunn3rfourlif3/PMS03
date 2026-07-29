@@ -102,21 +102,36 @@ export class AuthService {
       );
     }
 
-    // Resolve active vendor context via the RLS-safe SECURITY DEFINER function
-    // (cross-tenant lookup by user_id, which plain RLS-scoped access can't do).
-    // First membership for now; a later phase adds vendor-switch for multi-vendor
-    // users. Returns [] for a brand-new user with no membership yet.
-    const memberships: Array<{ vendor_id: string; role: string }> =
-      await this.dataSource.query('SELECT * FROM auth_memberships_for_user($1)', [
-        user.id,
-      ]);
-    const active = memberships[0];
+    // Context resolution priority: platform admin (env allowlist) → partner
+    // (partner_members) → vendor membership. This decides which layer the token
+    // operates in; a user who is several things gets the highest-privilege context.
+    let payload: JwtPayload;
 
-    const payload: JwtPayload = {
-      sub: user.id,
-      vendorId: active?.vendor_id ?? null,
-      roles: active ? [active.role] : [],
-    };
+    const adminEmails = (process.env.PLATFORM_ADMIN_EMAILS ?? '')
+      .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+
+    if (isEmail && adminEmails.includes(destination.toLowerCase())) {
+      payload = { sub: user.id, vendorId: null, partnerId: null, roles: ['platform_admin'] };
+    } else {
+      // Guarded so a pre-migration API start can't break logins if the table is
+      // not there yet.
+      let pm: { partner_id: string } | undefined;
+      try {
+        [pm] = await this.dataSource.query(
+          'SELECT partner_id FROM partner_members WHERE user_id = $1 LIMIT 1', [user.id],
+        );
+      } catch { pm = undefined; }
+      if (pm?.partner_id) {
+        payload = { sub: user.id, vendorId: null, partnerId: pm.partner_id, roles: ['partner'] };
+      } else {
+        // Resolve active vendor context via the RLS-safe SECURITY DEFINER function
+        // (cross-tenant lookup by user_id). First membership for now.
+        const memberships: Array<{ vendor_id: string; role: string }> =
+          await this.dataSource.query('SELECT * FROM auth_memberships_for_user($1)', [user.id]);
+        const active = memberships[0];
+        payload = { sub: user.id, vendorId: active?.vendor_id ?? null, roles: active ? [active.role] : [] };
+      }
+    }
     // Register a revocable session and embed its id in the token.
     const jti = randomUUID();
     await this.sessions.create(jti, user.id, this.idleSec);
