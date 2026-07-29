@@ -21,6 +21,8 @@ export default function ListingsPage() {
   const [units, setUnits] = useState<any[]>([]);
   const [unitId, setUnitId] = useState('');
   const [rent, setRent] = useState('8000');
+  const [deposit, setDeposit] = useState('');
+  const [adminFee, setAdminFee] = useState('');
   const [availableFrom, setAvailableFrom] = useState('2026-08-01');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -79,7 +81,7 @@ export default function ListingsPage() {
   const create = async () => {
     setBusy(true); setErr('');
     try {
-      const l = await api.createListing({ unitId, advertisedRent: Number(rent), availableFrom, description: 'Listed via back-office' });
+      const l = await api.createListing({ unitId, advertisedRent: Number(rent), availableFrom, description: 'Listed via back-office', deposit: Number(deposit) || 0, adminFee: Number(adminFee) || 0 });
       await api.publishListing(l.id); await load();
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
@@ -109,8 +111,10 @@ export default function ListingsPage() {
               </select>
             </Field>
           </div>
-          <div className="w-32"><Field label="Rent"><input className="input" value={rent} onChange={(e) => setRent(e.target.value)} /></Field></div>
-          <div className="w-44"><Field label="Available from"><input className="input" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} /></Field></div>
+          <div className="w-28"><Field label="Rent"><input className="input" value={rent} onChange={(e) => setRent(e.target.value)} /></Field></div>
+          <div className="w-28"><Field label="Deposit"><input className="input" value={deposit} onChange={(e) => setDeposit(e.target.value)} placeholder="0" /></Field></div>
+          <div className="w-28"><Field label="Admin fee"><input className="input" value={adminFee} onChange={(e) => setAdminFee(e.target.value)} placeholder="0" /></Field></div>
+          <div className="w-40"><Field label="Available from"><input className="input" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} /></Field></div>
           <Button onClick={create} loading={busy} disabled={!unitId}><Plus size={16} /> Create &amp; publish</Button>
         </div>
       </GlassCard>

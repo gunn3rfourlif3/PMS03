@@ -9,6 +9,8 @@ import { IdentityService } from '@modules/identity/identity.service';
 import { InvoiceService } from '@modules/billing/invoice.service';
 import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
+import { MediaService } from '@modules/media/media.service';
+import { buildMoveInLines, renderMoveInInvoice } from './move-in-invoice';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
 import { Application, ApplicationStatus } from './application.entity';
@@ -36,6 +38,7 @@ export class ApplicationsService {
     private readonly identity: IdentityService,
     private readonly invoices: InvoiceService,
     private readonly leaseAgreements: LeaseAgreementService,
+    private readonly media: MediaService,
     @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
 
@@ -119,27 +122,33 @@ export class ApplicationsService {
     const saved = await this.tenant.getRepository(Application).save(app);
     this.logger.debug(`Application ${app.id} approved -> lease ${lease.id}, unit occupied`);
 
-    // (b) Raise the first rent invoice for the lease's start month. Tolerant of
-    // failure so a billing hiccup never blocks the approval itself.
+    const period = startDate.slice(0, 7);                 // 'YYYY-MM'
+    const pr = prorateFirstMonth(Number(listing.advertisedRent), startDate);
+    const rentLabel = pr.prorated
+      ? `Rent ${period} (pro-rata ${pr.days}/${pr.daysInMonth} days)`
+      : `Rent ${period}`;
+
+    // (b) Raise the first rent invoice (ledger). Tolerant of failure so a billing
+    // hiccup never blocks the approval itself.
     try {
-      const period = startDate.slice(0, 7);               // 'YYYY-MM'
-      const pr = prorateFirstMonth(Number(listing.advertisedRent), startDate);
       await this.invoices.generateRentInvoice({
-        leaseId: lease.id,
-        tenantId: tenantUserId,
-        period,
-        dueDate: startDate,
-        rentAmount: pr.amount,
-        description: pr.prorated
-          ? `Rent ${period} (pro-rata ${pr.days}/${pr.daysInMonth} days)`
-          : `Rent ${period}`,
+        leaseId: lease.id, tenantId: tenantUserId, period, dueDate: startDate,
+        rentAmount: pr.amount, description: rentLabel,
       });
     } catch (e: any) {
       this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
     }
 
-    // (a) Tell the applicant they're approved and how to sign in.
-    await this.notifyApproved(app, listing, startDate).catch((e) =>
+    // (d) Render the branded move-in invoice document (rent + admin fee + deposit).
+    let invoiceUrl: string | undefined;
+    try {
+      invoiceUrl = await this.renderMoveInInvoice(app, listing, startDate, pr.amount, rentLabel);
+    } catch (e: any) {
+      this.logger.error(`Move-in invoice for lease ${lease.id} failed: ${e.message}`);
+    }
+
+    // (a) Welcome the applicant, how to sign in, and their move-in invoice link.
+    await this.notifyApproved(app, listing, startDate, invoiceUrl).catch((e) =>
       this.logger.error(`Approval notification failed: ${e.message}`),
     );
 
@@ -159,7 +168,60 @@ export class ApplicationsService {
   }
 
   /** Email/SMS the applicant that they're approved, with sign-in instructions. */
-  private async notifyApproved(app: Application, listing: Listing, startDate: string): Promise<void> {
+  /**
+   * Render the move-in invoice (first month's rent + admin fee + deposit) as a
+   * branded HTML document and store it. Returns the public URL, or undefined if
+   * there was nothing to bill. Pure pricing/HTML lives in ./move-in-invoice.
+   */
+  private async renderMoveInInvoice(
+    app: Application, listing: Listing, startDate: string, rentAmount: number, rentLabel: string,
+  ): Promise<string | undefined> {
+    const deposit = Number(listing.deposit) || 0;
+    const adminFee = Number(listing.adminFee) || 0;
+    const { lines, total } = buildMoveInLines({ rent: rentAmount, rentLabel, adminFee, deposit });
+
+    const [unitRow] = await this.tenant.getManager().query(
+      `SELECT u.label AS "unitLabel", p.name AS "propertyName", p.address AS address
+       FROM units u JOIN properties p ON p.id = u.property_id WHERE u.id = $1`,
+      [listing.unitId],
+    );
+    const [vendorRow] = await this.tenant.getManager().query(
+      `SELECT name, config FROM vendors WHERE id = $1`, [this.tenant.vendorId],
+    );
+    const config = typeof vendorRow?.config === 'string' ? JSON.parse(vendorRow.config) : (vendorRow?.config ?? {});
+    const branding = config?.branding ?? {};
+    const contact = branding.contact ?? {};
+    const addr = unitRow?.address;
+    const addressText = addr && typeof addr === 'object'
+      ? [addr.line1, addr.street, addr.suburb, addr.city, addr.province].filter(Boolean).join(', ')
+      : (typeof addr === 'string' ? addr : '');
+
+    const html = renderMoveInInvoice({
+      invoiceNo: `MI-${Date.now().toString(36).toUpperCase()}`,
+      issuedOn: new Date().toISOString().slice(0, 10),
+      dueDate: startDate,
+      startDate,
+      agencyName: vendorRow?.name ?? 'Your agency',
+      agencyEmail: contact.email,
+      agencyPhone: contact.phone,
+      brandColor: branding.brandColor || branding.brand,
+      logoUrl: branding.logo?.imageUrl,
+      tenantName: app.applicantName,
+      tenantEmail: app.applicantEmail,
+      propertyName: unitRow?.propertyName,
+      unitLabel: unitRow?.unitLabel,
+      addressText,
+      lines,
+      total,
+      depositIncluded: deposit > 0,
+      payUrl: process.env.TENANT_APP_URL?.trim() || undefined,
+    });
+
+    const { url } = await this.media.saveHtml(html);
+    return url;
+  }
+
+  private async notifyApproved(app: Application, listing: Listing, startDate: string, invoiceUrl?: string): Promise<void> {
     if (!this.channels) return;
     const isEmail = !!app.applicantEmail;
     const to = app.applicantEmail || app.applicantPhone;
@@ -177,12 +239,17 @@ export class ApplicationsService {
     const rows = await this.tenant.getManager().query('SELECT name FROM vendors WHERE id = $1', [this.tenant.vendorId]);
     const agency = (rows?.[0]?.name ?? '').trim();
 
+    const invoiceLine = invoiceUrl
+      ? `\n\nYour move-in invoice (first month's rent${listing.adminFee ? ', admin fee' : ''}${listing.deposit ? ' and deposit' : ''}) is ready to view here:\n${invoiceUrl}`
+      : '';
+
     const body =
       `${greeting} We're delighted to let you know your rental application has been approved, ` +
       `and your lease begins on ${startDate}. ` +
       `To get started, simply sign in${where} with ${signInWith} — from there you can view your lease, ` +
       `pay your rent, log any maintenance and message our team whenever you need us. ` +
       `We're excited to have you with us. Welcome aboard!` +
+      invoiceLine +
       (agency ? `\n\n— The ${agency} team` : '');
 
     const subject = agency ? `Welcome home — you're approved at ${agency} 🎉` : 'Welcome home — your application is approved 🎉';

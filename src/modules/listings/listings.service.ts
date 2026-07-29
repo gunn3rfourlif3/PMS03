@@ -10,6 +10,8 @@ export interface CreateListingInput {
   advertisedRent: number;
   availableFrom: string;
   description?: string;
+  deposit?: number;
+  adminFee?: number;
 }
 
 @Injectable()
@@ -68,7 +70,13 @@ export class ListingsService {
       throw new ConflictException('This unit already has an active listing. Close the existing one before creating another.');
     }
     return repo.save(
-      repo.create({ ...input, vendorId: this.tenant.vendorId ?? undefined, status: 'draft' }),
+      repo.create({
+        ...input,
+        deposit: Number(input.deposit) || 0,
+        adminFee: Number(input.adminFee) || 0,
+        vendorId: this.tenant.vendorId ?? undefined,
+        status: 'draft',
+      }),
     );
   }
 

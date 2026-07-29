@@ -117,7 +117,7 @@ export const api = {
   deleteUnit: (id: string) => req(`/properties/units/${id}`, { method: 'DELETE' }),
   publishedListings: () => req('/listings/published'),
   allListings: () => req('/listings'),
-  createListing: (b: { unitId: string; advertisedRent: number; availableFrom: string; description?: string }) =>
+  createListing: (b: { unitId: string; advertisedRent: number; availableFrom: string; description?: string; deposit?: number; adminFee?: number }) =>
     req('/listings', { method: 'POST', body: JSON.stringify(b) }),
   publishListing: (id: string) => req(`/listings/${id}/publish`, { method: 'POST' }),
   setListingStatus: (id: string, status: 'draft' | 'published' | 'paused' | 'closed') =>
