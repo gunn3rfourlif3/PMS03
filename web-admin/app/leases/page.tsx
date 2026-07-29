@@ -27,6 +27,8 @@ export default function LeasesPage() {
   const [end, setEnd] = useState('');
   const [addBusy, setAddBusy] = useState(false);
   const [addErr, setAddErr] = useState('');
+  const [referredBy, setReferredBy] = useState('');
+  const [agentsList, setAgentsList] = useState<any[]>([]);
 
   const [agreements, setAgreements] = useState<Record<string, any>>({});
   const [copied, setCopied] = useState<string | null>(null);
@@ -64,8 +66,9 @@ export default function LeasesPage() {
 
   const openAdd = async () => {
     setName(''); setEmail(''); setPhone(''); setUnitId(''); setRent(''); setEnd('');
-    setStart(new Date().toISOString().slice(0, 10)); setAddErr(''); setShowAdd(true);
+    setStart(new Date().toISOString().slice(0, 10)); setAddErr(''); setReferredBy(''); setShowAdd(true);
     try { setUnits(await api.units()); } catch { /* dropdown just stays empty */ }
+    try { setAgentsList((await api.agents()).filter((a: any) => a.status === 'active')); } catch { /* optional */ }
   };
   const pickUnit = (id: string) => {
     setUnitId(id);
@@ -78,6 +81,7 @@ export default function LeasesPage() {
       await api.addTenant({
         name, email, phone: phone || undefined, unitId,
         rentAmount: Number(rent) || 0, startDate: start, endDate: end || undefined,
+        referredByAgentId: referredBy || undefined,
       });
       setShowAdd(false); await load();
     } catch (e: any) { setAddErr(e.message); } finally { setAddBusy(false); }
@@ -181,6 +185,14 @@ export default function LeasesPage() {
             <Field label="Start date"><input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
           </div>
           <Field label="End date (optional)"><input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
+          {agentsList.length > 0 && (
+            <Field label="Referred by agent (optional)">
+              <select className="input" value={referredBy} onChange={(e) => setReferredBy(e.target.value)}>
+                <option value="">— none —</option>
+                {agentsList.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </Field>
+          )}
         </div>
       </Modal>
     </div>

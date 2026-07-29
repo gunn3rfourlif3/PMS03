@@ -6,9 +6,10 @@ import { Lease } from './lease.entity';
 import { IdentityModule } from '@modules/identity/identity.module';
 import { BillingModule } from '@modules/billing/billing.module';
 import { LeaseAgreementModule } from '@modules/lease-agreement/lease-agreement.module';
+import { AgentsModule } from '@modules/agents/agents.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Lease]), IdentityModule, BillingModule, LeaseAgreementModule],
+  imports: [TypeOrmModule.forFeature([Lease]), IdentityModule, BillingModule, LeaseAgreementModule, AgentsModule],
   controllers: [LeasingController],
   providers: [LeasingService],
   exports: [LeasingService],

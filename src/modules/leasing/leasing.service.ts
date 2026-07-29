@@ -4,6 +4,7 @@ import { IdentityService } from '@modules/identity/identity.service';
 import { InvoiceService } from '@modules/billing/invoice.service';
 import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
+import { AgentsService } from '@modules/agents/agents.service';
 import { Lease, LeaseType } from './lease.entity';
 
 export interface CreateLeaseInput {
@@ -25,6 +26,7 @@ export interface AddTenantInput {
   startDate: string;      // 'YYYY-MM-DD'
   endDate?: string;
   type?: LeaseType;
+  referredByAgentId?: string;   // optional: record a tenant-referral commission
 }
 
 @Injectable()
@@ -36,6 +38,7 @@ export class LeasingService {
     private readonly identity: IdentityService,
     private readonly invoices: InvoiceService,
     private readonly leaseAgreements: LeaseAgreementService,
+    private readonly agents: AgentsService,
   ) {}
 
   ping(): string {
@@ -128,6 +131,12 @@ export class LeasingService {
       startDate: input.startDate,
       endDate: input.endDate,
     }).catch((e) => this.log.error(`Lease agreement generation failed: ${e.message}`));
+
+    // Optional: record a referral commission for the introducing agent.
+    if (input.referredByAgentId) {
+      await this.agents.recordTenantReferral(input.referredByAgentId, input.name, Number(input.rentAmount))
+        .catch((e) => this.log.error(`Agent commission record failed: ${e.message}`));
+    }
 
     return { leaseId: lease.id, tenantId };
   }

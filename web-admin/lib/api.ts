@@ -147,7 +147,7 @@ export const api = {
   revokeApiKey: (id: string) => req(`/api-keys/${id}/revoke`, { method: 'POST' }),
   listNotifications: () => req('/notifications'),
   listLeases: () => req('/leasing'),
-  addTenant: (b: { name: string; email: string; phone?: string; unitId: string; rentAmount: number; startDate: string; endDate?: string }) =>
+  addTenant: (b: { name: string; email: string; phone?: string; unitId: string; rentAmount: number; startDate: string; endDate?: string; referredByAgentId?: string }) =>
     req('/leasing/tenants', { method: 'POST', body: JSON.stringify(b) }),
   renewLease: (id: string, escalationPct: number, months: number) =>
     req(`/leasing/${id}/renew`, { method: 'POST', body: JSON.stringify({ escalationPct, months }) }),
@@ -190,6 +190,19 @@ export const api = {
   // Smart lease parsing
   parseLeasePdf: (file: File) => reqForm('/lease-parsing', fileForm(file)),
   confirmExtraction: (id: string) => req(`/lease-parsing/${id}/confirm`, { method: 'POST' }),
+
+  // Agents & commissions
+  agents: () => req('/agents'),
+  createAgent: (b: any) => req('/agents', { method: 'POST', body: JSON.stringify(b) }),
+  updateAgent: (id: string, b: any) => req(`/agents/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  setAgentStatus: (id: string, status: 'active' | 'inactive') => req(`/agents/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+  agentStatement: (id: string) => req(`/agents/${id}/statement`),
+  agentCommissions: (agentId?: string, status?: string) =>
+    req(`/agents/commissions${agentId || status ? `?${agentId ? `agentId=${agentId}` : ''}${agentId && status ? '&' : ''}${status ? `status=${status}` : ''}` : ''}`),
+  recordCommission: (b: any) => req('/agents/commissions', { method: 'POST', body: JSON.stringify(b) }),
+  approveCommission: (id: string) => req(`/agents/commissions/${id}/approve`, { method: 'POST' }),
+  payCommission: (id: string, reference?: string) => req(`/agents/commissions/${id}/pay`, { method: 'POST', body: JSON.stringify({ reference }) }),
+  cancelCommission: (id: string) => req(`/agents/commissions/${id}/cancel`, { method: 'POST' }),
 
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),

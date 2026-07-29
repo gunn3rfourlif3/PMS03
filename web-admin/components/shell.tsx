@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake } from 'lucide-react';
 import { auth } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import { cn } from '@/lib/cn';
@@ -16,6 +16,7 @@ const NAV = [
   { href: '/listings', label: 'Listings', icon: Tags },
   { href: '/applications', label: 'Applications', icon: ClipboardList },
   { href: '/owners', label: 'Owners', icon: Users },
+  { href: '/agents', label: 'Agents', icon: Handshake },
   { href: '/providers', label: 'Providers', icon: Wrench },
   { href: '/reports', label: 'Reports', icon: BarChart3 },
   { href: '/documents', label: 'Documents', icon: FileText },
