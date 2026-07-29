@@ -105,6 +105,7 @@ export const api = {
 
   // Messaging
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> => req('/auth/refresh', { method: 'POST' }),
+  logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
   messageUnread: () => req('/messages/unread-count'),
   myMessages: () => req('/messages/mine'),
   messageThread: (id: string) => req(`/messages/conversations/${id}`),

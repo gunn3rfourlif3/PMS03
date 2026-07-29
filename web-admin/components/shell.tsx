@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake } from 'lucide-react';
-import { auth } from '@/lib/api';
+import { auth, api } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
 import { cn } from '@/lib/cn';
@@ -75,7 +75,7 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
 function SignOut({ onDone }: { onDone?: () => void }) {
   const router = useRouter();
   return (
-    <button onClick={() => { auth.clear(); onDone?.(); router.replace('/login'); }}
+    <button onClick={async () => { await api.logout().catch(() => {}); auth.clear(); onDone?.(); router.replace('/login'); }}
       className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-black/5 hover:text-danger">
       <LogOut size={18} /> Sign out
     </button>

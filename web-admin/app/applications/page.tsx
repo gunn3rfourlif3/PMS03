@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Badge, EmptyState, Modal, ConfirmModal, Field } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Badge, EmptyState, Modal, ConfirmModal, Field, BentoTile } from '@/components/ui';
 
 const tone = (s: string): 'brand' | 'success' | 'danger' | 'muted' =>
   s === 'approved' ? 'success' : s === 'rejected' ? 'danger' : s === 'screening' ? 'brand' : 'muted';
@@ -54,6 +54,14 @@ export default function ApplicationsPage() {
     <div>
       <PageHeader title="Applications" subtitle="Screen and decide on tenant applications" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoTile tone="blue" value={String(apps.length)} label="Applications" />
+        <BentoTile tone="amber" value={String(apps.filter((a) => a.status === 'screening').length)} label="In screening" />
+        <BentoTile tone="green" value={String(apps.filter((a) => a.status === 'approved').length)} label="Approved" />
+        <BentoTile tone="coral" value={String(apps.filter((a) => a.status === 'rejected').length)} label="Rejected" />
+      </div>
+
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

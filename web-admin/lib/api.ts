@@ -91,6 +91,7 @@ export const api = {
     req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> =>
     req('/auth/refresh', { method: 'POST' }),
+  logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
 
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),

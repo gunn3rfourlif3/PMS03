@@ -37,7 +37,14 @@ export class AuthController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @UseGuards(JwtAuthGuard)
   @Post('refresh')
-  refresh(@CurrentTenant() principal: { userId: string; vendorId: string | null; roles: string[] }) {
+  refresh(@CurrentTenant() principal: { userId: string; vendorId: string | null; roles: string[]; jti?: string }) {
     return this.auth.refresh(principal);
+  }
+
+  /** Sign out — instantly revokes this session server-side. */
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@CurrentTenant() principal: { jti?: string }) {
+    return this.auth.logout(principal.jti);
   }
 }

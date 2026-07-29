@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { SessionStore } from './session-store.service';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 import { User } from '@modules/identity/user.entity';
 
@@ -24,7 +25,7 @@ import { User } from '@modules/identity/user.entity';
     TypeOrmModule.forFeature([OtpChallenge, User]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, SessionStore],
+  exports: [AuthService, SessionStore],
 })
 export class AuthModule {}

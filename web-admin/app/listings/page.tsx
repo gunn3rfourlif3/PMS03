@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useRef } from 'react';
 import { Plus, Copy, Check, ExternalLink, Play, Pause, Ban, Image as ImageIcon, X, Upload } from 'lucide-react';
 import { api, auth, thumbUrl } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
 
 /** Public rentals URL for a listing, derived from the current host (app.<domain> -> rentals.<domain>). */
 function rentalsUrl(listingId: string): string {
@@ -90,6 +90,13 @@ export default function ListingsPage() {
     <div>
       <PageHeader title="Listings" subtitle="Create and publish vacancies" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <BentoTile tone="green" value={String(listings.filter((l) => l.status === 'published').length)} label="Published" />
+        <BentoTile tone="purple" value={String(listings.filter((l) => l.status === 'draft').length)} label="Draft" />
+        <BentoTile tone="amber" value={String(listings.filter((l) => l.status === 'paused').length)} label="Paused" />
+        <BentoTile tone="blue" value={String(listings.length)} label="Total" />
+      </div>
 
       <GlassCard>
         <div className="mb-3 font-heading text-lg font-bold">New listing</div>

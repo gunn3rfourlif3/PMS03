@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserPlus, FileText, Landmark } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, BentoTile, money } from '@/components/ui';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 const statusLabel: Record<string, string> = { finalized: 'Ready to pay', paid_out: 'Paid out' };
@@ -65,6 +65,14 @@ export default function OwnersPage() {
     <div>
       <PageHeader title="Owners" subtitle="Manage owners, generate statements, and pay out" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <BentoTile tone="blue" value={String(owners.length)} label="Owners" />
+        <BentoTile tone="teal"
+          value={owners.length ? `${Math.round((owners.reduce((s, o) => s + Number((o as any).managementFeePct || 0), 0) / owners.length) * 100)}%` : '—'}
+          label="Avg management fee" />
+        <BentoTile tone="green" value={String(owners.filter((o) => (o as any).banking?.accountNumber).length)} label="Banking on file" />
+      </div>
 
       <GlassCard>
         <div className="mb-3 font-heading text-lg font-bold">Add owner</div>

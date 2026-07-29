@@ -40,6 +40,7 @@ export const api = {
   requestOtp: (destination: string) => req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: (destination: string, code: string) => req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> => req('/auth/refresh', { method: 'POST' }),
+  logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
   profile: () => req('/me/profile'),
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),

@@ -7,7 +7,9 @@ import { Repository, DataSource } from 'typeorm';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 import { User } from '@modules/identity/user.entity';
 import { JwtPayload } from './jwt-payload.interface';
+import { randomUUID } from 'node:crypto';
 import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
+import { SessionStore } from './session-store.service';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 
 /**
@@ -45,8 +47,11 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly jwt: JwtService,
     private readonly dataSource: DataSource,
+    private readonly sessions: SessionStore,
     @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
+
+  private get idleSec(): number { return this.idleMinutes * 60; }
 
   private readonly log = new Logger('OtpDelivery');
 
@@ -112,7 +117,10 @@ export class AuthService {
       vendorId: active?.vendor_id ?? null,
       roles: active ? [active.role] : [],
     };
-    return { accessToken: await this.signToken(payload), idleMinutes: this.idleMinutes };
+    // Register a revocable session and embed its id in the token.
+    const jti = randomUUID();
+    await this.sessions.create(jti, user.id, this.idleSec);
+    return { accessToken: await this.signToken({ ...payload, jti }), idleMinutes: this.idleMinutes };
   }
 
   /**
@@ -120,9 +128,19 @@ export class AuthService {
    * and a fresh idle-window expiry. Requires a still-valid token (JwtAuthGuard),
    * so a session idle past the window can't be refreshed — it's expired.
    */
-  async refresh(principal: { userId: string; vendorId: string | null; roles: string[] }): Promise<{ accessToken: string; idleMinutes: number }> {
-    const payload: JwtPayload = { sub: principal.userId, vendorId: principal.vendorId ?? null, roles: principal.roles ?? [] };
+  async refresh(principal: { userId: string; vendorId: string | null; roles: string[]; jti?: string }): Promise<{ accessToken: string; idleMinutes: number }> {
+    // Keep the same session id and slide its TTL; upgrade legacy (no-jti) tokens.
+    let jti = principal.jti;
+    if (jti) await this.sessions.touch(jti, this.idleSec);
+    else { jti = randomUUID(); await this.sessions.create(jti, principal.userId, this.idleSec); }
+    const payload: JwtPayload = { sub: principal.userId, vendorId: principal.vendorId ?? null, roles: principal.roles ?? [], jti };
     return { accessToken: await this.signToken(payload), idleMinutes: this.idleMinutes };
+  }
+
+  /** Instantly revoke the caller's session (sign-out). */
+  async logout(jti?: string): Promise<{ ok: true }> {
+    if (jti) await this.sessions.revoke(jti);
+    return { ok: true };
   }
 
   async me(userId: string): Promise<User> {

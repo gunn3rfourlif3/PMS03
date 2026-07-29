@@ -37,7 +37,7 @@ function Shell() {
 
   const auth = useMemo(() => ({
     signIn: async (token: string) => { await setToken(token); setAuthed(true); },
-    signOut: async () => { await clearToken(); setAuthed(false); },
+    signOut: async () => { await api.logout().catch(() => {}); await clearToken(); setAuthed(false); },
   }), []);
 
   const refreshSession = useMemo(() => async () => {

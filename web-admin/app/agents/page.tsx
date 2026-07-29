@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Handshake, Plus, Check, X, Banknote, FileText } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
 
 const blankAgent = () => ({ id: '', name: '', email: '', phone: '', company: '', commissionType: 'flat', commissionValue: '', banking: { bankName: '', accountHolder: '', accountNumber: '', branchCode: '' }, notes: '' });
 const terms = (a: any) => a.commissionType === 'percent_first_month' ? `${a.commissionValue}% of 1st month` : `${money(a.commissionValue)} flat`;
@@ -69,6 +69,13 @@ export default function AgentsPage() {
 
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
+      {tab === 'agents' && (
+        <div className="mb-4 grid grid-cols-3 gap-3">
+          <BentoTile tone="purple" value={String(agents.length)} label="Agents" />
+          <BentoTile tone="green" value={String(agents.filter((a) => a.status === 'active').length)} label="Active" />
+          <BentoTile tone="amber" value={String(agents.filter((a) => a.status !== 'active').length)} label="Inactive" />
+        </div>
+      )}
       {tab === 'agents' && (
         <GlassCard className="!p-0 overflow-hidden">
           <div className="overflow-x-auto">
