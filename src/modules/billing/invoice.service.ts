@@ -15,6 +15,7 @@ export interface GenerateRentInvoiceInput {
   dueDate: string;
   rentAmount: number;
   description?: string; // overrides the default "Rent <period>" line label
+  documentUrl?: string; // if set, the invoice email links to this rendered document
 }
 
 /**
@@ -77,7 +78,10 @@ export class InvoiceService {
         vendorId: this.tenant.vendorId ?? '',
         userId: input.tenantId,
         template: 'RENT_INVOICE_ISSUED',
-        payload: { period: input.period, amount: total, dueDate: input.dueDate, currency: 'ZAR' },
+        payload: {
+          period: input.period, amount: total, dueDate: input.dueDate, currency: 'ZAR',
+          invoiceLink: input.documentUrl ? `\n\nView your invoice here: ${input.documentUrl}` : '',
+        },
       });
     }
     return saved;

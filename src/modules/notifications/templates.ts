@@ -19,7 +19,7 @@ export const TEMPLATES: Record<TemplateKey, Template> = {
     key: 'RENT_INVOICE_ISSUED',
     defaultChannels: ['push', 'email'],
     subject: 'Rent invoice for {{period}}',
-    body: 'Hi {{name}}, your rent invoice for {{period}} of {{currency}} {{amount}} is due on {{dueDate}}.',
+    body: 'Hi {{name}}, your rent invoice for {{period}} of {{currency}} {{amount}} is due on {{dueDate}}.{{invoiceLink}}',
   },
   PAYMENT_RECEIVED: {
     key: 'PAYMENT_RECEIVED',

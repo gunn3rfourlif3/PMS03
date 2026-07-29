@@ -128,23 +128,24 @@ export class ApplicationsService {
       ? `Rent ${period} (pro-rata ${pr.days}/${pr.daysInMonth} days)`
       : `Rent ${period}`;
 
-    // (b) Raise the first rent invoice (ledger). Tolerant of failure so a billing
-    // hiccup never blocks the approval itself.
-    try {
-      await this.invoices.generateRentInvoice({
-        leaseId: lease.id, tenantId: tenantUserId, period, dueDate: startDate,
-        rentAmount: pr.amount, description: rentLabel,
-      });
-    } catch (e: any) {
-      this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
-    }
-
-    // (d) Render the branded move-in invoice document (rent + admin fee + deposit).
+    // (d) Render the branded move-in invoice document (rent + admin fee + deposit)
+    // first, so both the invoice email and the welcome email can link to it.
     let invoiceUrl: string | undefined;
     try {
       invoiceUrl = await this.renderMoveInInvoice(app, listing, startDate, pr.amount, rentLabel);
     } catch (e: any) {
       this.logger.error(`Move-in invoice for lease ${lease.id} failed: ${e.message}`);
+    }
+
+    // (b) Raise the first rent invoice (ledger). Its email links to the rendered
+    // document above. Tolerant of failure so a billing hiccup never blocks approval.
+    try {
+      await this.invoices.generateRentInvoice({
+        leaseId: lease.id, tenantId: tenantUserId, period, dueDate: startDate,
+        rentAmount: pr.amount, description: rentLabel, documentUrl: invoiceUrl,
+      });
+    } catch (e: any) {
+      this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
     }
 
     // (a) Welcome the applicant, how to sign in, and their move-in invoice link.
