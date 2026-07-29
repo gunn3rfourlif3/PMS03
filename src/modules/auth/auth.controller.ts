@@ -28,4 +28,16 @@ export class AuthController {
   me(@CurrentTenant() principal: { userId: string }) {
     return this.auth.me(principal.userId);
   }
+
+  /**
+   * Slide the idle session on genuine user activity. Clients call this (throttled)
+   * while the user is interacting; it needs a still-valid token, so an idle
+   * session past the window can't be refreshed and is enforced as expired.
+   */
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @UseGuards(JwtAuthGuard)
+  @Post('refresh')
+  refresh(@CurrentTenant() principal: { userId: string; vendorId: string | null; roles: string[] }) {
+    return this.auth.refresh(principal);
+  }
 }

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake } from 'lucide-react';
 import { auth } from '@/lib/api';
 import { useBrand } from './brand-provider';
+import IdleTimeout from './idle-timeout';
 import { cn } from '@/lib/cn';
 
 const NAV = [
@@ -114,6 +115,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen lg:pl-[264px]">
+      <IdleTimeout />
       {/* Desktop sidebar */}
       <aside className="glass-strong fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
         <div>

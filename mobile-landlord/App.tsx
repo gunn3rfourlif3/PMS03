@@ -9,7 +9,9 @@ import {
   PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { Ionicons } from '@expo/vector-icons';
-import { loadToken, setToken, clearToken } from './src/api';
+import { api, loadToken, setToken, clearToken } from './src/api';
+import { useIdleLogout } from './src/useIdleLogout';
+import { IDLE_TIMEOUT_MINUTES } from './src/config';
 import { AuthContext } from './src/auth-context';
 import { ThemeProvider, useTheme, fontFamily } from './src/theme';
 import { Logo, GradientBackground } from './src/ui';
@@ -41,6 +43,11 @@ function Shell() {
     signOut: async () => { await clearToken(); setAuthed(false); },
   }), []);
 
+  const refreshSession = useMemo(() => async () => {
+    try { const r = await api.refreshSession(); if (r?.accessToken) await setToken(r.accessToken); } catch { /* let idle timer handle expiry */ }
+  }, []);
+  const markActive = useIdleLogout(authed, IDLE_TIMEOUT_MINUTES * 60 * 1000, auth.signOut, refreshSession);
+
   if (!ready || !fontsLoaded) {
     return <GradientBackground><View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={t.colors.brand} /></View></GradientBackground>;
   }
@@ -48,6 +55,7 @@ function Shell() {
   return (
     <AuthContext.Provider value={auth}>
       <GradientBackground>
+       <View style={{ flex: 1 }} onStartShouldSetResponderCapture={() => { markActive(); return false; }}>
         <NavigationContainer theme={navTheme}>
           <StatusBar style="light" />
           {authed ? (
@@ -93,6 +101,7 @@ function Shell() {
             <LoginScreen />
           )}
         </NavigationContainer>
+       </View>
       </GradientBackground>
     </AuthContext.Provider>
   );

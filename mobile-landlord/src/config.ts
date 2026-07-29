@@ -19,3 +19,7 @@ export function brandKey(): string {
   const labels = host.split('.');
   return labels.length > 2 && APP_LABELS.has(labels[0]) ? labels.slice(1).join('.') : host;
 }
+
+// Idle auto-logout window (minutes). Keep in sync with the API's
+// SESSION_IDLE_MINUTES. Default 10.
+export const IDLE_TIMEOUT_MINUTES = Math.max(1, Number(process.env.EXPO_PUBLIC_IDLE_TIMEOUT_MINUTES ?? 10));

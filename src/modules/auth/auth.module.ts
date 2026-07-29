@@ -14,9 +14,12 @@ import { User } from '@modules/identity/user.entity';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'change-me-in-prod',
-      // Cast: JWT_EXPIRES_IN is a runtime string, while the typings brand
-      // expiresIn as a template-literal StringValue. '1h'/'30m'/'7d' etc. are valid.
-      signOptions: { expiresIn: (process.env.JWT_EXPIRES_IN ?? '1h') as JwtSignOptions['expiresIn'] },
+      // Default expiry = the idle window (SESSION_IDLE_MINUTES, default 10m). The
+      // auth service also sets this explicitly at sign time; kept in sync here so
+      // any token minted through this module honours the same idle timeout.
+      // Cast: the value is a runtime string, while the typings brand expiresIn as
+      // a template-literal StringValue. '10m'/'1h'/'7d' etc. are valid.
+      signOptions: { expiresIn: `${Math.max(1, Number(process.env.SESSION_IDLE_MINUTES ?? 10))}m` as JwtSignOptions['expiresIn'] },
     }),
     TypeOrmModule.forFeature([OtpChallenge, User]),
   ],

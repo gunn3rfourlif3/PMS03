@@ -98,6 +98,7 @@ export const api = {
   approveTicket: (id: string) => req(`/maintenance/tickets/${id}/approve`, { method: 'POST' }),
 
   // Messaging
+  refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> => req('/auth/refresh', { method: 'POST' }),
   messageUnread: () => req('/messages/unread-count'),
   myMessages: () => req('/messages/mine'),
   messageThread: (id: string) => req(`/messages/conversations/${id}`),

@@ -28,6 +28,17 @@ export class AuthService {
   private readonly ttl = Number(process.env.OTP_TTL_SECONDS ?? 300);
   /** Max wrong guesses before a challenge is burned (anti brute-force). */
   private readonly maxAttempts = Number(process.env.OTP_MAX_ATTEMPTS ?? 5);
+  /**
+   * Idle session window (minutes). This is the access-token lifetime: it is
+   * refreshed on genuine user activity via POST /auth/refresh, so a session that
+   * sits idle longer than this expires and is rejected server-side.
+   */
+  private readonly idleMinutes = Math.max(1, Number(process.env.SESSION_IDLE_MINUTES ?? 10));
+
+  /** Sign an access token whose expiry is the idle window. */
+  private signToken(payload: JwtPayload): Promise<string> {
+    return this.jwt.signAsync(payload, { secret: this.secret, expiresIn: `${this.idleMinutes}m` });
+  }
 
   constructor(
     @InjectRepository(OtpChallenge) private readonly otps: Repository<OtpChallenge>,
@@ -51,7 +62,7 @@ export class AuthService {
     return { sent: true };
   }
 
-  async verifyOtp(destination: string, code: string): Promise<{ accessToken: string }> {
+  async verifyOtp(destination: string, code: string): Promise<{ accessToken: string; idleMinutes: number }> {
     const challenge = await this.otps.findOne({
       where: { destination },
       order: { createdAt: 'DESC' },
@@ -101,11 +112,17 @@ export class AuthService {
       vendorId: active?.vendor_id ?? null,
       roles: active ? [active.role] : [],
     };
-    return {
-      // Expiry is configured on JwtModule.register (JWT_EXPIRES_IN, default 1h);
-      // only the secret is passed here to stay within the typed sign options.
-      accessToken: await this.jwt.signAsync(payload, { secret: this.secret }),
-    };
+    return { accessToken: await this.signToken(payload), idleMinutes: this.idleMinutes };
+  }
+
+  /**
+   * Slide the session forward on activity: re-issue a token with the same claims
+   * and a fresh idle-window expiry. Requires a still-valid token (JwtAuthGuard),
+   * so a session idle past the window can't be refreshed — it's expired.
+   */
+  async refresh(principal: { userId: string; vendorId: string | null; roles: string[] }): Promise<{ accessToken: string; idleMinutes: number }> {
+    const payload: JwtPayload = { sub: principal.userId, vendorId: principal.vendorId ?? null, roles: principal.roles ?? [] };
+    return { accessToken: await this.signToken(payload), idleMinutes: this.idleMinutes };
   }
 
   async me(userId: string): Promise<User> {
