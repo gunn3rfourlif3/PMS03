@@ -29,6 +29,10 @@ export async function clearToken(): Promise<void> {
   await store.del();
 }
 
+/** App registers this to drop to the login screen when a session is rejected. */
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: (() => void) | null) { onUnauthorized = fn; }
+
 async function req(path: string, opts: RequestInit = {}): Promise<any> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
@@ -38,6 +42,7 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
       ...(opts.headers || {}),
     },
   });
+  if (res.status === 401 && token) { await clearToken(); onUnauthorized?.(); throw new Error('Your session has expired. Please sign in again.'); }
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
     const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;
@@ -83,6 +88,7 @@ export const api = {
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: form as any,
     });
+    if (res.status === 401 && token) { await clearToken(); onUnauthorized?.(); throw new Error('Your session has expired. Please sign in again.'); }
     if (!res.ok) {
       const b = await res.json().catch(() => ({ message: res.statusText }));
       throw new Error((Array.isArray(b.message) ? b.message.join(', ') : b.message) || `Upload failed (${res.status})`);

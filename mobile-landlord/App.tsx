@@ -9,7 +9,7 @@ import {
   PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { Ionicons } from '@expo/vector-icons';
-import { api, loadToken, setToken, clearToken } from './src/api';
+import { api, loadToken, setToken, clearToken, setUnauthorizedHandler } from './src/api';
 import { useIdleLogout } from './src/useIdleLogout';
 import { IDLE_TIMEOUT_MINUTES } from './src/config';
 import { AuthContext } from './src/auth-context';
@@ -47,6 +47,9 @@ function Shell() {
     try { const r = await api.refreshSession(); if (r?.accessToken) await setToken(r.accessToken); } catch { /* let idle timer handle expiry */ }
   }, []);
   const markActive = useIdleLogout(authed, IDLE_TIMEOUT_MINUTES * 60 * 1000, auth.signOut, refreshSession);
+
+  // A rejected (expired) session anywhere in the app drops to the login screen.
+  useEffect(() => { setUnauthorizedHandler(() => setAuthed(false)); return () => setUnauthorizedHandler(null); }, []);
 
   if (!ready || !fontsLoaded) {
     return <GradientBackground><View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator color={t.colors.brand} /></View></GradientBackground>;

@@ -23,6 +23,16 @@ export const isOwner = () => rolesFromToken().includes('owner');
 /** SSE stream URL for live message updates (token in query — EventSource can't set headers). */
 export const messageStreamUrl = () => `${API_BASE}/messages/stream?token=${encodeURIComponent(auth.get() ?? '')}`;
 
+/** An authenticated request came back 401 → the session is gone; boot to login. */
+function handleUnauthorized(status: number, hadToken: boolean) {
+  if (status !== 401 || !hadToken) return false;
+  auth.clear();
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login';
+  }
+  return true;
+}
+
 async function req(path: string, opts: RequestInit = {}): Promise<any> {
   const token = auth.get();
   const res = await fetch(`${API_BASE}${path}`, {
@@ -33,6 +43,7 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
       ...(opts.headers || {}),
     },
   });
+  if (handleUnauthorized(res.status, !!token)) throw new Error('Your session has expired. Please sign in again.');
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
     const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;
@@ -50,6 +61,7 @@ async function reqForm(path: string, form: FormData): Promise<any> {
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: form,
   });
+  if (handleUnauthorized(res.status, !!token)) throw new Error('Your session has expired. Please sign in again.');
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
     const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;

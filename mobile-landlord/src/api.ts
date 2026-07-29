@@ -18,11 +18,16 @@ export async function loadToken() { token = await store.get(); return token; }
 export async function setToken(t: string) { token = t; await store.set(t); }
 export async function clearToken() { token = null; await store.del(); }
 
+/** App registers this to drop to the login screen when a session is rejected. */
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: (() => void) | null) { onUnauthorized = fn; }
+
 async function req(path: string, opts: RequestInit = {}): Promise<any> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...opts,
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers || {}) },
   });
+  if (res.status === 401 && token) { await clearToken(); onUnauthorized?.(); throw new Error('Your session has expired. Please sign in again.'); }
   if (!res.ok) {
     const b = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error(Array.isArray(b.message) ? b.message.join(', ') : b.message || `Request failed (${res.status})`);

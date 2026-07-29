@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake } from 'lucide-react';
@@ -101,15 +101,26 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  // Login, payment-return, and the public rentals site render bare (no sidebar / auth chrome).
-  if (
+  // Login, payment-return, and the public rentals/sign pages render bare (no
+  // sidebar / auth chrome) and don't require a session.
+  const isPublic =
     path === '/login' ||
     path.startsWith('/pay/') ||
     path === '/rentals' ||
     path.startsWith('/rentals/') ||
     path.startsWith('/l/') ||
-    path.startsWith('/sign/')
-  ) return <main className="min-h-screen">{children}</main>;
+    path.startsWith('/sign/');
+
+  // Gate every authed route: no token → straight to login. Runs on first paint
+  // and on every navigation, so a signed-out/expired session can't view a page.
+  useEffect(() => {
+    if (!isPublic && typeof window !== 'undefined' && !auth.get()) {
+      router.replace('/login');
+    }
+  }, [path, isPublic, router]);
+
+  if (isPublic) return <main className="min-h-screen">{children}</main>;
+  if (typeof window !== 'undefined' && !auth.get()) return null; // avoid flashing protected content pre-redirect
   const portal = path.startsWith('/portal');
   const nav = portal ? PORTAL_NAV : NAV;
 
