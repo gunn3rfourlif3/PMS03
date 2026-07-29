@@ -1,6 +1,7 @@
 # Reverse proxy with automatic HTTPS (Let's Encrypt).
 # Replace the two hostnames and the email, then Caddy handles TLS certs for you.
 # DNS: create A records  app / api / tenant / landlord / rentals / www .dantalan.co.za  ->  169.58.46.223
+#      and an apex A record   @ (dantalan.co.za)  ->  169.58.46.223
 #      (and AAAA -> 2a02:c207:2345:3343::1 if you want IPv6).
 
 {
@@ -37,9 +38,8 @@ rentals.dantalan.co.za {
 	reverse_proxy web:3001
 }
 
-# Marketing / product site (static). Swap this hostname for the product's own
-# domain when you have one (e.g. www.getkaya.co.za) and update DNS + CORS.
-www.dantalan.co.za {
+# Marketing / product site (static) — apex + www.
+dantalan.co.za, www.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy marketing:80
 }
