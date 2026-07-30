@@ -19,6 +19,11 @@ export function rolesFromToken(): string[] {
   } catch { return []; }
 }
 export const isOwner = () => rolesFromToken().includes('owner');
+export const isPartner = () => rolesFromToken().includes('partner');
+export const isPlatformAdmin = () => rolesFromToken().includes('platform_admin');
+/** Where a login lands, by role. */
+export const homeForRole = () =>
+  isPlatformAdmin() ? '/admin/partners' : isPartner() ? '/partner' : isOwner() ? '/portal' : '/';
 
 /** SSE stream URL for live message updates (token in query — EventSource can't set headers). */
 export const messageStreamUrl = () => `${API_BASE}/messages/stream?token=${encodeURIComponent(auth.get() ?? '')}`;
@@ -176,6 +181,29 @@ export const api = {
     req(`/owners/${ownerId}/statements/${period}`, { method: 'POST' }),
   payoutStatement: (statementId: string) =>
     req(`/owners/statements/${statementId}/payout`, { method: 'POST' }),
+
+  // ── Partner portal ──
+  partnerOverview: () => req('/partner/overview'),
+  partnerMe: () => req('/partner/me'),
+  partnerAgencies: () => req('/partner/agencies'),
+  partnerReferral: () => req('/partner/referral'),
+  partnerLeaderboard: () => req('/partner/leaderboard'),
+  onboardAgency: (b: { agencyName: string; slug?: string; ownerName: string; ownerEmail: string; expectedUnits?: number }) =>
+    req('/partner/agencies', { method: 'POST', body: JSON.stringify(b) }),
+  partnerDeals: () => req('/partner/deals'),
+  createDeal: (b: any) => req('/partner/deals', { method: 'POST', body: JSON.stringify(b) }),
+  updateDeal: (id: string, b: any) => req(`/partner/deals/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
+  moveDealStage: (id: string, stage: string, lostReason?: string) =>
+    req(`/partner/deals/${id}/stage`, { method: 'POST', body: JSON.stringify({ stage, lostReason }) }),
+  partnerActivities: () => req('/partner/activities'),
+  logPartnerActivity: (b: { type: string; summary?: string; dealId?: string }) =>
+    req('/partner/activities', { method: 'POST', body: JSON.stringify(b) }),
+
+  // ── Platform admin: partners ──
+  adminPartners: () => req('/admin/partners'),
+  createPartner: (b: any) => req('/admin/partners', { method: 'POST', body: JSON.stringify(b) }),
+  setPartnerStatus: (id: string, status: string) => req(`/admin/partners/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
+  addPartnerMember: (id: string, email: string, name?: string) => req(`/admin/partners/${id}/members`, { method: 'POST', body: JSON.stringify({ email, name }) }),
 
   portalSummary: () => req('/portal/summary'),
   portalProperties: () => req('/portal/properties'),

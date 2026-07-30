@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy } from 'lucide-react';
 import { auth, api } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
@@ -33,6 +33,18 @@ const PORTAL_NAV = [
   { href: '/portal/statements', label: 'Statements', icon: Receipt },
   { href: '/portal/properties', label: 'Properties', icon: Building2 },
   { href: '/portal/banking', label: 'Banking', icon: Landmark },
+];
+
+const PARTNER_NAV = [
+  { href: '/partner', label: 'Overview', icon: LayoutGrid },
+  { href: '/partner/pipeline', label: 'Pipeline', icon: Columns3 },
+  { href: '/partner/activity', label: 'Activity', icon: Activity },
+  { href: '/partner/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/partner/agencies', label: 'Agencies', icon: Building2 },
+];
+
+const ADMIN_NAV = [
+  { href: '/admin/partners', label: 'Partners', icon: Handshake },
 ];
 
 function BrandMark({ size = 34 }: { size?: number }) {
@@ -121,8 +133,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   if (isPublic) return <main className="min-h-screen">{children}</main>;
   if (typeof window !== 'undefined' && !auth.get()) return null; // avoid flashing protected content pre-redirect
-  const portal = path.startsWith('/portal');
-  const nav = portal ? PORTAL_NAV : NAV;
+  const nav = path.startsWith('/admin') ? ADMIN_NAV
+    : path.startsWith('/partner') ? PARTNER_NAV
+    : path.startsWith('/portal') ? PORTAL_NAV
+    : NAV;
 
   return (
     <div className="min-h-screen lg:pl-[264px]">
