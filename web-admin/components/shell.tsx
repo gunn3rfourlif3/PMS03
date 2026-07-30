@@ -120,6 +120,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   // sidebar / auth chrome) and don't require a session.
   const isPublic =
     path === '/login' ||
+    path === '/signup' ||
     path.startsWith('/pay/') ||
     path === '/rentals' ||
     path.startsWith('/rentals/') ||

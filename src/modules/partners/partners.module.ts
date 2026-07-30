@@ -11,6 +11,7 @@ import { PartnerCommissionsProcessor } from './commissions.processor';
 import { PartnerController } from './partner.controller';
 import { AdminPartnersController } from './admin-partners.controller';
 import { AdminCommissionsController } from './admin-commissions.controller';
+import { PartnerSignupController, AdminSignupsController } from './signup.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { AdminCommissionsController } from './admin-commissions.controller';
     BullModule.registerQueue({ name: QUEUE_PARTNER }),
   ],
   providers: [PartnersService, PartnerDealsService, PartnerCommissionsService, PartnerCommissionsScheduler, PartnerCommissionsProcessor],
-  controllers: [PartnerController, AdminPartnersController, AdminCommissionsController],
+  controllers: [PartnerController, AdminPartnersController, AdminCommissionsController, PartnerSignupController, AdminSignupsController],
   exports: [PartnersService, PartnerDealsService, PartnerCommissionsService],
 })
 export class PartnersModule {}

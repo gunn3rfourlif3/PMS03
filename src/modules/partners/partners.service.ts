@@ -51,16 +51,48 @@ export class PartnersService {
     };
   }
 
-  /** Live agencies this partner referred. */
+  /** Live agencies this partner referred. Uses vendor_name() — `vendors` is RLS. */
   async agencies(partnerId?: string | null): Promise<unknown[]> {
     const id = this.assert(partnerId);
     return this.ds.query(
-      `SELECT vs.vendor_id AS "vendorId", v.name AS "agencyName", vs.tier, vs.status,
+      `SELECT vs.vendor_id AS "vendorId", vendor_name(vs.vendor_id) AS "agencyName", vs.tier, vs.status,
               vs.unit_count AS "unitCount", vs.mrr, vs.created_at AS "joinedAt"
-       FROM vendor_subscriptions vs JOIN vendors v ON v.id = vs.vendor_id
+       FROM vendor_subscriptions vs
        WHERE vs.referred_by_partner_id = $1
        ORDER BY vs.created_at DESC`, [id],
     );
+  }
+
+  /** PUBLIC: validate a referral code, returning the partner's name for display. */
+  async validateRef(refCode: string): Promise<{ valid: boolean; partnerName?: string }> {
+    const [p] = await this.ds.query(`SELECT name FROM partners WHERE ref_code = $1 AND status = 'active'`, [refCode]);
+    return p ? { valid: true, partnerName: p.name } : { valid: false };
+  }
+
+  /** PUBLIC: an agency self-signs-up via a partner's referral link (admin-approved). */
+  async publicSignup(refCode: string, input: { agencyName: string; ownerName: string; ownerEmail: string }): Promise<{ ok: true }> {
+    if (!refCode?.trim()) throw new BadRequestException('A referral code is required.');
+    if (!input.agencyName?.trim() || !input.ownerEmail?.trim()) throw new BadRequestException('Agency name and owner email are required.');
+    await this.ds.query(`SELECT signup_agency($1,$2,$3,$4)`, [
+      refCode.trim(), input.agencyName.trim(), input.ownerName?.trim() || 'Owner', input.ownerEmail.trim().toLowerCase(),
+    ]);
+    return { ok: true };
+  }
+
+  /** Platform-admin: pending referral signups awaiting approval. */
+  listPendingSignups(): Promise<unknown[]> {
+    return this.ds.query(
+      `SELECT vs.vendor_id AS "vendorId", vendor_name(vs.vendor_id) AS "agencyName",
+              p.name AS "partnerName", vs.created_at AS "signedUpAt"
+       FROM vendor_subscriptions vs JOIN partners p ON p.id = vs.referred_by_partner_id
+       WHERE vs.status = 'pending' AND vs.referred_by_partner_id IS NOT NULL
+       ORDER BY vs.created_at DESC`,
+    );
+  }
+
+  async approveSignup(vendorId: string): Promise<{ ok: true }> {
+    await this.ds.query(`SELECT approve_agency($1)`, [vendorId]);
+    return { ok: true };
   }
 
   async referral(partnerId?: string | null): Promise<{ refCode: string; signupUrl: string }> {

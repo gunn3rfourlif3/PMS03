@@ -62,8 +62,8 @@ export class PartnerCommissionsService {
     const id = this.assert(partnerId);
     return this.ds.query(
       `SELECT pc.id, pc.period, pc.basis_mrr AS "basisMrr", pc.rate, pc.amount, pc.status,
-              pc.paid_at AS "paidAt", pc.paid_ref AS "paidRef", v.name AS "agencyName"
-       FROM partner_commissions pc LEFT JOIN vendors v ON v.id = pc.vendor_id
+              pc.paid_at AS "paidAt", pc.paid_ref AS "paidRef", vendor_name(pc.vendor_id) AS "agencyName"
+       FROM partner_commissions pc
        WHERE pc.partner_id = $1 ORDER BY pc.period DESC, pc.created_at DESC`, [id],
     );
   }
@@ -102,10 +102,9 @@ export class PartnerCommissionsService {
     const params = status && status !== 'all' ? [status] : [];
     return this.ds.query(
       `SELECT pc.id, pc.period, pc.amount, pc.status, pc.basis_mrr AS "basisMrr", pc.rate,
-              pc.paid_ref AS "paidRef", p.name AS "partnerName", v.name AS "agencyName"
+              pc.paid_ref AS "paidRef", p.name AS "partnerName", vendor_name(pc.vendor_id) AS "agencyName"
        FROM partner_commissions pc
        JOIN partners p ON p.id = pc.partner_id
-       LEFT JOIN vendors v ON v.id = pc.vendor_id
        ${where} ORDER BY pc.period DESC, p.name`, params,
     );
   }

@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, UserPlus } from 'lucide-react';
+import { Plus, UserPlus, Check } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, Modal, EmptyState } from '@/components/ui';
 
@@ -12,6 +12,7 @@ export default function AdminPartnersPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
+  const [signups, setSignups] = useState<any[]>([]);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -21,8 +22,15 @@ export default function AdminPartnersPage() {
 
   const load = useCallback(async () => {
     setErr('');
-    try { setRows(await api.adminPartners()); } catch (e: any) { setErr(e.message); }
+    try {
+      const [p, s] = await Promise.all([api.adminPartners(), api.adminSignups().catch(() => [])]);
+      setRows(p); setSignups(s);
+    } catch (e: any) { setErr(e.message); }
   }, []);
+
+  const approve = async (vendorId: string) => {
+    try { await api.approveSignup(vendorId); await load(); } catch (e: any) { setErr(e.message); }
+  };
 
   useEffect(() => {
     if (!auth.get()) { router.replace('/login'); return; }
@@ -59,6 +67,23 @@ export default function AdminPartnersPage() {
         <Button onClick={() => { setForm(blankPartner()); setShowAdd(true); }}><Plus size={16} /> New partner</Button>
       </div>
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+
+      {signups.length > 0 && (
+        <GlassCard className="mb-4">
+          <div className="mb-2 font-heading text-base font-bold text-ink">Pending referral signups</div>
+          <div className="divide-y divide-line">
+            {signups.map((s) => (
+              <div key={s.vendorId} className="flex items-center justify-between py-2.5">
+                <div>
+                  <div className="text-sm font-medium text-ink">{s.agencyName}</div>
+                  <div className="text-xs text-muted">via {s.partnerName}{s.signedUpAt ? ` · ${new Date(s.signedUpAt).toLocaleDateString('en-ZA')}` : ''}</div>
+                </div>
+                <Button variant="ghost" onClick={() => approve(s.vendorId)}><Check size={14} /> Approve</Button>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
