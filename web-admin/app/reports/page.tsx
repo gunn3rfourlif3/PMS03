@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Download } from 'lucide-react';
+import { Download, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Donut, BentoTile, money } from '@/components/ui';
@@ -30,12 +30,13 @@ export default function ReportsPage() {
 
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); /* eslint-disable-next-line */ }, []);
 
+  const [running, setRunning] = useState(false);
   const load = async () => {
-    setErr('');
+    setErr(''); setRunning(true);
     try {
       const [inc, col] = await Promise.all([api.income(period), api.collection(period)]);
       setIncome(inc); setCollection(col);
-    } catch (e: any) { setErr(e.message); }
+    } catch (e: any) { setErr(e.message); } finally { setRunning(false); }
   };
 
   const exportCsv = async (kind: 'rent-roll' | 'arrears' | 'collection') => {
@@ -60,8 +61,8 @@ export default function ReportsPage() {
     <div>
       <PageHeader title="Reports" subtitle="Period income statement and data exports"
         action={<div className="flex items-end gap-2">
-          <div className="w-32"><Field label="Period"><input className="input" value={period} onChange={(e) => setPeriod(e.target.value)} /></Field></div>
-          <Button onClick={load}>Run</Button>
+          <div className="w-32"><Field label="Period"><input className="input" value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="YYYY-MM" /></Field></div>
+          <Button onClick={load} loading={running}><RefreshCw size={16} /> Run</Button>
         </div>} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
