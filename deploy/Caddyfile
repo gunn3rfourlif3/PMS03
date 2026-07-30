@@ -38,8 +38,18 @@ rentals.dantalan.co.za {
 	reverse_proxy web:3001
 }
 
-# Marketing / product site (static) — apex + www.
+# Public rentals site on the apex + www. The site root redirects to the
+# rentals index (the Next.js web container serves it). Other paths (/l/<id>,
+# /login, /apply, …) proxy straight through.
 dantalan.co.za, www.dantalan.co.za {
+	encode zstd gzip
+	redir / /rentals
+	reverse_proxy web:3001
+}
+
+# Marketing / product site (static). Now on its own subdomain since the rentals
+# page owns the apex; add an A record for `about` if you want this live.
+about.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy marketing:80
 }
