@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard } from 'lucide-react';
 import { auth, api } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
@@ -25,6 +25,7 @@ const NAV = [
   { href: '/api-keys', label: 'API keys', icon: KeyRound },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/billing', label: 'Billing', icon: CreditCard },
   { href: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
@@ -48,6 +49,7 @@ const PARTNER_NAV = [
 const ADMIN_NAV = [
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
   { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
+  { href: '/admin/billing', label: 'Billing', icon: CreditCard },
 ];
 
 function BrandMark({ size = 34 }: { size?: number }) {

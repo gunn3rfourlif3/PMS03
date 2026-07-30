@@ -182,6 +182,15 @@ export const api = {
   payoutStatement: (statementId: string) =>
     req(`/owners/statements/${statementId}/payout`, { method: 'POST' }),
 
+  // ── Subscription / billing (agency-facing) ──
+  subscription: () => req('/subscription'),
+  subscriptionInvoices: () => req('/subscription/invoices'),
+  subscriptionCheckout: (id: string) => req(`/subscription/invoices/${id}/checkout`, { method: 'POST' }),
+  adminSubInvoices: (status?: string) => req(`/admin/subscription-invoices${status ? `?status=${status}` : ''}`),
+  runSubInvoices: (period?: string) => req('/admin/subscription-invoices/run', { method: 'POST', body: JSON.stringify({ period }) }),
+  markSubInvoicePaid: (id: string, ref?: string) => req(`/admin/subscription-invoices/${id}/paid`, { method: 'POST', body: JSON.stringify({ ref }) }),
+  voidSubInvoice: (id: string) => req(`/admin/subscription-invoices/${id}/void`, { method: 'POST' }),
+
   // ── Partner portal ──
   partnerOverview: () => req('/partner/overview'),
   partnerMe: () => req('/partner/me'),
