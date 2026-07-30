@@ -81,6 +81,7 @@ export class InvoiceService {
         payload: {
           period: input.period, amount: total, dueDate: input.dueDate, currency: 'ZAR',
           invoiceLink: input.documentUrl ? `\n\nView your invoice here: ${input.documentUrl}` : '',
+          invoiceUrl: input.documentUrl ?? '',
         },
       });
     }

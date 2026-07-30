@@ -8,7 +8,8 @@ export type Channel = 'push' | 'sms' | 'email' | 'whatsapp' | 'in_app';
 export interface DeliveryRequest {
   to: string; // phone / email / device token, per channel
   subject: string;
-  body: string;
+  body: string;        // plain-text (always sent; SMS uses this)
+  html?: string;       // optional rich HTML for email — friendly "click here" links
 }
 
 export interface DeliveryResult {

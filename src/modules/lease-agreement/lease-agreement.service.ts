@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { MediaService, UploadedFileLike } from '@modules/media/media.service';
+import { renderEmail } from '@common/email/email';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { LeaseAgreement } from './lease-agreement.entity';
 import { renderLeaseAgreement, renderLeaseWithAttachment, mergeLeaseTemplate, LEASE_PLACEHOLDERS, LeaseAgreementData } from './lease-agreement.html';
@@ -20,6 +21,8 @@ export interface CreateLeaseAgreementInput {
   startDate: string;
   endDate?: string;
   depositAmount?: number;
+  /** When false, don't send the built-in sign-link email (caller sends its own). */
+  sendEmail?: boolean;
 }
 
 @Injectable()
@@ -79,10 +82,20 @@ export class LeaseAgreementService {
     }));
 
     const signUrl = `${this.signBase}/sign/${ref}`;
-    await this.email(input.tenantEmail,
-      `Please sign your lease agreement — ${data.agencyName}`,
-      `Hi ${input.tenantName?.split(' ')[0] || 'there'},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${data.agencyName}`,
-    ).catch((e) => this.log.error(`sign email failed: ${e.message}`));
+    const firstName = input.tenantName?.split(' ')[0] || 'there';
+    if (input.sendEmail !== false) {
+      await this.email(input.tenantEmail,
+        `Please sign your lease agreement — ${data.agencyName}`,
+        `Hi ${firstName},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${data.agencyName}`,
+        renderEmail({
+          agencyName: data.agencyName,
+          heading: `Hi ${firstName}, your lease is ready to sign`,
+          paragraphs: ['Please review your lease agreement and sign it online — it only takes a moment.'],
+          buttons: [{ label: 'Review & sign your lease', url: signUrl }],
+          footerNote: "Once signed, we'll finalise everything. Thank you.",
+        }),
+      ).catch((e) => this.log.error(`sign email failed: ${e.message}`));
+    }
 
     return { ref, signUrl, fileUrl };
   }
@@ -126,8 +139,26 @@ export class LeaseAgreementService {
       row.fileUrl = url;
       await repo.save(row);
 
-      await this.email(data.tenantEmail, `Lease signed — ${data.agencyName}`,
-        `Thank you, ${fullName.split(' ')[0]}. We've recorded your signed lease agreement. Welcome aboard!\n\n— ${data.agencyName}`)
+      // Access is granted only now: flip the tenant's membership to active so
+      // they can sign in to the resident portal. Vendor-scoped via RLS.
+      await this.tenant.getManager().query(
+        `UPDATE memberships SET status = 'active', updated_at = now()
+         WHERE user_id = $1 AND role = 'tenant' AND status <> 'active'`,
+        [row.tenantId],
+      ).catch((e: any) => this.log.error(`Membership activation for ${row.tenantId} failed: ${e.message}`));
+
+      const portalUrl = process.env.TENANT_APP_URL?.trim();
+      await this.email(data.tenantEmail, `Lease signed — welcome to ${data.agencyName} 🎉`,
+        `Thank you, ${fullName.split(' ')[0]}. We've recorded your signed lease agreement and your resident portal is now ready.${portalUrl ? ` Sign in here: ${portalUrl}` : ''}\n\nWelcome aboard!\n\n— ${data.agencyName}`,
+        renderEmail({
+          agencyName: data.agencyName,
+          heading: `Welcome aboard, ${fullName.split(' ')[0]}!`,
+          paragraphs: [
+            "We've recorded your signed lease agreement — thank you.",
+            'Your resident portal is now ready. Sign in to pay rent, log maintenance and message our team.',
+          ],
+          buttons: portalUrl ? [{ label: 'Sign in to your portal', url: portalUrl }] : [],
+        }))
         .catch(() => undefined);
       await this.email(data.agencyEmail, `Lease agreement signed by ${fullName}`,
         `${fullName} has electronically signed their lease agreement${data.propertyName ? ` for ${data.propertyName}` : ''} on ${signedAt.toISOString()}.`)
@@ -236,11 +267,11 @@ export class LeaseAgreementService {
     return repo.find({ where: leaseId ? { leaseId } : {}, order: { createdAt: 'DESC' } });
   }
 
-  private async email(to: string | undefined, subject: string, body: string): Promise<void> {
+  private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<void> {
     if (!to || !this.channels) return;
     const provider = this.channels.get('email');
     if (!provider) return;
-    const res = await provider.send({ to, subject, body });
+    const res = await provider.send({ to, subject, body, html });
     if (!res.ok) this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 }

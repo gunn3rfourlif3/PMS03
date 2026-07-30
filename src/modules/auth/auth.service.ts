@@ -1,5 +1,5 @@
 import {
-  Injectable, UnauthorizedException, NotFoundException, Optional, Inject, Logger,
+  Injectable, UnauthorizedException, NotFoundException, ForbiddenException, Optional, Inject, Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -129,6 +129,21 @@ export class AuthService {
         const memberships: Array<{ vendor_id: string; role: string }> =
           await this.dataSource.query('SELECT * FROM auth_memberships_for_user($1)', [user.id]);
         const active = memberships[0];
+        if (!active) {
+          // No active context. If they're an approved applicant whose membership
+          // is still 'pending' (lease not signed), say so explicitly rather than
+          // handing back a context-less session.
+          let pending = false;
+          try {
+            const [row] = await this.dataSource.query('SELECT auth_has_pending_membership($1) AS p', [user.id]);
+            pending = !!row?.p;
+          } catch { pending = false; }
+          if (pending) {
+            throw new ForbiddenException(
+              'Please sign your lease agreement first. Your account is activated as soon as your lease is signed — check your email for the signing link.',
+            );
+          }
+        }
         payload = { sub: user.id, vendorId: active?.vendor_id ?? null, roles: active ? [active.role] : [] };
       }
     }

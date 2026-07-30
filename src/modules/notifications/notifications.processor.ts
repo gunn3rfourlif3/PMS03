@@ -54,7 +54,7 @@ export class NotificationsProcessor extends WorkerHost {
       const requested = input.channels ?? TEMPLATES[input.template as TemplateKey].defaultChannels;
       const channels = allowedChannels(requested, prefs, new Date().getUTCHours());
 
-      const { subject, body } = renderTemplate(input.template as TemplateKey, input.payload);
+      const { subject, body, html } = renderTemplate(input.template as TemplateKey, input.payload);
       const repo = this.tenant.getRepository(Notification);
 
       let sent = 0;
@@ -73,7 +73,7 @@ export class NotificationsProcessor extends WorkerHost {
           row.status = 'failed';
           row.error = `No provider for channel ${channel}`;
         } else {
-          const res = await provider.send({ to: destination, subject, body });
+          const res = await provider.send({ to: destination, subject, body, html: channel === 'email' ? html : undefined });
           row.status = res.ok ? 'sent' : 'failed';
           row.providerRef = res.providerRef;
           row.error = res.error;

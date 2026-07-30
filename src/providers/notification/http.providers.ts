@@ -22,7 +22,13 @@ export class SendGridEmailProvider implements ChannelProvider {
           personalizations: [{ to: [{ email: req.to }] }],
           from: { email: this.from },
           subject: req.subject,
-          content: [{ type: 'text/plain', value: req.body }],
+          // Plain text first (fallback), then HTML when provided.
+          content: req.html
+            ? [{ type: 'text/plain', value: req.body }, { type: 'text/html', value: req.html }]
+            : [{ type: 'text/plain', value: req.body }],
+          // Don't rewrite links for click-tracking — keeps hrefs clean and lets
+          // "click here" anchors stay tidy.
+          tracking_settings: { click_tracking: { enable: false, enable_text: false } },
         }),
       });
       if (!res.ok) return { ok: false, error: `sendgrid ${res.status}` };

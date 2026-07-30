@@ -1,4 +1,5 @@
 import { Channel } from '@providers/notification/notification-provider.interface';
+import { renderEmail } from '@common/email/email';
 
 /**
  * Notification templates. Pure: `render` interpolates {{var}} placeholders from
@@ -12,6 +13,13 @@ export interface Template {
   defaultChannels: Channel[];
   subject: string;
   body: string;
+  /** Optional rich-email config: renders a "click here" button from a payload URL. */
+  email?: {
+    heading: string; // may contain {{var}} placeholders
+    paragraph: string; // body text for the HTML email (no raw URL — the button carries it)
+    label: string; // button label
+    urlKey: string; // payload key holding the button URL (button omitted if absent)
+  };
 }
 
 export const TEMPLATES: Record<TemplateKey, Template> = {
@@ -20,6 +28,12 @@ export const TEMPLATES: Record<TemplateKey, Template> = {
     defaultChannels: ['push', 'email'],
     subject: 'Rent invoice for {{period}}',
     body: 'Hi {{name}}, your rent invoice for {{period}} of {{currency}} {{amount}} is due on {{dueDate}}.{{invoiceLink}}',
+    email: {
+      heading: 'Your rent invoice for {{period}}',
+      paragraph: 'Hi {{name}}, your rent invoice for {{period}} of {{currency}} {{amount}} is due on {{dueDate}}.',
+      label: 'View your invoice',
+      urlKey: 'invoiceUrl',
+    },
   },
   PAYMENT_RECEIVED: {
     key: 'PAYMENT_RECEIVED',
@@ -45,7 +59,18 @@ export function render(text: string, payload: Record<string, unknown>): string {
 export function renderTemplate(
   key: TemplateKey,
   payload: Record<string, unknown>,
-): { subject: string; body: string } {
+): { subject: string; body: string; html?: string } {
   const t = TEMPLATES[key];
-  return { subject: render(t.subject, payload), body: render(t.body, payload) };
+  const subject = render(t.subject, payload);
+  const body = render(t.body, payload);
+  let html: string | undefined;
+  if (t.email) {
+    const url = payload[t.email.urlKey];
+    html = renderEmail({
+      heading: render(t.email.heading, payload),
+      paragraphs: [render(t.email.paragraph, payload)],
+      buttons: url ? [{ label: t.email.label, url: String(url) }] : [],
+    });
+  }
+  return { subject, body, html };
 }

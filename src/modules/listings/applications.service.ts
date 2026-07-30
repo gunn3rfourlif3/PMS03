@@ -10,6 +10,7 @@ import { InvoiceService } from '@modules/billing/invoice.service';
 import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
 import { MediaService } from '@modules/media/media.service';
+import { renderEmail } from '@common/email/email';
 import { buildMoveInLines, renderMoveInInvoice } from './move-in-invoice';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
@@ -103,8 +104,10 @@ export class ApplicationsService {
     const { app, listing } = await this.load(applicationId);
     this.assertTransition(app.status, 'approved');
 
+    // Approved, but NOT granted app access yet: the membership is created
+    // 'pending' and only activated once the tenant signs their lease.
     const tenantUserId = await this.identity.ensureTenantUser(
-      app.applicantEmail, app.applicantName, app.applicantPhone,
+      app.applicantEmail, app.applicantName, app.applicantPhone, 'pending',
     );
 
     const lease = await this.leasing.createLease({
@@ -148,22 +151,32 @@ export class ApplicationsService {
       this.logger.error(`First invoice for lease ${lease.id} failed: ${e.message} (run billing manually)`);
     }
 
-    // (a) Welcome the applicant, how to sign in, and their move-in invoice link.
-    await this.notifyApproved(app, listing, startDate, invoiceUrl).catch((e) =>
+    // (c) Generate the lease agreement first (no email of its own — the welcome
+    // email below carries the sign link) so the applicant gets a single message.
+    let signUrl: string | undefined;
+    try {
+      const res = await this.leaseAgreements.createForLease({
+        leaseId: lease.id,
+        tenantId: tenantUserId,
+        unitId: listing.unitId,
+        tenantName: app.applicantName,
+        tenantEmail: app.applicantEmail,
+        tenantIdNumber: (app.details as any)?.idNumber,
+        rentAmount: Number(listing.advertisedRent),
+        startDate,
+        sendEmail: false,
+      });
+      signUrl = res.signUrl;
+    } catch (e: any) {
+      this.logger.error(`Lease agreement generation failed: ${e.message}`);
+    }
+
+    // (a) Welcome the applicant: the next step is to SIGN their lease (which
+    // unlocks portal access). Include the move-in invoice to view. No sign-in
+    // link yet — access is granted only once the lease is signed.
+    await this.notifyApproved(app, listing, startDate, invoiceUrl, signUrl).catch((e) =>
       this.logger.error(`Approval notification failed: ${e.message}`),
     );
-
-    // (c) Generate the lease agreement and email the applicant a signing link.
-    await this.leaseAgreements.createForLease({
-      leaseId: lease.id,
-      tenantId: tenantUserId,
-      unitId: listing.unitId,
-      tenantName: app.applicantName,
-      tenantEmail: app.applicantEmail,
-      tenantIdNumber: (app.details as any)?.idNumber,
-      rentAmount: Number(listing.advertisedRent),
-      startDate,
-    }).catch((e) => this.logger.error(`Lease agreement generation failed: ${e.message}`));
 
     return saved;
   }
@@ -222,7 +235,9 @@ export class ApplicationsService {
     return url;
   }
 
-  private async notifyApproved(app: Application, listing: Listing, startDate: string, invoiceUrl?: string): Promise<void> {
+  private async notifyApproved(
+    app: Application, listing: Listing, startDate: string, invoiceUrl?: string, signUrl?: string,
+  ): Promise<void> {
     if (!this.channels) return;
     const isEmail = !!app.applicantEmail;
     const to = app.applicantEmail || app.applicantPhone;
@@ -230,9 +245,6 @@ export class ApplicationsService {
     const provider = this.channels.get(isEmail ? 'email' : 'sms');
     if (!provider) return;
 
-    const url = process.env.TENANT_APP_URL?.trim();
-    const where = url ? ` at ${url}` : '';
-    const signInWith = app.applicantEmail || app.applicantPhone;
     const firstName = app.applicantName?.trim().split(/\s+/)[0];
     const greeting = firstName ? `Welcome home, ${firstName}!` : 'Welcome home!';
 
@@ -240,21 +252,46 @@ export class ApplicationsService {
     const rows = await this.tenant.getManager().query('SELECT name FROM vendors WHERE id = $1', [this.tenant.vendorId]);
     const agency = (rows?.[0]?.name ?? '').trim();
 
+    // The one required next step is signing the lease — that unlocks portal
+    // access. Portal sign-in is intentionally NOT offered here.
+    const signLine = signUrl
+      ? `\n\nYour next step is to review and sign your lease agreement here:\n${signUrl}\n\nOnce it's signed, your resident portal is unlocked and you can sign in to pay rent, log maintenance and message our team.`
+      : `\n\nWe'll email you your lease agreement to sign shortly. Once it's signed, your resident portal is unlocked.`;
     const invoiceLine = invoiceUrl
       ? `\n\nYour move-in invoice (first month's rent${listing.adminFee ? ', admin fee' : ''}${listing.deposit ? ' and deposit' : ''}) is ready to view here:\n${invoiceUrl}`
       : '';
 
     const body =
       `${greeting} We're delighted to let you know your rental application has been approved, ` +
-      `and your lease begins on ${startDate}. ` +
-      `To get started, simply sign in${where} with ${signInWith} — from there you can view your lease, ` +
-      `pay your rent, log any maintenance and message our team whenever you need us. ` +
-      `We're excited to have you with us. Welcome aboard!` +
+      `and your lease begins on ${startDate}.` +
+      signLine +
       invoiceLine +
       (agency ? `\n\n— The ${agency} team` : '');
 
     const subject = agency ? `Welcome home — you're approved at ${agency} 🎉` : 'Welcome home — your application is approved 🎉';
-    const res = await provider.send({ to, subject, body });
+
+    // Rich HTML for email: friendly buttons instead of raw URLs.
+    let html: string | undefined;
+    if (isEmail) {
+      const buttons = [] as { label: string; url: string }[];
+      if (signUrl) buttons.push({ label: 'Review & sign your lease', url: signUrl });
+      if (invoiceUrl) buttons.push({ label: 'View your move-in invoice', url: invoiceUrl });
+      html = renderEmail({
+        agencyName: agency || undefined,
+        heading: greeting,
+        paragraphs: [
+          `Great news — your rental application has been approved, and your lease begins on ${startDate}.`,
+          signUrl
+            ? 'Your next step is to review and sign your lease agreement. Once it\'s signed, your resident portal is unlocked and you can pay rent, log maintenance and message our team.'
+            : "We'll email you your lease agreement to sign shortly. Once it's signed, your resident portal is unlocked.",
+          ...(invoiceUrl ? [`Your move-in invoice (first month's rent${listing.adminFee ? ', admin fee' : ''}${listing.deposit ? ' and deposit' : ''}) is ready to view below.`] : []),
+        ],
+        buttons,
+        footerNote: "We're excited to have you with us. Welcome aboard!",
+      });
+    }
+
+    const res = await provider.send({ to, subject, body, html });
     if (!res.ok) this.logger.error(`Approval notify to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 

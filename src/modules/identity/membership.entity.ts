@@ -4,11 +4,19 @@ import { TenantEntity } from '@common/base.entity';
 export type Role =
   | 'platform_admin' | 'vendor_owner' | 'property_manager' | 'tenant' | 'contractor' | 'owner' | 'partner';
 
+/**
+ * 'active'  — the user can sign in and use the app for this vendor.
+ * 'pending' — approved but not yet granted access (e.g. an approved applicant
+ *             who has not signed their lease). Excluded from login resolution.
+ */
+export type MembershipStatus = 'active' | 'pending';
+
 @Entity('memberships')
 @Index(['vendorId', 'userId'], { unique: true })
 export class Membership extends TenantEntity {
   @Column('uuid', { name: 'user_id' }) userId: string;
   @Column({ type: 'text' }) role: Role;
+  @Column({ type: 'text', default: 'active' }) status: MembershipStatus;
   // e.g. { properties: [uuid], permissions: ['billing:read'] }
   @Column('jsonb', { default: {} }) scope: Record<string, unknown>;
 }
