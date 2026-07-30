@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { Unit, UnitStatus } from './unit.entity';
 import { Property } from './property.entity';
@@ -59,10 +59,27 @@ export class PropertiesService {
     return repo.find({ where: propertyId ? { propertyId } : {}, order: { label: 'ASC' } });
   }
 
-  createUnit(data: Partial<Unit>): Promise<Unit> {
+  /** Reject a unit label that already exists in the same property (case-insensitive). */
+  private async assertUniqueLabel(propertyId: string, label: string, excludeId?: string): Promise<void> {
+    const qb = this.tenant.getRepository(Unit).createQueryBuilder('u')
+      .where('u.property_id = :propertyId', { propertyId })
+      .andWhere('lower(trim(u.label)) = lower(trim(:label))', { label })
+      .andWhere('u.deleted_at IS NULL');
+    if (excludeId) qb.andWhere('u.id <> :excludeId', { excludeId });
+    if (await qb.getExists()) {
+      throw new ConflictException(`A unit called "${label.trim()}" already exists in this property.`);
+    }
+  }
+
+  async createUnit(data: Partial<Unit>): Promise<Unit> {
     const repo = this.tenant.getRepository(Unit);
+    const label = (data.label ?? '').trim();
+    if (!label) throw new BadRequestException('A unit label is required.');
+    if (!data.propertyId) throw new BadRequestException('A property is required.');
+    await this.assertUniqueLabel(data.propertyId, label);
     return repo.save(repo.create({
       ...data,
+      label,
       vendorId: this.tenant.vendorId ?? undefined,
       status: (data.status as UnitStatus) ?? 'vacant',
     }));
@@ -72,7 +89,12 @@ export class PropertiesService {
     const repo = this.tenant.getRepository(Unit);
     const u = await repo.findOne({ where: { id } });
     if (!u) throw new NotFoundException('Unit not found');
-    if (data.label !== undefined) u.label = data.label;
+    if (data.label !== undefined) {
+      const label = data.label.trim();
+      if (!label) throw new BadRequestException('A unit label is required.');
+      await this.assertUniqueLabel(u.propertyId, label, id);
+      u.label = label;
+    }
     if (data.status !== undefined) u.status = data.status as UnitStatus;
     if (data.marketRent !== undefined) u.marketRent = data.marketRent;
     if (data.bedrooms !== undefined) u.bedrooms = data.bedrooms;
