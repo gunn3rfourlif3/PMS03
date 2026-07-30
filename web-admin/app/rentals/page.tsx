@@ -244,7 +244,36 @@ export default function RentalsPage() {
         {items === null ? (
           <p style={{ color: MUTED, padding: '40px 0' }}>Loading…</p>
         ) : shown.length === 0 ? (
-          <p style={{ ...cap, padding: '64px 0', textAlign: 'center' }}>No listings in this category — check back next quarter.</p>
+          <div style={{ textAlign: 'center', padding: '96px 20px 80px', borderTop: `1px solid ${LINE}` }}>
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke={TAUPE} strokeWidth="1.5"
+              style={{ margin: '0 auto 28px', display: 'block' }} aria-hidden>
+              <path d="M12 26 L28 13 L44 26 L44 45 L12 45 Z" />
+              <path d="M23 45 L23 33 L33 33 L33 45" />
+            </svg>
+            <div style={{ ...cap, marginBottom: 14 }}>The index is resting</div>
+            <h3 style={{ ...serif, fontWeight: 500, fontSize: 'clamp(34px,5vw,56px)', lineHeight: 1.02, letterSpacing: '-0.01em' }}>
+              {filter !== 'All'
+                ? <>No {filter.toLowerCase()} homes<br />available right now</>
+                : <>No rentals available<br /><span style={{ fontStyle: 'italic', color: TAUPE }}>right now</span></>}
+            </h3>
+            <p style={{ color: MUTED, fontSize: 15, lineHeight: 1.6, maxWidth: '42ch', margin: '18px auto 0' }}>
+              {filter !== 'All'
+                ? 'Nothing in this category at the moment — the full collection may have something for you.'
+                : 'Our homes are leased quickly. New listings appear here the moment they become available.'}
+            </p>
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginTop: 34 }}>
+              {filter !== 'All' && (
+                <button onClick={() => setFilter('All')} style={{ ...cap, fontSize: 12, background: INK, color: PAPER, border: 0, padding: '14px 24px', borderRadius: 2, cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}>
+                  View all homes
+                </button>
+              )}
+              {b.contact?.email && (
+                <a href={`mailto:${b.contact.email}?subject=Register%20my%20interest%20—%20rentals`} style={{ ...cap, fontSize: 12, border: `1px solid ${INK}`, padding: '14px 24px', borderRadius: 2, color: INK }}>
+                  Register your interest →
+                </a>
+              )}
+            </div>
+          </div>
         ) : shown.map((x, i) => (
           <div key={x.id} className="dt-row" style={{
             display: 'grid', gridTemplateColumns: i % 2 ? '1fr 1.15fr' : '1.15fr 1fr',
