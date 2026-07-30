@@ -199,7 +199,17 @@ export const api = {
   logPartnerActivity: (b: { type: string; summary?: string; dealId?: string }) =>
     req('/partner/activities', { method: 'POST', body: JSON.stringify(b) }),
 
-  // ── Platform admin: partners ──
+  partnerCommissions: () => req('/partner/commissions'),
+  partnerCommissionSummary: () => req('/partner/commissions/summary'),
+  partnerBanking: () => req('/partner/banking'),
+  updatePartnerBanking: (b: any) => req('/partner/banking', { method: 'PUT', body: JSON.stringify(b) }),
+
+  // ── Platform admin: partners + commissions ──
+  adminCommissions: (status?: string) => req(`/admin/commissions${status ? `?status=${status}` : ''}`),
+  runCommissions: (period?: string) => req('/admin/commissions/run', { method: 'POST', body: JSON.stringify({ period }) }),
+  approvePartnerCommission: (id: string) => req(`/admin/commissions/${id}/approve`, { method: 'POST' }),
+  payPartnerCommission: (id: string, ref?: string) => req(`/admin/commissions/${id}/pay`, { method: 'POST', body: JSON.stringify({ ref }) }),
+  cancelPartnerCommission: (id: string) => req(`/admin/commissions/${id}/cancel`, { method: 'POST' }),
   adminPartners: () => req('/admin/partners'),
   createPartner: (b: any) => req('/admin/partners', { method: 'POST', body: JSON.stringify(b) }),
   setPartnerStatus: (id: string, status: string) => req(`/admin/partners/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),

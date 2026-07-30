@@ -41,10 +41,13 @@ const PARTNER_NAV = [
   { href: '/partner/activity', label: 'Activity', icon: Activity },
   { href: '/partner/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/partner/agencies', label: 'Agencies', icon: Building2 },
+  { href: '/partner/commissions', label: 'Commissions', icon: Receipt },
+  { href: '/partner/banking', label: 'Banking', icon: Landmark },
 ];
 
 const ADMIN_NAV = [
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
+  { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
 ];
 
 function BrandMark({ size = 34 }: { size?: number }) {

@@ -6,3 +6,6 @@ export const JOB_APPLY_DUNNING = 'apply-dunning';
 
 export const QUEUE_NOTIFICATIONS = 'notifications';
 export const JOB_SEND_NOTIFICATION = 'send-notification';
+
+export const QUEUE_PARTNER = 'partner';
+export const JOB_ACCRUE_COMMISSIONS = 'accrue-commissions';

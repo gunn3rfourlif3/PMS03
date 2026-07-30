@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { encryptedJson } from '@common/security/pii-crypto';
 
 export type PartnerStatus = 'pending' | 'active' | 'suspended';
 
@@ -14,7 +15,7 @@ export class Partner {
   @Column({ type: 'text', default: 'pending' }) status: PartnerStatus;
   @Column('numeric', { name: 'commission_rate', default: 0.10 }) commissionRate: number;
   @Column('int', { name: 'commission_months', nullable: true }) commissionMonths?: number;
-  @Column('jsonb', { default: {} }) banking: Record<string, unknown>;
+  @Column('jsonb', { default: {}, transformer: encryptedJson }) banking: Record<string, unknown>;
   @Column({ type: 'text', nullable: true }) notes?: string;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;
@@ -46,6 +47,25 @@ export class PartnerDeal {
   @Column({ name: 'lost_reason', type: 'text', nullable: true }) lostReason?: string;
   @Column('uuid', { name: 'vendor_id', nullable: true }) vendorId?: string;
   @Column({ name: 'stage_changed_at', type: 'timestamptz', default: () => 'now()' }) stageChangedAt: Date;
+  @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+  @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;
+}
+
+export type CommissionStatus = 'pending' | 'approved' | 'paid' | 'cancelled';
+
+@Entity('partner_commissions')
+export class PartnerCommission {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Index() @Column('uuid', { name: 'partner_id' }) partnerId: string;
+  @Column('uuid', { name: 'vendor_id' }) vendorId: string;
+  @Column({ type: 'text' }) period: string;               // YYYY-MM
+  @Column('numeric', { name: 'basis_mrr', default: 0 }) basisMrr: number;
+  @Column('numeric', { default: 0 }) rate: number;
+  @Column('numeric', { default: 0 }) amount: number;
+  @Column({ type: 'text', default: 'pending' }) status: CommissionStatus;
+  @Column({ name: 'approved_at', type: 'timestamptz', nullable: true }) approvedAt?: Date;
+  @Column({ name: 'paid_at', type: 'timestamptz', nullable: true }) paidAt?: Date;
+  @Column({ name: 'paid_ref', type: 'text', nullable: true }) paidRef?: string;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;
 }

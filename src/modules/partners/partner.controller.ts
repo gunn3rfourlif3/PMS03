@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnerDealsService } from './deals.service';
+import { PartnerCommissionsService } from './commissions.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
@@ -16,6 +17,7 @@ export class PartnerController {
   constructor(
     private readonly partners: PartnersService,
     private readonly deals: PartnerDealsService,
+    private readonly commissions: PartnerCommissionsService,
   ) {}
 
   @Get('overview') overview(@CurrentTenant() p: P) { return this.partners.overview(p.partnerId); }
@@ -42,4 +44,10 @@ export class PartnerController {
   @Post('activities') logActivity(@CurrentTenant() p: P, @Body() body: { type: any; summary?: string; dealId?: string }) {
     return this.deals.logActivity(p.partnerId, body);
   }
+
+  // ── Commissions + banking ──
+  @Get('commissions') commissions_(@CurrentTenant() p: P) { return this.commissions.listForPartner(p.partnerId); }
+  @Get('commissions/summary') commissionSummary(@CurrentTenant() p: P) { return this.commissions.summaryForPartner(p.partnerId); }
+  @Get('banking') banking(@CurrentTenant() p: P) { return this.commissions.getBanking(p.partnerId); }
+  @Put('banking') updateBanking(@CurrentTenant() p: P, @Body() body: Record<string, unknown>) { return this.commissions.updateBanking(p.partnerId, body); }
 }

@@ -38,7 +38,7 @@ import { LeaseAgreement } from '@modules/lease-agreement/lease-agreement.entity'
 import { LeaseExtractionRecord } from '@modules/lease-parsing/lease-extraction.entity';
 import { ProofOfPayment } from '@modules/proof-of-payment/proof-of-payment.entity';
 import { VendorSubscription } from '@modules/subscriptions/vendor-subscription.entity';
-import { Partner, PartnerMember, PartnerDeal, PartnerActivity } from '@modules/partners/partner.entities';
+import { Partner, PartnerMember, PartnerDeal, PartnerActivity, PartnerCommission } from '@modules/partners/partner.entities';
 
 export const ENTITIES = [
   Vendor,
@@ -80,4 +80,5 @@ export const ENTITIES = [
   PartnerMember,
   PartnerDeal,
   PartnerActivity,
+  PartnerCommission,
 ];

@@ -20,10 +20,11 @@ export default function PartnerOverview() {
     setReady(true);
     (async () => {
       try {
-        const [o, me, board, a] = await Promise.all([
-          api.partnerOverview(), api.partnerMe(), api.partnerLeaderboard(), api.partnerActivities(),
+        const [o, me, board, a, cs] = await Promise.all([
+          api.partnerOverview(), api.partnerMe(), api.partnerLeaderboard(), api.partnerActivities(), api.partnerCommissionSummary().catch(() => null),
         ]);
-        setOv(o); setActs(a.slice(0, 6));
+        setOv({ ...o, commissionMtd: cs?.paidMtd ?? 0, commissionPending: cs?.pending ?? 0, commissionPaid: cs?.paid ?? 0 });
+        setActs(a.slice(0, 6));
         const idx = (board as any[]).findIndex((r) => r.partnerId === me.id);
         if (idx >= 0) setRank({ pos: idx + 1, total: board.length });
       } catch (e: any) { setErr(e.message); }
