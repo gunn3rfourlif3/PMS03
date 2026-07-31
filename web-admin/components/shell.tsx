@@ -54,6 +54,10 @@ const ADMIN_NAV = [
 
 function BrandMark({ size = 34 }: { size?: number }) {
   const b = useBrand();
+  // A wide wordmark stands alone (no tile, no separate name).
+  if (b.logo.wordmarkUrl) {
+    return <img src={b.logo.wordmarkUrl} alt={b.name} style={{ height: size * 0.82 }} className="w-auto" />;
+  }
   return (
     <div className="flex items-center gap-2.5">
       {b.logo.imageUrl ? (

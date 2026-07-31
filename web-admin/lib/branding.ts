@@ -4,7 +4,7 @@ export interface Branding {
   name: string;
   slug: string;
   tagline?: string;
-  logo: { text: string; imageUrl?: string };
+  logo: { text: string; imageUrl?: string; wordmarkUrl?: string };
   colors: {
     brand: string; onBrand: string; tint: string; accent: string;
     ink: string; muted: string; line: string; bg: string; card: string;
@@ -53,9 +53,8 @@ export const DEFAULT_BRANDING: Branding = {
 /** The Locare platform brand, used on the platform domain (no vendor lookup). */
 export const LOCARE_BRAND: Branding = {
   name: 'Locare', slug: 'locare', tagline: 'Property management, beautifully run.',
-  // No imageUrl: the back-office shell renders a compact brand tile + name, which
-  // suits the sidebar better than the wide wordmark (used on the marketing site).
-  logo: { text: 'Locare' },
+  // wordmarkUrl: a wide logo rendered at natural size (no tile/name) in the shell.
+  logo: { text: 'Locare', wordmarkUrl: '/brand/locare-logo.svg' },
   colors: {
     brand: '#2D6A8F', onBrand: '#ffffff', tint: '#E7EEF3', accent: '#1E4A63',
     ink: '#121212', muted: '#6b7280', line: '#e5e7eb', bg: '#f6f7f9', card: '#ffffff',

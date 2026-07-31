@@ -30,19 +30,28 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen place-items-center p-4">
       <div className="glass-strong w-full max-w-md rounded-3xl p-8 animate-fade-up">
-        <div className="mb-6 flex items-center gap-3">
-          {b.logo.imageUrl ? (
-            <img src={b.logo.imageUrl} alt="" className="h-12 w-12 rounded-2xl object-contain" />
+        <div className="mb-6">
+          {b.logo.wordmarkUrl ? (
+            <>
+              <img src={b.logo.wordmarkUrl} alt={b.name} className="h-9 w-auto" />
+              <div className="mt-2 text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
+            </>
           ) : (
-            <span className="grid h-12 w-12 place-items-center rounded-2xl font-heading text-xl font-bold text-onbrand shadow-soft"
-              style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 88%, white), var(--brand))' }}>
-              {b.logo.text.trim()[0]?.toUpperCase() ?? 'P'}
-            </span>
+            <div className="flex items-center gap-3">
+              {b.logo.imageUrl ? (
+                <img src={b.logo.imageUrl} alt="" className="h-12 w-12 rounded-2xl object-contain" />
+              ) : (
+                <span className="grid h-12 w-12 place-items-center rounded-2xl font-heading text-xl font-bold text-onbrand shadow-soft"
+                  style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 88%, white), var(--brand))' }}>
+                  {b.logo.text.trim()[0]?.toUpperCase() ?? 'P'}
+                </span>
+              )}
+              <div>
+                <div className="font-heading text-xl font-bold text-ink">{b.logo.text}</div>
+                <div className="text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
+              </div>
+            </div>
           )}
-          <div>
-            <div className="font-heading text-xl font-bold text-ink">{b.logo.text}</div>
-            <div className="text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
-          </div>
         </div>
 
         {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
