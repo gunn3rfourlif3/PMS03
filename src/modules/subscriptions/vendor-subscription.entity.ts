@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
-export type SubscriptionTier = 'starter' | 'growth' | 'enterprise';
+export type SubscriptionTier = 'starter' | 'growth' | 'scale' | 'enterprise';
 export type SubscriptionStatus = 'pending' | 'trialing' | 'active' | 'past_due' | 'cancelled';
 
 /**
