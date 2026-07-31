@@ -47,13 +47,6 @@ dantalan.co.za, www.dantalan.co.za {
 	reverse_proxy web:3001
 }
 
-# Marketing / product site (static). Now on its own subdomain since the rentals
-# page owns the apex; add an A record for `about` if you want this live.
-about.dantalan.co.za {
-	encode zstd gzip
-	reverse_proxy marketing:80
-}
-
 # ── Locare (platform brand) ──────────────────────────────────────────────
 # DNS: A records  @ (locare.co.za) / www / api .locare.co.za  ->  169.58.46.223
 # (These are exact hostnames, so Caddy issues certs via HTTP-01 — no DNS
