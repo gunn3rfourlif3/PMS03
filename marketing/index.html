@@ -72,10 +72,10 @@ nav{display:flex;align-items:center;justify-content:space-between;height:72px}
 .frame .screen{border-radius:14px;background:#fff;border:1px solid var(--line);height:360px;display:grid;place-items:center;overflow:hidden;position:relative}
 .screen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;height:100%;padding:26px}
 .screen-card{border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;background:#fff}
-.screen-card .n{font-family:var(--serif);font-size:30px}
+.screen-card .n{font-family:var(--serif);font-size:30px;font-variant-numeric:tabular-nums}
 .screen-card .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
 .bar{height:8px;border-radius:6px;background:var(--accent-soft);overflow:hidden;margin-top:12px}
-.bar>span{display:block;height:100%;background:var(--accent)}
+.bar>span{display:block;height:100%;width:0;background:var(--accent);transition:width 1.2s cubic-bezier(.2,.7,.2,1)}
 
 /* Strip */
 .strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0}
@@ -203,14 +203,14 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     </div>
     <p class="sub reveal">Your brand &amp; domain · ZAR &amp; VAT-ready · POPIA-aligned · PPRA-aware trust accounting</p>
 
-    <div class="frame reveal">
+    <div class="frame reveal" id="lc-hero-frame">
       <div class="screen">
         <div class="screen-grid">
-          <div class="screen-card"><div><div class="l">Collected</div><div class="n">R482k</div></div><div class="bar"><span style="width:86%"></span></div></div>
-          <div class="screen-card"><div><div class="l">Occupancy</div><div class="n">94%</div></div><div class="bar"><span style="width:94%"></span></div></div>
-          <div class="screen-card"><div><div class="l">Arrears</div><div class="n">R21k</div></div><div class="bar"><span style="width:12%"></span></div></div>
-          <div class="screen-card" style="grid-column:span 2"><div><div class="l">Owner payouts this month</div><div class="n">R356,900</div></div><div class="bar"><span style="width:74%"></span></div></div>
-          <div class="screen-card"><div><div class="l">Units</div><div class="n">128</div></div><div class="bar"><span style="width:60%"></span></div></div>
+          <div class="screen-card"><div><div class="l">Collected</div><div class="n" data-count="482" data-prefix="R" data-suffix="k">R0k</div></div><div class="bar"><span data-w="86"></span></div></div>
+          <div class="screen-card"><div><div class="l">Occupancy</div><div class="n" data-count="94" data-suffix="%">0%</div></div><div class="bar"><span data-w="94"></span></div></div>
+          <div class="screen-card"><div><div class="l">Arrears</div><div class="n" data-count="21" data-prefix="R" data-suffix="k">R0k</div></div><div class="bar"><span data-w="12"></span></div></div>
+          <div class="screen-card" style="grid-column:span 2"><div><div class="l">Owner payouts this month</div><div class="n" data-count="356900" data-prefix="R" data-thousands="1">R0</div></div><div class="bar"><span data-w="74"></span></div></div>
+          <div class="screen-card"><div><div class="l">Units</div><div class="n" data-count="128">0</div></div><div class="bar"><span data-w="60"></span></div></div>
         </div>
       </div>
     </div>
@@ -419,6 +419,30 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 // Reveal on scroll
 const io = new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// Hero KPI cards: count-up numbers + fill bars, once, when scrolled into view
+(function(){
+  var frame=document.getElementById('lc-hero-frame'); if(!frame) return;
+  var reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fmt(el,v){var p=el.dataset.prefix||'',s=el.dataset.suffix||'';
+    var n=el.dataset.thousands?Math.round(v).toLocaleString('en-US'):Math.round(v);return p+n+s;}
+  function run(){
+    frame.querySelectorAll('.bar>span').forEach(function(b,i){var w=b.getAttribute('data-w');
+      setTimeout(function(){b.style.width=w+'%';},reduce?0:100*i);});
+    frame.querySelectorAll('.n[data-count]').forEach(function(el){
+      var target=+el.dataset.count;
+      if(reduce){el.textContent=fmt(el,target);return;}
+      var dur=1300,start=performance.now();
+      (function tick(now){var t=Math.min(1,(now-start)/dur),e=1-Math.pow(1-t,3);
+        el.textContent=fmt(el,target*e);
+        if(t<1)requestAnimationFrame(tick);else el.textContent=fmt(el,target);})(start);
+    });
+  }
+  var seen=false;
+  var io2=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting&&!seen){seen=true;run();io2.disconnect();}});},{threshold:.35});
+  io2.observe(frame);
+})();
 
 // Lead form submit
 async function submitLead(ev, type){
