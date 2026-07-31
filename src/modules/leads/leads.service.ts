@@ -39,7 +39,11 @@ export class LeadsService {
   }
 
   private async notify(type: string, l: CreateLead): Promise<void> {
-    const to = process.env.LEADS_NOTIFY_EMAIL;
+    // Partner registrations ('agent') go to the partner inbox; everything else
+    // to the general leads inbox.
+    const to = type === 'agent'
+      ? (process.env.PARTNER_NOTIFY_EMAIL || 'partners@locare.co.za')
+      : process.env.LEADS_NOTIFY_EMAIL;
     const email = this.channels?.get('email');
     const body =
       `New ${type} lead\n\n` +

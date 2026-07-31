@@ -86,6 +86,7 @@ services:
       PAYFAST_SANDBOX: ${PAYFAST_SANDBOX:-false}
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
+      PARTNER_NOTIFY_EMAIL: ${PARTNER_NOTIFY_EMAIL:-partners@locare.co.za}
       TENANT_APP_URL: ${TENANT_APP_URL:-}
       # Platform-admin allowlist (comma-separated emails) for the Locare platform.
       PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:-}
