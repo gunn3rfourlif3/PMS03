@@ -58,6 +58,14 @@ locare.co.za, www.locare.co.za {
 	reverse_proxy marketing:80
 }
 
+# Locare back-office (same Next.js web container; resolves the user's role +
+# agency at login). Branding falls back to default until the platform-brand
+# layer lands (Locare Phase 0).
+app.locare.co.za {
+	encode zstd gzip
+	reverse_proxy web:3001
+}
+
 # Locare API (same NestJS container; CORS enforced via CORS_ORIGINS)
 api.locare.co.za {
 	encode zstd gzip
