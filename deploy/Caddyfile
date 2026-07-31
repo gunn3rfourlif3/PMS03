@@ -53,3 +53,20 @@ about.dantalan.co.za {
 	encode zstd gzip
 	reverse_proxy marketing:80
 }
+
+# ── Locare (platform brand) ──────────────────────────────────────────────
+# DNS: A records  @ (locare.co.za) / www / api .locare.co.za  ->  169.58.46.223
+# (These are exact hostnames, so Caddy issues certs via HTTP-01 — no DNS
+#  plugin needed. The *.locare.co.za wildcard for agencies comes later.)
+
+# Locare marketing + agency signup (static site)
+locare.co.za, www.locare.co.za {
+	encode zstd gzip
+	reverse_proxy marketing:80
+}
+
+# Locare API (same NestJS container; CORS enforced via CORS_ORIGINS)
+api.locare.co.za {
+	encode zstd gzip
+	reverse_proxy api:3000
+}

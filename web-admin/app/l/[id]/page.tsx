@@ -28,8 +28,22 @@ export default function ListingDetailPage() {
     api.publicListing(id).then(setL).catch((e) => setLoadErr(e.message));
   }, [id]);
 
+  // Age gate: applicants must be 18+ (checked here and re-checked server-side).
+  const age = (() => {
+    if (!f.dob) return null;
+    const d = new Date(f.dob);
+    if (isNaN(d.getTime())) return null;
+    const t = new Date();
+    let a = t.getFullYear() - d.getFullYear();
+    const m = t.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a -= 1;
+    return a;
+  })();
+  const underage = age !== null && age < 18;
+
   const canSubmit =
     f.name.trim() && f.email.trim() && f.phone.trim() && f.idNumber.trim() &&
+    f.dob && !underage &&
     f.monthlyIncome.trim() && f.moveInDate && f.consent;
 
   const submit = async () => {
@@ -111,7 +125,10 @@ export default function ListingDetailPage() {
                   <Field label="ID / passport number *"><input className="input" value={f.idNumber} onChange={(e) => set('idNumber')(e.target.value)} /></Field>
                   <Field label="Email *"><input className="input" type="email" value={f.email} onChange={(e) => set('email')(e.target.value)} /></Field>
                   <Field label="Mobile number *"><input className="input" value={f.phone} onChange={(e) => set('phone')(e.target.value)} placeholder="+27…" /></Field>
-                  <Field label="Date of birth"><input className="input" type="date" value={f.dob} onChange={(e) => set('dob')(e.target.value)} /></Field>
+                  <Field label="Date of birth *">
+                    <input className="input" type="date" value={f.dob} max={new Date().toISOString().slice(0, 10)} onChange={(e) => set('dob')(e.target.value)} />
+                    {underage && <p className="mt-1 text-sm text-danger">You must be at least 18 years old to apply.</p>}
+                  </Field>
                   <Field label="Preferred move-in date *"><input className="input" type="date" value={f.moveInDate} onChange={(e) => set('moveInDate')(e.target.value)} /></Field>
                   <div className="sm:col-span-2"><Field label="Current residential address"><input className="input" value={f.currentAddress} onChange={(e) => set('currentAddress')(e.target.value)} /></Field></div>
                   <Field label="Employment status">

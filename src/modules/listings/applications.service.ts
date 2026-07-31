@@ -26,6 +26,31 @@ export interface ApplyInput {
   details?: Record<string, unknown>;
 }
 
+/** Minimum age to apply / hold a lease. */
+export const MIN_APPLICANT_AGE = 18;
+
+/** Whole years old on `asOf` for an ISO date, or null if unparseable. */
+export function ageFromDob(dobIso?: string, asOf: Date = new Date()): number | null {
+  if (!dobIso) return null;
+  const d = new Date(dobIso);
+  if (isNaN(d.getTime())) return null;
+  let age = asOf.getFullYear() - d.getFullYear();
+  const m = asOf.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && asOf.getDate() < d.getDate())) age -= 1;
+  return age;
+}
+
+/** Derive YYYY-MM-DD from a 13-digit SA ID number (YYMMDD…); undefined otherwise. */
+export function saIdToDob(id?: string): string | undefined {
+  const digits = (id ?? '').replace(/\D/g, '');
+  if (digits.length !== 13) return undefined;
+  const yy = +digits.slice(0, 2), mm = +digits.slice(2, 4), dd = +digits.slice(4, 6);
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return undefined;
+  const cutoff = new Date().getFullYear() % 100;
+  const century = yy <= cutoff ? 2000 : 1900;
+  return `${century + yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+}
+
 @Injectable()
 export class ApplicationsService {
   private readonly logger = new Logger(ApplicationsService.name);
@@ -54,6 +79,18 @@ export class ApplicationsService {
    * tenant context (RLS-safe).
    */
   async apply(input: ApplyInput): Promise<Application> {
+    // Age gate: applicants (and therefore lease signatories) must be 18+.
+    // Prefer the stated date of birth; fall back to a 13-digit SA ID number.
+    const details = input.details ?? {};
+    const dob = (details.dateOfBirth as string) || saIdToDob(details.idNumber as string);
+    const age = ageFromDob(dob);
+    if (age === null) {
+      throw new BadRequestException('Please provide your date of birth so we can confirm your age.');
+    }
+    if (age < MIN_APPLICANT_AGE) {
+      throw new BadRequestException(`You must be at least ${MIN_APPLICANT_AGE} years old to apply.`);
+    }
+
     const rows = await this.dataSource.query(
       'SELECT public_listing_vendor($1) AS vendor_id',
       [input.listingId],
