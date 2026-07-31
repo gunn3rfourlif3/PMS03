@@ -23,7 +23,11 @@ export const isPartner = () => rolesFromToken().includes('partner');
 export const isPlatformAdmin = () => rolesFromToken().includes('platform_admin');
 /** Where a login lands, by role. */
 export const homeForRole = () =>
-  isPlatformAdmin() ? '/admin/partners' : isPartner() ? '/partner' : isOwner() ? '/portal' : '/';
+  isPlatformAdmin() ? '/admin/partners'
+    : isPartner() ? '/partner'
+    : isOwner() ? '/portal'
+    : rolesFromToken().length ? '/'
+    : '/no-access';
 
 /** SSE stream URL for live message updates (token in query — EventSource can't set headers). */
 export const messageStreamUrl = () => `${API_BASE}/messages/stream?token=${encodeURIComponent(auth.get() ?? '')}`;
