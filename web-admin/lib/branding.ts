@@ -17,6 +17,11 @@ export interface Branding {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3000/api';
 export const VENDOR_SLUG = process.env.NEXT_PUBLIC_VENDOR_SLUG ?? 'dantalan';
 
+// The Locare platform domain. Hosts that resolve to this (locare.co.za,
+// www./app. …) are the platform itself — not an agency — so they use the
+// Locare brand rather than a vendor's.
+export const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? 'locare.co.za';
+
 // Resolve the brand key from the hostname so each subdomain loads its agency's
 // theme: app.dantalan.co.za -> dantalan.co.za (matched via vendors.custom_domain).
 // Falls back to VENDOR_SLUG when there's no usable hostname (SSR/localhost).
@@ -26,6 +31,11 @@ export function brandKey(): string {
   if (!host || host === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return VENDOR_SLUG;
   const labels = host.split('.');
   return labels.length > 2 && APP_LABELS.has(labels[0]) ? labels.slice(1).join('.') : host;
+}
+
+/** True when the current host is the Locare platform (not an agency). */
+export function isPlatformHost(): boolean {
+  return brandKey() === PLATFORM_DOMAIN;
 }
 
 export const DEFAULT_BRANDING: Branding = {
@@ -38,6 +48,21 @@ export const DEFAULT_BRANDING: Branding = {
   },
   font: { family: 'System', headingFamily: 'System' },
   contact: {},
+};
+
+/** The Locare platform brand, used on the platform domain (no vendor lookup). */
+export const LOCARE_BRAND: Branding = {
+  name: 'Locare', slug: 'locare', tagline: 'Property management, beautifully run.',
+  // No imageUrl: the back-office shell renders a compact brand tile + name, which
+  // suits the sidebar better than the wide wordmark (used on the marketing site).
+  logo: { text: 'Locare' },
+  colors: {
+    brand: '#2D6A8F', onBrand: '#ffffff', tint: '#E7EEF3', accent: '#1E4A63',
+    ink: '#121212', muted: '#6b7280', line: '#e5e7eb', bg: '#f6f7f9', card: '#ffffff',
+    danger: '#993C1D', dangerBg: '#FAECE7', success: '#1D9E75',
+  },
+  font: { family: 'System', headingFamily: 'System' },
+  contact: { email: 'hello@locare.co.za' },
 };
 
 export async function fetchBranding(slug: string): Promise<Branding> {
