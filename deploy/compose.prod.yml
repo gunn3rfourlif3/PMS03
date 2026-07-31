@@ -87,6 +87,8 @@ services:
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       TENANT_APP_URL: ${TENANT_APP_URL:-}
+      # Platform-admin allowlist (comma-separated emails) for the Locare platform.
+      PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:-}
       # Photo/file storage on a persistent disk volume, served from GET /media/:key.
       MEDIA_DIR: /data/media
       PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
