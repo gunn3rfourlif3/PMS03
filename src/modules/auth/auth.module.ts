@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { SessionStore } from './session-store.service';
+import { GoogleOAuthService } from './google-oauth.service';
 import { OtpChallenge } from '@modules/identity/otp-challenge.entity';
 import { User } from '@modules/identity/user.entity';
 
@@ -25,7 +26,7 @@ import { User } from '@modules/identity/user.entity';
     TypeOrmModule.forFeature([OtpChallenge, User]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, SessionStore],
+  providers: [AuthService, JwtStrategy, SessionStore, GoogleOAuthService],
   exports: [AuthService, SessionStore],
 })
 export class AuthModule {}

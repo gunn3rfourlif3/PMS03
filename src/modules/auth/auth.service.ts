@@ -1,5 +1,5 @@
 import {
-  Injectable, UnauthorizedException, NotFoundException, ForbiddenException, Optional, Inject, Logger,
+  Injectable, UnauthorizedException, NotFoundException, ForbiddenException, BadRequestException, Optional, Inject, Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +10,7 @@ import { JwtPayload } from './jwt-payload.interface';
 import { randomUUID } from 'node:crypto';
 import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
 import { SessionStore } from './session-store.service';
+import { GoogleOAuthService, GoogleIdentity } from './google-oauth.service';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 
 /**
@@ -48,6 +49,7 @@ export class AuthService {
     private readonly jwt: JwtService,
     private readonly dataSource: DataSource,
     private readonly sessions: SessionStore,
+    private readonly google: GoogleOAuthService,
     @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
 
@@ -102,37 +104,35 @@ export class AuthService {
       );
     }
 
-    // Context resolution priority: platform admin (env allowlist) → partner
-    // (partner_members) → vendor membership. This decides which layer the token
-    // operates in; a user who is several things gets the highest-privilege context.
-    let payload: JwtPayload;
+    return this.issueForUser(user);
+  }
 
+  /**
+   * Resolve a user's context and mint a revocable session token. Context priority:
+   * platform admin (env allowlist) → partner (partner_members) → vendor membership.
+   * Shared by OTP and Google sign-in. Throws if the only membership is 'pending'
+   * (approved applicant who hasn't signed their lease).
+   */
+  async issueForUser(user: User): Promise<{ accessToken: string; idleMinutes: number }> {
+    const email = (user.email ?? '').toLowerCase();
     const adminEmails = (process.env.PLATFORM_ADMIN_EMAILS ?? '')
       .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 
-    if (isEmail && adminEmails.includes(destination.toLowerCase())) {
+    let payload: JwtPayload;
+    if (email && adminEmails.includes(email)) {
       payload = { sub: user.id, vendorId: null, partnerId: null, roles: ['platform_admin'] };
     } else {
-      // Guarded so a pre-migration API start can't break logins if the table is
-      // not there yet.
       let pm: { partner_id: string } | undefined;
       try {
-        [pm] = await this.dataSource.query(
-          'SELECT partner_id FROM partner_members WHERE user_id = $1 LIMIT 1', [user.id],
-        );
+        [pm] = await this.dataSource.query('SELECT partner_id FROM partner_members WHERE user_id = $1 LIMIT 1', [user.id]);
       } catch { pm = undefined; }
       if (pm?.partner_id) {
         payload = { sub: user.id, vendorId: null, partnerId: pm.partner_id, roles: ['partner'] };
       } else {
-        // Resolve active vendor context via the RLS-safe SECURITY DEFINER function
-        // (cross-tenant lookup by user_id). First membership for now.
         const memberships: Array<{ vendor_id: string; role: string }> =
           await this.dataSource.query('SELECT * FROM auth_memberships_for_user($1)', [user.id]);
         const active = memberships[0];
         if (!active) {
-          // No active context. If they're an approved applicant whose membership
-          // is still 'pending' (lease not signed), say so explicitly rather than
-          // handing back a context-less session.
           let pending = false;
           try {
             const [row] = await this.dataSource.query('SELECT auth_has_pending_membership($1) AS p', [user.id]);
@@ -147,10 +147,74 @@ export class AuthService {
         payload = { sub: user.id, vendorId: active?.vendor_id ?? null, roles: active ? [active.role] : [] };
       }
     }
-    // Register a revocable session and embed its id in the token.
     const jti = randomUUID();
     await this.sessions.create(jti, user.id, this.idleSec);
     return { accessToken: await this.signToken({ ...payload, jti }), idleMinutes: this.idleMinutes };
+  }
+
+  // ── Google (social) sign-in ──────────────────────────────────────────────
+
+  googleEnabled(): { enabled: boolean } {
+    return { enabled: this.google.enabled };
+  }
+
+  /** Consent URL, embedding a signed state that carries the origin to return to. */
+  googleStartUrl(origin: string): string {
+    if (!this.google.enabled) throw new BadRequestException('Google sign-in is not enabled.');
+    const o = this.allowedOrigin(origin);
+    const state = this.jwt.sign({ o, n: randomUUID(), k: 'google' }, { secret: this.secret, expiresIn: '10m' });
+    return this.google.authorizeUrl(state);
+  }
+
+  /** Handle Google's redirect. Always returns a browser redirect URL — a success
+   *  carries a one-time code, a failure carries an error message. */
+  async googleCallback(code: string, state: string): Promise<string> {
+    let claims: any;
+    try { claims = this.jwt.verify(state, { secret: this.secret }); }
+    catch { throw new BadRequestException('Your sign-in link is invalid or has expired.'); }
+    const origin = this.allowedOrigin(claims?.o);
+    try {
+      if (!code) throw new BadRequestException('Google sign-in was cancelled.');
+      const id = await this.google.exchangeCode(code);
+      const user = await this.linkGoogleUser(id);
+      const { accessToken } = await this.issueForUser(user);
+      const otc = randomUUID();
+      await this.sessions.putCode(otc, accessToken, 120);
+      return `${origin}/auth/google/return?otc=${encodeURIComponent(otc)}`;
+    } catch (e: any) {
+      const msg = e?.message ?? 'Google sign-in failed.';
+      return `${origin}/auth/google/return?error=${encodeURIComponent(msg)}`;
+    }
+  }
+
+  /** Exchange the one-time return code for the access token (single use). */
+  async exchangeGoogleCode(otc: string): Promise<{ accessToken: string; idleMinutes: number }> {
+    const token = otc ? await this.sessions.takeCode(otc) : null;
+    if (!token) throw new UnauthorizedException('This sign-in link has expired. Please sign in again.');
+    return { accessToken: token, idleMinutes: this.idleMinutes };
+  }
+
+  /** Find-or-link a user for a verified Google identity (see design §4). */
+  private async linkGoogleUser(id: GoogleIdentity): Promise<User> {
+    const bySub = await this.users.findOne({ where: { googleSub: id.sub } });
+    if (bySub) return bySub;
+    const byEmail = await this.users.findOne({ where: { email: id.email } });
+    if (byEmail) {
+      if (byEmail.googleSub && byEmail.googleSub !== id.sub) {
+        throw new ForbiddenException('This email is linked to a different Google account.');
+      }
+      byEmail.googleSub = id.sub;
+      if (!byEmail.name && id.name) byEmail.name = id.name;
+      return this.users.save(byEmail);
+    }
+    return this.users.save(this.users.create({ email: id.email, googleSub: id.sub, name: id.name }));
+  }
+
+  /** Only return to a known front-end origin (prevents open redirects). */
+  private allowedOrigin(origin?: string): string {
+    const list = (process.env.CORS_ORIGINS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (origin && list.includes(origin)) return origin;
+    return list[0] ?? (process.env.AUTH_BASE ?? '').replace(/\/+$/, '');
   }
 
   /**

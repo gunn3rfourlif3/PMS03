@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RequestOtpDto, VerifyOtpDto } from './auth.dto';
@@ -21,6 +22,33 @@ export class AuthController {
   @Post('otp/verify')
   verify(@Body() dto: VerifyOtpDto) {
     return this.auth.verifyOtp(dto.destination, dto.code);
+  }
+
+  // ── Google (social) sign-in ──
+  /** Is Google login configured/enabled? (Drives whether the button shows.) */
+  @Get('google/enabled')
+  googleEnabled() {
+    return this.auth.googleEnabled();
+  }
+
+  /** Full-page redirect to Google's consent screen; `origin` is where to return. */
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Get('google/start')
+  googleStart(@Query('origin') origin: string, @Res() res: Response) {
+    res.redirect(this.auth.googleStartUrl(origin));
+  }
+
+  /** Google's redirect target (the one registered URI). Verifies + redirects back. */
+  @Get('google/callback')
+  async googleCallback(@Query('code') code: string, @Query('state') state: string, @Res() res: Response) {
+    res.redirect(await this.auth.googleCallback(code, state));
+  }
+
+  /** The return page exchanges its one-time code for the access token. */
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('google/exchange')
+  googleExchange(@Body() body: { otc: string }) {
+    return this.auth.exchangeGoogleCode(body?.otc);
   }
 
   @UseGuards(JwtAuthGuard)

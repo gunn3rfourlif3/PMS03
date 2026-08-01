@@ -127,6 +127,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const isPublic =
     path === '/login' ||
     path === '/no-access' ||
+    path.startsWith('/auth/google') ||
     path === '/signup' ||
     path.startsWith('/pay/') ||
     path === '/rentals' ||

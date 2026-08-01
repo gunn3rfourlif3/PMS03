@@ -88,6 +88,12 @@ services:
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       PARTNER_NOTIFY_EMAIL: ${PARTNER_NOTIFY_EMAIL:-partners@locare.co.za}
       TENANT_APP_URL: ${TENANT_APP_URL:-}
+      # Google (social) sign-in — additive to OTP. AUTH_BASE is the single host
+      # whose /api/auth/google/callback is registered in Google Cloud.
+      GOOGLE_OAUTH_ENABLED: ${GOOGLE_OAUTH_ENABLED:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      AUTH_BASE: ${AUTH_BASE:-https://api.locare.co.za}
       # Platform-admin allowlist (comma-separated emails) for the Locare platform.
       PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:-}
       # Photo/file storage on a persistent disk volume, served from GET /media/:key.

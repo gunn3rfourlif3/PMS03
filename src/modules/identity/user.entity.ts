@@ -8,6 +8,7 @@ export class User {
   @Column({ nullable: true }) name?: string;
   @Index({ unique: true }) @Column({ nullable: true }) email?: string;
   @Index() @Column({ nullable: true }) phone?: string; // passwordless OTP target
+  @Column({ name: 'google_sub', nullable: true }) googleSub?: string; // linked Google account id
   @Column({ default: 'active' }) status: string;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;

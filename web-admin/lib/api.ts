@@ -98,6 +98,10 @@ export const api = {
     req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: (destination: string, code: string) =>
     req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
+  googleEnabled: (): Promise<{ enabled: boolean }> => req('/auth/google/enabled'),
+  googleStartUrl: (origin: string) => `${API_BASE}/auth/google/start?origin=${encodeURIComponent(origin)}`,
+  exchangeGoogleCode: (otc: string): Promise<{ accessToken: string; idleMinutes: number }> =>
+    req('/auth/google/exchange', { method: 'POST', body: JSON.stringify({ otc }) }),
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> =>
     req('/auth/refresh', { method: 'POST' }),
   logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),

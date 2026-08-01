@@ -52,6 +52,19 @@ export class SessionStore implements OnModuleDestroy {
     await this.redis.del(this.key(jti));
   }
 
+  /** Store a short-lived, single-use value (e.g. the Google one-time return code). */
+  async putCode(code: string, value: string, ttlSec: number): Promise<void> {
+    await this.redis.set('otc:' + code, value, 'EX', ttlSec);
+  }
+
+  /** Read-and-delete a one-time code (single use). Returns null if absent/expired. */
+  async takeCode(code: string): Promise<string | null> {
+    const k = 'otc:' + code;
+    const v = await this.redis.get(k);
+    if (v !== null) await this.redis.del(k);
+    return v;
+  }
+
   onModuleDestroy(): void {
     this.redis.disconnect();
   }
