@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import { toE164 } from '@common/phone/e164';
 import { User } from './user.entity';
 import { Membership, MembershipStatus } from './membership.entity';
 
@@ -31,9 +32,15 @@ export class IdentityService {
     status: MembershipStatus = 'active',
   ): Promise<string> {
     const users = this.dataSource.getRepository(User);
+    // Normalise to E.164 so WhatsApp/SMS delivery has a canonical destination.
+    const e164 = toE164(phone) ?? undefined;
     let user = await users.findOne({ where: { email } });
     if (!user) {
-      user = await users.save(users.create({ email, name, phone }));
+      user = await users.save(users.create({ email, name, phone: e164 }));
+    } else if (e164 && user.phone !== e164) {
+      // Backfill/refresh a missing or changed number on an existing user.
+      user.phone = e164;
+      await users.save(user);
     }
 
     const memberships = this.tenant.getRepository(Membership);

@@ -24,15 +24,21 @@ export function validateEnv(): void {
   require('DATABASE_URL');
   require('REDIS_URL');
 
-  // OTP codes must never be printed to logs in production, and the chosen
-  // channel must actually have a provider configured to deliver them.
-  const otpChannel = process.env.OTP_CHANNEL ?? 'console';
-  if (otpChannel === 'console') {
-    (isProd ? errors : warns).push('OTP_CHANNEL=console prints one-time codes to the logs — set it to email or sms with a provider configured');
-  } else if (otpChannel === 'email' && !process.env.SENDGRID_API_KEY) {
-    (isProd ? errors : warns).push('OTP_CHANNEL=email but SENDGRID_API_KEY is unset — codes cannot be delivered');
-  } else if (otpChannel === 'sms' && !process.env.TWILIO_ACCOUNT_SID) {
-    (isProd ? errors : warns).push('OTP_CHANNEL=sms but TWILIO_ACCOUNT_SID is unset — codes cannot be delivered');
+  // OTP codes must never be printed to logs in production, and at least one
+  // channel in the delivery cascade must actually have a provider configured.
+  const channels = (process.env.OTP_CHANNELS ?? process.env.OTP_CHANNEL ?? 'console')
+    .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const ready: Record<string, boolean> = {
+    email: !!(process.env.SMTP_HOST || process.env.SENDGRID_API_KEY), // SMTP (HostAfrica) or SendGrid
+    sms: !!process.env.TWILIO_ACCOUNT_SID,
+    whatsapp: !!(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID),
+    console: !isProd,
+  };
+  if (channels.includes('console')) {
+    (isProd ? errors : warns).push('OTP delivery includes "console", which prints one-time codes to the logs — use whatsapp/email/sms with a provider configured');
+  }
+  if (channels.filter((c) => ready[c]).length === 0) {
+    (isProd ? errors : warns).push(`OTP delivery cascade [${channels.join(',')}] has no configured provider — set SMTP_HOST or SENDGRID_API_KEY (email), WHATSAPP_TOKEN + WHATSAPP_PHONE_ID (whatsapp), or TWILIO_ACCOUNT_SID (sms)`);
   }
   // Webhooks are unauthenticated without their signing secrets.
   for (const s of ['STITCH_WEBHOOK_SECRET']) {

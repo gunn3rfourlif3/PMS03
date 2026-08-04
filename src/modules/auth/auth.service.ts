@@ -13,6 +13,8 @@ import { SessionStore } from './session-store.service';
 import { GoogleOAuthService, GoogleIdentity } from './google-oauth.service';
 import { decideGoogleLink } from './google-link';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
+import { cascadeSend, parseChannels } from '@providers/notification/cascade';
+import { toE164 } from '@common/phone/e164';
 
 /**
  * Passwordless OTP auth.
@@ -94,14 +96,16 @@ export class AuthService {
     challenge.consumedAt = new Date();
     await this.otps.save(challenge);
 
-    // Upsert the user by phone/email.
+    // Upsert the user by phone/email. Phones are stored/looked-up in E.164 so a
+    // number typed as "082…" matches the canonical "+2782…" on record.
     const isEmail = destination.includes('@');
+    const phone = isEmail ? undefined : (toE164(destination) ?? destination);
     let user = await this.users.findOne({
-      where: isEmail ? { email: destination } : { phone: destination },
+      where: isEmail ? { email: destination } : { phone },
     });
     if (!user) {
       user = await this.users.save(
-        this.users.create(isEmail ? { email: destination } : { phone: destination }),
+        this.users.create(isEmail ? { email: destination } : { phone }),
       );
     }
 
@@ -327,23 +331,33 @@ export class AuthService {
    * provider is wired, so the app never silently drops a login.
    */
   private async deliver(destination: string, code: string): Promise<void> {
-    const channel = process.env.OTP_CHANNEL ?? 'console';
+    // OTP_CHANNELS is an ordered cascade (default whatsapp,email); the legacy
+    // OTP_CHANNEL is still honoured, and 'console' prints to the log for dev.
+    const raw = process.env.OTP_CHANNELS ?? process.env.OTP_CHANNEL ?? 'console';
     const minutes = Math.round(this.ttl / 60);
-    if (channel === 'console' || !this.channels) {
+    if (raw === 'console' || !this.channels) {
       this.log.log(`[OTP] ${destination} -> ${code}`);
       return;
     }
+    const order = parseChannels(raw, ['whatsapp', 'email']);
     const isEmail = destination.includes('@');
-    const provider = this.channels.get(isEmail ? 'email' : 'sms');
-    if (!provider) {
-      this.log.warn(`No ${isEmail ? 'email' : 'sms'} provider configured — OTP not delivered to ${destination}`);
-      return;
-    }
-    const res = await provider.send({
-      to: destination,
+    const contacts = {
+      email: isEmail ? destination : null,
+      phone: isEmail ? null : toE164(destination),
+    };
+    const waTemplate = process.env.WHATSAPP_OTP_TEMPLATE ?? 'locare_otp';
+    const body = `Your one-time sign-in code is ${code}. It expires in ${minutes} minute${minutes === 1 ? '' : 's'}. If you didn't request it, ignore this message.`;
+
+    const result = await cascadeSend(this.channels, order, contacts, (channel, to) => ({
+      to,
       subject: 'Your sign-in code',
-      body: `Your one-time sign-in code is ${code}. It expires in ${minutes} minute${minutes === 1 ? '' : 's'}. If you didn't request it, ignore this message.`,
-    });
-    if (!res.ok) this.log.error(`OTP delivery to ${destination} failed: ${res.error ?? 'unknown'}`);
+      body,
+      ...(channel === 'whatsapp'
+        ? { template: { name: waTemplate, vars: [code], kind: 'auth' as const } }
+        : {}),
+    }));
+
+    if (!result) this.log.error(`OTP delivery to ${destination} failed on all channels (${order.join(',')})`);
+    else this.log.log(`OTP to ${destination} delivered via ${result.channel}`);
   }
 }

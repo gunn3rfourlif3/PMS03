@@ -82,6 +82,68 @@ export class SendGridEmailProvider implements ChannelProvider {
   }
 }
 
+/**
+ * WhatsApp via Meta's Cloud API (direct Graph API — no BSP markup). Used when
+ * WHATSAPP_TOKEN + WHATSAPP_PHONE_ID are set. Business-initiated messages use a
+ * pre-approved template (req.template); a plain text message is only valid inside
+ * an open 24-hour service window. Numbers are sent as digits (E.164 without '+').
+ */
+export class WhatsAppCloudProvider implements ChannelProvider {
+  readonly channel: Channel = 'whatsapp';
+  private readonly logger = new Logger('Notify:whatsapp:cloud');
+  private readonly token = process.env.WHATSAPP_TOKEN!;
+  private readonly phoneId = process.env.WHATSAPP_PHONE_ID!;
+  private readonly lang = process.env.WHATSAPP_TEMPLATE_LANG ?? 'en';
+
+  async send(req: DeliveryRequest): Promise<DeliveryResult> {
+    const to = req.to.replace(/[^\d]/g, '');
+    if (!to) return { ok: false, error: 'no whatsapp number' };
+
+    const payload = req.template
+      ? {
+          messaging_product: 'whatsapp',
+          to,
+          type: 'template',
+          template: {
+            name: req.template.name,
+            language: { code: req.template.lang ?? this.lang },
+            components: this.components(req.template),
+          },
+        }
+      : { messaging_product: 'whatsapp', to, type: 'text', text: { body: req.body } };
+
+    try {
+      const res = await fetch(`https://graph.facebook.com/v20.0/${this.phoneId}/messages`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json: any = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: json?.error?.message ?? `whatsapp ${res.status}` };
+      return { ok: true, providerRef: json?.messages?.[0]?.id ?? `wa_${Date.now()}` };
+    } catch (e: any) {
+      this.logger.error(`send failed: ${e.message}`);
+      return { ok: false, error: e.message };
+    }
+  }
+
+  /** Body params fill {{1}},{{2}}…; an 'auth' template adds the copy-code button. */
+  private components(t: NonNullable<DeliveryRequest['template']>): unknown[] {
+    const components: unknown[] = [
+      { type: 'body', parameters: t.vars.map((text) => ({ type: 'text', text })) },
+    ];
+    if (t.kind === 'auth' && t.vars[0]) {
+      components.push({
+        type: 'button',
+        sub_type: 'copy_code',
+        index: '0',
+        parameters: [{ type: 'coupon_code', coupon_code: t.vars[0] }],
+      });
+    }
+    return components;
+  }
+}
+
 export class TwilioSmsProvider implements ChannelProvider {
   readonly channel: Channel = 'sms';
   private readonly logger = new Logger('Notify:sms:twilio');

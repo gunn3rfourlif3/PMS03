@@ -11,6 +11,13 @@ export interface DeliveryRequest {
   body: string;        // plain-text (always sent; SMS uses this)
   html?: string;       // optional rich HTML for email — friendly "click here" links
   replyTo?: { email: string; name?: string }; // email only — lets the team reply straight to the sender
+  /**
+   * WhatsApp only. Business-initiated WhatsApp messages must use a pre-approved
+   * template; `vars` fill the body's {{1}},{{2}}… in order. `kind: 'auth'` adds
+   * the one-time-code copy button (the first var is treated as the code). Other
+   * channels ignore this and use `body`.
+   */
+  template?: { name: string; lang?: string; vars: string[]; kind?: 'auth' | 'utility' };
 }
 
 export interface DeliveryResult {

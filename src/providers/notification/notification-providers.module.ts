@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { CHANNEL_PROVIDERS, ChannelProvider } from './notification-provider.interface';
 import { PushProvider, SmsProvider, EmailProvider } from './console.providers';
-import { SendGridEmailProvider, SmtpEmailProvider, TwilioSmsProvider } from './http.providers';
+import { SendGridEmailProvider, SmtpEmailProvider, TwilioSmsProvider, WhatsAppCloudProvider } from './http.providers';
 
 /**
  * Binds a Channel -> ChannelProvider registry (a Map). Real gateways are used
@@ -24,12 +24,19 @@ import { SendGridEmailProvider, SmtpEmailProvider, TwilioSmsProvider } from './h
             : new EmailProvider();
         const sms: ChannelProvider = process.env.TWILIO_ACCOUNT_SID ? new TwilioSmsProvider() : new SmsProvider();
         const push: ChannelProvider = new PushProvider();
-        log.log(`channels — email:${email.constructor.name} sms:${sms.constructor.name} push:${push.constructor.name}`);
-        return new Map<Channel_, ChannelProvider>([
+        // WhatsApp is only present when the Cloud API is configured; otherwise the
+        // cascade simply skips it and uses email.
+        const whatsapp = process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID
+          ? new WhatsAppCloudProvider()
+          : undefined;
+        log.log(`channels — email:${email.constructor.name} sms:${sms.constructor.name} push:${push.constructor.name} whatsapp:${whatsapp ? 'WhatsAppCloudProvider' : 'off'}`);
+        const entries: Array<[Channel_, ChannelProvider]> = [
           [push.channel, push],
           [sms.channel, sms],
           [email.channel, email],
-        ]);
+        ];
+        if (whatsapp) entries.push([whatsapp.channel, whatsapp]);
+        return new Map<Channel_, ChannelProvider>(entries);
       },
     },
   ],

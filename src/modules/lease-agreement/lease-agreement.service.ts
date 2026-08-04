@@ -7,6 +7,8 @@ import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { renderEmail } from '@common/email/email';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
+import { cascadeSend, parseChannels } from '@providers/notification/cascade';
+import { toE164 } from '@common/phone/e164';
 import { LeaseAgreement } from './lease-agreement.entity';
 import { renderLeaseAgreement, renderLeaseWithAttachment, mergeLeaseTemplate, LEASE_PLACEHOLDERS, LeaseAgreementData } from './lease-agreement.html';
 
@@ -147,19 +149,13 @@ export class LeaseAgreementService {
         [row.tenantId],
       ).catch((e: any) => this.log.error(`Membership activation for ${row.tenantId} failed: ${e.message}`));
 
-      const portalUrl = process.env.TENANT_APP_URL?.trim();
-      await this.email(data.tenantEmail, `Lease signed — welcome to ${data.agencyName} 🎉`,
-        `Thank you, ${fullName.split(' ')[0]}. We've recorded your signed lease agreement and your resident portal is now ready.${portalUrl ? ` Sign in here: ${portalUrl}` : ''}\n\nWelcome aboard!\n\n— ${data.agencyName}`,
-        renderEmail({
-          agencyName: data.agencyName,
-          heading: `Welcome aboard, ${fullName.split(' ')[0]}!`,
-          paragraphs: [
-            "We've recorded your signed lease agreement — thank you.",
-            'Your resident portal is now ready. Sign in to pay rent, log maintenance and message our team.',
-          ],
-          buttons: portalUrl ? [{ label: 'Sign in to your portal', url: portalUrl }] : [],
-        }))
-        .catch(() => undefined);
+      // Welcome the tenant over the channel cascade (WhatsApp primary → email).
+      await this.sendTenantWelcome({
+        tenantId: row.tenantId,
+        firstName: fullName.split(' ')[0] || 'there',
+        agencyName: data.agencyName,
+        email: data.tenantEmail,
+      });
       await this.email(data.agencyEmail, `Lease agreement signed by ${fullName}`,
         `${fullName} has electronically signed their lease agreement${data.propertyName ? ` for ${data.propertyName}` : ''} on ${signedAt.toISOString()}.`)
         .catch(() => undefined);
@@ -273,6 +269,45 @@ export class LeaseAgreementService {
     if (!provider) return;
     const res = await provider.send({ to, subject, body, html });
     if (!res.ok) this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
+  }
+
+  /**
+   * Welcome a newly-activated tenant over the channel cascade: WhatsApp (utility
+   * template) first, email fallback. Best-effort — never throws, so signing always
+   * completes even if delivery fails. The portal URL lives in the approved
+   * WhatsApp template; email carries it in the button.
+   */
+  private async sendTenantWelcome(args: { tenantId: string; firstName: string; agencyName: string; email?: string }): Promise<void> {
+    if (!this.channels) return;
+    const [u] = await this.ds.query(`SELECT email, phone FROM users WHERE id = $1`, [args.tenantId]);
+    const contacts = { email: args.email ?? u?.email ?? null, phone: toE164(u?.phone) };
+    const portalUrl = process.env.TENANT_APP_URL?.trim() || 'https://app.locare.co.za';
+    const order = parseChannels(process.env.WELCOME_CHANNELS || process.env.OTP_CHANNELS, ['whatsapp', 'email']);
+    const waTemplate = process.env.WHATSAPP_WELCOME_TEMPLATE ?? 'locare_welcome';
+    const subject = `Welcome to ${args.agencyName} 🎉`;
+    const body = `Hi ${args.firstName}, your ${args.agencyName} tenant account is ready. Open the app to view your lease, pay rent and log maintenance: ${portalUrl}`;
+    const html = renderEmail({
+      agencyName: args.agencyName,
+      heading: `Welcome aboard, ${args.firstName}!`,
+      paragraphs: [
+        "We've recorded your signed lease agreement — thank you.",
+        'Your resident portal is now ready. Sign in to pay rent, log maintenance and message our team.',
+      ],
+      buttons: [{ label: 'Open your portal', url: portalUrl }],
+    });
+
+    const result = await cascadeSend(this.channels, order, contacts, (channel, to) => ({
+      to,
+      subject,
+      body,
+      ...(channel === 'email' ? { html } : {}),
+      ...(channel === 'whatsapp'
+        ? { template: { name: waTemplate, vars: [args.firstName, args.agencyName], kind: 'utility' as const } }
+        : {}),
+    })).catch((e) => { this.log.error(`tenant welcome failed: ${e.message}`); return null; });
+
+    if (result) this.log.log(`Tenant welcome to ${args.tenantId} via ${result.channel}`);
+    else this.log.warn(`Tenant welcome to ${args.tenantId} not delivered (no channel/contact)`);
   }
 }
 
