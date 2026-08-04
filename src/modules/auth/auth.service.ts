@@ -348,12 +348,24 @@ export class AuthService {
    * and a fresh idle-window expiry. Requires a still-valid token (JwtAuthGuard),
    * so a session idle past the window can't be refreshed — it's expired.
    */
-  async refresh(principal: { userId: string; vendorId: string | null; roles: string[]; jti?: string }): Promise<{ accessToken: string; idleMinutes: number }> {
+  async refresh(principal: {
+    userId: string; vendorId: string | null; roles: string[]; jti?: string;
+    partnerId?: string | null; act?: JwtPayload['act'] | null;
+  }): Promise<{ accessToken: string; idleMinutes: number }> {
     // Keep the same session id and slide its TTL; upgrade legacy (no-jti) tokens.
     let jti = principal.jti;
     if (jti) await this.sessions.touch(jti, this.idleSec);
     else { jti = randomUUID(); await this.sessions.create(jti, principal.userId, this.idleSec); }
-    const payload: JwtPayload = { sub: principal.userId, vendorId: principal.vendorId ?? null, roles: principal.roles ?? [], jti };
+    // Preserve the FULL identity, not just roles — a refreshed partner token must
+    // keep partnerId, and an impersonation token must keep its act claim.
+    const payload: JwtPayload = {
+      sub: principal.userId,
+      vendorId: principal.vendorId ?? null,
+      roles: principal.roles ?? [],
+      ...(principal.partnerId ? { partnerId: principal.partnerId } : {}),
+      ...(principal.act ? { act: principal.act } : {}),
+      jti,
+    };
     return { accessToken: await this.signToken(payload), idleMinutes: this.idleMinutes };
   }
 

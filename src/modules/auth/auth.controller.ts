@@ -75,7 +75,10 @@ export class AuthController {
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @UseGuards(JwtAuthGuard)
   @Post('refresh')
-  refresh(@CurrentTenant() principal: { userId: string; vendorId: string | null; roles: string[]; jti?: string }) {
+  refresh(@CurrentTenant() principal: {
+    userId: string; vendorId: string | null; roles: string[]; jti?: string;
+    partnerId?: string | null; act?: { id: string; email: string; ev: string; agency: string } | null;
+  }) {
     return this.auth.refresh(principal);
   }
 
