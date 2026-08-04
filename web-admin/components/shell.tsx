@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard } from 'lucide-react';
-import { auth, api } from '@/lib/api';
+import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
 import { cn } from '@/lib/cn';
@@ -47,10 +47,32 @@ const PARTNER_NAV = [
 ];
 
 const ADMIN_NAV = [
+  { href: '/admin/agencies', label: 'Agencies', icon: Building2 },
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
   { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
   { href: '/admin/billing', label: 'Billing', icon: CreditCard },
 ];
+
+/** Shown whenever the session token carries an impersonation `act` claim. */
+function ImpersonationBanner() {
+  const [busy, setBusy] = useState(false);
+  const actor = actorFromToken();
+  if (!actor) return null;
+  const exit = async () => {
+    setBusy(true);
+    try { const { accessToken } = await api.stopImpersonation(); auth.set(accessToken); window.location.href = '/admin/agencies'; }
+    catch { setBusy(false); }
+  };
+  return (
+    <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', borderRadius: '1rem', border: '1px solid #FCD34D', background: '#FEF3C7', color: '#92400E', padding: '10px 16px', fontSize: 14 }}>
+      <span>Viewing <b>{actor.agency}</b> as Locare support — you’re acting on this agency’s live data.</span>
+      <button onClick={exit} disabled={busy}
+        style={{ borderRadius: 8, background: '#92400E', color: '#fff', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1, border: 0 }}>
+        {busy ? 'Exiting…' : 'Exit impersonation'}
+      </button>
+    </div>
+  );
+}
 
 function BrandMark({ size = 34 }: { size?: number }) {
   const b = useBrand();
@@ -187,6 +209,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       )}
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
+        <ImpersonationBanner />
         {children}
         <Footer />
       </main>

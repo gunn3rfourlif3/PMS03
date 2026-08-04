@@ -75,4 +75,11 @@ export class AuthController {
   logout(@CurrentTenant() principal: { jti?: string }) {
     return this.auth.logout(principal.jti);
   }
+
+  /** End an impersonation session and return to the platform-admin context. */
+  @UseGuards(JwtAuthGuard)
+  @Post('impersonate/stop')
+  stopImpersonation(@CurrentTenant() principal: { userId: string; jti?: string; act?: { ev?: string } | null }) {
+    return this.auth.stopImpersonation(principal);
+  }
 }

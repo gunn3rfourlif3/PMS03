@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
 import { SessionStore } from './session-store.service';
 import { GoogleOAuthService, GoogleIdentity } from './google-oauth.service';
+import { decideGoogleLink } from './google-link';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 
 /**
@@ -194,20 +195,94 @@ export class AuthService {
     return { accessToken: token, idleMinutes: this.idleMinutes };
   }
 
+  // ── Platform-admin "sign in as agency" (support impersonation) ────────────
+
+  /** Every active vendor, for the admin agencies picker (vendors is FORCE-RLS). */
+  listAgencies(): Promise<Array<{ vendorId: string; name: string; slug: string; status: string }>> {
+    return this.dataSource.query('SELECT * FROM platform_agencies()');
+  }
+
+  /** Paged impersonation audit log (platform admin). */
+  impersonationEvents(limit = 100): Promise<unknown[]> {
+    return this.dataSource.query(
+      `SELECT id, admin_email AS "adminEmail", vendor_name AS "agency", reason, ip,
+              started_at AS "startedAt", ended_at AS "endedAt"
+       FROM impersonation_events ORDER BY started_at DESC LIMIT $1`,
+      [Math.min(500, Math.max(1, limit))],
+    );
+  }
+
+  /** Mint an agency-scoped token for a platform admin, audited + time-boxed. */
+  async impersonate(
+    admin: { userId: string; roles: string[]; act?: unknown },
+    vendorId: string,
+    reason: string | undefined,
+    ip?: string,
+  ): Promise<{ accessToken: string; idleMinutes: number; agency: { id: string; name: string } }> {
+    if (admin.act) throw new BadRequestException('Already impersonating — exit first.');
+    if (!vendorId) throw new BadRequestException('An agency is required.');
+
+    const [target] = await this.dataSource.query('SELECT * FROM impersonation_target($1)', [vendorId]);
+    if (!target) throw new NotFoundException('Agency not found.');
+    if (target.status !== 'active') throw new BadRequestException('That agency is not active.');
+
+    const adminUser = await this.users.findOne({ where: { id: admin.userId } });
+    const adminEmail = adminUser?.email ?? '';
+
+    const [ev] = await this.dataSource.query(
+      `INSERT INTO impersonation_events (admin_user_id, admin_email, vendor_id, vendor_name, reason, ip)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [admin.userId, adminEmail, vendorId, target.name, reason ?? null, ip ?? null],
+    );
+
+    const jti = randomUUID();
+    await this.sessions.create(jti, admin.userId, this.idleSec);
+    const payload: JwtPayload = {
+      sub: admin.userId,
+      vendorId,
+      roles: ['property_manager'],
+      act: { id: admin.userId, email: adminEmail, ev: ev.id, agency: target.name },
+      jti,
+    };
+    return {
+      accessToken: await this.signToken(payload),
+      idleMinutes: this.idleMinutes,
+      agency: { id: vendorId, name: target.name },
+    };
+  }
+
+  /** End impersonation: revoke the session, stamp the audit row, return to admin. */
+  async stopImpersonation(principal: { userId: string; jti?: string; act?: { ev?: string } | null }): Promise<{ accessToken: string; idleMinutes: number }> {
+    if (!principal.act) throw new BadRequestException('Not currently impersonating.');
+    if (principal.jti) await this.sessions.revoke(principal.jti);
+    if (principal.act.ev) {
+      await this.dataSource.query(
+        `UPDATE impersonation_events SET ended_at = now() WHERE id = $1 AND ended_at IS NULL`,
+        [principal.act.ev],
+      );
+    }
+    const adminUser = await this.users.findOne({ where: { id: principal.userId } });
+    if (!adminUser) throw new UnauthorizedException('Session ended.');
+    return this.issueForUser(adminUser);
+  }
+
   /** Find-or-link a user for a verified Google identity (see design §4). */
   private async linkGoogleUser(id: GoogleIdentity): Promise<User> {
     const bySub = await this.users.findOne({ where: { googleSub: id.sub } });
-    if (bySub) return bySub;
-    const byEmail = await this.users.findOne({ where: { email: id.email } });
-    if (byEmail) {
-      if (byEmail.googleSub && byEmail.googleSub !== id.sub) {
+    const byEmail = bySub ? null : await this.users.findOne({ where: { email: id.email } });
+    switch (decideGoogleLink(!!bySub, byEmail, id.sub)) {
+      case 'use':
+        return bySub!;
+      case 'conflict':
         throw new ForbiddenException('This email is linked to a different Google account.');
-      }
-      byEmail.googleSub = id.sub;
-      if (!byEmail.name && id.name) byEmail.name = id.name;
-      return this.users.save(byEmail);
+      case 'link':
+        byEmail!.googleSub = id.sub;
+        if (!byEmail!.name && id.name) byEmail!.name = id.name;
+        return this.users.save(byEmail!);
+      case 'create':
+      default:
+        return this.users.save(this.users.create({ email: id.email, googleSub: id.sub, name: id.name }));
     }
-    return this.users.save(this.users.create({ email: id.email, googleSub: id.sub, name: id.name }));
   }
 
   /** Only return to a known front-end origin (prevents open redirects). */

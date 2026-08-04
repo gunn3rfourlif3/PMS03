@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AdminImpersonationController } from './admin-impersonation.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { SessionStore } from './session-store.service';
 import { GoogleOAuthService } from './google-oauth.service';
@@ -25,7 +26,7 @@ import { User } from '@modules/identity/user.entity';
     }),
     TypeOrmModule.forFeature([OtpChallenge, User]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AdminImpersonationController],
   providers: [AuthService, JwtStrategy, SessionStore, GoogleOAuthService],
   exports: [AuthService, SessionStore],
 })

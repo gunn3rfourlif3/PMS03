@@ -21,6 +21,16 @@ export function rolesFromToken(): string[] {
 export const isOwner = () => rolesFromToken().includes('owner');
 export const isPartner = () => rolesFromToken().includes('partner');
 export const isPlatformAdmin = () => rolesFromToken().includes('platform_admin');
+
+/** The impersonation actor from the stored JWT, or null when not impersonating. */
+export function actorFromToken(): { email: string; agency: string } | null {
+  const t = auth.get();
+  if (!t) return null;
+  try {
+    const p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return p.act ? { email: p.act.email as string, agency: p.act.agency as string } : null;
+  } catch { return null; }
+}
 /** Where a login lands, by role. */
 export const homeForRole = () =>
   isPlatformAdmin() ? '/admin/partners'
@@ -105,6 +115,16 @@ export const api = {
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> =>
     req('/auth/refresh', { method: 'POST' }),
   logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
+
+  // Platform-admin agency impersonation
+  listAgencies: (): Promise<Array<{ vendorId: string; name: string; slug: string; status: string }>> =>
+    req('/admin/agencies'),
+  impersonate: (vendorId: string, reason?: string): Promise<{ accessToken: string; agency: { id: string; name: string } }> =>
+    req('/admin/impersonate', { method: 'POST', body: JSON.stringify({ vendorId, reason }) }),
+  stopImpersonation: (): Promise<{ accessToken: string }> =>
+    req('/auth/impersonate/stop', { method: 'POST' }),
+  impersonationEvents: (): Promise<Array<{ id: string; adminEmail: string; agency: string; reason?: string; startedAt: string; endedAt?: string }>> =>
+    req('/admin/impersonation-events'),
 
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),

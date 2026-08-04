@@ -85,6 +85,12 @@ export default function LoginPage() {
                   </svg>
                   Continue with Google
                 </button>
+                <p className="text-center text-xs leading-relaxed text-muted">
+                  By continuing with Google you agree to share your name and email with {b.name}
+                  {b.contact?.website ? (
+                    <> and to our <a href={`https://${b.contact.website}/privacy`} className="text-brand hover:underline">privacy policy</a></>
+                  ) : null}.
+                </p>
               </>
             )}
           </div>
