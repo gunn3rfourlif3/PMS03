@@ -10,6 +10,7 @@ export interface DeliveryRequest {
   subject: string;
   body: string;        // plain-text (always sent; SMS uses this)
   html?: string;       // optional rich HTML for email — friendly "click here" links
+  replyTo?: { email: string; name?: string }; // email only — lets the team reply straight to the sender
 }
 
 export interface DeliveryResult {

@@ -21,6 +21,7 @@ export class SendGridEmailProvider implements ChannelProvider {
         body: JSON.stringify({
           personalizations: [{ to: [{ email: req.to }] }],
           from: { email: this.from },
+          ...(req.replyTo ? { reply_to: { email: req.replyTo.email, ...(req.replyTo.name ? { name: req.replyTo.name } : {}) } } : {}),
           subject: req.subject,
           // Plain text first (fallback), then HTML when provided.
           content: req.html

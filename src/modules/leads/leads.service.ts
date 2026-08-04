@@ -50,10 +50,21 @@ export class LeadsService {
       `Name: ${l.name}\nEmail: ${l.email}\nPhone: ${l.phone ?? '-'}\n` +
       `Company: ${l.company ?? '-'}\nMessage: ${l.message ?? '-'}`;
     if (to && email) {
-      const res = await email.send({ to, subject: `New ${type} lead: ${l.name}`, body });
-      if (!res.ok) this.log.error(`lead notify failed: ${res.error ?? 'unknown'}`);
+      // Replies go straight to the applicant; log both failures AND successes so
+      // "form said sent but inbox is empty" is diagnosable from the api logs
+      // (provider name + accepted message-id vs. an error).
+      const res = await email.send({
+        to,
+        subject: `New ${type} lead: ${l.name}`,
+        body,
+        replyTo: { email: l.email, name: l.name },
+      });
+      if (res.ok) this.log.log(`lead notify sent → ${to} via ${email.constructor.name} (${res.providerRef ?? 'no-ref'})`);
+      else this.log.error(`lead notify failed → ${to}: ${res.error ?? 'unknown'}`);
+    } else if (!email) {
+      this.log.warn(`no email channel configured — ${type} lead not emailed; logged only:\n${body}`);
     } else {
-      this.log.log(body);
+      this.log.warn(`no recipient for ${type} lead (set ${type === 'agent' ? 'PARTNER_NOTIFY_EMAIL' : 'LEADS_NOTIFY_EMAIL'}); logged only:\n${body}`);
     }
   }
 }
