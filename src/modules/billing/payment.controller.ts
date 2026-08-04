@@ -53,24 +53,37 @@ export class PaymentController {
   /**
    * iKhokha payment callback. The stored ref is `ik_<invoiceId>`, reconstructed
    * from the returned externalTransactionID. Success is responseCode "00" (or a
-   * SUCCESS/COMPLETE status). Signature verification is opt-in via
-   * IKHOKHA_VERIFY_CALLBACK once the exact inbound scheme is confirmed.
+   * SUCCESS/COMPLETE status).
+   *
+   * IK-SIGN signature verification is controlled by IKHOKHA_VERIFY_CALLBACK:
+   *   off      (default) — no verification.
+   *   monitor  — verify and LOG match/mismatch, but still process. Use this first
+   *              with real callbacks to confirm the scheme before enforcing.
+   *   enforce  ('enforce' or legacy 'true') — reject callbacks with a bad/missing
+   *              signature (401).
+   * iKhokha signs HMAC-SHA256 over (callback path + raw body) with the app secret.
    */
   @Post('webhook/ikhokha')
   ikhokha(@Req() req: RawBodyRequest<Request>, @Body() body: any) {
-    // Optional signature verification (enable IKHOKHA_VERIFY_CALLBACK=true once the
-    // inbound IK-SIGN scheme is confirmed with a real callback). iKhokha signs over
-    // the callback URL's path + raw body with the app secret.
-    if (process.env.IKHOKHA_VERIFY_CALLBACK === 'true') {
+    const raw = process.env.IKHOKHA_VERIFY_CALLBACK?.toLowerCase() ?? 'off';
+    const mode = raw === 'true' ? 'enforce' : raw; // back-compat: 'true' == enforce
+    if (mode === 'monitor' || mode === 'enforce') {
+      const log = new Logger('iKhokhaWebhook');
       const secret = process.env.IKHOKHA_APP_SECRET ?? '';
       const path = process.env.IKHOKHA_CALLBACK_URL
         ? new URL(process.env.IKHOKHA_CALLBACK_URL).pathname
         : (req.originalUrl || '').split('?')[0];
-      const raw = req.rawBody?.toString('utf8') ?? JSON.stringify(body ?? {});
+      const rawBody = req.rawBody?.toString('utf8') ?? JSON.stringify(body ?? {});
       const provided = (req.headers['ik-sign'] ?? req.headers['IK-SIGN']) as string | undefined;
-      if (!IkhokhaPaymentProvider.verify(path, raw, secret, provided)) {
-        new Logger('iKhokhaWebhook').warn('Rejected callback: invalid IK-SIGN signature');
-        throw new UnauthorizedException('Invalid signature');
+      const valid = IkhokhaPaymentProvider.verify(path, rawBody, secret, provided);
+      if (!valid) {
+        if (mode === 'enforce') {
+          log.warn('Rejected callback: invalid/missing IK-SIGN signature');
+          throw new UnauthorizedException('Invalid signature');
+        }
+        log.warn(`IK-SIGN mismatch (monitor mode — processing anyway). provided=${provided ? 'present' : 'absent'}`);
+      } else {
+        log.log(`IK-SIGN verified (${mode})`);
       }
     }
     const ref = `ik_${body?.externalTransactionID ?? body?.paymentReference ?? body?.externalEntityID}`;
