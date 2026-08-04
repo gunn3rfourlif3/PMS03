@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView,
+  View, Text, TextInput, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, Switch,
 } from 'react-native';
 import { api } from '../api';
 import { useAuth } from '../auth-context';
@@ -15,6 +15,7 @@ export default function LoginScreen() {
   const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   const request = async () => {
     setBusy(true);
@@ -23,7 +24,7 @@ export default function LoginScreen() {
   };
   const verify = async () => {
     setBusy(true);
-    try { const { accessToken } = await api.verifyOtp(destination.trim(), code.trim()); await signIn(accessToken); }
+    try { const { accessToken } = await api.verifyOtp(destination.trim(), code.trim(), remember); await signIn(accessToken); }
     catch (e: any) { Alert.alert('Sign in failed', e.message); } finally { setBusy(false); }
   };
 
@@ -48,6 +49,10 @@ export default function LoginScreen() {
             <>
               <Text style={s.label}>6-digit code</Text>
               <TextInput style={s.input} value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} placeholder="123456" placeholderTextColor={t.colors.muted} />
+              <View style={s.rememberRow}>
+                <Switch value={remember} onValueChange={setRemember} trackColor={{ true: t.colors.brand }} />
+                <Text style={s.rememberLabel}>Remember this device (skip the code next time)</Text>
+              </View>
               <Button label="Verify & sign in" onPress={verify} busy={busy} style={{ marginTop: 8 }} />
               <Text style={s.link} onPress={() => setStage('request')}>Use a different address</Text>
             </>
@@ -75,5 +80,7 @@ function makeStyles(t: Branding) {
       marginBottom: 8, color: t.colors.ink, backgroundColor: 'transparent', fontFamily: fontFamily(t),
     },
     link: { color: t.colors.brand, fontSize: 13, textAlign: 'center', marginTop: 16, fontFamily: fontFamily(t) },
+    rememberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, marginBottom: 4 },
+    rememberLabel: { flex: 1, fontSize: 13, color: t.colors.ink, fontFamily: fontFamily(t) },
   });
 }

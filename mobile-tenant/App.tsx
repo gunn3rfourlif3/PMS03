@@ -33,7 +33,17 @@ function Shell() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
 
-  useEffect(() => { loadToken().then((tok) => { setAuthed(!!tok); setReady(true); }); }, []);
+  useEffect(() => {
+    (async () => {
+      let tok = await loadToken();
+      // No stored session? Try a remembered device — re-auth without an OTP.
+      if (!tok) {
+        const r = await api.deviceLogin();
+        if (r?.accessToken) { await setToken(r.accessToken); tok = r.accessToken; }
+      }
+      setAuthed(!!tok); setReady(true);
+    })();
+  }, []);
 
   const auth = useMemo(() => ({
     signIn: async (token: string) => { await setToken(token); setAuthed(true); },

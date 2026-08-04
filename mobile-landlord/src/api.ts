@@ -3,15 +3,18 @@ import * as SecureStore from 'expo-secure-store';
 import { API_BASE } from './config';
 
 const KEY = 'pms_landlord_token';
+const DEVICE_KEY = 'pms_landlord_device';
 const isWeb = Platform.OS === 'web';
-const store = {
+const makeStore = (k: string) => ({
   get: (): Promise<string | null> =>
-    isWeb ? Promise.resolve(globalThis.localStorage?.getItem(KEY) ?? null) : SecureStore.getItemAsync(KEY),
+    isWeb ? Promise.resolve(globalThis.localStorage?.getItem(k) ?? null) : SecureStore.getItemAsync(k),
   set: (v: string): Promise<void> =>
-    isWeb ? Promise.resolve(globalThis.localStorage?.setItem(KEY, v)) : SecureStore.setItemAsync(KEY, v),
+    isWeb ? Promise.resolve(globalThis.localStorage?.setItem(k, v)) : SecureStore.setItemAsync(k, v),
   del: (): Promise<void> =>
-    isWeb ? Promise.resolve(globalThis.localStorage?.removeItem(KEY)) : SecureStore.deleteItemAsync(KEY),
-};
+    isWeb ? Promise.resolve(globalThis.localStorage?.removeItem(k)) : SecureStore.deleteItemAsync(k),
+});
+const store = makeStore(KEY);
+const deviceStore = makeStore(DEVICE_KEY); // "remember this device" token
 
 let token: string | null = null;
 export async function loadToken() { token = await store.get(); return token; }
@@ -38,9 +41,27 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
 
 export const api = {
   requestOtp: (destination: string) => req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
-  verifyOtp: (destination: string, code: string) => req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
+  verifyOtp: async (destination: string, code: string, remember?: boolean) => {
+    const r = await req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code, remember }) });
+    if (r?.deviceToken) await deviceStore.set(r.deviceToken);
+    return r as { accessToken: string; idleMinutes: number };
+  },
+  /** Silent re-auth from a remembered device — no OTP. Returns null if none/expired. */
+  deviceLogin: async (): Promise<{ accessToken: string } | null> => {
+    const dt = await deviceStore.get();
+    if (!dt) return null;
+    try {
+      const r = await req('/auth/device/login', { method: 'POST', body: JSON.stringify({ deviceToken: dt }) });
+      if (r?.deviceToken) await deviceStore.set(r.deviceToken); // rotated
+      return r;
+    } catch { await deviceStore.del(); return null; }
+  },
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> => req('/auth/refresh', { method: 'POST' }),
-  logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
+  logout: async (): Promise<{ ok: true }> => {
+    const dt = await deviceStore.get();
+    await deviceStore.del();
+    return req('/auth/logout', { method: 'POST', body: JSON.stringify({ deviceToken: dt }) });
+  },
   profile: () => req('/me/profile'),
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),
