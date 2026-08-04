@@ -66,7 +66,6 @@ services:
       # back left→right; WhatsApp is skipped until WHATSAPP_TOKEN is set.
       OTP_CHANNELS: ${OTP_CHANNELS:-whatsapp,email}
       WELCOME_CHANNELS: ${WELCOME_CHANNELS:-}
-      TENANT_APP_URL: ${TENANT_APP_URL:-https://app.locare.co.za}
       # WhatsApp Cloud API (Meta, direct — no BSP). Blank ⇒ channel off (email-only).
       WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:-}
       WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID:-}
@@ -105,7 +104,7 @@ services:
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       PARTNER_NOTIFY_EMAIL: ${PARTNER_NOTIFY_EMAIL:-partners@locare.co.za}
-      TENANT_APP_URL: ${TENANT_APP_URL:-}
+      TENANT_APP_URL: ${TENANT_APP_URL:-https://app.locare.co.za}
       # Google (social) sign-in — additive to OTP. AUTH_BASE is the single host
       # whose /api/auth/google/callback is registered in Google Cloud.
       GOOGLE_OAUTH_ENABLED: ${GOOGLE_OAUTH_ENABLED:-false}
