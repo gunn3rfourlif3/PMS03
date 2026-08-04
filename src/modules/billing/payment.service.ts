@@ -11,6 +11,7 @@ import { AccountingService } from '@modules/accounting/accounting.service';
 import { PAYMENT_PROVIDER } from '@providers/payment/payment-provider.interface';
 import type { PaymentProvider } from '@providers/payment/payment-provider.interface';
 import { NotificationsService } from '@modules/notifications/notifications.service';
+import { SubscriptionBillingService } from '@modules/subscriptions/subscription-billing.service';
 import { Invoice } from './invoice.entity';
 import { Payment } from './payment.entity';
 import { applyPayment } from './payment-alloc';
@@ -36,6 +37,7 @@ export class PaymentService {
     private readonly ledger: LedgerService,
     private readonly accounting: AccountingService,
     private readonly notifications: NotificationsService,
+    private readonly subscriptionBilling: SubscriptionBillingService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
   ) {}
 
@@ -149,7 +151,13 @@ export class PaymentService {
       [gatewayRef],
     );
     const vendorId: string | undefined = rows[0]?.vendor_id;
-    if (!vendorId) throw new NotFoundException('Unknown payment');
+    if (!vendorId) {
+      // Not a tenant rent payment — it may be an agency's platform-subscription
+      // checkout (same gateways/refs, but a platform-scoped invoice). Reconcile
+      // that here so subscription payments auto-settle instead of 404ing.
+      if (await this.subscriptionBilling.reconcileByGatewayRef(gatewayRef, succeeded)) return;
+      throw new NotFoundException('Unknown payment');
+    }
 
     await this.tenantRunner.runInVendorContext(vendorId, async () => {
       const payments = this.tenant.getRepository(Payment);

@@ -17,6 +17,7 @@ import { Payment } from './payment.entity';
 import { AccountingModule } from '@modules/accounting/accounting.module';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { PaymentModule } from '@providers/payment/payment.module';
+import { SubscriptionsModule } from '@modules/subscriptions/subscriptions.module';
 import { QUEUE_BILLING } from '@common/queue/queue.constants';
 
 @Module({
@@ -26,6 +27,7 @@ import { QUEUE_BILLING } from '@common/queue/queue.constants';
     AccountingModule,
     NotificationsModule,
     PaymentModule,
+    SubscriptionsModule,
   ],
   controllers: [BillingController, PaymentController, DepositController],
   providers: [

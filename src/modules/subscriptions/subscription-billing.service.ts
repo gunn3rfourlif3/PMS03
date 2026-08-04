@@ -76,6 +76,34 @@ export class SubscriptionBillingService {
     );
   }
 
+  /**
+   * Auto-reconcile a subscription invoice when the payment gateway confirms its
+   * checkout. Matched by the `gateway_ref` stored in createCheckout — the same
+   * ref the provider webhook reconstructs. Idempotent (a repeat callback on an
+   * already-paid invoice is a no-op). Returns true when a subscription invoice
+   * owned this ref, so the webhook sink knows the callback was handled here and
+   * shouldn't 404.
+   */
+  async reconcileByGatewayRef(gatewayRef: string, succeeded: boolean): Promise<boolean> {
+    const [inv] = await this.ds.query(
+      `SELECT id, status FROM subscription_invoices WHERE gateway_ref = $1`, [gatewayRef],
+    );
+    if (!inv) return false; // not a subscription payment
+    if (!succeeded) {
+      this.log.warn(`Subscription checkout ${gatewayRef} reported failed; leaving invoice ${inv.id} unpaid`);
+      return true;
+    }
+    if (inv.status === 'paid') return true; // already settled — idempotent
+    await this.ds.query(
+      `UPDATE subscription_invoices
+         SET status = 'paid', paid_at = now(), paid_ref = $2, updated_at = now()
+       WHERE id = $1 AND status <> 'paid'`,
+      [inv.id, gatewayRef],
+    );
+    this.log.log(`Subscription invoice ${inv.id} auto-reconciled from gateway ref ${gatewayRef}`);
+    return true;
+  }
+
   async markPaid(id: string, ref?: string): Promise<{ ok: true }> {
     const [inv] = await this.ds.query(`SELECT status FROM subscription_invoices WHERE id = $1`, [id]);
     if (!inv) throw new NotFoundException('Invoice not found');
