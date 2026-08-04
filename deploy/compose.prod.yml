@@ -62,6 +62,9 @@ services:
       PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?set PII_ENCRYPTION_KEY}
       CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
       OTP_CHANNEL: ${OTP_CHANNEL:-email}
+      # "Remember this device" lifetime (days); 0 disables. Lets returning users
+      # re-auth without a fresh (paid) OTP.
+      TRUSTED_DEVICE_DAYS: ${TRUSTED_DEVICE_DAYS:-30}
       # Ordered delivery cascade for OTPs + tenant welcome (whatsapp,email). Falls
       # back left→right; WhatsApp is skipped until WHATSAPP_TOKEN is set.
       OTP_CHANNELS: ${OTP_CHANNELS:-whatsapp,email}

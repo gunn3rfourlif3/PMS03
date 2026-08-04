@@ -2,11 +2,19 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3000/api';
 const KEY = 'pms_admin_token';
+const DEVICE_KEY = 'pms_admin_device';
 
 export const auth = {
   get: () => (typeof window === 'undefined' ? null : window.localStorage.getItem(KEY)),
   set: (t: string) => window.localStorage.setItem(KEY, t),
   clear: () => window.localStorage.removeItem(KEY),
+};
+
+/** The "remember this device" token (survives sign-out only if kept). */
+export const device = {
+  get: () => (typeof window === 'undefined' ? null : window.localStorage.getItem(DEVICE_KEY)),
+  set: (t: string) => window.localStorage.setItem(DEVICE_KEY, t),
+  clear: () => (typeof window === 'undefined' ? undefined : window.localStorage.removeItem(DEVICE_KEY)),
 };
 
 /** Decode the roles claim from the stored JWT (no verification — display only). */
@@ -106,15 +114,32 @@ export const api = {
 
   requestOtp: (destination: string) =>
     req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
-  verifyOtp: (destination: string, code: string) =>
-    req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code }) }),
+  verifyOtp: async (destination: string, code: string, remember?: boolean) => {
+    const r = await req('/auth/otp/verify', { method: 'POST', body: JSON.stringify({ destination, code, remember }) });
+    if (r?.deviceToken) device.set(r.deviceToken);
+    return r as { accessToken: string; idleMinutes: number };
+  },
+  /** Silent re-auth from a remembered device — returns null if there's no/expired token. */
+  deviceLogin: async (): Promise<{ accessToken: string } | null> => {
+    const dt = device.get();
+    if (!dt) return null;
+    try {
+      const r = await req('/auth/device/login', { method: 'POST', body: JSON.stringify({ deviceToken: dt }) });
+      if (r?.deviceToken) device.set(r.deviceToken); // rotated
+      return r;
+    } catch { device.clear(); return null; }
+  },
   googleEnabled: (): Promise<{ enabled: boolean }> => req('/auth/google/enabled'),
   googleStartUrl: (origin: string) => `${API_BASE}/auth/google/start?origin=${encodeURIComponent(origin)}`,
   exchangeGoogleCode: (otc: string): Promise<{ accessToken: string; idleMinutes: number }> =>
     req('/auth/google/exchange', { method: 'POST', body: JSON.stringify({ otc }) }),
   refreshSession: (): Promise<{ accessToken: string; idleMinutes: number }> =>
     req('/auth/refresh', { method: 'POST' }),
-  logout: (): Promise<{ ok: true }> => req('/auth/logout', { method: 'POST' }),
+  logout: (): Promise<{ ok: true }> => {
+    const dt = device.get();
+    device.clear();
+    return req('/auth/logout', { method: 'POST', body: JSON.stringify({ deviceToken: dt }) });
+  },
 
   // Platform-admin agency impersonation
   listAgencies: (): Promise<Array<{ vendorId: string; name: string; slug: string; status: string }>> =>

@@ -40,6 +40,13 @@ export class AuthService {
    * sits idle longer than this expires and is rejected server-side.
    */
   private readonly idleMinutes = Math.max(1, Number(process.env.SESSION_IDLE_MINUTES ?? 10));
+  /**
+   * "Remember this device" lifetime (days). A returning user on a trusted device
+   * re-auths WITHOUT a fresh OTP — so we don't pay for a WhatsApp/SMS code every
+   * login. 0 disables the feature.
+   */
+  private readonly trustedDeviceDays = Math.max(0, Number(process.env.TRUSTED_DEVICE_DAYS ?? 30));
+  private get trustedDeviceSec(): number { return this.trustedDeviceDays * 86400; }
 
   /** Sign an access token whose expiry is the idle window. */
   private signToken(payload: JwtPayload): Promise<string> {
@@ -72,7 +79,11 @@ export class AuthService {
     return { sent: true };
   }
 
-  async verifyOtp(destination: string, code: string): Promise<{ accessToken: string; idleMinutes: number }> {
+  async verifyOtp(
+    destination: string,
+    code: string,
+    opts?: { remember?: boolean },
+  ): Promise<{ accessToken: string; idleMinutes: number; deviceToken?: string; trustedDays?: number }> {
     const challenge = await this.otps.findOne({
       where: { destination },
       order: { createdAt: 'DESC' },
@@ -109,7 +120,43 @@ export class AuthService {
       );
     }
 
-    return this.issueForUser(user);
+    const session = await this.issueForUser(user);
+    // "Remember this device" — hand back a long-lived token the client stores so
+    // its next launch re-auths without another (paid) OTP.
+    if (opts?.remember && this.trustedDeviceSec > 0) {
+      const deviceToken = await this.sessions.createDevice(user.id, this.trustedDeviceSec);
+      return { ...session, deviceToken, trustedDays: this.trustedDeviceDays };
+    }
+    return session;
+  }
+
+  /**
+   * Passwordless re-auth from a trusted device: exchange a remembered device
+   * token for a fresh session WITHOUT sending a new OTP. The presented token is
+   * rotated (single-use) so a captured token can't be replayed. Throws if the
+   * token is unknown/expired, or if the account is gated (pending lease).
+   */
+  async deviceLogin(deviceToken: string): Promise<{ accessToken: string; idleMinutes: number; deviceToken: string; trustedDays: number }> {
+    if (this.trustedDeviceSec <= 0) throw new UnauthorizedException('Trusted devices are disabled');
+    const rotated = await this.sessions.rotateDevice(deviceToken, this.trustedDeviceSec);
+    if (!rotated) throw new UnauthorizedException('Device not recognised — please sign in again');
+    const user = await this.users.findOne({ where: { id: rotated.userId } });
+    if (!user) {
+      await this.sessions.revokeDevice(rotated.token);
+      throw new UnauthorizedException('Device not recognised — please sign in again');
+    }
+    try {
+      const session = await this.issueForUser(user);
+      return { ...session, deviceToken: rotated.token, trustedDays: this.trustedDeviceDays };
+    } catch (e) {
+      await this.sessions.revokeDevice(rotated.token); // don't orphan a token we can't use
+      throw e;
+    }
+  }
+
+  /** Forget a trusted device (called on explicit sign-out). Best-effort. */
+  async forgetDevice(deviceToken?: string): Promise<void> {
+    if (deviceToken) await this.sessions.revokeDevice(deviceToken).catch(() => undefined);
   }
 
   /**
@@ -311,8 +358,9 @@ export class AuthService {
   }
 
   /** Instantly revoke the caller's session (sign-out). */
-  async logout(jti?: string): Promise<{ ok: true }> {
+  async logout(jti?: string, deviceToken?: string): Promise<{ ok: true }> {
     if (jti) await this.sessions.revoke(jti);
+    await this.forgetDevice(deviceToken);
     return { ok: true };
   }
 

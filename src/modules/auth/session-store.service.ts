@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { createHash, randomBytes } from 'node:crypto';
 import Redis from 'ioredis';
 
 /**
@@ -63,6 +64,36 @@ export class SessionStore implements OnModuleDestroy {
     const v = await this.redis.get(k);
     if (v !== null) await this.redis.del(k);
     return v;
+  }
+
+  // ── Trusted devices ──
+  // A "remember this device" secret lets a returning user re-auth WITHOUT a fresh
+  // OTP (so we don't pay for a WhatsApp/SMS code every login). The raw token lives
+  // only on the client; we store sha256(token) → userId with a sliding TTL, and
+  // rotate the token on every exchange so a captured token is single-use.
+  private devKey(token: string) { return 'dev:' + createHash('sha256').update(token).digest('hex'); }
+
+  /** Mint a trusted-device token bound to a user for `ttlSec`. Returns the raw token. */
+  async createDevice(userId: string, ttlSec: number): Promise<string> {
+    const token = randomBytes(32).toString('base64url');
+    await this.redis.set(this.devKey(token), userId, 'EX', ttlSec);
+    return token;
+  }
+
+  /** Validate + rotate a trusted-device token. Returns { userId, token(new) } or null. */
+  async rotateDevice(token: string, ttlSec: number): Promise<{ userId: string; token: string } | null> {
+    if (!token) return null;
+    const userId = await this.redis.get(this.devKey(token));
+    if (userId === null) return null;
+    await this.redis.del(this.devKey(token)); // burn the presented token
+    const next = randomBytes(32).toString('base64url');
+    await this.redis.set(this.devKey(next), userId, 'EX', ttlSec);
+    return { userId, token: next };
+  }
+
+  /** Forget a trusted device (sign out of this device). */
+  async revokeDevice(token: string): Promise<void> {
+    if (token) await this.redis.del(this.devKey(token));
   }
 
   onModuleDestroy(): void {

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, auth, homeForRole } from '@/lib/api';
+import { api, auth, device, homeForRole } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button, Field } from '@/components/ui';
 
@@ -14,6 +14,17 @@ export default function LoginPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [googleOn, setGoogleOn] = useState(false);
+  const [remember, setRemember] = useState(true);
+  // Only show the "resuming" screen when there's actually a device token to try.
+  const [resuming, setResuming] = useState(() => (typeof window !== 'undefined' ? !!device.get() : false));
+
+  // Silent re-auth: if this device is remembered, exchange the device token for a
+  // session and skip the OTP entirely.
+  useEffect(() => {
+    api.deviceLogin()
+      .then((r) => { if (r?.accessToken) { auth.set(r.accessToken); router.replace(homeForRole()); } else setResuming(false); })
+      .catch(() => setResuming(false));
+  }, [router]);
 
   useEffect(() => { api.googleEnabled().then((r) => setGoogleOn(!!r.enabled)).catch(() => {}); }, []);
   const google = () => { window.location.href = api.googleStartUrl(window.location.origin); };
@@ -26,10 +37,14 @@ export default function LoginPage() {
   const verify = async () => {
     setErr(''); setBusy(true);
     try {
-      const { accessToken } = await api.verifyOtp(destination.trim(), code.trim());
+      const { accessToken } = await api.verifyOtp(destination.trim(), code.trim(), remember);
       auth.set(accessToken); router.replace(homeForRole());
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
+
+  if (resuming) {
+    return <div className="grid min-h-screen place-items-center p-4"><div className="text-sm text-muted">Signing you in…</div></div>;
+  }
 
   return (
     <div className="grid min-h-screen place-items-center p-4">
@@ -99,6 +114,10 @@ export default function LoginPage() {
             <Field label="6-digit code (sent to your email or phone)">
               <input className="input tracking-[0.4em] text-center text-lg" value={code} maxLength={6} onChange={(e) => setCode(e.target.value)} />
             </Field>
+            <label className="flex items-center gap-2.5 text-sm text-ink">
+              <input type="checkbox" className="h-4 w-4 rounded border-line accent-brand" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+              Remember this device (skip the code next time)
+            </label>
             <Button className="w-full" onClick={verify} loading={busy}>Verify &amp; sign in</Button>
             <button className="w-full text-center text-sm text-muted hover:text-brand" onClick={() => setStage('request')}>Use a different address</button>
           </div>

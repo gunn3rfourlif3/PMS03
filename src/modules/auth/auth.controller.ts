@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/comm
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { RequestOtpDto, VerifyOtpDto } from './auth.dto';
+import { RequestOtpDto, VerifyOtpDto, DeviceLoginDto } from './auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentTenant } from './current-tenant.decorator';
 
@@ -21,7 +21,17 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('otp/verify')
   verify(@Body() dto: VerifyOtpDto) {
-    return this.auth.verifyOtp(dto.destination, dto.code);
+    return this.auth.verifyOtp(dto.destination, dto.code, { remember: dto.remember });
+  }
+
+  /**
+   * Trusted-device re-auth: exchange a remembered device token for a fresh
+   * session without a new OTP. Rate-limited; the token is rotated on each use.
+   */
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('device/login')
+  deviceLogin(@Body() dto: DeviceLoginDto) {
+    return this.auth.deviceLogin(dto.deviceToken);
   }
 
   // ── Google (social) sign-in ──
@@ -69,11 +79,11 @@ export class AuthController {
     return this.auth.refresh(principal);
   }
 
-  /** Sign out — instantly revokes this session server-side. */
+  /** Sign out — instantly revokes this session server-side and forgets the device. */
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@CurrentTenant() principal: { jti?: string }) {
-    return this.auth.logout(principal.jti);
+  logout(@CurrentTenant() principal: { jti?: string }, @Body() body?: { deviceToken?: string }) {
+    return this.auth.logout(principal.jti, body?.deviceToken);
   }
 
   /** End an impersonation session and return to the platform-admin context. */
