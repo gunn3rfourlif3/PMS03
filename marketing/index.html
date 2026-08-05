@@ -132,6 +132,10 @@ section{padding:96px 0}
 /* Split (partners) */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 @media(max-width:860px){.split{grid-template-columns:1fr;gap:36px}}
+/* Partner section: top-align columns and drop the CTA to the paragraph line */
+#partners .split{align-items:start}
+#partners .split>.lead{padding-top:132px}
+@media(max-width:860px){#partners .split>.lead{padding-top:0}}
 
 /* Forms */
 form.lead{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column;gap:14px}
