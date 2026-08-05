@@ -40,6 +40,8 @@ import { LeaseParsingModule } from './modules/lease-parsing/lease-parsing.module
 import { AgentsModule } from './modules/agents/agents.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PartnersModule } from './modules/partners/partners.module';
+import { KycModule } from './providers/kyc/kyc.module';
+import { PartnerApplicationsModule } from './modules/partner-applications/partner-applications.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -91,6 +93,8 @@ import { EsignModule } from './providers/esign/esign.module';
     AgentsModule,
     SubscriptionsModule,
     PartnersModule,
+    KycModule,
+    PartnerApplicationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
