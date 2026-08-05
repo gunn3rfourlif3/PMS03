@@ -12,3 +12,6 @@ export const JOB_ACCRUE_COMMISSIONS = 'accrue-commissions';
 
 export const QUEUE_SUBSCRIPTION = 'subscription';
 export const JOB_GENERATE_SUB_INVOICES = 'generate-subscription-invoices';
+
+export const QUEUE_PARTNER_APPS = 'partner-apps';
+export const JOB_PURGE_REJECTED_APPS = 'purge-rejected-applications';

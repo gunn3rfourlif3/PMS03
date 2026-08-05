@@ -104,8 +104,8 @@ export class PartnerApplicationsService {
     this.assertEditable(app, token);
     if (!file) throw new BadRequestException('No file uploaded.');
     if (!ALLOWED_MIME.includes(file.mimetype)) throw new BadRequestException('Upload a PDF or an image (JPG/PNG).');
-    const { url } = await this.media.saveProof(file);
-    const doc: ApplicationDocument = { docType: String(docType || 'other'), url, name: file.originalname ?? 'document', uploadedAt: new Date().toISOString() };
+    const { url, key } = await this.media.saveProof(file);
+    const doc: ApplicationDocument = { docType: String(docType || 'other'), url, key, name: file.originalname ?? 'document', uploadedAt: new Date().toISOString() };
     app.documents = [...(app.documents ?? []), doc];
     await this.repo().save(app);
     return { documents: app.documents };
@@ -238,6 +238,30 @@ export class PartnerApplicationsService {
     await this.repo().save(app);
     await this.notifyApplicant(app, 'info_requested', token);
     return { status: app.status };
+  }
+
+  // ── Retention (POPIA) ────────────────────────────────────────────────────────
+
+  /**
+   * Purge personal data from applications rejected more than `days` ago (default
+   * 90). Clears the document references + encrypted PII (ID numbers, banking) from
+   * the row, keeping only the shell (status/decision) for audit. Idempotent — the
+   * `documents <> '[]'` guard means an already-purged row is skipped. Returns the
+   * number of applications scrubbed.
+   */
+  async purgeRejectedDocuments(days = Number(process.env.PARTNER_APP_RETENTION_DAYS ?? 90)): Promise<{ purged: number }> {
+    const cutoff = new Date(Date.now() - Math.max(1, days) * 86_400_000);
+    const rows = await this.ds.query(
+      `UPDATE partner_applications
+         SET documents = '[]'::jsonb, sensitive = '{}'::jsonb, banking = '{}'::jsonb, updated_at = now()
+       WHERE status = 'rejected' AND reviewed_at IS NOT NULL AND reviewed_at < $1
+         AND documents <> '[]'::jsonb
+       RETURNING id`,
+      [cutoff],
+    );
+    const purged = rows?.length ?? 0;
+    if (purged) this.log.log(`Purged PII from ${purged} rejected partner application(s) older than ${days}d`);
+    return { purged };
   }
 
   // ── Notifications (email via the configured channel) ─────────────────────────

@@ -12,7 +12,8 @@ function makeSvc(app: any) {
     create: jest.fn((a: any) => a),
     createQueryBuilder: jest.fn(),
   };
-  const ds: any = { getRepository: () => repo };
+  const query = jest.fn(async () => [{ id: 'x1' }]);
+  const ds: any = { getRepository: () => repo, query };
   const media: any = { saveProof: jest.fn() };
   const partners: any = {
     createPartner: jest.fn(async () => ({ id: 'p1' })),
@@ -20,7 +21,7 @@ function makeSvc(app: any) {
   };
   const kyc: any = { name: 'manual', verifyIndividual: jest.fn(), verifyBusiness: jest.fn() };
   const svc = new PartnerApplicationsService(ds, media, partners, kyc, undefined);
-  return { svc, repo, partners };
+  return { svc, repo, partners, query };
 }
 
 describe('PartnerApplicationsService.approve', () => {
@@ -47,5 +48,17 @@ describe('PartnerApplicationsService.approve', () => {
     const app: any = { id: 'a1', type: 'individual', status: 'rejected' };
     const { svc } = makeSvc(app);
     await expect(svc.approve('a1', 'admin1', {})).rejects.toThrow(/rejected/i);
+  });
+});
+
+describe('PartnerApplicationsService.purgeRejectedDocuments', () => {
+  it('clears PII from old rejected rows and reports the count', async () => {
+    const { svc, query } = makeSvc({});
+    const r = await svc.purgeRejectedDocuments(90);
+    expect(r).toEqual({ purged: 1 });
+    const sql = (query as jest.Mock).mock.calls[0][0] as string;
+    expect(sql).toMatch(/UPDATE partner_applications/i);
+    expect(sql).toMatch(/status = 'rejected'/);
+    expect(sql).toMatch(/documents <> '\[\]'::jsonb/);
   });
 });

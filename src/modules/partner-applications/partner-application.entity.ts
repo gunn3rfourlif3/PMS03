@@ -8,6 +8,7 @@ export type PartnerApplicationStatus =
 export interface ApplicationDocument {
   docType: string;   // id_document | proof_of_address | company_registration | director_id | bank_confirmation | vat_certificate | other
   url: string;
+  key?: string;      // storage key (for later physical deletion on retention purge)
   name: string;
   uploadedAt: string;
 }

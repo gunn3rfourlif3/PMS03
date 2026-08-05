@@ -109,6 +109,8 @@ services:
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       PARTNER_NOTIFY_EMAIL: ${PARTNER_NOTIFY_EMAIL:-partners@locare.co.za}
       PARTNER_APPLY_URL: ${PARTNER_APPLY_URL:-https://app.locare.co.za/partner-apply}
+      # POPIA retention: purge PII from rejected partner applications after N days.
+      PARTNER_APP_RETENTION_DAYS: ${PARTNER_APP_RETENTION_DAYS:-90}
       TENANT_APP_URL: ${TENANT_APP_URL:-https://app.locare.co.za}
       # Google (social) sign-in — additive to OTP. AUTH_BASE is the single host
       # whose /api/auth/google/callback is registered in Google Cloud.
