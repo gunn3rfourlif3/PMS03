@@ -49,6 +49,7 @@ const PARTNER_NAV = [
 const ADMIN_NAV = [
   { href: '/admin/agencies', label: 'Agencies', icon: Building2 },
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
+  { href: '/admin/partner-applications', label: 'Applications', icon: ClipboardCheck },
   { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
   { href: '/admin/billing', label: 'Billing', icon: CreditCard },
 ];
@@ -151,6 +152,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     path === '/no-access' ||
     path.startsWith('/auth/google') ||
     path === '/signup' ||
+    path === '/partner-apply' ||
     path.startsWith('/pay/') ||
     path === '/rentals' ||
     path.startsWith('/rentals/') ||

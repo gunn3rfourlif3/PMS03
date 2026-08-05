@@ -281,6 +281,35 @@ export const api = {
   setPartnerStatus: (id: string, status: string) => req(`/admin/partners/${id}/status`, { method: 'POST', body: JSON.stringify({ status }) }),
   addPartnerMember: (id: string, email: string, name?: string) => req(`/admin/partners/${id}/members`, { method: 'POST', body: JSON.stringify({ email, name }) }),
 
+  // ── Platform admin: partner vetting (KYC/KYB) applications ──
+  partnerApplications: (status?: string) => req(`/admin/partner-applications${status ? `?status=${status}` : ''}`),
+  partnerApplication: (id: string) => req(`/admin/partner-applications/${id}`),
+  reviewApplication: (id: string) => req(`/admin/partner-applications/${id}/review`, { method: 'POST' }),
+  approveApplication: (id: string, b: { commissionRate?: number; commissionMonths?: number }) =>
+    req(`/admin/partner-applications/${id}/approve`, { method: 'POST', body: JSON.stringify(b) }),
+  rejectApplication: (id: string, reason?: string) =>
+    req(`/admin/partner-applications/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
+  requestInfoApplication: (id: string, note?: string) =>
+    req(`/admin/partner-applications/${id}/request-info`, { method: 'POST', body: JSON.stringify({ note }) }),
+
+  // ── Public: partner application (no auth) ──
+  createPartnerApplication: (b: any): Promise<{ id: string; uploadToken: string }> =>
+    req('/partner-applications', { method: 'POST', body: JSON.stringify(b) }),
+  submitPartnerApplication: (id: string, token: string) =>
+    req(`/partner-applications/${id}/submit`, { method: 'POST', body: JSON.stringify({ token }) }),
+  uploadApplicationDoc: async (id: string, token: string, docType: string, file: File): Promise<any> => {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    form.append('token', token);
+    form.append('docType', docType);
+    const res = await fetch(`${API_BASE}/partner-applications/${id}/documents`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const b = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error((Array.isArray(b.message) ? b.message.join(', ') : b.message) || `Upload failed (${res.status})`);
+    }
+    return res.json();
+  },
+
   portalSummary: () => req('/portal/summary'),
   portalProperties: () => req('/portal/properties'),
   portalStatements: () => req('/portal/statements'),
