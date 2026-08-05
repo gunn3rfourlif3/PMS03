@@ -284,12 +284,12 @@ export const api = {
   // ── Platform admin: partner vetting (KYC/KYB) applications ──
   partnerApplications: (status?: string) => req(`/admin/partner-applications${status ? `?status=${status}` : ''}`),
   partnerApplication: (id: string) => req(`/admin/partner-applications/${id}`),
-  reviewApplication: (id: string) => req(`/admin/partner-applications/${id}/review`, { method: 'POST' }),
-  approveApplication: (id: string, b: { commissionRate?: number; commissionMonths?: number }) =>
+  reviewPartnerApplication: (id: string) => req(`/admin/partner-applications/${id}/review`, { method: 'POST' }),
+  approvePartnerApplication: (id: string, b: { commissionRate?: number; commissionMonths?: number }) =>
     req(`/admin/partner-applications/${id}/approve`, { method: 'POST', body: JSON.stringify(b) }),
-  rejectApplication: (id: string, reason?: string) =>
+  rejectPartnerApplication: (id: string, reason?: string) =>
     req(`/admin/partner-applications/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
-  requestInfoApplication: (id: string, note?: string) =>
+  requestInfoPartnerApplication: (id: string, note?: string) =>
     req(`/admin/partner-applications/${id}/request-info`, { method: 'POST', body: JSON.stringify({ note }) }),
 
   // ── Public: partner application (no auth) ──

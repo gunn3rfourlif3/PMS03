@@ -84,9 +84,9 @@ function ReviewModal({ id, onClose, onDone }: { id: string; onClose: () => void;
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Close</Button>
-          <Button variant="ghost" onClick={() => act(() => api.requestInfoApplication(id, reason || undefined), 'info')} loading={busy === 'info'}>Request info</Button>
-          <Button variant="ghost" onClick={() => act(() => api.rejectApplication(id, reason || undefined), 'reject')} loading={busy === 'reject'}>Reject</Button>
-          <Button onClick={() => act(() => api.approveApplication(id, { commissionRate: Number(rate) || 0.10 }), 'approve')} loading={busy === 'approve'} disabled={d?.status === 'approved'}>Approve</Button>
+          <Button variant="ghost" onClick={() => act(() => api.requestInfoPartnerApplication(id, reason || undefined), 'info')} loading={busy === 'info'}>Request info</Button>
+          <Button variant="ghost" onClick={() => act(() => api.rejectPartnerApplication(id, reason || undefined), 'reject')} loading={busy === 'reject'}>Reject</Button>
+          <Button onClick={() => act(() => api.approvePartnerApplication(id, { commissionRate: Number(rate) || 0.10 }), 'approve')} loading={busy === 'approve'} disabled={d?.status === 'approved'}>Approve</Button>
         </>
       }>
       {!d ? <p className="text-muted">Loading…</p> : (
