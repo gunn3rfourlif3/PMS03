@@ -16,10 +16,12 @@
   window.LOCARE_CONFIG = { apiBase: "https://api.locare.co.za/api" };
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <!-- Type (both free, Fontshare): General Sans → logo + headlines; Satoshi → body/UI. -->
-<link href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
+<!-- Load font CSS without blocking first paint; display=swap shows fallback text immediately. -->
+<link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&f[]=satoshi@400,500,700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&f[]=satoshi@400,500,700&display=swap" /></noscript>
 
 <style>
 :root{

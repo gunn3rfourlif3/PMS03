@@ -5,5 +5,10 @@
 	encode zstd gzip
 	# Clean URLs: /privacy → /privacy.html, /terms → /terms.html
 	try_files {path} {path}.html
+	# Long-cache fingerprint-free static assets; keep HTML fresh (revalidate).
+	@assets path *.svg *.png *.jpg *.jpeg *.webp *.ico *.woff2 *.css *.js
+	header @assets Cache-Control "public, max-age=2592000"
+	@html path / *.html
+	header @html Cache-Control "public, max-age=300, must-revalidate"
 	file_server
 }
