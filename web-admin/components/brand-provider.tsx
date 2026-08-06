@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Branding, DEFAULT_BRANDING, LOCARE_BRAND, brandKey, fetchBranding, applyTheme, isPlatformHost } from '@/lib/branding';
+import { Branding, DEFAULT_BRANDING, LOCARE_BRAND, PLATFORM_DOMAIN, brandKey, fetchBranding, applyTheme, isPlatformHost } from '@/lib/branding';
 
 const BrandContext = createContext<Branding>(DEFAULT_BRANDING);
 export const useBrand = () => useContext(BrandContext);
@@ -16,6 +16,15 @@ export default function BrandProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     let alive = true;
+    // TEMP diagnostic — remove once branding is confirmed.
+    // eslint-disable-next-line no-console
+    console.log('[brand]', {
+      hostname: window.location.hostname,
+      brandKey: brandKey(),
+      platformDomain: PLATFORM_DOMAIN,
+      isPlatformHost: isPlatformHost(),
+      NEXT_PUBLIC_PLATFORM_DOMAIN: process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? '(unset → default)',
+    });
     // Platform hosts (locare.co.za, app.locare.co.za, …) are Locare itself, not
     // an agency — brand them directly, no vendor lookup.
     if (isPlatformHost()) { applyTheme(LOCARE_BRAND); setBrand(LOCARE_BRAND); return; }
