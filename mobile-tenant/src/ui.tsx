@@ -124,12 +124,16 @@ export function Button({ label, onPress, busy, variant = 'primary', icon, style 
 export function BrandFooter() {
   const t = useTheme();
   const c = t.contact;
-  if (!c.email && !c.phone && !c.website) return null;
   return (
     <View style={{ alignItems: 'center', paddingVertical: 22, gap: 4 }}>
       {c.phone ? <Text style={fs(t)} onPress={() => Linking.openURL(`tel:${c.phone}`)}>{c.phone}</Text> : null}
       {c.email ? <Text style={fs(t)} onPress={() => Linking.openURL(`mailto:${c.email}`)}>{c.email}</Text> : null}
       {c.website ? <Text style={[fs(t), { color: t.colors.brand }]} onPress={() => Linking.openURL(`https://${c.website}`)}>{c.website}</Text> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+        <Text style={[fs(t), { color: t.colors.brand }]} onPress={() => Linking.openURL('https://locare.co.za/privacy')}>Privacy</Text>
+        <Text style={fs(t)}>·</Text>
+        <Text style={[fs(t), { color: t.colors.brand }]} onPress={() => Linking.openURL('https://locare.co.za/terms')}>Terms</Text>
+      </View>
       <Text style={{ fontSize: 11, color: t.colors.muted, marginTop: 8, fontFamily: fontFamily(t) }}>Powered by {t.name}</Text>
     </View>
   );
