@@ -11,6 +11,13 @@
 # Web back-office (Next.js)
 app.dantalan.co.za {
 	encode zstd gzip
+	@static path /_next/static/* /brand/*
+	header @static Cache-Control "public, max-age=31536000, immutable"
+	@html {
+		not path /_next/static/*
+		not path /brand/*
+	}
+	header @html Cache-Control "no-cache"
 	reverse_proxy web:3001
 }
 
@@ -63,6 +70,16 @@ locare.co.za, www.locare.co.za {
 # layer lands (Locare Phase 0).
 app.locare.co.za {
 	encode zstd gzip
+	# Hashed assets are immutable → cache hard. The HTML document must always be
+	# revalidated so a new deploy (with new chunk hashes) is picked up immediately
+	# instead of a browser serving a stale page that points at old JS.
+	@static path /_next/static/* /brand/*
+	header @static Cache-Control "public, max-age=31536000, immutable"
+	@html {
+		not path /_next/static/*
+		not path /brand/*
+	}
+	header @html Cache-Control "no-cache"
 	reverse_proxy web:3001
 }
 
