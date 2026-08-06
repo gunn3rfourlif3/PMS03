@@ -16,21 +16,18 @@
   window.LOCARE_CONFIG = { apiBase: "https://api.locare.co.za/api" };
 </script>
 
-<!-- Type (both free, Fontshare): General Sans → logo + headlines; Satoshi → body/UI. -->
-<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
-<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin />
-<!-- Load font CSS without blocking first paint; display=swap shows fallback text immediately. -->
-<link rel="preload" as="style" href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&f[]=satoshi@400,500,700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
-<noscript><link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@500,600,700&f[]=satoshi@400,500,700&display=swap" /></noscript>
+<!-- Type: native system font stack — no third-party font CDN, so text paints
+     instantly with zero external requests. (Self-host General Sans/Satoshi later
+     if the exact typography is wanted.) -->
 
 <style>
 :root{
   --ink:#15161b; --ink-soft:#3a3d47; --muted:#7a7e88; --line:#e6e8ec;
   --bg:#f7f8fa; --card:#ffffff; --accent:#2D6A8F; --accent-dark:#1e4a63; --accent-soft:#e7eef3;
   --radius:18px; --maxw:1120px;
-  --serif:'General Sans',-apple-system,'Segoe UI',sans-serif;
-  --sans:'Satoshi','General Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --logo:'General Sans',sans-serif;
+  --serif:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --logo:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
