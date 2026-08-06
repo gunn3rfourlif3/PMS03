@@ -25,7 +25,7 @@ export default function PartnerApplyPage() {
   const b = useBrand();
   const [step, setStep] = useState(0); // 0 type+contact, 1 details, 2 banking+consent, 3 documents, 4 done
   const [type, setType] = useState<Type>('individual');
-  const [f, setF] = useState<any>({ banking: {}, directors: [{ name: '', idNumber: '' }] });
+  const [f, setF] = useState<any>({ banking: {}, directors: [{ name: '', idNumber: '' }], idType: 'sa_id' });
   const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }));
   const setBank = (k: string, v: any) => setF((s: any) => ({ ...s, banking: { ...s.banking, [k]: v } }));
 
