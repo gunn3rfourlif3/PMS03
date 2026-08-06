@@ -268,9 +268,11 @@ export class PartnerApplicationsService {
 
   private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<void> {
     const provider = this.channels?.get('email');
-    if (!to || !provider) return;
+    if (!to) { this.log.warn(`skipped email — no recipient (subject: ${subject})`); return; }
+    if (!provider) { this.log.warn(`skipped email to ${to} — no email channel configured`); return; }
     const res = await provider.send({ to, subject, body, html });
-    if (!res.ok) this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
+    if (res.ok) this.log.log(`email sent → ${to} via ${provider.constructor.name} (${res.providerRef ?? 'no-ref'})`);
+    else this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 
   private notifyTeam(app: PartnerApplication): Promise<void> {
