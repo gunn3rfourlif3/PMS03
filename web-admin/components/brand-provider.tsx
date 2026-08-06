@@ -5,8 +5,14 @@ import { Branding, DEFAULT_BRANDING, LOCARE_BRAND, brandKey, fetchBranding, appl
 const BrandContext = createContext<Branding>(DEFAULT_BRANDING);
 export const useBrand = () => useContext(BrandContext);
 
+// Synchronous best guess so a Locare host never flashes the generic
+// "Property Manager" default before the effect resolves branding.
+function initialBrand(): Branding {
+  return typeof window !== 'undefined' && isPlatformHost() ? LOCARE_BRAND : DEFAULT_BRANDING;
+}
+
 export default function BrandProvider({ children }: { children: React.ReactNode }) {
-  const [brand, setBrand] = useState<Branding>(DEFAULT_BRANDING);
+  const [brand, setBrand] = useState<Branding>(initialBrand);
 
   useEffect(() => {
     let alive = true;
