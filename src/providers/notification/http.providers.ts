@@ -20,6 +20,17 @@ export class SmtpEmailProvider implements ChannelProvider {
     // explicit SMTP_SECURE override for edge cases.
     secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : this.port === 465,
     auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS ?? '' } : undefined,
+    // Shared-hosting mail servers often present a cert for the server hostname
+    // (e.g. daNN.host-ww.net) even when you connect via a friendly alias
+    // (mail.yourdomain). SMTP_SERVERNAME verifies TLS against the cert's real
+    // name while still connecting to SMTP_HOST. SMTP_TLS_INSECURE=true disables
+    // cert-name verification entirely (last resort — still encrypted).
+    tls: (process.env.SMTP_SERVERNAME || process.env.SMTP_TLS_INSECURE === 'true')
+      ? {
+          ...(process.env.SMTP_SERVERNAME ? { servername: process.env.SMTP_SERVERNAME } : {}),
+          ...(process.env.SMTP_TLS_INSECURE === 'true' ? { rejectUnauthorized: false } : {}),
+        }
+      : undefined,
   });
 
   async send(req: DeliveryRequest): Promise<DeliveryResult> {

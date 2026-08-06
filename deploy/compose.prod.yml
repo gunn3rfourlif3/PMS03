@@ -85,6 +85,9 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      # TLS cert-name handling for shared hosting (see http.providers.ts).
+      SMTP_SERVERNAME: ${SMTP_SERVERNAME:-}
+      SMTP_TLS_INSECURE: ${SMTP_TLS_INSECURE:-}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TWILIO_FROM: ${TWILIO_FROM:-}
