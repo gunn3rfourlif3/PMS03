@@ -12,12 +12,18 @@
 app.dantalan.co.za {
 	encode zstd gzip
 	@static path /_next/static/* /brand/*
-	header @static Cache-Control "public, max-age=31536000, immutable"
+	header @static {
+		Cache-Control "public, max-age=31536000, immutable"
+		defer
+	}
 	@html {
 		not path /_next/static/*
 		not path /brand/*
 	}
-	header @html Cache-Control "no-cache"
+	header @html {
+		Cache-Control "no-cache"
+		defer
+	}
 	reverse_proxy web:3001
 }
 
@@ -73,13 +79,21 @@ app.locare.co.za {
 	# Hashed assets are immutable → cache hard. The HTML document must always be
 	# revalidated so a new deploy (with new chunk hashes) is picked up immediately
 	# instead of a browser serving a stale page that points at old JS.
+	# `defer` makes these run AFTER the upstream response, overriding Next.js's
+	# own Cache-Control (otherwise the plain `header` op is clobbered by the proxy).
 	@static path /_next/static/* /brand/*
-	header @static Cache-Control "public, max-age=31536000, immutable"
+	header @static {
+		Cache-Control "public, max-age=31536000, immutable"
+		defer
+	}
 	@html {
 		not path /_next/static/*
 		not path /brand/*
 	}
-	header @html Cache-Control "no-cache"
+	header @html {
+		Cache-Control "no-cache"
+		defer
+	}
 	reverse_proxy web:3001
 }
 
