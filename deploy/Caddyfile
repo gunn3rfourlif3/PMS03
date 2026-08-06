@@ -11,20 +11,15 @@
 # Web back-office (Next.js)
 app.dantalan.co.za {
 	encode zstd gzip
-	@static path /_next/static/* /brand/*
-	header @static {
-		Cache-Control "public, max-age=31536000, immutable"
-		defer
+	@assets path /_next/static/* /brand/*
+	handle @assets {
+		reverse_proxy web:3001
 	}
-	@html {
-		not path /_next/static/*
-		not path /brand/*
+	handle {
+		reverse_proxy web:3001 {
+			header_down Cache-Control "no-cache"
+		}
 	}
-	header @html {
-		Cache-Control "no-cache"
-		defer
-	}
-	reverse_proxy web:3001
 }
 
 # API (NestJS). CORS is enforced by the app via CORS_ORIGINS.
@@ -76,25 +71,20 @@ locare.co.za, www.locare.co.za {
 # layer lands (Locare Phase 0).
 app.locare.co.za {
 	encode zstd gzip
-	# Hashed assets are immutable → cache hard. The HTML document must always be
-	# revalidated so a new deploy (with new chunk hashes) is picked up immediately
-	# instead of a browser serving a stale page that points at old JS.
-	# `defer` makes these run AFTER the upstream response, overriding Next.js's
-	# own Cache-Control (otherwise the plain `header` op is clobbered by the proxy).
-	@static path /_next/static/* /brand/*
-	header @static {
-		Cache-Control "public, max-age=31536000, immutable"
-		defer
+	# Immutable hashed assets keep Next's long-lived caching.
+	@assets path /_next/static/* /brand/*
+	handle @assets {
+		reverse_proxy web:3001
 	}
-	@html {
-		not path /_next/static/*
-		not path /brand/*
+	# HTML documents must always revalidate so a new deploy (new chunk hashes) is
+	# picked up immediately, instead of a browser replaying a stale page that
+	# points at old JS. header_down forces this on the proxied response itself —
+	# a plain `header ... defer` doesn't beat Next's prerendered s-maxage.
+	handle {
+		reverse_proxy web:3001 {
+			header_down Cache-Control "no-cache"
+		}
 	}
-	header @html {
-		Cache-Control "no-cache"
-		defer
-	}
-	reverse_proxy web:3001
 }
 
 # Locare API (same NestJS container; CORS enforced via CORS_ORIGINS)
