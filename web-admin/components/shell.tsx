@@ -145,6 +145,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  // Auth lives in browser storage, so the server can't know whether to show the
+  // authed chrome. Waiting for mount stops the server from rendering a sidebar
+  // that the client immediately throws away on redirect to /login.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   // Login, payment-return, and the public rentals/sign pages render bare (no
   // sidebar / auth chrome) and don't require a session.
   const isPublic =
@@ -168,7 +173,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [path, isPublic, router]);
 
   if (isPublic) return <main className="min-h-screen">{children}</main>;
-  if (typeof window !== 'undefined' && !auth.get()) return null; // avoid flashing protected content pre-redirect
+  if (!mounted) return null; // never SSR the authed shell (see `mounted` above)
+  if (!auth.get()) return null; // avoid flashing protected content pre-redirect
   const nav = path.startsWith('/admin') ? ADMIN_NAV
     : path.startsWith('/partner') ? PARTNER_NAV
     : path.startsWith('/portal') ? PORTAL_NAV
