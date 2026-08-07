@@ -42,4 +42,10 @@ export class AdminPartnerApplicationsController {
   requestInfo(@Param('id') id: string, @CurrentTenant() p: { userId: string }, @Body() dto: DecisionDto) {
     return this.svc.requestInfo(id, p.userId, dto.note);
   }
+
+  /** Re-send the stage-2 KYC link to an applicant who stalled or lost the email. */
+  @Post(':id/resend-link')
+  resendLink(@Param('id') id: string) {
+    return this.svc.resendLink(id);
+  }
 }

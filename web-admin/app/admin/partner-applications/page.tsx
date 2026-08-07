@@ -3,10 +3,16 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { GlassCard, Button, Badge, PageHeader, EmptyState, Modal, Field } from '@/components/ui';
 
-type Row = { id: string; type: string; contactName?: string; fullName?: string; companyName?: string; contactEmail: string; status: string; createdAt: string };
-const STATUSES = ['submitted', 'under_review', 'info_requested', 'approved', 'rejected', 'all'];
-const tone = (s: string): any => ({ submitted: 'brand', under_review: 'brand', info_requested: 'muted', approved: 'success', rejected: 'danger', draft: 'muted' }[s] ?? 'muted');
+type Row = {
+  id: string; type: string; contactName?: string; fullName?: string; companyName?: string;
+  contactEmail: string; contactPhone?: string; status: string; createdAt: string; reminderSentAt?: string;
+};
+// 'started' = contact details only, KYC link emailed but not yet completed.
+const STATUSES = ['submitted', 'under_review', 'info_requested', 'started', 'approved', 'rejected', 'all'];
+const tone = (s: string): any => ({ submitted: 'brand', under_review: 'brand', info_requested: 'muted', approved: 'success', rejected: 'danger', draft: 'muted', started: 'muted' }[s] ?? 'muted');
 const nameOf = (r: Row) => r.companyName || r.fullName || r.contactName || r.contactEmail;
+/** Leads that haven't completed KYC can't be reviewed — only chased. */
+const isLead = (s: string) => s === 'started' || s === 'draft';
 
 export default function PartnerApplicationsPage() {
   const [status, setStatus] = useState('submitted');
@@ -42,11 +48,20 @@ export default function PartnerApplicationsPage() {
                   <div className="font-heading text-lg font-bold text-ink">{nameOf(r)}
                     <span className="ml-2 align-middle text-xs font-normal capitalize text-muted">· {r.type}</span>
                   </div>
-                  <div className="text-sm text-muted">{r.contactEmail} · {new Date(r.createdAt).toLocaleDateString('en-ZA')}</div>
+                  <div className="text-sm text-muted">
+                    {r.contactEmail}{r.contactPhone ? ` · ${r.contactPhone}` : ''} · {new Date(r.createdAt).toLocaleDateString('en-ZA')}
+                  </div>
+                  {isLead(r.status) && (
+                    <div className="mt-0.5 text-xs text-muted">
+                      Hasn&rsquo;t completed KYC yet{r.reminderSentAt ? ' · reminder sent' : ''}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tone={tone(r.status)}>{r.status.replace('_', ' ')}</Badge>
-                  <Button variant="ghost" onClick={() => setOpenId(r.id)}>Review →</Button>
+                  {isLead(r.status)
+                    ? <ResendButton id={r.id} />
+                    : <Button variant="ghost" onClick={() => setOpenId(r.id)}>Review →</Button>}
                 </div>
               </GlassCard>
             ))}
@@ -55,6 +70,22 @@ export default function PartnerApplicationsPage() {
 
       {openId && <ReviewModal id={openId} onClose={() => setOpenId(null)} onDone={() => { setOpenId(null); load(); }} />}
     </div>
+  );
+}
+
+/** Re-send the KYC link to an applicant who stopped after stage 1. */
+function ResendButton({ id }: { id: string }) {
+  const [state, setState] = useState<'idle' | 'busy' | 'sent' | 'error'>('idle');
+  const send = async () => {
+    setState('busy');
+    try { await api.resendPartnerApplicationLink(id); setState('sent'); }
+    catch { setState('error'); }
+  };
+  if (state === 'sent') return <span className="text-xs font-medium text-success">Link sent</span>;
+  return (
+    <Button variant="ghost" onClick={send} loading={state === 'busy'}>
+      {state === 'error' ? 'Retry send' : 'Resend link'}
+    </Button>
   );
 }
 

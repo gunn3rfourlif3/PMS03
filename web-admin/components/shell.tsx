@@ -180,6 +180,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     path.startsWith('/auth/google') ||
     path === '/signup' ||
     path === '/partner-apply' ||
+    path.startsWith('/partner-apply/') ||
     path.startsWith('/pay/') ||
     path === '/rentals' ||
     path.startsWith('/rentals/') ||

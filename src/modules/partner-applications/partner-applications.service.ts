@@ -11,7 +11,9 @@ import { toE164 } from '@common/phone/e164';
 import { CHANNEL_PROVIDERS, Channel, ChannelProvider } from '@providers/notification/notification-provider.interface';
 import { KYC_PROVIDER, KycProvider } from '@providers/kyc/kyc-provider.interface';
 import { renderEmail } from '@common/email/email';
-import { PartnerApplication, ApplicationDocument, PartnerApplicationType } from './partner-application.entity';
+import {
+  PartnerApplication, ApplicationDocument, PartnerApplicationType, PartnerApplicationStatus,
+} from './partner-application.entity';
 
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const APPLY_URL = () => (process.env.PARTNER_APPLY_URL || 'https://app.locare.co.za/partner-apply').replace(/\/+$/, '');
@@ -27,10 +29,22 @@ export interface CreateApplicationInput {
   agreedTerms?: boolean;
 }
 
+/** Stage 1 — all we ask for before emailing the KYC link. */
+export interface StartApplicationInput {
+  contactName?: string; contactEmail: string; contactPhone?: string;
+}
+
+/** Stage 2 — the vetting detail, saved against an existing draft. Everything is
+ *  optional: the form saves progressively and completeness is enforced on submit. */
+export type SaveDetailsInput = Partial<CreateApplicationInput>;
+
 @Injectable()
 export class PartnerApplicationsService {
   private readonly log = new Logger('PartnerApplications');
-  private readonly tokenTtlMs = 1000 * 60 * 60 * 24 * 7; // 7 days to finish + upload docs
+  // Applicants often need to dig out an ID doc and a bank confirmation letter, so
+  // the link is deliberately long-lived.
+  private readonly tokenTtlMs =
+    1000 * 60 * 60 * 24 * Math.max(1, Number(process.env.PARTNER_APP_LINK_DAYS ?? 14));
 
   constructor(
     @InjectDataSource() private readonly ds: DataSource,
@@ -49,7 +63,112 @@ export class PartnerApplicationsService {
     return app;
   }
 
-  // ── Public ────────────────────────────────────────────────────────────────
+  // ── Public: stage 1 (contact only) ────────────────────────────────────────
+
+  /**
+   * Stage 1 of the partner application: contact details only.
+   *
+   * Asking for ID numbers, directors and banking up front deterred applicants,
+   * so we capture just enough to reach them and email a link to finish the
+   * vetting. The token is deliberately NOT returned to the browser — the
+   * applicant must open the emailed link, which doubles as email verification.
+   */
+  async start(input: StartApplicationInput): Promise<{ id: string; emailed: boolean }> {
+    const contactEmail = input.contactEmail?.trim().toLowerCase();
+    if (!contactEmail) throw new BadRequestException('A contact email is required.');
+
+    // Someone re-applying with the same email while a draft is still open should
+    // land back in the same application rather than create a duplicate lead.
+    const existing = await this.repo().findOne({
+      where: [
+        { contactEmail, status: 'started' as PartnerApplicationStatus },
+        { contactEmail, status: 'draft' as PartnerApplicationStatus },
+      ],
+      order: { createdAt: 'DESC' },
+    });
+
+    const token = this.newToken();
+    const app = existing ?? this.repo().create({
+      // Type is chosen in stage 2; default to the commonest case for now.
+      type: 'individual' as PartnerApplicationType,
+      contactEmail,
+      status: 'started' as PartnerApplicationStatus,
+      sensitive: {}, banking: {}, documents: [], risk: {},
+      agreedTerms: false,
+    });
+    app.contactName = input.contactName?.trim() || app.contactName;
+    app.contactPhone = input.contactPhone
+      ? (toE164(input.contactPhone) ?? input.contactPhone.trim())
+      : app.contactPhone;
+    app.uploadTokenHash = this.hashToken(token);
+    app.uploadTokenExpires = new Date(Date.now() + this.tokenTtlMs);
+    const saved = await this.repo().save(app);
+
+    await this.notifyApplicant(saved, 'start', token);
+    if (!existing) await this.notifyTeamOfLead(saved);
+    this.log.log(`Partner lead ${saved.id} started (${contactEmail})`);
+    return { id: saved.id, emailed: true };
+  }
+
+  /** Load a draft for stage 2. Non-sensitive fields only — enough to prefill. */
+  async resume(id: string, token: string): Promise<Record<string, unknown>> {
+    const app = await this.load(id);
+    this.assertEditable(app, token);
+    const s = app.sensitive as any;
+    return {
+      id: app.id,
+      status: app.status,
+      type: app.type,
+      contactName: app.contactName, contactEmail: app.contactEmail, contactPhone: app.contactPhone,
+      fullName: app.fullName, idType: app.idType, residentialAddress: app.residentialAddress,
+      companyName: app.companyName, registrationNumber: app.registrationNumber,
+      vatNumber: app.vatNumber, businessAddress: app.businessAddress,
+      directors: s?.directors ?? [],
+      banking: app.banking ?? {},
+      agreedTerms: app.agreedTerms,
+      documents: (app.documents ?? []).map((d) => ({ docType: d.docType, name: d.name, uploadedAt: d.uploadedAt })),
+      // Surfaced so stage 2 can explain why they were sent back here.
+      decisionReason: app.status === 'info_requested' ? app.decisionReason : undefined,
+      expiresAt: app.uploadTokenExpires,
+    };
+  }
+
+  /** Save stage-2 vetting details against an open draft. Partial + repeatable. */
+  async saveDetails(id: string, token: string, input: SaveDetailsInput): Promise<{ status: string }> {
+    const app = await this.load(id);
+    this.assertEditable(app, token);
+    if (input.type && input.type !== 'individual' && input.type !== 'business')
+      throw new BadRequestException('Choose individual or business.');
+
+    if (input.type) app.type = input.type;
+    if (input.contactName !== undefined) app.contactName = input.contactName?.trim();
+    if (input.contactPhone !== undefined)
+      app.contactPhone = input.contactPhone ? (toE164(input.contactPhone) ?? input.contactPhone.trim()) : undefined;
+    if (input.fullName !== undefined) app.fullName = input.fullName?.trim();
+    if (input.idType !== undefined) app.idType = input.idType;
+    if (input.residentialAddress !== undefined) app.residentialAddress = input.residentialAddress?.trim();
+    if (input.companyName !== undefined) app.companyName = input.companyName?.trim();
+    if (input.registrationNumber !== undefined) app.registrationNumber = input.registrationNumber?.trim();
+    if (input.vatNumber !== undefined) app.vatNumber = input.vatNumber?.trim();
+    if (input.businessAddress !== undefined) app.businessAddress = input.businessAddress?.trim();
+
+    // Merge rather than replace: stage 2 saves incrementally, and a later step
+    // must not wipe PII captured by an earlier one.
+    const nextSensitive = this.cleanSensitive(input as CreateApplicationInput);
+    if (Object.keys(nextSensitive).length) app.sensitive = { ...(app.sensitive ?? {}), ...nextSensitive };
+    if (input.banking) app.banking = { ...(app.banking ?? {}), ...input.banking };
+    if (input.agreedTerms !== undefined) {
+      app.agreedTerms = !!input.agreedTerms;
+      if (input.agreedTerms && !app.consentAt) app.consentAt = new Date();
+    }
+
+    // First real edit promotes the lead to a proper draft.
+    if (app.status === 'started') app.status = 'draft';
+    await this.repo().save(app);
+    return { status: app.status };
+  }
+
+  // ── Public: legacy single-shot create (kept for API compatibility) ────────
 
   /** Start a draft application; returns an upload token the applicant uses to add
    *  documents and submit without a login. */
@@ -95,7 +214,7 @@ export class PartnerApplicationsService {
       throw new ForbiddenException('This application link has expired.');
     if (!token || this.hashToken(token) !== app.uploadTokenHash)
       throw new ForbiddenException('Invalid application link.');
-    if (app.status !== 'draft' && app.status !== 'info_requested')
+    if (app.status !== 'started' && app.status !== 'draft' && app.status !== 'info_requested')
       throw new ForbiddenException('This application can no longer be edited.');
   }
 
@@ -168,7 +287,9 @@ export class PartnerApplicationsService {
 
   list(status?: string): Promise<PartnerApplication[]> {
     const qb = this.repo().createQueryBuilder('a')
-      .select(['a.id', 'a.type', 'a.contactName', 'a.contactEmail', 'a.companyName', 'a.fullName', 'a.status', 'a.createdAt', 'a.reviewedAt'])
+      // contactPhone + reminderSentAt included so the queue is actionable for
+      // 'started' leads that have no KYC detail yet.
+      .select(['a.id', 'a.type', 'a.contactName', 'a.contactEmail', 'a.contactPhone', 'a.companyName', 'a.fullName', 'a.status', 'a.createdAt', 'a.reviewedAt', 'a.reminderSentAt'])
       .orderBy('a.createdAt', 'DESC').take(200);
     if (status && status !== 'all') qb.where('a.status = :status', { status });
     return qb.getMany();
@@ -240,6 +361,52 @@ export class PartnerApplicationsService {
     return { status: app.status };
   }
 
+  /** Re-issue the stage-2 link (admin action, or self-serve if the link lapsed). */
+  async resendLink(id: string): Promise<{ emailed: boolean }> {
+    const app = await this.load(id);
+    if (!['started', 'draft', 'info_requested'].includes(app.status))
+      throw new BadRequestException('This application is no longer open.');
+    const token = this.newToken();
+    app.uploadTokenHash = this.hashToken(token);
+    app.uploadTokenExpires = new Date(Date.now() + this.tokenTtlMs);
+    await this.repo().save(app);
+    await this.notifyApplicant(app, 'start', token);
+    return { emailed: true };
+  }
+
+  /**
+   * Single nudge to applicants who gave us their contact details but never
+   * finished KYC. Runs on a schedule; `reminder_sent_at` makes it send once only.
+   * Each reminder carries a fresh token (we only store the hash, so the original
+   * can't be re-sent) and therefore also extends their window.
+   */
+  async sendReminders(afterHours = Number(process.env.PARTNER_APP_REMINDER_HOURS ?? 48)): Promise<{ sent: number }> {
+    const cutoff = new Date(Date.now() - Math.max(1, afterHours) * 3_600_000);
+    const due = await this.repo().createQueryBuilder('a')
+      .where('a.status IN (:...statuses)', { statuses: ['started', 'draft'] })
+      .andWhere('a.reminder_sent_at IS NULL')
+      .andWhere('a.created_at < :cutoff', { cutoff })
+      .take(200)
+      .getMany();
+
+    let sent = 0;
+    for (const app of due) {
+      try {
+        const token = this.newToken();
+        app.uploadTokenHash = this.hashToken(token);
+        app.uploadTokenExpires = new Date(Date.now() + this.tokenTtlMs);
+        app.reminderSentAt = new Date();
+        await this.repo().save(app);
+        await this.notifyApplicant(app, 'reminder', token);
+        sent += 1;
+      } catch (e: any) {
+        this.log.warn(`reminder for application ${app.id} failed: ${e.message}`);
+      }
+    }
+    if (sent) this.log.log(`Sent ${sent} partner-application reminder(s)`);
+    return { sent };
+  }
+
   // ── Retention (POPIA) ────────────────────────────────────────────────────────
 
   /**
@@ -281,8 +448,46 @@ export class PartnerApplicationsService {
       `A new ${app.type} partner application was submitted.\n\nName: ${who ?? '-'}\nContact: ${app.contactName ?? '-'} (${app.contactEmail})\n\nReview it in Admin → Partners → Applications.`);
   }
 
-  private notifyApplicant(app: PartnerApplication, kind: 'approved' | 'rejected' | 'info_requested', token?: string): Promise<void> {
+  private notifyTeamOfLead(app: PartnerApplication): Promise<void> {
+    return this.email(TEAM_EMAIL(), `New partner enquiry: ${app.contactName ?? app.contactEmail}`,
+      `Someone started a partner application.\n\nName: ${app.contactName ?? '-'}\nEmail: ${app.contactEmail}\nPhone: ${app.contactPhone ?? '-'}\n\nThey've been emailed a link to complete KYC. Track it in Admin → Partners → Applications.`);
+  }
+
+  /** The stage-2 link. Continues the application without a login. */
+  private continueUrl(app: PartnerApplication, token?: string): string {
+    return `${APPLY_URL()}/continue?id=${app.id}&token=${encodeURIComponent(token ?? '')}`;
+  }
+
+  private notifyApplicant(
+    app: PartnerApplication,
+    kind: 'approved' | 'rejected' | 'info_requested' | 'start' | 'reminder',
+    token?: string,
+  ): Promise<void> {
     const first = (app.contactName || app.fullName || 'there').split(' ')[0];
+
+    if (kind === 'start' || kind === 'reminder') {
+      const link = this.continueUrl(app, token);
+      const days = Math.round(this.tokenTtlMs / 86_400_000);
+      const heading = kind === 'start' ? `Thanks, ${first} — one more step` : `Still interested, ${first}?`;
+      const intro = kind === 'start'
+        ? 'Thanks for your interest in the Locare partner programme.'
+        : "You started a partner application with us but haven't finished it yet.";
+      return this.email(
+        app.contactEmail,
+        kind === 'start' ? 'Complete your Locare partner application' : 'Finish your Locare partner application',
+        `Hi ${first}, ${intro}\n\nTo finish, we need to verify who you are (KYC/KYB). Have your ID or company registration and banking details ready — it takes a few minutes.\n\nContinue here: ${link}\n\nThis link is valid for ${days} days.`,
+        renderEmail({
+          heading,
+          paragraphs: [
+            intro,
+            'To complete it we need to verify who you are. Have your ID document (or company registration) and your banking details to hand — it only takes a few minutes.',
+            `This link stays valid for ${days} days.`,
+          ],
+          buttons: [{ label: 'Complete your application', url: link }],
+        }),
+      );
+    }
+
     if (kind === 'approved') {
       return this.email(app.contactEmail, 'Your Locare partner application is approved 🎉',
         `Hi ${first}, your partner application has been approved. Sign in at ${APPLY_URL().replace('/partner-apply', '')} with this email to access your partner portal.`,
@@ -292,7 +497,7 @@ export class PartnerApplicationsService {
       return this.email(app.contactEmail, 'Update on your Locare partner application',
         `Hi ${first}, thank you for your interest. After review we're unable to approve your partner application at this time.${app.decisionReason ? `\n\nNote: ${app.decisionReason}` : ''}`);
     }
-    const link = `${APPLY_URL()}?id=${app.id}&token=${encodeURIComponent(token ?? '')}`;
+    const link = this.continueUrl(app, token);
     return this.email(app.contactEmail, 'We need a bit more for your Locare partner application',
       `Hi ${first}, we need some additional information to continue.${app.decisionReason ? `\n\n${app.decisionReason}` : ''}\n\nContinue your application: ${link}`,
       renderEmail({ heading: 'A little more needed', paragraphs: [app.decisionReason || 'We need some additional information to continue your application.'], buttons: [{ label: 'Continue application', url: link }] }));

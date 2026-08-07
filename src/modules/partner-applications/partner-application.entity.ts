@@ -2,8 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { encryptedJson } from '@common/security/pii-crypto';
 
 export type PartnerApplicationType = 'individual' | 'business';
+/**
+ * 'started' = contact details only (stage 1). The applicant has been emailed a
+ * link to complete KYC/KYB; nothing sensitive has been collected yet.
+ * 'draft'   = they opened the link and began filling in stage 2.
+ */
 export type PartnerApplicationStatus =
-  | 'draft' | 'submitted' | 'under_review' | 'info_requested' | 'approved' | 'rejected';
+  | 'started' | 'draft' | 'submitted' | 'under_review' | 'info_requested' | 'approved' | 'rejected';
 
 export interface ApplicationDocument {
   docType: string;   // id_document | proof_of_address | company_registration | director_id | bank_confirmation | vat_certificate | other
@@ -63,6 +68,10 @@ export class PartnerApplication {
   // without a login, until it expires.
   @Column({ name: 'upload_token_hash', type: 'text', nullable: true }) uploadTokenHash?: string;
   @Column({ name: 'upload_token_expires', type: 'timestamptz', nullable: true }) uploadTokenExpires?: Date;
+
+  // Set when the "you haven't finished your application" nudge goes out, so the
+  // reminder job only ever sends once per applicant.
+  @Column({ name: 'reminder_sent_at', type: 'timestamptz', nullable: true }) reminderSentAt?: Date;
 
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;

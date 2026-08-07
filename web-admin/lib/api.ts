@@ -291,10 +291,23 @@ export const api = {
     req(`/admin/partner-applications/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
   requestInfoPartnerApplication: (id: string, note?: string) =>
     req(`/admin/partner-applications/${id}/request-info`, { method: 'POST', body: JSON.stringify({ note }) }),
+  resendPartnerApplicationLink: (id: string) =>
+    req(`/admin/partner-applications/${id}/resend-link`, { method: 'POST' }),
 
-  // ── Public: partner application (no auth) ──
-  createPartnerApplication: (b: any): Promise<{ id: string; uploadToken: string }> =>
+  // ── Public: partner application (no auth), two stages ──
+  /** Stage 1: contact details only. Returns no token — the link is emailed. */
+  startPartnerApplication: (b: { contactName?: string; contactEmail: string; contactPhone?: string }):
+    Promise<{ id: string; emailed: boolean }> =>
     req('/partner-applications', { method: 'POST', body: JSON.stringify(b) }),
+  /** Stage 2: load the saved draft behind the emailed link. */
+  resumePartnerApplication: (id: string, token: string): Promise<any> =>
+    req(`/partner-applications/${id}?token=${encodeURIComponent(token)}`),
+  /** Stage 2: save vetting details (repeatable, partial). */
+  savePartnerApplication: (id: string, token: string, b: any) =>
+    req(`/partner-applications/${id}`, { method: 'PATCH', body: JSON.stringify({ ...b, token }) }),
+  /** Ask for a fresh link when theirs expired. */
+  resendMyPartnerApplication: (id: string) =>
+    req(`/partner-applications/${id}/resend`, { method: 'POST' }),
   submitPartnerApplication: (id: string, token: string) =>
     req(`/partner-applications/${id}/submit`, { method: 'POST', body: JSON.stringify({ token }) }),
   uploadApplicationDoc: async (id: string, token: string, docType: string, file: File): Promise<any> => {
