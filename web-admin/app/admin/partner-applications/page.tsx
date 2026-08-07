@@ -7,8 +7,18 @@ type Row = {
   id: string; type: string; contactName?: string; fullName?: string; companyName?: string;
   contactEmail: string; contactPhone?: string; status: string; createdAt: string; reminderSentAt?: string;
 };
-// 'started' = contact details only, KYC link emailed but not yet completed.
-const STATUSES = ['submitted', 'under_review', 'info_requested', 'started', 'approved', 'rejected', 'all'];
+// "Unfinished" covers both flavours of incomplete application: 'started' (contact
+// details only, KYC link emailed) and 'draft' (part-way through stage 2, including
+// leftovers from the old single-page form). The API accepts a comma-separated set.
+const STATUSES: Array<{ key: string; label: string }> = [
+  { key: 'submitted', label: 'Submitted' },
+  { key: 'under_review', label: 'Under review' },
+  { key: 'info_requested', label: 'Info requested' },
+  { key: 'started,draft', label: 'Unfinished' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'all', label: 'All' },
+];
 const tone = (s: string): any => ({ submitted: 'brand', under_review: 'brand', info_requested: 'muted', approved: 'success', rejected: 'danger', draft: 'muted', started: 'muted' }[s] ?? 'muted');
 const nameOf = (r: Row) => r.companyName || r.fullName || r.contactName || r.contactEmail;
 /** Leads that haven't completed KYC can't be reviewed — only chased. */
@@ -29,9 +39,9 @@ export default function PartnerApplicationsPage() {
 
       <div className="mb-4 flex flex-wrap gap-2">
         {STATUSES.map((s) => (
-          <button key={s} onClick={() => setStatus(s)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium capitalize transition ${status === s ? 'bg-brand text-onbrand' : 'bg-black/[0.04] text-muted hover:text-ink'}`}>
-            {s.replace('_', ' ')}
+          <button key={s.key} onClick={() => setStatus(s.key)}
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${status === s.key ? 'bg-brand text-onbrand' : 'bg-black/[0.04] text-muted hover:text-ink'}`}>
+            {s.label}
           </button>
         ))}
       </div>
@@ -39,7 +49,11 @@ export default function PartnerApplicationsPage() {
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       {rows === null ? <p className="text-muted">Loading…</p>
-        : rows.length === 0 ? <EmptyState>No {status === 'all' ? '' : status.replace('_', ' ')} applications.</EmptyState>
+        : rows.length === 0 ? (
+          <EmptyState>
+            No {status === 'all' ? '' : (STATUSES.find((s) => s.key === status)?.label ?? status).toLowerCase()} applications.
+          </EmptyState>
+        )
         : (
           <div className="grid gap-3">
             {rows.map((r) => (

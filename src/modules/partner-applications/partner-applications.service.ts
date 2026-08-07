@@ -291,7 +291,12 @@ export class PartnerApplicationsService {
       // 'started' leads that have no KYC detail yet.
       .select(['a.id', 'a.type', 'a.contactName', 'a.contactEmail', 'a.contactPhone', 'a.companyName', 'a.fullName', 'a.status', 'a.createdAt', 'a.reviewedAt', 'a.reminderSentAt'])
       .orderBy('a.createdAt', 'DESC').take(200);
-    if (status && status !== 'all') qb.where('a.status = :status', { status });
+    // Accepts a single status or a comma-separated set ("started,draft"), so one
+    // filter chip can cover every flavour of unfinished application.
+    if (status && status !== 'all') {
+      const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+      if (statuses.length) qb.where('a.status IN (:...statuses)', { statuses });
+    }
     return qb.getMany();
   }
 
