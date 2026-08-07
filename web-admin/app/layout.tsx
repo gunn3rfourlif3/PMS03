@@ -1,10 +1,30 @@
 import './globals.css';
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import BrandProvider from '@/components/brand-provider';
 import Shell from '@/components/shell';
 import { brandForHost } from '@/lib/brand-shared';
 
-export const metadata = { title: 'Back-office' };
+// Title/description must carry the brand name: this is what crawlers (and
+// Google's OAuth brand-verification reviewer) see on app.<domain>. A generic
+// "Back-office" title reads as a different app to the one on the consent screen.
+export function generateMetadata(): Metadata {
+  const brand = brandForHost(headers().get('host') ?? '');
+  const description =
+    brand.slug === 'locare'
+      ? 'Locare is a white-label property-management platform for South African rental agencies — leasing, rent collection, trust accounting, and branded tenant & landlord apps. Sign in to your agency back-office.'
+      : `${brand.name} back-office — leasing, rent collection, trust accounting and owner payouts.`;
+  return {
+    title: `${brand.name} — Back-office`,
+    description,
+    applicationName: brand.name,
+    openGraph: {
+      siteName: brand.name,
+      title: `${brand.name} — Back-office`,
+      description,
+    },
+  };
+}
 
 // The brand depends on the request's Host header, so this layout can't be
 // statically prerendered — otherwise Next bakes one host's brand ("Property

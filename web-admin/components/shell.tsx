@@ -141,6 +141,28 @@ function Footer() {
   );
 }
 
+/**
+ * Pre-hydration placeholder. Kept deliberately text-first: this is the only
+ * markup a crawler (or Google's brand-verification reviewer) sees on app.<domain>,
+ * so it names the app and states its purpose instead of rendering a blank page.
+ */
+function BrandSplash() {
+  const b = useBrand();
+  return (
+    <main className="grid min-h-screen place-items-center p-6 text-center">
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-ink">{b.name}</h1>
+        {b.tagline && <p className="mt-2 text-sm text-muted">{b.tagline}</p>}
+        <p className="mx-auto mt-3 max-w-md text-sm text-muted">
+          {b.name} is a property-management platform for rental agencies — leasing,
+          rent collection, trust accounting, owner payouts and maintenance. Sign in
+          to continue to your back-office.
+        </p>
+      </div>
+    </main>
+  );
+}
+
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
@@ -173,7 +195,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [path, isPublic, router]);
 
   if (isPublic) return <main className="min-h-screen">{children}</main>;
-  if (!mounted) return null; // never SSR the authed shell (see `mounted` above)
+  // Never SSR the authed shell (see `mounted` above). Render a branded splash
+  // rather than nothing: it's what crawlers and Google's OAuth brand-verification
+  // reviewer see on this domain, so it must name the app and say what it does.
+  if (!mounted) return <BrandSplash />;
   if (!auth.get()) return null; // avoid flashing protected content pre-redirect
   const nav = path.startsWith('/admin') ? ADMIN_NAV
     : path.startsWith('/partner') ? PARTNER_NAV
