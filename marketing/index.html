@@ -111,7 +111,9 @@ section{padding:96px 0}
 @media(max-width:860px){.steps{grid-template-columns:1fr}}
 
 /* Pricing */
-.pricing{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:56px;max-width:1140px;margin-left:auto;margin-right:auto}
+/* Three priced tiers across; "Custom" lives in its own band below (.plan-custom)
+   so it never competes on price with them and they each get a wider card. */
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;max-width:1040px;margin-left:auto;margin-right:auto}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px}
 .plan.pro{border-color:var(--accent);position:relative;box-shadow:0 30px 60px -40px rgba(45,106,143,.5)}
 .plan .tag{position:absolute;top:-12px;right:28px;background:var(--accent);color:#fff;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px}
@@ -122,8 +124,34 @@ section{padding:96px 0}
 .plan li{display:flex;gap:10px;font-size:15px;color:var(--ink-soft)}
 .plan li:before{content:"✓";color:var(--accent);font-weight:700;flex:none}
 .plan .btn{width:100%;justify-content:center}
-@media(max-width:1000px){.pricing{grid-template-columns:repeat(2,1fr);max-width:620px}}
-@media(max-width:560px){.pricing{grid-template-columns:1fr;max-width:420px}}
+/* Custom / enterprise band — dark panel, set apart from the priced cards. */
+.plan-custom{max-width:1040px;margin:20px auto 0;background:var(--ink);color:#fff;border-radius:22px;
+  padding:34px 38px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;
+  box-shadow:0 30px 60px -40px rgba(21,22,27,.6)}
+.plan-custom h3{font-family:var(--sans);font-weight:600;font-size:15px;text-transform:uppercase;
+  letter-spacing:.1em;color:rgba(255,255,255,.6);margin:0}
+.plan-custom .custom-lead{font-family:var(--serif);font-size:30px;line-height:1.15;color:#fff;margin:10px 0 0;letter-spacing:-.02em}
+.plan-custom p{color:rgba(255,255,255,.72);font-size:15px;margin:10px 0 0;max-width:60ch}
+.plan-custom .custom-feats{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:10px 22px}
+.plan-custom .custom-feats li{display:flex;gap:9px;font-size:14.5px;color:rgba(255,255,255,.82)}
+.plan-custom .custom-feats li:before{content:"✓";color:#fff;font-weight:700;flex:none}
+.plan-custom .custom-cta{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.plan-custom .btn{background:#fff;color:var(--ink);border-color:#fff;white-space:nowrap}
+.plan-custom .btn:hover{background:rgba(255,255,255,.88)}
+.plan-custom .custom-note{font-size:12.5px;color:rgba(255,255,255,.55)}
+
+@media(max-width:1000px){
+  .pricing{grid-template-columns:repeat(2,1fr);max-width:620px}
+  .plan-custom{max-width:620px}
+}
+@media(max-width:720px){
+  /* Stack the band: CTA drops below the copy and goes full width. */
+  .plan-custom{grid-template-columns:1fr;padding:28px 24px;gap:20px}
+  .plan-custom .custom-cta{align-items:stretch}
+  .plan-custom .btn{width:100%;justify-content:center}
+  .plan-custom .custom-note{text-align:center}
+}
+@media(max-width:560px){.pricing{grid-template-columns:1fr;max-width:420px}.plan-custom{max-width:420px}}
 
 /* Docs */
 .docs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
@@ -322,17 +350,23 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
         </ul>
         <a class="btn btn-ghost" href="#start">Talk to us</a>
       </div>
-      <div class="plan reveal">
+    </div>
+
+    <div class="plan-custom reveal">
+      <div>
         <h3>Custom</h3>
-        <div class="price" style="font-size:34px">Talk to us</div>
-        <p class="muted" style="font-size:14px">Any size.</p>
-        <ul>
-          <li>Everything in Scale, plus:</li>
+        <p class="custom-lead">Something bigger, or something bespoke.</p>
+        <p>Everything in Scale, built around how your group actually works — for portfolios that don&rsquo;t fit a band.</p>
+        <ul class="custom-feats">
           <li>Branded native apps</li>
           <li>Custom integrations</li>
           <li>Multi-country</li>
+          <li>Dedicated onboarding</li>
         </ul>
-        <a class="btn btn-ghost" href="#start">Contact sales</a>
+      </div>
+      <div class="custom-cta">
+        <a class="btn" href="#start">Contact sales</a>
+        <span class="custom-note">We&rsquo;ll scope it with you</span>
       </div>
     </div>
   </div>
