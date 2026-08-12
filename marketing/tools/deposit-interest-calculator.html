@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rental deposit interest calculator (South Africa) — Locare</title>
+<meta name="description" content="Work out the interest owed to a tenant on a rental deposit under the Rental Housing Act. Free calculator for South African landlords and agencies." />
+<link rel="canonical" href="https://locare.co.za/tools/deposit-interest-calculator" />
+<meta property="og:site_name" content="Locare" />
+<meta property="og:title" content="Rental deposit interest calculator (South Africa)" />
+<meta property="og:description" content="Calculate the interest owed to a tenant on a deposit held in an interest-bearing account." />
+<meta property="og:url" content="https://locare.co.za/tools/deposit-interest-calculator" />
+<link rel="stylesheet" href="/tools/tools.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Rental deposit interest calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://locare.co.za/tools/deposit-interest-calculator","description":"Calculate interest owed to a tenant on a rental deposit under the South African Rental Housing Act.","offers":{"@type":"Offer","price":"0","priceCurrency":"ZAR"},"publisher":{"@type":"Organization","name":"Locare","url":"https://locare.co.za/"}}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <a class="logo" href="/">Loc<b>are</b></a>
+    <a class="back" href="/tools">← All tools</a>
+  </header>
+
+  <p class="eyebrow">Free tool</p>
+  <h1>Deposit interest calculator</h1>
+  <p class="lede">Under the Rental Housing Act a deposit must be held in an interest-bearing account, and the interest belongs to the tenant. This works out what has accrued over the tenancy.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="dep">Deposit held <span class="hint">(R)</span></label>
+        <input id="dep" type="number" min="0" step="100" value="19000" />
+      </div>
+      <div class="field">
+        <label for="rate">Annual interest rate <span class="hint">(%)</span></label>
+        <input id="rate" type="number" min="0" max="100" step="0.05" value="6.5" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="months">Period held <span class="hint">(months)</span></label>
+        <input id="months" type="number" min="1" max="240" step="1" value="24" />
+      </div>
+      <div class="field">
+        <label for="comp">Compounding</label>
+        <select id="comp">
+          <option value="12" selected>Monthly</option>
+          <option value="4">Quarterly</option>
+          <option value="1">Annually</option>
+          <option value="0">Simple interest</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="deduct">Deductions at end of lease <span class="hint">(R — damages, arrears, etc.)</span></label>
+      <input id="deduct" type="number" min="0" step="100" value="0" />
+    </div>
+    <button class="go" onclick="calc()">Calculate</button>
+
+    <div id="out" class="result">
+      <div class="headline" id="hl"></div>
+      <table>
+        <tbody>
+          <tr><td>Deposit held</td><td class="num" id="r-dep"></td></tr>
+          <tr><td>Interest accrued</td><td class="num" id="r-int"></td></tr>
+          <tr><td>Less deductions</td><td class="num" id="r-ded"></td></tr>
+          <tr class="total"><td>Refund due to tenant</td><td class="num" id="r-tot"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    General guidance only, not legal advice. The rate you must apply is the rate the deposit
+    actually earned in the interest-bearing account — this calculator helps you check the figure,
+    it does not set it. Confirm against your bank statements and the lease.
+  </div>
+
+  <h2>What the law requires</h2>
+  <p>Section 5 of the Rental Housing Act 50 of 1999 requires a landlord who takes a deposit to invest it in an interest-bearing account with a financial institution, and to pay the tenant interest at a rate that is not less than what the money would have earned in a savings account. The tenant is entitled to that interest — it is not the landlord's or the agency's income.</p>
+  <p>The tenant may also ask to see proof of the interest earned, and the landlord must provide it. At the end of the lease the deposit plus interest, less any amounts lawfully deducted for damages or arrears, must be refunded within the periods set out in the Act — and deductions must be supported by receipts the tenant can inspect.</p>
+  <p>This is one of the most commonly mishandled obligations in South African residential letting. Agencies that hold deposits in a general business account rather than a proper trust or interest-bearing account are exposed on both the Rental Housing Act and, for estate agents, PPRA trust-account rules.</p>
+
+  <div class="cta">
+    <h2>Deposits held properly, tracked automatically</h2>
+    <p>Locare handles deposit trust accounting on a double-entry ledger — held separately, interest attributed, and refunds reconciled at the end of the lease.</p>
+    <a href="/#start">See how it works</a>
+  </div>
+
+  <footer class="site">
+    <a href="/">Home</a><a href="/tools">Tools</a><a href="/#pricing">Pricing</a>
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+  </footer>
+</div>
+
+<script>
+var zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function calc() {
+  var dep = Math.max(0, Number(document.getElementById('dep').value) || 0);
+  var rate = Math.max(0, Number(document.getElementById('rate').value) || 0) / 100;
+  var months = Math.max(1, Math.round(Number(document.getElementById('months').value) || 1));
+  var n = Number(document.getElementById('comp').value);
+  var deduct = Math.max(0, Number(document.getElementById('deduct').value) || 0);
+
+  var years = months / 12;
+  // n = 0 means simple interest; otherwise compound n times a year.
+  var future = n === 0 ? dep * (1 + rate * years) : dep * Math.pow(1 + rate / n, n * years);
+  var interest = future - dep;
+  var refund = Math.max(0, dep + interest - deduct);
+
+  document.getElementById('r-dep').textContent = zar.format(dep);
+  document.getElementById('r-int').textContent = zar.format(interest);
+  document.getElementById('r-ded').textContent = deduct ? '−' + zar.format(deduct) : zar.format(0);
+  document.getElementById('r-tot').textContent = zar.format(refund);
+  document.getElementById('hl').innerHTML =
+    zar.format(interest) + ' <small>interest owed to the tenant over ' + months + ' month' + (months === 1 ? '' : 's') + '</small>';
+  document.getElementById('out').classList.add('show');
+}
+calc();
+</script>
+</body>
+</html>

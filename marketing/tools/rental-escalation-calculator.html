@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rental escalation calculator (South Africa) — Locare</title>
+<meta name="description" content="Free rental escalation calculator for South African leases. Project rent year by year at a fixed annual escalation and see the total payable over the lease." />
+<link rel="canonical" href="https://locare.co.za/tools/rental-escalation-calculator" />
+<meta property="og:site_name" content="Locare" />
+<meta property="og:title" content="Rental escalation calculator (South Africa)" />
+<meta property="og:description" content="Project rent year by year at a fixed annual escalation and see the total payable over the lease." />
+<meta property="og:url" content="https://locare.co.za/tools/rental-escalation-calculator" />
+<link rel="stylesheet" href="/tools/tools.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Rental escalation calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://locare.co.za/tools/rental-escalation-calculator","description":"Project rent year by year at a fixed annual escalation across a South African lease.","offers":{"@type":"Offer","price":"0","priceCurrency":"ZAR"},"publisher":{"@type":"Organization","name":"Locare","url":"https://locare.co.za/"}}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <a class="logo" href="/">Loc<b>are</b></a>
+    <a class="back" href="/tools">← All tools</a>
+  </header>
+
+  <p class="eyebrow">Free tool</p>
+  <h1>Rental escalation calculator</h1>
+  <p class="lede">Most South African leases escalate the rent by a fixed percentage each year. Enter the starting rent and escalation to see what the tenant pays in every year of the lease, and the total across the term.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="rent">Starting monthly rent <span class="hint">(R)</span></label>
+        <input id="rent" type="number" min="0" step="50" value="9500" />
+      </div>
+      <div class="field">
+        <label for="esc">Annual escalation <span class="hint">(%)</span></label>
+        <input id="esc" type="number" min="0" max="100" step="0.5" value="8" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="years">Lease length <span class="hint">(years)</span></label>
+        <input id="years" type="number" min="1" max="20" step="1" value="3" />
+      </div>
+      <div class="field">
+        <label for="start">First year starts <span class="hint">(optional label)</span></label>
+        <input id="start" type="number" min="2000" max="2100" step="1" value="2026" />
+      </div>
+    </div>
+    <button class="go" onclick="calc()">Calculate</button>
+
+    <div id="out" class="result">
+      <div class="headline" id="hl"></div>
+      <table>
+        <thead><tr><th>Year</th><th class="num">Monthly rent</th><th class="num">Annual rent</th></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot><tr class="total"><td>Total over lease</td><td class="num"></td><td class="num" id="tot"></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    Assumes the escalation compounds annually on the anniversary of the lease and that rent is
+    payable monthly in advance. Check the escalation clause in your lease — some agreements
+    escalate on a calendar date rather than the lease anniversary, and a few use CPI rather than
+    a fixed percentage.
+  </div>
+
+  <h2>How rental escalation works</h2>
+  <p>An escalation clause raises the rent by an agreed percentage at each anniversary of the lease. It compounds: an 8% escalation on R9,500 gives R10,260 in year two, then 8% on <em>that</em> figure in year three, not on the original rent. Over a three-year lease the cumulative increase is meaningfully more than three times the first-year uplift, which is why tenants often push back on anything much above inflation.</p>
+  <p>There is no statutory cap on escalation in South Africa for standard residential leases — it is a matter of contract. What matters is that the clause is unambiguous, since the Rental Housing Act and the Consumer Protection Act both work against a landlord relying on vague terms.</p>
+
+  <div class="cta">
+    <h2>Escalations, applied automatically</h2>
+    <p>Locare tracks each lease's escalation and raises invoices at the right amount on the right date — no diarised reminders, no missed increases.</p>
+    <a href="/#start">See how it works</a>
+  </div>
+
+  <footer class="site">
+    <a href="/">Home</a><a href="/tools">Tools</a><a href="/#pricing">Pricing</a>
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+  </footer>
+</div>
+
+<script>
+var zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 });
+
+function calc() {
+  var rent = Math.max(0, Number(document.getElementById('rent').value) || 0);
+  var esc = Math.max(0, Number(document.getElementById('esc').value) || 0) / 100;
+  var years = Math.min(20, Math.max(1, Math.round(Number(document.getElementById('years').value) || 1)));
+  var startYear = Math.round(Number(document.getElementById('start').value) || 0);
+
+  var rows = '', total = 0, monthly = rent;
+  for (var i = 0; i < years; i++) {
+    var annual = monthly * 12;
+    total += annual;
+    var label = startYear ? (startYear + i) : ('Year ' + (i + 1));
+    rows += '<tr><td>' + label + (startYear ? ' <span style="color:#7a7e88">(yr ' + (i + 1) + ')</span>' : '') + '</td>' +
+            '<td class="num">' + zar.format(Math.round(monthly)) + '</td>' +
+            '<td class="num">' + zar.format(Math.round(annual)) + '</td></tr>';
+    monthly = monthly * (1 + esc);
+  }
+
+  var finalMonthly = rent * Math.pow(1 + esc, years - 1);
+  document.getElementById('rows').innerHTML = rows;
+  document.getElementById('tot').textContent = zar.format(Math.round(total));
+  document.getElementById('hl').innerHTML =
+    zar.format(Math.round(finalMonthly)) + ' <small>per month in the final year (from ' + zar.format(Math.round(rent)) + ')</small>';
+  document.getElementById('out').classList.add('show');
+}
+calc();
+</script>
+</body>
+</html>

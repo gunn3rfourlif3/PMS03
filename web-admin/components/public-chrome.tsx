@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useBrand } from './brand-provider';
+import { isPlatformHost } from '@/lib/branding';
 
 /** Branded header for the public rentals site (no auth chrome). */
 export function PublicHeader() {
@@ -28,6 +29,9 @@ export function PublicHeader() {
 export function PublicFooter() {
   const b = useBrand();
   const c = b.contact ?? {};
+  // Attribution appears on agency-branded pages only — never on Locare's own
+  // host, where "Powered by Locare" would be circular.
+  const showAttribution = typeof window !== 'undefined' && !isPlatformHost();
   return (
     <footer className="mx-auto max-w-5xl px-4 pb-10 pt-4 text-xs text-muted sm:px-6">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line pt-6">
@@ -35,6 +39,12 @@ export function PublicFooter() {
         {c.phone && <a href={`tel:${c.phone}`} className="hover:text-brand">{c.phone}</a>}
         {c.email && <a href={`mailto:${c.email}`} className="hover:text-brand">{c.email}</a>}
         {c.website && <a href={`https://${c.website}`} target="_blank" rel="noreferrer" className="hover:text-brand">{c.website}</a>}
+        {showAttribution && (
+          <span className="ml-auto">
+            Powered by{' '}
+            <a href="https://locare.co.za" target="_blank" rel="noopener" className="font-medium hover:text-brand">Locare</a>
+          </span>
+        )}
       </div>
     </footer>
   );

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rental agency commission calculator (South Africa) — Locare</title>
+<meta name="description" content="Calculate monthly and annual rental management commission with VAT, plus what the owner actually receives. Free tool for South African letting agents." />
+<link rel="canonical" href="https://locare.co.za/tools/commission-calculator" />
+<meta property="og:site_name" content="Locare" />
+<meta property="og:title" content="Rental agency commission calculator (South Africa)" />
+<meta property="og:description" content="Monthly and annual management commission with VAT, and the owner's net payout." />
+<meta property="og:url" content="https://locare.co.za/tools/commission-calculator" />
+<link rel="stylesheet" href="/tools/tools.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Rental agency commission calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://locare.co.za/tools/commission-calculator","description":"Calculate rental management commission with VAT and the owner's net payout, for South African letting agencies.","offers":{"@type":"Offer","price":"0","priceCurrency":"ZAR"},"publisher":{"@type":"Organization","name":"Locare","url":"https://locare.co.za/"}}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <a class="logo" href="/">Loc<b>are</b></a>
+    <a class="back" href="/tools">← All tools</a>
+  </header>
+
+  <p class="eyebrow">Free tool</p>
+  <h1>Agency commission calculator</h1>
+  <p class="lede">Work out management commission on collected rent, what it comes to with VAT, and what actually lands in the owner's account each month.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="rent">Monthly rent collected <span class="hint">(R)</span></label>
+        <input id="rent" type="number" min="0" step="50" value="9500" />
+      </div>
+      <div class="field">
+        <label for="pct">Management commission <span class="hint">(% of rent)</span></label>
+        <input id="pct" type="number" min="0" max="100" step="0.5" value="10" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="vat">VAT <span class="hint">(% — 0 if not registered)</span></label>
+        <input id="vat" type="number" min="0" max="100" step="0.5" value="15" />
+      </div>
+      <div class="field">
+        <label for="units">Units under management</label>
+        <input id="units" type="number" min="1" max="10000" step="1" value="1" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="other">Other monthly deductions from the owner <span class="hint">(R — levies, repairs, rates)</span></label>
+      <input id="other" type="number" min="0" step="50" value="0" />
+    </div>
+    <button class="go" onclick="calc()">Calculate</button>
+
+    <div id="out" class="result">
+      <div class="headline" id="hl"></div>
+      <table>
+        <thead><tr><th>Per unit, per month</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Rent collected</td><td class="num" id="r-rent"></td></tr>
+          <tr><td>Commission (excl. VAT)</td><td class="num" id="r-com"></td></tr>
+          <tr><td>VAT on commission</td><td class="num" id="r-vat"></td></tr>
+          <tr><td>Other deductions</td><td class="num" id="r-oth"></td></tr>
+          <tr class="total"><td>Owner receives</td><td class="num" id="r-own"></td></tr>
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>Across the portfolio</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Commission per month (incl. VAT)</td><td class="num" id="p-mon"></td></tr>
+          <tr class="total"><td>Commission per year (incl. VAT)</td><td class="num" id="p-yr"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    Commission rates in South Africa vary by region, property type and service level — residential
+    management commonly sits somewhere around 7.5%–12.5% of rent collected, with procurement or
+    tenant-placement fees charged separately. VAT applies only if the agency is a registered vendor.
+  </div>
+
+  <h2>What owners are actually paying for</h2>
+  <p>Management commission is charged on rent <em>collected</em>, not rent invoiced — which is the point of the arrangement from the owner's side: if the agency does not collect, the agency does not earn. That alignment is worth stating explicitly in the mandate, because it is the clearest answer to an owner questioning the fee.</p>
+  <p>Separate from monthly management, most agencies charge a once-off procurement or tenant-placement fee when a new tenant is signed, typically expressed as a percentage of the first month's rent or a fixed amount. Keep the two clearly distinguished on the owner statement — blurring them is a common source of owner disputes.</p>
+
+  <div class="cta">
+    <h2>Commission calculated on every statement, automatically</h2>
+    <p>Locare posts management fees to a double-entry ledger as rent is reconciled, then produces owner statements and split payouts without a spreadsheet in sight.</p>
+    <a href="/#start">See how it works</a>
+  </div>
+
+  <footer class="site">
+    <a href="/">Home</a><a href="/tools">Tools</a><a href="/#pricing">Pricing</a>
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+  </footer>
+</div>
+
+<script>
+var zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+var zar0 = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 });
+
+function calc() {
+  var rent = Math.max(0, Number(document.getElementById('rent').value) || 0);
+  var pct = Math.max(0, Number(document.getElementById('pct').value) || 0) / 100;
+  var vatRate = Math.max(0, Number(document.getElementById('vat').value) || 0) / 100;
+  var units = Math.max(1, Math.round(Number(document.getElementById('units').value) || 1));
+  var other = Math.max(0, Number(document.getElementById('other').value) || 0);
+
+  var com = rent * pct;
+  var vat = com * vatRate;
+  var owner = rent - com - vat - other;
+  var portfolioMonth = (com + vat) * units;
+
+  document.getElementById('r-rent').textContent = zar.format(rent);
+  document.getElementById('r-com').textContent = '−' + zar.format(com);
+  document.getElementById('r-vat').textContent = '−' + zar.format(vat);
+  document.getElementById('r-oth').textContent = other ? '−' + zar.format(other) : zar.format(0);
+  document.getElementById('r-own').textContent = zar.format(owner);
+  document.getElementById('p-mon').textContent = zar.format(portfolioMonth);
+  document.getElementById('p-yr').textContent = zar.format(portfolioMonth * 12);
+  document.getElementById('hl').innerHTML =
+    zar0.format(Math.round(portfolioMonth * 12)) + ' <small>commission a year across ' + units + ' unit' + (units === 1 ? '' : 's') + '</small>';
+  document.getElementById('out').classList.add('show');
+}
+calc();
+</script>
+</body>
+</html>

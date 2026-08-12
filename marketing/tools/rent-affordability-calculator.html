@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rent affordability calculator (South Africa) — Locare</title>
+<meta name="description" content="Check what rent a tenant can realistically afford against gross income and existing debt. Free screening tool for South African letting agents and landlords." />
+<link rel="canonical" href="https://locare.co.za/tools/rent-affordability-calculator" />
+<meta property="og:site_name" content="Locare" />
+<meta property="og:title" content="Rent affordability calculator (South Africa)" />
+<meta property="og:description" content="Check what rent an applicant can carry against income and existing debt commitments." />
+<meta property="og:url" content="https://locare.co.za/tools/rent-affordability-calculator" />
+<link rel="stylesheet" href="/tools/tools.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Rent affordability calculator","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://locare.co.za/tools/rent-affordability-calculator","description":"Check what rent a South African tenant can afford against gross income and existing debt commitments.","offers":{"@type":"Offer","price":"0","priceCurrency":"ZAR"},"publisher":{"@type":"Organization","name":"Locare","url":"https://locare.co.za/"}}
+</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <a class="logo" href="/">Loc<b>are</b></a>
+    <a class="back" href="/tools">← All tools</a>
+  </header>
+
+  <p class="eyebrow">Free tool</p>
+  <h1>Rent affordability calculator</h1>
+  <p class="lede">A quick screen on whether an applicant can carry the rent. Enter gross income and existing commitments to see the affordable range and how a specific rent measures up.</p>
+
+  <div class="calc">
+    <div class="grid2">
+      <div class="field">
+        <label for="income">Gross monthly income <span class="hint">(R, before deductions)</span></label>
+        <input id="income" type="number" min="0" step="500" value="32000" />
+      </div>
+      <div class="field">
+        <label for="ratio">Max rent-to-income <span class="hint">(%)</span></label>
+        <input id="ratio" type="number" min="1" max="100" step="1" value="30" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label for="debt">Existing monthly debt <span class="hint">(R — car, credit, loans)</span></label>
+        <input id="debt" type="number" min="0" step="100" value="4500" />
+      </div>
+      <div class="field">
+        <label for="rent">Rent being considered <span class="hint">(R)</span></label>
+        <input id="rent" type="number" min="0" step="100" value="9500" />
+      </div>
+    </div>
+    <button class="go" onclick="calc()">Calculate</button>
+
+    <div id="out" class="result">
+      <div class="headline" id="hl"></div>
+      <p id="verdict" style="margin:6px 0 0"></p>
+      <table>
+        <tbody>
+          <tr><td>Gross monthly income</td><td class="num" id="r-inc"></td></tr>
+          <tr><td>Affordable rent at <span id="r-pct"></span> of income</td><td class="num" id="r-max"></td></tr>
+          <tr><td>Less existing debt commitments</td><td class="num" id="r-debt"></td></tr>
+          <tr class="total"><td>Realistic rent ceiling</td><td class="num" id="r-ceil"></td></tr>
+          <tr><td>Rent considered</td><td class="num" id="r-rent"></td></tr>
+          <tr><td>Rent as % of gross income</td><td class="num" id="r-share"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    A screening guide, not a credit assessment. It does not replace proper vetting — credit checks,
+    payslips, bank statements and previous-landlord references. Note also that affordability
+    assessments involving credit agreements fall under the National Credit Act; a lease is not a
+    credit agreement, but the same evidence-based caution applies.
+  </div>
+
+  <h2>The 30% rule, and where it breaks</h2>
+  <p>The common South African guideline is that rent should not exceed about 30% of gross monthly income. It is a useful first filter but a blunt one: it ignores existing debt entirely. An applicant earning R32,000 with a R7,000 vehicle instalment is in a very different position from one earning R32,000 with no debt, yet the 30% rule treats them identically.</p>
+  <p>That is why this calculator subtracts existing commitments to produce a second, tighter ceiling. Where the two figures diverge sharply, ask for bank statements rather than relying on payslips alone — recurring debit orders tell you far more about real disposable income than a gross salary figure does.</p>
+
+  <div class="cta">
+    <h2>Screen applicants without the admin</h2>
+    <p>Locare captures rental applications through your own branded listings site, so the details you need arrive in a structured pipeline instead of a WhatsApp thread.</p>
+    <a href="/#start">See how it works</a>
+  </div>
+
+  <footer class="site">
+    <a href="/">Home</a><a href="/tools">Tools</a><a href="/#pricing">Pricing</a>
+    <a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+  </footer>
+</div>
+
+<script>
+var zar = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', maximumFractionDigits: 0 });
+
+function calc() {
+  var income = Math.max(0, Number(document.getElementById('income').value) || 0);
+  var ratio = Math.min(100, Math.max(1, Number(document.getElementById('ratio').value) || 30)) / 100;
+  var debt = Math.max(0, Number(document.getElementById('debt').value) || 0);
+  var rent = Math.max(0, Number(document.getElementById('rent').value) || 0);
+
+  var maxRent = income * ratio;
+  var ceiling = Math.max(0, maxRent - debt);
+  var share = income > 0 ? (rent / income) * 100 : 0;
+
+  document.getElementById('r-inc').textContent = zar.format(income);
+  document.getElementById('r-pct').textContent = Math.round(ratio * 100) + '%';
+  document.getElementById('r-max').textContent = zar.format(Math.round(maxRent));
+  document.getElementById('r-debt').textContent = debt ? '−' + zar.format(debt) : zar.format(0);
+  document.getElementById('r-ceil').textContent = zar.format(Math.round(ceiling));
+  document.getElementById('r-rent').textContent = zar.format(rent);
+  document.getElementById('r-share').textContent = share.toFixed(1) + '%';
+
+  var ok = rent <= ceiling;
+  var tight = !ok && rent <= maxRent;
+  document.getElementById('hl').innerHTML =
+    zar.format(Math.round(ceiling)) + ' <small>realistic rent ceiling after debt</small>';
+  document.getElementById('verdict').innerHTML = ok
+    ? '<span style="color:#1D9E75;font-weight:600">Within range</span> — the rent sits inside the ceiling after existing commitments.'
+    : tight
+      ? '<span style="color:#BA7517;font-weight:600">Tight</span> — passes the ' + Math.round(ratio * 100) + '% rule but not once debt is counted. Ask for bank statements.'
+      : '<span style="color:#993C1D;font-weight:600">Over</span> — the rent exceeds both the ' + Math.round(ratio * 100) + '% guideline and the debt-adjusted ceiling.';
+  document.getElementById('out').classList.add('show');
+}
+calc();
+</script>
+</body>
+</html>

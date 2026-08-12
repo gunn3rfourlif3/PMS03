@@ -353,6 +353,15 @@ export default function RentalsPage() {
             <span>© {now} {brandName} — All spaces documented with consent.</span>
             <span>{b.contact?.email || 'hello@dantalan.co.za'}</span>
             <span>{b.contact?.phone || '+27 11 000 0000'}</span>
+            {/* Attribution: every agency's listings site links back to the platform.
+                Deliberately quiet — it must never compete with the agency's brand. */}
+            <span>
+              Powered by{' '}
+              <a href="https://locare.co.za" target="_blank" rel="noopener"
+                style={{ color: 'rgba(255,255,255,.85)', textDecoration: 'none', borderBottom: '1px solid rgba(255,255,255,.3)' }}>
+                Locare
+              </a>
+            </span>
           </div>
         </div>
       </footer>

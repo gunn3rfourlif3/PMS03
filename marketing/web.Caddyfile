@@ -3,8 +3,9 @@
 :80 {
 	root * /srv
 	encode zstd gzip
-	# Clean URLs: /privacy → /privacy.html, /terms → /terms.html
-	try_files {path} {path}.html
+	# Clean URLs: /privacy → /privacy.html, /tools/commission-calculator →
+	# /tools/commission-calculator.html, /tools → /tools/index.html
+	try_files {path} {path}.html {path}/index.html
 	# Long-cache fingerprint-free static assets; keep HTML fresh (revalidate).
 	@assets path *.svg *.png *.jpg *.jpeg *.webp *.ico *.woff2 *.css *.js
 	header @assets Cache-Control "public, max-age=2592000"

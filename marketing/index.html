@@ -10,6 +10,68 @@
 <meta property="og:title" content="Locare — Property management software for agencies" />
 <meta property="og:description" content="Locare is a white-label property-management platform for South African rental agencies: leasing, rent collection, trust accounting, and branded tenant & landlord apps." />
 <meta property="og:url" content="https://locare.co.za" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://locare.co.za/locare-logo.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="canonical" href="https://locare.co.za/" />
+
+<!-- Structured data. SoftwareApplication drives the product rich result; FAQPage
+     mirrors the on-page FAQ (Google requires the answers to be visible, which they
+     are) and is also what AI assistants tend to quote. Keep both in sync with the
+     visible copy — divergence is a manual-action risk. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://locare.co.za/#org",
+      "name": "Locare",
+      "url": "https://locare.co.za/",
+      "logo": "https://locare.co.za/locare-logo.png",
+      "email": "hello@locare.co.za",
+      "areaServed": { "@type": "Country", "name": "South Africa" },
+      "description": "White-label property-management software for South African rental agencies."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://locare.co.za/#site",
+      "url": "https://locare.co.za/",
+      "name": "Locare",
+      "publisher": { "@id": "https://locare.co.za/#org" },
+      "inLanguage": "en-ZA"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Locare",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "url": "https://locare.co.za/",
+      "publisher": { "@id": "https://locare.co.za/#org" },
+      "description": "Locare runs the entire rental lifecycle for South African property agencies — leasing, rent collection, trust accounting, owner payouts, maintenance, and branded tenant and landlord apps.",
+      "offers": [
+        { "@type": "Offer", "name": "Starter", "price": "925", "priceCurrency": "ZAR", "description": "1–12 units" },
+        { "@type": "Offer", "name": "Growth", "price": "2660", "priceCurrency": "ZAR", "description": "13–364 units" },
+        { "@type": "Offer", "name": "Scale", "price": "6014", "priceCurrency": "ZAR", "description": "365+ units" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is Locare?", "acceptedAnswer": { "@type": "Answer", "text": "Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant and landlord apps — all under your own brand and domain." } },
+        { "@type": "Question", "name": "Who is it for?", "acceptedAnswer": { "@type": "Answer", "text": "Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios." } },
+        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Flat monthly pricing by portfolio size: Starter (1–12 units) R925/month, Growth (13–364 units) R2,660/month, and Scale (365+ units) R6,014/month. Larger or multi-country needs are quoted as a Custom plan." } },
+        { "@type": "Question", "name": "Can I use my own brand and domain?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand." } },
+        { "@type": "Question", "name": "How do tenants pay rent?", "acceptedAnswer": { "@type": "Answer", "text": "Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods." } },
+        { "@type": "Question", "name": "Do you have mobile apps?", "acceptedAnswer": { "@type": "Answer", "text": "Shared Locare tenant and landlord apps are included. A fully branded native app for your agency is available as an Enterprise add-on." } },
+        { "@type": "Question", "name": "How long does it take to get started?", "acceptedAnswer": { "@type": "Answer", "text": "You can be live in an afternoon — sign up, add your branding and domain, and start onboarding tenants. We help you through setup." } },
+        { "@type": "Question", "name": "Can I migrate my existing data?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — we help import your properties, units and owners during onboarding, so you are not starting from scratch." } },
+        { "@type": "Question", "name": "Is my data secure?", "acceptedAnswer": { "@type": "Answer", "text": "Each agency's data is isolated, the platform is POPIA-aligned, and trust accounting is built to be audit-ready and PPRA-aware." } }
+      ]
+    }
+  ]
+}
+</script>
 
 <!-- ═══════════════════════════════════════════════════════════════
      SWAP POINTS (only 3 things to change to rebrand):
@@ -221,7 +283,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
       <a href="#how">How it works</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a href="#docs">Guides</a>
+      <a href="/tools">Free tools</a>
       <a href="#partners">Partners</a>
     </div>
     <div class="nav-cta">
@@ -455,7 +517,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
   <div class="wrap foot">
     <a class="logo" href="#top"><img src="/brand/locare-logo.svg" alt="Locare" style="height:22px" /></a>
     <div class="links">
-      <a href="#features">Platform</a><a href="#pricing">Pricing</a><a href="#docs">Guides</a>
+      <a href="#features">Platform</a><a href="#pricing">Pricing</a><a href="/tools">Free tools</a><a href="/guides">Guides</a>
       <a href="#partners">Partners</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://app.locare.co.za">Sign in</a>
     </div>
     <div>© <span id="yr"></span> Locare. Made for South African property.</div>
