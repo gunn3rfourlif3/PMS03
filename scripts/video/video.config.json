@@ -1,0 +1,31 @@
+{
+  "_comment": "Environment config for the video pipeline. make-video.ps1 and record.mjs both read this. Environment variables override anything here.",
+
+  "baseUrl": "http://localhost:3001",
+  "apiUrl": "http://localhost:3000/api",
+  "tenantUrl": "http://localhost:8081",
+
+  "loginEmail": "owner@demo.test",
+
+  "_otpLog": "The API's stdout is tee'd here by make-video.ps1 so the recorder can read the [OTP] line instead of asking you for it. This is the whole trick to unattended runs.",
+  "otpLog": ".video/api.log",
+
+  "_services": "Set any of these false if you'd rather start that piece yourself.",
+  "startDocker": true,
+  "startApi": true,
+  "startWeb": true,
+  "startTenant": true,
+
+  "_reseed": "Reseed the Demo Agency before recording so every run films identical data.",
+  "reseed": true,
+
+  "_timeouts": "Seconds to wait for each service to answer before giving up.",
+  "waitApi": 120,
+  "waitWeb": 120,
+  "waitTenant": 240,
+
+  "_stopWhenDone": "Kill the API/web/Expo processes this script started once recording finishes. Docker containers are left running.",
+  "stopWhenDone": true,
+
+  "outDir": "docs/video/raw"
+}

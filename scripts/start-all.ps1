@@ -68,10 +68,43 @@ Write-Host "PMS 0.3 launcher" -ForegroundColor Green
 Write-Host "root: $Root"
 
 # 1. Infra
+# Fail loudly here rather than limping on: without Postgres and Redis the API
+# just retries connections forever and the real cause scrolls out of view.
 Write-Host "`nStarting Docker (Postgres :5433, Redis :6380)..." -ForegroundColor Green
+
+docker info *> $null
+if ($LASTEXITCODE -ne 0) {
+  Write-Host ""
+  Write-Host "Docker isn't running." -ForegroundColor Red
+  Write-Host "Start Docker Desktop, wait for the whale icon to stop animating, then run this again." -ForegroundColor Yellow
+  exit 1
+}
+
 Push-Location $Root
 docker compose up -d
+$composeOk = ($LASTEXITCODE -eq 0)
 Pop-Location
+if (-not $composeOk) {
+  Write-Host "`n'docker compose up -d' failed — see the output above." -ForegroundColor Red
+  exit 1
+}
+
+# Postgres accepts TCP before it's ready for queries; wait for real readiness so
+# migrations and the seed don't race the container.
+Write-Host "Waiting for Postgres..." -NoNewline
+$ready = $false
+foreach ($i in 1..30) {
+  docker compose -f "$Root\docker-compose.yml" exec -T postgres pg_isready -U pms *> $null
+  if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+  Write-Host "." -NoNewline
+  Start-Sleep -Seconds 1
+}
+if ($ready) { Write-Host " ready" -ForegroundColor Green }
+else {
+  Write-Host ""
+  Write-Host "Postgres did not become ready in 30s. Check: docker compose logs postgres" -ForegroundColor Red
+  exit 1
+}
 
 # 2. Free ports
 if (-not $NoKill) {

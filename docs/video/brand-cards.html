@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Locare — animated brand cards for screen recording</title>
+<!--
+  Intro and outro cards for the Locare marketing video.
+
+  HOW TO USE
+  1. Open this file in Chrome, press F11 for full screen (the stage is 1920×1080;
+     it scales to fit your display, so record at your native resolution and the
+     framing stays correct).
+  2. Start your screen recording.
+  3. Press [1] for the intro card, [2] for the outro card. Each animation runs
+     once and holds on its final frame — press the key again to replay.
+  4. Press [3] for a plain lower-third caption you can record over B-roll.
+  5. Trim the recording to the animation in your editor.
+
+  Colours match the marketing site: ink #15161b, accent #2D6A8F.
+-->
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;overflow:hidden}
+  body{display:grid;place-items:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+
+  /* Fixed 1920x1080 stage, scaled to viewport so framing is predictable. */
+  .stage{position:relative;width:1920px;height:1080px;background:#15161b;overflow:hidden;
+    transform-origin:center center}
+
+  .card{position:absolute;inset:0;display:none;place-items:center;text-align:center}
+  .card.on{display:grid}
+
+  /* ── Wordmark ─────────────────────────────────────────────── */
+  .mark{font-family:Georgia,"Times New Roman",serif;font-size:150px;font-weight:700;
+    color:#fff;letter-spacing:-.03em;line-height:1;opacity:0}
+  .mark b{color:#4a9ac4;font-weight:700}
+  .tagline{margin-top:28px;font-size:30px;color:rgba(255,255,255,.62);letter-spacing:.01em;opacity:0}
+  .rule{width:0;height:2px;background:#2D6A8F;margin:38px auto 0}
+
+  /* ── Intro animation ──────────────────────────────────────── */
+  .card.intro.run .mark{animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards}
+  .card.intro.run .rule{animation:grow .8s cubic-bezier(.2,.7,.2,1) .55s forwards}
+  .card.intro.run .tagline{animation:rise .8s cubic-bezier(.2,.7,.2,1) .8s forwards}
+
+  /* ── Outro animation ──────────────────────────────────────── */
+  .card.outro .url{margin-top:34px;font-size:38px;color:#fff;letter-spacing:.02em;opacity:0}
+  .card.outro .sub{margin-top:14px;font-size:24px;color:rgba(255,255,255,.5);opacity:0}
+  .card.outro.run .mark{animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  .card.outro.run .rule{animation:grow .7s cubic-bezier(.2,.7,.2,1) .45s forwards}
+  .card.outro.run .url{animation:rise .7s cubic-bezier(.2,.7,.2,1) .7s forwards}
+  .card.outro.run .sub{animation:rise .7s cubic-bezier(.2,.7,.2,1) .95s forwards}
+
+  /* ── Lower third ──────────────────────────────────────────── */
+  .card.third{background:transparent;place-items:end start}
+  .third .bar{margin:0 0 120px 120px;padding:26px 42px;background:rgba(21,22,27,.92);
+    border-left:5px solid #2D6A8F;border-radius:0 12px 12px 0;opacity:0;transform:translateX(-30px)}
+  .third .bar h3{font-size:44px;color:#fff;font-weight:500;letter-spacing:-.01em}
+  .third .bar p{margin-top:8px;font-size:26px;color:rgba(255,255,255,.6)}
+  .card.third.run .bar{animation:slide .6s cubic-bezier(.2,.7,.2,1) forwards}
+
+  @keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes grow{from{width:0}to{width:180px}}
+  @keyframes slide{to{opacity:1;transform:translateX(0)}}
+
+  /* Operator hints — never recorded, they sit outside the stage. */
+  .hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+    font-size:13px;color:#666;background:#111;padding:8px 16px;border-radius:8px;z-index:99}
+  .hint b{color:#aaa}
+  .hint.hide{display:none}
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="card intro" id="c1">
+    <div>
+      <div class="mark">loc<b>are</b></div>
+      <div class="rule"></div>
+      <div class="tagline">Property management, beautifully run.</div>
+    </div>
+  </div>
+
+  <div class="card outro" id="c2">
+    <div>
+      <div class="mark">loc<b>are</b></div>
+      <div class="rule"></div>
+      <div class="url">locare.co.za</div>
+      <div class="sub">Run your whole agency on one platform</div>
+    </div>
+  </div>
+
+  <div class="card third" id="c3">
+    <div class="bar">
+      <h3 id="t3-title">It reconciles itself</h3>
+      <p id="t3-sub">Double-entry, not a spreadsheet with ambition</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="hint" id="hint">
+  <b>1</b> intro &nbsp;·&nbsp; <b>2</b> outro &nbsp;·&nbsp; <b>3</b> lower third &nbsp;·&nbsp;
+  <b>E</b> edit lower-third text &nbsp;·&nbsp; <b>H</b> hide this &nbsp;·&nbsp; <b>F11</b> full screen
+</div>
+
+<script>
+  // Scale the fixed 1920x1080 stage to fit whatever display is recording, so the
+  // composition is identical regardless of monitor size.
+  function fit() {
+    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.getElementById('stage').style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  var cards = ['c1', 'c2', 'c3'];
+  function show(id) {
+    cards.forEach(function (c) {
+      var el = document.getElementById(c);
+      el.classList.remove('on', 'run');
+    });
+    var el = document.getElementById(id);
+    el.classList.add('on');
+    // Force reflow so the animation restarts cleanly on replay.
+    void el.offsetWidth;
+    el.classList.add('run');
+  }
+
+  document.addEventListener('keydown', function (e) {
+    var k = e.key.toLowerCase();
+    if (k === '1') show('c1');
+    if (k === '2') show('c2');
+    if (k === '3') show('c3');
+    if (k === 'h') document.getElementById('hint').classList.toggle('hide');
+    if (k === 'e') {
+      var t = prompt('Lower-third heading:', document.getElementById('t3-title').textContent);
+      if (t !== null) document.getElementById('t3-title').textContent = t;
+      var s = prompt('Lower-third subtitle:', document.getElementById('t3-sub').textContent);
+      if (s !== null) document.getElementById('t3-sub').textContent = s;
+      show('c3');
+    }
+  });
+
+  show('c1');
+</script>
+</body>
+</html>

@@ -126,18 +126,57 @@ cascade runs **email-only** and nothing breaks.
 
 ## 6. Message templates (to submit to Meta)
 
-**Authentication (OTP)** — category *Authentication*, name `locare_otp`:
+Templates are created by hand in **WhatsApp Manager → Message Templates**. The
+name you give a template is the value that goes in `WHATSAPP_OTP_TEMPLATE` /
+`WHATSAPP_WELCOME_TEMPLATE` — they must match exactly, as must the language code.
 
-> *Your Locare verification code is {{1}}. It expires in 10 minutes.*
-> Button: *Copy code* (Meta's one-time-code button)
+### 6.1 Authentication (OTP) — name `locare_otp`
 
-**Utility (welcome)** — category *Utility*, name `locare_welcome`:
+Meta does **not** allow custom copy for the *Authentication* category. The body is
+fixed to `{{1}} is your verification code.` and you only choose the optional
+add-ons. Configure it as:
+
+| Setting | Value |
+|---|---|
+| Category | Authentication |
+| Code delivery | Copy code button *(required — see below)* |
+| Security disclaimer | On — "For your security, do not share this code." |
+| Expiry warning | On — **5 minutes** |
+
+Which renders as:
+
+> **123456** is your verification code. For your security, do not share this code.
+> This code expires in 5 minutes.
+> `[Copy code]`
+
+**The copy-code button is mandatory.** `WhatsAppCloudProvider` always appends a
+`copy_code` button component for `kind: 'auth'` templates; a template without one
+is rejected by the Graph API at send time.
+
+> ⚠ **Keep the expiry warning in sync with `OTP_TTL_SECONDS`.**
+> The email OTP text derives its wording from that variable at runtime
+> (`OTP_TTL_SECONDS=300` → "expires in 5 minutes"), but the WhatsApp template
+> carries a **fixed** number baked in at approval time. Changing the TTL updates
+> email automatically and leaves WhatsApp lying to the user until the template is
+> re-submitted to Meta.
+
+For reference, the email version reads:
+
+> Your one-time sign-in code is 123456. It expires in 5 minutes. If you didn't
+> request it, ignore this message.
+
+### 6.2 Utility (welcome) — name `locare_welcome`
+
+Free-form copy is allowed in the *Utility* category:
 
 > *Hi {{1}}, your {{2}} tenant account is ready. Open the app to view your lease,
 > pay rent and log maintenance: https://app.locare.co.za*
 
-Both must be submitted and approved in the WhatsApp Manager before automated sends
-work (typically a few hours to ~1 business day).
+Variable order is set by the caller in `lease-agreement.service.ts` —
+`{{1}}` = tenant first name, `{{2}}` = agency name. Do not swap them.
+
+Both templates must be approved before automated sends work (Authentication is
+usually near-instant; Utility can take a few hours to ~1 business day).
 
 ## 7. Costs
 
