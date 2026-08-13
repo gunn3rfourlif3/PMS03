@@ -31,3 +31,16 @@ coverage/
 # deployment secrets & backups
 deploy/.env.prod
 deploy/backups/
+
+# Generated marketing-video clips (large binaries; regenerate with scripts/video)
+docs/video/raw/
+docs/video/out/
+docs/video/music.mp3
+
+# Video pipeline service logs
+.video/
+
+# Raw Cowork session logs — unredacted, may contain pasted credentials.
+# Regenerate a scrubbed transcript with scripts/export-transcript.py instead.
+docs/handover/*.jsonl
+docs/handover/*.jsonl.gz
