@@ -4,8 +4,12 @@
   "baseUrl": "http://localhost:3001",
   "apiUrl": "http://localhost:3000/api",
   "tenantUrl": "http://localhost:8081",
+  "landlordUrl": "http://localhost:8082",
 
+  "_logins": "The landlord app is the AGENCY app (rent roll, arrears, applications, work orders), so it signs in as the agency owner. sipho@owner.demo.test is the property owner and belongs to the web /portal, not here.",
   "loginEmail": "owner@demo.test",
+  "tenantEmail": "thabo@demo.test",
+  "landlordEmail": "owner@demo.test",
 
   "_otpLog": "The API's stdout is tee'd here by make-video.ps1 so the recorder can read the [OTP] line instead of asking you for it. This is the whole trick to unattended runs.",
   "otpLog": ".video/api.log",
@@ -15,6 +19,7 @@
   "startApi": true,
   "startWeb": true,
   "startTenant": true,
+  "startLandlord": true,
 
   "_reseed": "Reseed the Demo Agency before recording so every run films identical data.",
   "reseed": true,
@@ -23,6 +28,7 @@
   "waitApi": 120,
   "waitWeb": 120,
   "waitTenant": 240,
+  "waitLandlord": 240,
 
   "_stopWhenDone": "Kill the API/web/Expo processes this script started once recording finishes. Docker containers are left running.",
   "stopWhenDone": true,

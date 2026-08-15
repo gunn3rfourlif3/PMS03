@@ -4,78 +4,95 @@
  * Each beat becomes one clip. The recorder drives these in order, moving a
  * synthetic cursor between targets so the capture looks hand-driven.
  *
- * SELECTORS ARE THE FRAGILE PART. They're all in this one file precisely so a
- * UI change means editing here, not the recorder. Run with DEBUG=1 to have the
- * recorder report which selectors it couldn't find, then fix them here.
+ * SELECTORS: nav links are matched by `a[href="/x"]` rather than link text.
+ * Routes almost never change; labels and CSS classes do. Each navigating beat
+ * also carries `fallbackGoto` — if the click misses, the recorder navigates
+ * directly so the beat still films the right screen instead of the last one.
  *
- * `text=` selectors are Playwright's text engine and survive restyling better
- * than CSS class chains — prefer them.
+ * EACH BEAT RECORDS IN ITS OWN BROWSER CONTEXT — that's how Playwright produces
+ * one video file per clip. A beat therefore always starts from a blank page and
+ * MUST declare `goto`. A beat that only clicks a nav link finds nothing, because
+ * there's no page loaded to click on. Beats that navigate start on the previous
+ * screen so the click reads as a natural journey.
+ *
+ * Verified against web-admin/components/shell.tsx NAV.
+ * Run with DEBUG=1 to see which selectors resolved.
  */
 
 export const BEATS = [
   {
     id: '01-dashboard',
     caption: 'One place for the whole portfolio.',
-    seconds: 5,
     goto: '/',
     actions: [
-      { wait: 1200 },
+      { wait: 1400 },
       { scroll: 320 },
-      { wait: 900 },
+      { wait: 1000 },
     ],
   },
   {
     id: '02-rent-run',
     caption: 'Invoices raise themselves. Every unit, every month.',
-    seconds: 7,
+    goto: '/',                 // start on the dashboard so the sidebar is there to click
+    fallbackGoto: '/leases',
     actions: [
-      { click: 'text=Leases', label: 'Leases nav' },
-      { wait: 1400 },
+      { click: 'a[href="/leases"]', label: 'Leases nav' },
+      { wait: 1600 },
       { scroll: 260 },
       { wait: 1200 },
     ],
   },
   {
     id: '03-payments-unpaid',
-    caption: 'Rent due, tracked to the cent.',
-    seconds: 6,
+    // /payments is the proof-of-payment review queue. seed-video-extras.ts puts
+    // pending proofs in it so this films a real queue, not an empty state.
+    caption: 'Tenants send proof. It lands in one queue.',
+    goto: '/leases',
+    fallbackGoto: '/payments',
     actions: [
-      { click: 'text=Payments', label: 'Payments nav' },
-      { wait: 1600 },
-      { scroll: 200 },
-      { wait: 1000 },
+      { click: 'a[href="/payments"]', label: 'Payments nav' },
+      { wait: 2000 },
+      { scroll: 180 },
+      { wait: 1200 },
     ],
   },
   {
     id: '04-tenant-phone',
+    // Signed in as a tenant with a due invoice, so this films the actual app —
+    // rent owing, pay button — rather than a login form.
+    app: 'tenant',
     caption: 'Your tenant pays from their phone.',
-    seconds: 7,
-    device: 'mobile',           // recorded at 390x844, composited as a device frame later
-    goto: process.env.TENANT_URL || 'http://localhost:8081',
+    optional: true,             // Expo is the flakiest dependency; skip, don't fail
     actions: [
-      { wait: 1800 },
-      { scroll: 200 },
-      { wait: 1400 },
+      { wait: 2600 },
+      { scroll: 220 },
+      { wait: 1600 },
     ],
   },
   {
     id: '05-reconcile',
-    caption: 'It reconciles itself.',
-    seconds: 8,               // the money shot — hold longer than feels natural
+    // The money shot, and it's a real one: Accept calls recordManual(), which
+    // allocates the payment against the invoice and posts it to the double-entry
+    // ledger. The row leaves the pending queue on camera. Hold afterwards —
+    // this is the thing no spreadsheet can do.
+    caption: 'One click. It reconciles itself.',
     goto: '/payments',
     actions: [
       { wait: 2000 },
-      { scroll: 240 },
-      { wait: 2200 },
+      { click: 'button:has-text("Accept")', label: 'Accept proof' },
+      { wait: 2600 },   // let the row disappear and the count update
+      { scroll: 160 },
+      { wait: 1600 },
     ],
   },
   {
     id: '06-owner-statement',
     caption: 'Owner statements build themselves.',
-    seconds: 7,
+    goto: '/payments',
+    fallbackGoto: '/owners',
     actions: [
-      { click: 'text=Owners', label: 'Owners nav' },
-      { wait: 1600 },
+      { click: 'a[href="/owners"]', label: 'Owners nav' },
+      { wait: 1800 },
       { scroll: 300 },
       { wait: 1400 },
     ],
@@ -83,12 +100,20 @@ export const BEATS = [
   {
     id: '07-reports',
     caption: 'Every cent accounted for.',
-    seconds: 6,
+    goto: '/owners',
+    fallbackGoto: '/reports',
     actions: [
-      { click: 'text=Reports', label: 'Reports nav' },
-      { wait: 2200 },
+      { click: 'a[href="/reports"]', label: 'Reports nav' },
+      // The income statement and charts are the strongest proof in the product,
+      // so this beat is deliberately the longest — recharts animates in, then we
+      // walk down through the numbers rather than snatching a glance.
+      { wait: 3200 },
+      { scroll: 220 },
+      { wait: 2400 },
       { scroll: 260 },
-      { wait: 1000 },
+      { wait: 2400 },
+      { scroll: 220 },
+      { wait: 2200 },
     ],
   },
 ];
@@ -96,8 +121,155 @@ export const BEATS = [
 /**
  * The white-label beat. The recorder loads the same page once per brand, so the
  * only thing that changes between frames is the identity — which is the whole
- * point of the shot. Add prospects here to generate a personalised demo.
+ * point of the shot. Add a prospect's host here to generate a personalised demo.
  */
+// The owner's view. Same platform, third audience: this is what makes the
+// "everyone gets their own app" claim visible rather than asserted.
+BEATS.push(
+  {
+    id: '08-landlord-home',
+    app: 'landlord',
+    caption: 'Owners watch their portfolio live.',
+    optional: true,
+    actions: [
+      { wait: 2600 },
+      { scroll: 240 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '09-landlord-statements',
+    app: 'landlord',
+    caption: 'Applications, approved on the move.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      { click: 'text="Approvals"', label: 'Approvals tab' },
+      { wait: 2200 },
+      { scroll: 200 },
+      { wait: 1400 },
+    ],
+  },
+  {
+    id: '10-tenant-maintenance',
+    app: 'tenant',
+    caption: 'Maintenance, logged from the couch.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      // Home-screen tile, not a tab: Maintenance is a stack screen reached from
+      // the "Log ticket" tile (mobile-tenant/src/screens/HomeScreen.tsx).
+      { click: 'text="Log ticket"', label: 'Log ticket tile' },
+      { wait: 2400 },
+      { scroll: 220 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '11-tenant-messages',
+    app: 'tenant',
+    caption: 'One thread. No more lost WhatsApps.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      { click: 'text="Messages"', label: 'Messages tile' },
+      { wait: 2400 },
+      { scroll: 180 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '12-landlord-tickets',
+    app: 'landlord',
+    caption: 'Work orders, assigned and tracked.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      // The tab is titled "Maintenance" even though the screen is TicketsScreen
+      // (see mobile-landlord/App.tsx).
+      { click: 'text="Maintenance"', label: 'Maintenance tab' },
+      { wait: 2400 },
+      { scroll: 220 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '16-tenant-pay',
+    app: 'tenant',
+    caption: 'Rent due, paid in two taps.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      { click: 'text="Pay"', label: 'Pay tile' },
+      { wait: 2600 },
+      { scroll: 200 },
+      { wait: 2000 },
+    ],
+  },
+  {
+    id: '17-tenant-lease',
+    app: 'tenant',
+    // seed-video-extras.ts signs a lease agreement for this tenant, so the
+    // Documents tab has something real rather than an empty state.
+    caption: 'Their lease, always to hand.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      { click: 'text="Lease"', label: 'Lease tile' },
+      { wait: 2600 },
+      { scroll: 200 },
+      { wait: 2000 },
+    ],
+  },
+  {
+    id: '18-landlord-messages',
+    app: 'landlord',
+    caption: 'Every conversation, in one inbox.',
+    optional: true,
+    actions: [
+      { wait: 2000 },
+      { click: 'text="Messages"', label: 'Messages tab' },
+      { wait: 2600 },
+      { scroll: 200 },
+      { wait: 2000 },
+    ],
+  },
+  {
+    id: '13-listings',
+    caption: 'Your own branded rentals site.',
+    goto: '/listings',
+    actions: [
+      { wait: 2200 },
+      { scroll: 300 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '14-applications',
+    caption: 'Applications arrive as a pipeline, not an inbox.',
+    goto: '/listings',
+    fallbackGoto: '/applications',
+    actions: [
+      { click: 'a[href="/applications"]', label: 'Applications nav' },
+      { wait: 2200 },
+      { scroll: 260 },
+      { wait: 1600 },
+    ],
+  },
+  {
+    id: '15-documents',
+    caption: 'Leases signed and stored, not chased.',
+    goto: '/applications',
+    fallbackGoto: '/documents',
+    actions: [
+      { click: 'a[href="/documents"]', label: 'Documents nav' },
+      { wait: 2200 },
+      { scroll: 240 },
+      { wait: 1400 },
+    ],
+  },
+);
+
 export const BRANDS = [
   { id: 'a', host: process.env.DEMO_HOST_A || 'localhost:3001' },
   { id: 'b', host: process.env.DEMO_HOST_B || '' },

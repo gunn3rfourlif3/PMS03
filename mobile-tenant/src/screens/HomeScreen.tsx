@@ -1,12 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Linking,
+  View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, RefreshControl, Linking,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, Pill, Button, money, hexToRgba } from '../ui';
+import {
+  Button, money, BentoTile, BentoHero, SectionTitle, ListCard, Row, EmptyRow,
+} from '../ui';
 import { TabKey } from '../components/BottomNav';
 
 const dueLabel = (d?: string) => {
@@ -57,58 +58,58 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
 
+  // The hero carries the state of the tenancy in one glance: warm when money is
+  // owed, calm when it isn't. Colour does the work a status label used to.
+  const overdue = !!due && dueLabel(due.dueDate) === 'Overdue';
+  const heroTone = !due ? 'teal' : overdue ? 'coral' : 'amber';
+
   return (
-    <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
+    <ScrollView
+      style={s.wrap}
+      contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
+      refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}
+    >
       <Text style={s.greeting}>Hi{name ? ` ${name}` : ''}</Text>
 
-      <Card style={{ marginBottom: 16 }}>
-        <View style={s.rowBetween}>
-          <Text style={s.muted}>{due ? `${due.period} rent` : 'Rent'}</Text>
-          {due ? <Pill label={dueLabel(due.dueDate)} tone="danger" /> : <Pill label="All paid" tone="success" />}
-        </View>
-        <Text style={s.amount}>{due ? money(due.total) : money(0)}</Text>
-        <Text style={s.muted}>{due ? `Includes VAT${due.dueDate ? ` · due ${due.dueDate}` : ''}` : 'Nothing outstanding'}</Text>
-        {due && <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 16 }} />}
-      </Card>
+      <BentoHero
+        tone={heroTone}
+        eyebrow={due ? `${due.period} rent` : 'Rent'}
+        value={due ? money(due.total) : money(0)}
+        caption={due ? `Includes VAT${due.dueDate ? ` · due ${due.dueDate}` : ''}` : 'Nothing outstanding'}
+        chip={due ? dueLabel(due.dueDate) : 'All paid'}
+      >
+        {due ? <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 18 }} /> : null}
+      </BentoHero>
 
       <View style={s.tiles}>
-        <Tile t={t} icon="card-outline" label="Pay" onPress={() => goTab('pay')} />
-        <Tile t={t} icon="construct-outline" label="Log ticket" onPress={() => navigation.navigate('Maintenance')} />
-        <Tile t={t} icon="document-text-outline" label="Lease" onPress={() => goTab('docs')} />
-        <Tile t={t} icon="chatbubbles-outline" label="Messages" badge={unread} onPress={() => navigation.navigate('Messages')} />
+        <BentoTile tone="blue" icon="card-outline" value="Pay" label="Rent & history" onPress={() => goTab('pay')} />
+        <BentoTile tone="purple" icon="construct-outline" value="Log" label="Maintenance" onPress={() => navigation.navigate('Maintenance')} />
+      </View>
+      <View style={s.tiles}>
+        <BentoTile tone="green" icon="document-text-outline" value="Lease" label="Your documents" onPress={() => goTab('docs')} />
+        <BentoTile
+          tone="pink" icon="chatbubbles-outline" value="Chat" label="Messages"
+          chip={unread > 0 ? (unread > 9 ? '9+' : String(unread)) : undefined}
+          onPress={() => navigation.navigate('Messages')}
+        />
       </View>
 
-      <Text style={s.section}>Recent</Text>
-      <Card>
-        {paid.length === 0 && <Text style={s.muted}>No recent activity.</Text>}
+      <SectionTitle>Recent</SectionTitle>
+      <ListCard>
+        {paid.length === 0 && <EmptyRow>No recent activity.</EmptyRow>}
         {paid.slice(0, 4).map((i, idx) => (
-          <View key={i.id} style={[s.activity, idx > 0 && s.activityBorder]}>
-            <Ionicons name="checkmark-circle" size={22} color={t.colors.success} />
-            <View style={{ flex: 1 }}>
-              <Text style={s.activityTitle}>Payment received</Text>
-              <Text style={s.muted}>{i.period} · {money(i.total)}</Text>
-            </View>
-          </View>
+          <Row
+            key={i.id}
+            first={idx === 0}
+            leftIcon="checkmark-circle"
+            leftTone="teal"
+            title="Payment received"
+            subtitle={i.period}
+            right={money(i.total)}
+          />
         ))}
-      </Card>
+      </ListCard>
     </ScrollView>
-  );
-}
-
-function Tile({ t, icon, label, onPress, badge = 0 }: { t: Branding; icon: any; label: string; onPress: () => void; badge?: number }) {
-  const s = makeStyles(t);
-  return (
-    <TouchableOpacity style={s.tile} onPress={onPress} activeOpacity={0.85}>
-      <View style={s.tileIcon}>
-        <Ionicons name={icon} size={22} color={t.colors.brand} />
-        {badge > 0 && (
-          <View style={s.tileBadge}>
-            <Text style={s.tileBadgeText}>{badge > 9 ? '9+' : badge}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={s.tileLabel}>{label}</Text>
-    </TouchableOpacity>
   );
 }
 
@@ -116,22 +117,7 @@ function makeStyles(t: Branding) {
   return StyleSheet.create({
     wrap: { flex: 1, backgroundColor: 'transparent' },
     center: { flex: 1, justifyContent: 'center', backgroundColor: 'transparent' },
-    greeting: { fontSize: 22, fontWeight: '700', color: t.colors.ink, marginBottom: 14, fontFamily: fontFamily(t, true) },
-    rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    muted: { color: t.colors.muted, fontSize: 13, fontFamily: fontFamily(t) },
-    amount: { fontSize: 32, fontWeight: '700', color: t.colors.ink, marginVertical: 6, fontFamily: fontFamily(t, true) },
-    tiles: { flexDirection: 'row', gap: 10, marginBottom: 22 },
-    tile: {
-      flex: 1, backgroundColor: hexToRgba(t.colors.card, 0.55), borderRadius: 14, borderWidth: 1, borderColor: hexToRgba('#ffffff', 0.5), paddingVertical: 16, alignItems: 'center',
-      shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1,
-    },
-    tileIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-    tileBadge: { position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#e5484d', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: hexToRgba(t.colors.card, 0.9) },
-    tileBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', lineHeight: 13 },
-    tileLabel: { fontSize: 12, color: t.colors.ink, fontWeight: '600', fontFamily: fontFamily(t) },
-    section: { fontSize: 15, fontWeight: '700', marginBottom: 10, color: t.colors.ink, fontFamily: fontFamily(t, true) },
-    activity: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
-    activityBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.line },
-    activityTitle: { fontSize: 15, color: t.colors.ink, fontWeight: '600', fontFamily: fontFamily(t) },
+    greeting: { fontSize: 22, fontWeight: '700', color: t.colors.ink, marginBottom: 16, fontFamily: fontFamily(t, true) },
+    tiles: { flexDirection: 'row', gap: 12, marginTop: 12 },
   });
 }

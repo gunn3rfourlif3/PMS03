@@ -35,9 +35,24 @@ param(
   [switch]$KeepRunning
 )
 
+$Root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+
+# Load config under 'Stop' so a missing/corrupt file fails immediately…
 $ErrorActionPreference = 'Stop'
-$Root   = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$Cfg    = Get-Content (Join-Path $PSScriptRoot 'video.config.json') -Raw | ConvertFrom-Json
+try {
+  $Cfg = Get-Content (Join-Path $PSScriptRoot 'video.config.json') -Raw | ConvertFrom-Json
+} catch {
+  Write-Host "`nCouldn't read scripts/video/video.config.json — $($_.Exception.Message)" -ForegroundColor Red
+  exit 1
+}
+
+# …then drop back to 'Continue' for the rest. Under 'Stop', ANY native command
+# that writes to stderr becomes a terminating error — `docker info` emitting a
+# harmless "DOCKER_INSECURE_NO_IPTABLES_RAW is set" warning was enough to kill
+# the whole run. Every native call below checks $LASTEXITCODE explicitly, which
+# is the correct signal.
+$ErrorActionPreference = 'Continue'
+
 $LogDir = Join-Path $Root '.video'
 $ApiLog = Join-Path $Root $Cfg.otpLog
 $Started = @()
@@ -102,7 +117,9 @@ try {
     Say '1/6  Docker'
     docker info *> $null
     if ($LASTEXITCODE -ne 0) { Die 'Docker is not running. Start Docker Desktop and try again.' }
-    Push-Location $Root; docker compose up -d | Out-Null; $ok = ($LASTEXITCODE -eq 0); Pop-Location
+    # *> $null swallows the routine Docker warnings (obsolete `version` key,
+    # iptables notices) that would otherwise clutter every run.
+    Push-Location $Root; docker compose up -d *> $null; $ok = ($LASTEXITCODE -eq 0); Pop-Location
     if (-not $ok) { Die 'docker compose up failed.' }
 
     Write-Host '  waiting for Postgres' -NoNewline
@@ -124,6 +141,10 @@ try {
     if ($LASTEXITCODE -ne 0) { Pop-Location; Die "Migrations failed — see .video\migrate.log" }
     npm run seed *> (Join-Path $LogDir 'seed.log')
     if ($LASTEXITCODE -ne 0) { Pop-Location; Die "Seed failed — see .video\seed.log" }
+    # Pending proofs of payment — without these the /payments queue films empty,
+    # and beat 05 has nothing to click.
+    npx ts-node -r tsconfig-paths/register scripts/video/seed-video-extras.ts *>> (Join-Path $LogDir 'seed.log')
+    if ($LASTEXITCODE -ne 0) { Pop-Location; Die "Video extras seed failed — see .video\seed.log" }
     Pop-Location
     Write-Host '  Demo Agency seeded' -ForegroundColor Green
   }
@@ -142,20 +163,50 @@ try {
     # --web goes straight to the browser build; no interactive keypress needed.
     Start-Logged 'Tenant' (Join-Path $Root 'mobile-tenant') 'npx.cmd' 'expo start --web' (Join-Path $LogDir 'tenant.log') | Out-Null
   }
+  if ($Cfg.startLandlord) {
+    # Second Expo instance needs its own port, or it grabs 8081 and clashes.
+    Start-Logged 'Landlord' (Join-Path $Root 'mobile-landlord') 'npx.cmd' 'expo start --web --port 8082' (Join-Path $LogDir 'landlord.log') | Out-Null
+  }
 
   if ($Cfg.startApi -and -not (Wait-Url 'API' "$($Cfg.apiUrl)/health" $Cfg.waitApi)) { Die "API never came up — see $ApiLog" }
   if ($Cfg.startWeb -and -not (Wait-Url 'Web' $Cfg.baseUrl $Cfg.waitWeb)) { Die "Web never came up — see .video\web.log" }
   if ($Cfg.startTenant) {
     if (-not (Wait-Url 'Tenant' $Cfg.tenantUrl $Cfg.waitTenant)) {
-      Write-Host '  tenant app unavailable — beat 04 will be skipped' -ForegroundColor Yellow
+      Write-Host '  tenant app unavailable — its beat will be skipped' -ForegroundColor Yellow
     }
+  }
+  if ($Cfg.startLandlord) {
+    if (-not (Wait-Url 'Landlord' $Cfg.landlordUrl $Cfg.waitLandlord)) {
+      Write-Host '  landlord app unavailable — its beats will be skipped' -ForegroundColor Yellow
+    }
+  }
+
+  # ── 3b. Voiceover ─────────────────────────────────────────────────────────
+  # BEFORE recording, not after. The recorder reads docs/video/vo/*.wav to decide
+  # how long to hold each shot, so narration that arrives later means clips too
+  # short for their own lines — which is exactly how the voice drifted out of
+  # sync. Existing WAVs are reused, so a rerun costs nothing.
+  if ($env:ELEVENLABS_API_KEY -or $env:ELEVEN_API_KEY) {
+    Say '3b   Voiceover (ElevenLabs)'
+    Push-Location $Root
+    node scripts/video/tts.mjs
+    if ($LASTEXITCODE -ne 0) {
+      Write-Host '  voiceover failed — continuing without narration' -ForegroundColor Yellow
+    }
+    Pop-Location
+  } elseif (Test-Path (Join-Path $Root 'docs\video\vo\01-dashboard.wav')) {
+    Say '3b   Voiceover (using existing docs\video\vo)'
+  } else {
+    Write-Host '  no narration — cuts will be silent and use their fallback timings' -ForegroundColor Yellow
+    Write-Host '    $env:ELEVENLABS_API_KEY="..."  or  scripts\video\tts-windows.ps1' -ForegroundColor DarkGray
   }
 
   # ── 4. Record ─────────────────────────────────────────────────────────────
   if (-not $SkipRecord) {
     Say '4/6  Recording'
     $env:BASE_URL    = $Cfg.baseUrl
-    $env:TENANT_URL  = $Cfg.tenantUrl
+    $env:TENANT_URL   = $Cfg.tenantUrl
+    $env:LANDLORD_URL = $Cfg.landlordUrl
     $env:LOGIN_EMAIL = $Cfg.loginEmail
     $env:OTP_LOG     = $ApiLog
     Push-Location $Root
@@ -168,7 +219,10 @@ try {
   }
 
   # ── 5. Assemble ───────────────────────────────────────────────────────────
-  if (-not $SkipRecord -and -not $SkipAssemble) {
+  # Deliberately NOT gated on -SkipRecord: re-cutting existing clips (new
+  # narration, new timings, new captions) is the common case and shouldn't
+  # require re-filming. assemble.sh fails loudly if docs/video/raw is empty.
+  if (-not $SkipAssemble) {
     Say '5/6  Assembling'
     Push-Location $Root
     bash scripts/video/assemble.sh

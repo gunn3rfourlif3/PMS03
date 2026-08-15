@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, Pill, Button, money } from '../ui';
+import { Card, Pill, Button, money, BentoHero, SectionTitle, ListCard, Row, EmptyRow } from '../ui';
 
 export default function PayScreen() {
   const t = useTheme();
@@ -72,28 +72,39 @@ export default function PayScreen() {
         </Card>
       )}
 
-      <Card style={{ marginBottom: 16 }}>
-        <View style={s.rowBetween}>
-          <Text style={s.muted}>{due ? `${due.period} rent` : 'Rent'}</Text>
-          {due ? <Pill label={`Due ${due.dueDate}`} tone="danger" /> : <Pill label="All paid" tone="success" />}
-        </View>
-        <Text style={s.amount}>{due ? money(due.total) : money(0)}</Text>
-        <Text style={s.muted}>{due ? 'Includes VAT' : 'Nothing outstanding'}</Text>
-        {due && <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 16 }} />}
-        {due && <Button label="Upload proof of payment" variant="secondary" onPress={uploadProof} busy={uploading} style={{ marginTop: 10 }} />}
-      </Card>
+      <BentoHero
+        tone={due ? 'amber' : 'teal'}
+        eyebrow={due ? `${due.period} rent` : 'Rent'}
+        value={due ? money(due.total) : money(0)}
+        caption={due ? 'Includes VAT' : 'Nothing outstanding'}
+        chip={due ? `Due ${due.dueDate}` : 'All paid'}
+      >
+        {due ? (
+          <>
+            <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 18 }} />
+            <Button label="Upload proof of payment" variant="secondary" onPress={uploadProof} busy={uploading} style={{ marginTop: 10 }} />
+          </>
+        ) : null}
+      </BentoHero>
 
-      <Text style={s.section}>History</Text>
-      {invoices.length === 0 && <Card><Text style={s.muted}>No invoices yet.</Text></Card>}
-      {invoices.map((i) => (
-        <Card key={i.id} style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.period}>{i.period}</Text>
-            <Text style={s.muted}>{money(i.total)}</Text>
-          </View>
-          <Pill label={i.status} tone={i.status === 'paid' ? 'success' : 'danger'} />
-        </Card>
-      ))}
+      <SectionTitle>History</SectionTitle>
+      <ListCard>
+        {invoices.length === 0 && <EmptyRow>No invoices yet.</EmptyRow>}
+        {invoices.map((i, idx) => {
+          const isPaid = i.status === 'paid';
+          return (
+            <Row
+              key={i.id}
+              first={idx === 0}
+              leftIcon={isPaid ? 'checkmark-circle' : 'time-outline'}
+              leftTone={isPaid ? 'teal' : 'amber'}
+              title={i.period}
+              subtitle={isPaid ? 'Paid' : i.status}
+              right={money(i.total)}
+            />
+          );
+        })}
+      </ListCard>
     </ScrollView>
   );
 }

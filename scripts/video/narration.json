@@ -1,0 +1,52 @@
+{
+  "_comment": "Voiceover, one line per beat. The line's SPOKEN LENGTH sets how long that beat runs in the edit (plus VO_PAD), so shortening a sentence tightens the cut — no timing numbers to chase. Written for en-ZA neural TTS: short clauses, no em-dashes (TTS reads them as pauses of random length), no abbreviations it will mispronounce.",
+
+  "_style": "Plain, specific, unhurried. Address the agency owner as 'you'. Never claim customers, ratings or results the product hasn't earned.",
+
+  "_pronounce_comment": "Applied to the text sent to the TTS engine only — the lines above stay readable and the burnt-in captions are unaffected. Locare is the Latin/Italian verb, loh-KAH-reh (/lo'ka.re/), not 'loh-CARE'. Every engine gets this wrong unprompted. Phoneme tags would be exact but ElevenLabs only honours them on the English-only models, and we use multilingual v2 for quality, so a phonetic respelling is the portable fix.",
+
+  "_pronounce": {
+    "Locare": "loh-kar-re"
+  },
+
+
+  "00-intro": "",
+
+  "01-dashboard": "This is loh-Kar-re. Every property, lease and payment your agency manages, in one place.",
+
+  "13-listings": "Vacancies publish to your own branded rentals site, on your own domain.",
+
+  "14-applications": "Applications arrive as a pipeline you can actually work, instead of an inbox you have to dig through.",
+
+  "15-documents": "Leases are generated, signed electronically, and stored against the tenancy.",
+
+  "02-rent-run": "Every month, invoices raise themselves. Every unit, on schedule, with the right escalation applied.",
+
+  "03-payments-unpaid": "When a tenant pays, their proof of payment lands in one queue instead of five different inboxes.",
+
+  "04-tenant-phone": "Your tenant sees what they owe, on their phone, under your brand.",
+
+  "16-tenant-pay": "They pay in a couple of taps, or upload proof if they paid by transfer.",
+
+  "05-reconcile": "You approve it once. The payment allocates against the invoice and posts straight to a double entry ledger. That is the part a spreadsheet cannot do.",
+
+  "11-tenant-messages": "Every conversation stays on the tenancy, so nothing gets lost in a personal WhatsApp thread.",
+
+  "10-tenant-maintenance": "Maintenance is logged from anywhere, with photos, straight into your work order queue.",
+
+  "12-landlord-tickets": "You assign it to a service provider and track it through to sign off.",
+
+  "18-landlord-messages": "And you can answer a tenant without going back to your desk.",
+
+  "08-landlord-home": "The whole portfolio travels with you. Rent collected, arrears, and what needs attention today.",
+
+  "09-landlord-statements": "Approve an application between viewings.",
+
+  "06-owner-statement": "At month end, owner statements build themselves. Rent in, commission out, expenses deducted, net payout ready.",
+
+  "07-reports": "And the numbers are always there. Rent roll, arrears ageing, collection rate, and a proper income statement for any period. Audit ready, and aware of trust accounting rules.",
+
+  "17-tenant-lease": "Their lease and documents stay with them, always to hand.",
+
+  "99-outro": "loh-kar-re. Property management, beautifully run."
+}

@@ -106,9 +106,20 @@ async function main() {
     await q(`INSERT INTO payouts (vendor_id,owner_id,statement_id,amount,gateway_ref,status) VALUES ($1,$2,$3,$4,$5,'paid') ON CONFLICT (gateway_ref) DO NOTHING`, [vendor, ownerId, statementId, amount, ref]);
   }
   async function listing(vendor: string, unitId: string, rent: number, status: string): Promise<string> {
-    let r = await first(`SELECT id FROM listings WHERE vendor_id=$1 AND unit_id=$2`, [vendor, unitId]);
+    // `uq_open_listing_per_unit` is a PARTIAL index on (unit_id) alone — not
+    // (vendor_id, unit_id) — covering statuses draft/published/paused where
+    // deleted_at IS NULL. Looking up by vendor as well could miss a row that
+    // still blocks the insert, so match the constraint's own scope exactly or a
+    // re-seed dies on a duplicate key.
+    let r = await first(
+      `SELECT id FROM listings
+        WHERE unit_id=$1 AND deleted_at IS NULL
+          AND status IN ('draft','published','paused')
+        LIMIT 1`,
+      [unitId],
+    );
     if (!r) r = await first(`INSERT INTO listings (vendor_id,unit_id,advertised_rent,available_from,status,description) VALUES ($1,$2,$3,$4,$5,'Bright, secure unit close to amenities.') RETURNING id`, [vendor, unitId, rent, dueFuture, status]);
-    else await q(`UPDATE listings SET status=$2 WHERE id=$1`, [r.id, status]);
+    else await q(`UPDATE listings SET status=$2, advertised_rent=$3 WHERE id=$1`, [r.id, status, rent]);
     return r.id;
   }
   async function application(vendor: string, listingId: string, name: string, email: string, phone: string, status: string, screening: unknown | null) {

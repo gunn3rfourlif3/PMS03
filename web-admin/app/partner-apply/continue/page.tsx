@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button, Field } from '@/components/ui';
+import { ZA_BANKS, BANK_OTHER, branchCodeFor } from '@/lib/za-banks';
 
 type Type = 'individual' | 'business';
 type Doc = { key: string; label: string; required: boolean };
@@ -37,6 +38,7 @@ export default function PartnerApplyContinuePage() {
   const [loadErr, setLoadErr] = useState('');
   const [resent, setResent] = useState(false);
 
+  const [bankChoice, setBankChoice] = useState('');
   const [step, setStep] = useState(0); // 0 type, 1 details, 2 banking+consent, 3 documents, 4 done
   const [type, setType] = useState<Type>('individual');
   const [f, setF] = useState<any>({ banking: {}, directors: [{ name: '', idNumber: '' }], idType: 'sa_id' });
@@ -68,6 +70,13 @@ export default function PartnerApplyContinuePage() {
           agreedTerms: a.agreedTerms,
           contactEmail: a.contactEmail,
         });
+        // Resuming: preselect the dropdown if the saved bank is one we know,
+        // otherwise fall back to "Other" so the typed name stays visible and
+        // editable rather than silently vanishing from an empty select.
+        const savedBank = (a.banking ?? {}).bankName;
+        if (savedBank) {
+          setBankChoice(ZA_BANKS.some((b) => b.name === savedBank) ? savedBank : BANK_OTHER);
+        }
         const done: Record<string, string> = {};
         (a.documents ?? []).forEach((d: any) => { done[d.docType] = d.name; });
         setUploaded(done);
@@ -232,12 +241,50 @@ export default function PartnerApplyContinuePage() {
         {step === 2 && (
           <div className="space-y-4">
             <p className="text-sm text-muted">Where should we pay your commission?</p>
-            <Field label="Bank"><input className="input" value={f.banking.bankName ?? ''} onChange={(e) => setBank('bankName', e.target.value)} /></Field>
+            <Field label="Bank">
+              <select
+                className="input"
+                value={bankChoice}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setBankChoice(v);
+                  if (v === BANK_OTHER) {
+                    // Clear both: whatever was prefilled belongs to the old bank.
+                    setF((st: any) => ({ ...st, banking: { ...st.banking, bankName: '', branchCode: '' } }));
+                  } else {
+                    // Selecting the bank IS selecting the branch code — that's the
+                    // point of a universal code. Still editable below for the rare
+                    // partner whose account sits on a legacy branch code.
+                    setF((st: any) => ({ ...st, banking: { ...st.banking, bankName: v, branchCode: branchCodeFor(v) } }));
+                  }
+                }}
+              >
+                <option value="">Select your bank…</option>
+                {ZA_BANKS.map((b) => <option key={b.name} value={b.name}>{b.name}</option>)}
+                <option value={BANK_OTHER}>Other</option>
+              </select>
+            </Field>
+            {bankChoice === BANK_OTHER && (
+              <Field label="Bank name">
+                <input className="input" value={f.banking.bankName ?? ''} onChange={(e) => setBank('bankName', e.target.value)} />
+              </Field>
+            )}
             <Field label="Account holder"><input className="input" value={f.banking.accountHolder ?? ''} onChange={(e) => setBank('accountHolder', e.target.value)} /></Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Account number"><input className="input" value={f.banking.accountNumber ?? ''} onChange={(e) => setBank('accountNumber', e.target.value)} /></Field>
-              <Field label="Branch code"><input className="input" value={f.banking.branchCode ?? ''} onChange={(e) => setBank('branchCode', e.target.value)} /></Field>
+              <Field label="Account number">
+                <input className="input" inputMode="numeric" value={f.banking.accountNumber ?? ''}
+                  onChange={(e) => setBank('accountNumber', e.target.value.replace(/[^0-9]/g, ''))} />
+              </Field>
+              <Field label="Branch code">
+                <input className="input" inputMode="numeric" value={f.banking.branchCode ?? ''}
+                  onChange={(e) => setBank('branchCode', e.target.value.replace(/[^0-9]/g, ''))} />
+              </Field>
             </div>
+            {bankChoice && bankChoice !== BANK_OTHER && (
+              <p className="text-xs text-muted">
+                {bankChoice} uses universal branch code {branchCodeFor(bankChoice)}. Change it only if your bank told you to.
+              </p>
+            )}
             <label className="flex items-start gap-2.5 text-sm text-ink">
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-brand" checked={!!f.agreedTerms} onChange={(e) => set('agreedTerms', e.target.checked)} />
               I consent to {b.name} processing my personal/business information for vetting (KYC/KYB) and confirm the details are accurate.

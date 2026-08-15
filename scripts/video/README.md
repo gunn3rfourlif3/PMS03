@@ -10,12 +10,15 @@ scripts/video/
   make-video.ps1     orchestrator — stack up, record, assemble, tear down
   video.config.json  environment: URLs, login, which services to start
   beats.config.mjs   what to film — clicks, captions, timings  ← edit this
+  narration.json     the voiceover script, one line per beat    ← edit this
   record.mjs         Playwright: drives the product, records 1080p clips
+  tts.mjs            ElevenLabs: turns narration.json into docs/video/vo/*.wav
   assemble.sh        ffmpeg: normalise, burn captions, build cuts + crops
 docs/video/
   brand-cards.html   animated intro/outro (recorded automatically)
   raw/               per-beat clips
   out/               finished files
+  vo/                voiceover WAVs, one per beat (written by tts.mjs)
   music.mp3          optional; laid under at -18dB if present
 .video/              service logs (api.log holds the OTP) — gitignored
 ```
@@ -30,6 +33,29 @@ winget install Gyan.FFmpeg      # then reopen the terminal so ffmpeg is on PATH
 
 Docker Desktop must be running. That's the only thing the pipeline can't start
 for you.
+
+## Voiceover
+
+Optional, but it changes the video from a screen recording into something that
+sells. Write the script in `narration.json`, then:
+
+```powershell
+$env:ELEVENLABS_API_KEY="..."
+node scripts/video/tts.mjs --voices     # pick one
+$env:VOICE="Alice"
+node scripts/video/tts.mjs
+```
+
+Each line's **spoken length becomes that beat's duration** in the edit. So you
+retime the video by rewriting sentences, not by editing numbers — and picture
+and voice cannot drift apart. Music ducks to -18dB underneath.
+
+Delete a line from `narration.json` and that beat falls back to the duration in
+the cut list, so you can voice part of the video and leave the rest silent.
+
+None of the ElevenLabs premade voices are South African. Search the Voice
+Library for one and set `VOICE` to its name or ID — worth doing before this goes
+in front of SA agencies.
 
 ## Every time
 
