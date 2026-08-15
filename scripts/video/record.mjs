@@ -252,8 +252,22 @@ async function signIn(page, origin, email) {
  * a recorded beat would put the OTP dance on camera.
  */
 const sessions = new Map();
+
+/**
+ * How long a captured session is trusted before it's re-minted.
+ *
+ * Both apps have idle auto-logout, and a full run takes over ten minutes. The
+ * web session was captured at the start, sat untouched through every mobile
+ * beat, and had expired by the time the last web beats filmed — so `13-listings`
+ * onward recorded the OTP login screen instead of the product. Nothing failed;
+ * the beat just filmed the wrong thing, with the right caption over it.
+ */
+const SESSION_TTL_MS = 4 * 60 * 1000;
+
 async function sessionFor(browser, key, origin, email, mobile) {
-  if (sessions.has(key)) return sessions.get(key);
+  const hit = sessions.get(key);
+  if (hit && Date.now() - hit.at < SESSION_TTL_MS) return hit.state;
+  if (hit) log(`${key}: session older than ${SESSION_TTL_MS / 60000}min, signing in again`);
   const ctx = await browser.newContext({
     ...(mobile ? devices['iPhone 13 Pro'] : {}),
     viewport: mobile ? { width: 390, height: 844 } : { width: 1920, height: 1080 },
@@ -268,7 +282,7 @@ async function sessionFor(browser, key, origin, email, mobile) {
     warn(`  ${key} beats will film the login screen instead`);
   }
   await ctx.close();
-  sessions.set(key, state);
+  sessions.set(key, { state, at: Date.now() });
   return state;
 }
 
@@ -330,7 +344,7 @@ function requiredSeconds(id) {
  * Mobile gets a long timeout because a cold Metro bundle genuinely takes ~30-60s.
  */
 async function waitForAppReady(page, isMobile, id = '') {
-  const timeout = isMobile ? 90000 : 25000;
+  const timeout = isMobile ? 30000 : 25000;
   const painted = () =>
     page
       .waitForFunction(
@@ -364,7 +378,13 @@ async function recordBeat(browser, beat, sessionState) {
   // Phone footage gets letterboxed into a 1080-tall canvas, so capturing at the
   // logical 390x844 meant upscaling ~1.3x and everything looked soft. Rendering
   // at 2x and recording at 780x1688 means the assembler DOWNscales instead.
-  const size = isMobile ? { width: 780, height: 1688 } : viewport;
+  // recordVideo.size must match the viewport. Setting it to 2x the viewport for
+  // "crispness" was wrong: Playwright doesn't upscale the page to fill the video,
+  // it draws the page at its own size in the top-left and pads the rest with
+  // grey — which is exactly the grey surround around a small phone screen. The
+  // deviceScaleFactor above still buys sharper rasterisation, downsampled into
+  // this frame, and the assembler scales the clip to 1080 tall.
+  const size = viewport;
   const ctx = await browser.newContext({
     ...(isMobile ? devices['iPhone 13 Pro'] : {}),
     viewport,
@@ -429,6 +449,18 @@ async function recordBeat(browser, beat, sessionState) {
   const video = page.video();
   await ctx.close();                       // must close before the file is finalised
   const src = await video.path();
+
+  // A beat that never painted is worse than a missing beat: the cut still builds,
+  // the caption still says "Your tenant pays from their phone", and the viewer
+  // sees a grey rectangle. Throw the clip away so the assembler skips it.
+  if (blankBeats.includes(beat.id)) {
+    warn(`${beat.id}: discarding blank clip`);
+    try { rmSync(src, { force: true }); } catch { /* already gone */ }
+    // Also remove any clip left by an earlier run, or the assembler happily
+    // reuses yesterday's blank footage for a beat we just chose to drop.
+    try { rmSync(join(OUT, `${beat.id}.webm`), { force: true }); } catch { /* none */ }
+    return null;
+  }
   const dest = join(OUT, `${beat.id}.webm`);
   renameSync(src, dest);
   log('recorded', beat.id);
@@ -475,7 +507,13 @@ async function main() {
   const failed = [];
   for (const beat of BEATS) {
     try {
-      await recordBeat(browser, beat, states[beat.app || 'web']);
+      // Re-mint the session if it has gone stale. Free when it hasn't, and it
+      // happens outside any recording context, so the login never appears on
+      // camera.
+      const key = beat.app || 'web';
+      const a = APPS[key];
+      states[key] = await sessionFor(browser, key, a.origin, a.email, a.mobile);
+      await recordBeat(browser, beat, states[key]);
     } catch (e) {
       // One bad beat shouldn't cost the whole run — 20 minutes of stack startup
       // and recording is too much to throw away over a flaky dependency.

@@ -22,9 +22,37 @@
 set -euo pipefail
 
 RAW="docs/video/raw"
-OUT="docs/video/out"
+# Each run gets its own dated folder. Overwriting one directory in place made it
+# impossible to tell a fresh cut from the previous one — same filenames, and
+# Explorer doesn't always refresh its timestamps. Override with VIDEO_OUT.
+OUT="${VIDEO_OUT:-docs/video/out/$(date +%Y-%m-%d_%H%M)}"
 MUSIC="docs/video/music.mp3"
-FONT="${VIDEO_FONT:-C\\:/Windows/Fonts/arialbd.ttf}"   # bold; override on non-Windows
+# Arial Bold is the font of a memo, not of a product. Segoe UI Semibold is on
+# every Windows box and reads far more like software; Inter/Helvetica are used if
+# they happen to be installed. Override with VIDEO_FONT if you license something.
+pick_font() {
+  local candidates=(
+    "C:/Windows/Fonts/seguisb.ttf"
+    "C:/Windows/Fonts/segoeuib.ttf"
+    "C:/Windows/Fonts/Inter-SemiBold.ttf"
+    "C:/Windows/Fonts/arialbd.ttf"
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+  )
+  local c unix
+  for c in "${candidates[@]}"; do
+    unix=$(echo "$c" | sed -E 's|^([A-Za-z]):|/\l\1|')   # C:/x -> /c/x for Git Bash
+    if [ -f "$c" ] || [ -f "$unix" ]; then
+      # ffmpeg needs the drive colon escaped inside a filter string.
+      echo "$c" | sed 's|^\([A-Za-z]\):|\1\\\\:|'
+      return 0
+    fi
+  done
+  echo "C\\\\:/Windows/Fonts/arialbd.ttf"
+}
+FONT="${VIDEO_FONT:-$(pick_font)}"
+
+# Brand accent for the caption band's marker rule.
+ACCENT="${VIDEO_ACCENT:-0x2D6A8F}"
 
 # Crossfade between beats. 0.25s is deliberately short — long enough to stop the
 # cut feeling like a slideshow, short enough that nobody consciously notices it.
@@ -46,6 +74,8 @@ command -v ffmpeg >/dev/null || { echo "ffmpeg not found — install it first"; 
 [ -d "$RAW" ] || { echo "no clips in $RAW — run: node scripts/video/record.mjs"; exit 1; }
 
 mkdir -p "$OUT" "$RAW/norm"
+echo "$OUT" > docs/video/.last-out
+echo "output: $OUT"
 
 # ── 1. Normalise every clip to 1920x1080 / 30fps / same codec ───────────────
 # Playwright's webm files vary in frame rate; concat demuxer needs them uniform.

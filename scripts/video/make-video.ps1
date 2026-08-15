@@ -159,13 +159,36 @@ try {
   if ($Cfg.startWeb) {
     Start-Logged 'Web'   (Join-Path $Root 'web-admin') 'npm.cmd' 'run dev' (Join-Path $LogDir 'web.log') | Out-Null
   }
+  # Static export, not `expo start --web`.
+  #
+  # Metro builds the web bundle lazily. When that build stalled, the dev server
+  # still accepted connections and served the HTML shell, so every health check
+  # passed while the recorder filmed a blank white page for 75 seconds. An export
+  # fails loudly here instead, before a single frame is recorded — and it's the
+  # same artefact the production containers serve.
+  function Export-Expo([string]$Name, [string]$Dir, [int]$Port, [string]$Log) {
+    $full = Join-Path $Root $Dir
+    $dist = Join-Path $full 'dist'
+    Write-Host "  building $Name web bundle (this takes a minute)" -NoNewline
+    Push-Location $full
+    npx expo export --platform web --output-dir dist *> $Log
+    $ok = ($LASTEXITCODE -eq 0)
+    Pop-Location
+    if (-not $ok -or -not (Test-Path (Join-Path $dist 'index.html'))) {
+      Write-Host ' failed' -ForegroundColor Red
+      Write-Host "  see $Log — $Name beats will film a blank screen, so they are being skipped" -ForegroundColor Yellow
+      return $false
+    }
+    Write-Host ' ok' -ForegroundColor Green
+    Start-Logged $Name $Root 'node' "scripts/video/serve-static.mjs --dir $Dir/dist --port $Port" "$Log.serve" | Out-Null
+    return $true
+  }
+
   if ($Cfg.startTenant) {
-    # --web goes straight to the browser build; no interactive keypress needed.
-    Start-Logged 'Tenant' (Join-Path $Root 'mobile-tenant') 'npx.cmd' 'expo start --web' (Join-Path $LogDir 'tenant.log') | Out-Null
+    $null = Export-Expo 'Tenant' 'mobile-tenant' 8081 (Join-Path $LogDir 'tenant.log')
   }
   if ($Cfg.startLandlord) {
-    # Second Expo instance needs its own port, or it grabs 8081 and clashes.
-    Start-Logged 'Landlord' (Join-Path $Root 'mobile-landlord') 'npx.cmd' 'expo start --web --port 8082' (Join-Path $LogDir 'landlord.log') | Out-Null
+    $null = Export-Expo 'Landlord' 'mobile-landlord' 8082 (Join-Path $LogDir 'landlord.log')
   }
 
   if ($Cfg.startApi -and -not (Wait-Url 'API' "$($Cfg.apiUrl)/health" $Cfg.waitApi)) { Die "API never came up — see $ApiLog" }
@@ -234,7 +257,11 @@ try {
   }
 
   Say '6/6  Done' 'Green'
-  $out = Join-Path $Root 'docs\video\out'
+  # assemble.sh writes each run to its own dated folder and leaves the path here.
+  $marker = Join-Path $Root 'docs\video\.last-out'
+  $out = if (Test-Path $marker) { Join-Path $Root (Get-Content $marker -Raw).Trim() }
+         else { Join-Path $Root 'docs\video\out' }
+  Write-Host ("   $out") -ForegroundColor Cyan
   if (Test-Path $out) { Get-ChildItem $out -Filter *.mp4 | ForEach-Object { Write-Host ("   {0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB)) } }
   Write-Host "`nWatch locare-15s.mp4 first — it's the one you publish." -ForegroundColor Cyan
   Write-Host "Pacing off? Adjust the wait values in scripts/video/beats.config.mjs and run again.`n"

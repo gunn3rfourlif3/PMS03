@@ -79,7 +79,11 @@ export const BEATS = [
     goto: '/payments',
     actions: [
       { wait: 2000 },
-      { click: 'button:has-text("Accept")', label: 'Accept proof' },
+      // text-is, not has-text: the page also has an "Accepted" filter tab, and
+      // has-text matches substrings — so the money shot clicked the filter and
+      // filmed an empty "No accepted proof of payment" state instead of a
+      // reconciliation.
+      { click: 'button:text-is("Accept")', label: 'Accept proof' },
       { wait: 2600 },   // let the row disappear and the count update
       { scroll: 160 },
       { wait: 1600 },
