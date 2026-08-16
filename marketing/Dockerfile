@@ -11,4 +11,7 @@ COPY brand /srv/brand
 COPY tools /srv/tools
 # Guides are drafted by the weekly content agent; the directory may be empty.
 COPY guides /srv/guides
+# Product demo video + its page. Last, because the MP4 is the largest file here
+# and putting it after the HTML keeps earlier layers cached when copy changes.
+COPY demo /srv/demo
 EXPOSE 80

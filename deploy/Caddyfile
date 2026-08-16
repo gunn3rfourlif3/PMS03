@@ -62,7 +62,16 @@ dantalan.co.za, www.dantalan.co.za {
 
 # Locare marketing + agency signup (static site)
 locare.co.za, www.locare.co.za {
-	encode zstd gzip
+	# Text only — see marketing/web.Caddyfile. Compressing the demo MP4 at this
+	# layer would defeat byte-range requests just the same.
+	encode zstd gzip {
+		match {
+			header Content-Type text/*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+			header Content-Type image/svg+xml*
+		}
+	}
 	reverse_proxy marketing:80
 }
 

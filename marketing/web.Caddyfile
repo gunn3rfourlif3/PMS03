@@ -2,7 +2,17 @@
 # reverse-proxies here.
 :80 {
 	root * /srv
-	encode zstd gzip
+	# Compress text only. Compressing an MP4 gains nothing and, worse, a
+	# compressed response can't be served with byte ranges — so the browser
+	# can't seek and has to download the whole file before playing.
+	encode zstd gzip {
+		match {
+			header Content-Type text/*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+			header Content-Type image/svg+xml*
+		}
+	}
 	# Clean URLs: /privacy → /privacy.html, /tools/commission-calculator →
 	# /tools/commission-calculator.html, /tools → /tools/index.html
 	try_files {path} {path}.html {path}/index.html
@@ -11,5 +21,8 @@
 	header @assets Cache-Control "public, max-age=2592000"
 	@html path / *.html
 	header @html Cache-Control "public, max-age=300, must-revalidate"
+	# The demo video is immutable in practice and large; cache it hard.
+	@media path *.mp4 *.webm *.m4a
+	header @media Cache-Control "public, max-age=604800"
 	file_server
 }
