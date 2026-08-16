@@ -82,13 +82,13 @@ export default function HomeScreen({ navigation, goTab }: { navigation: any; goT
       </BentoHero>
 
       <View style={s.tiles}>
-        <BentoTile tone="blue" icon="card-outline" value="Pay" label="Rent & history" onPress={() => goTab('pay')} />
-        <BentoTile tone="purple" icon="construct-outline" value="Log" label="Maintenance" onPress={() => navigation.navigate('Maintenance')} />
+        <BentoTile testID="tile-pay" tone="blue" icon="card-outline" value="Pay" label="Rent & history" onPress={() => goTab('pay')} />
+        <BentoTile testID="tile-maintenance" tone="purple" icon="construct-outline" value="Log" label="Maintenance" onPress={() => navigation.navigate('Maintenance')} />
       </View>
       <View style={s.tiles}>
-        <BentoTile tone="green" icon="document-text-outline" value="Lease" label="Your documents" onPress={() => goTab('docs')} />
+        <BentoTile testID="tile-lease" tone="green" icon="document-text-outline" value="Lease" label="Your documents" onPress={() => goTab('docs')} />
         <BentoTile
-          tone="pink" icon="chatbubbles-outline" value="Chat" label="Messages"
+          testID="tile-messages" tone="pink" icon="chatbubbles-outline" value="Chat" label="Messages"
           chip={unread > 0 ? (unread > 9 ? '9+' : String(unread)) : undefined}
           onPress={() => navigation.navigate('Messages')}
         />

@@ -163,7 +163,10 @@ BEATS.push(
       { wait: 2000 },
       // Home-screen tile, not a tab: Maintenance is a stack screen reached from
       // the "Log ticket" tile (mobile-tenant/src/screens/HomeScreen.tsx).
-      { click: 'text="Log ticket"', label: 'Log ticket tile' },
+      // The tile label is "Log" with a "Maintenance" sub-label since the bento
+      // redesign; testID is used because copy changes break text selectors and
+      // this beat silently filmed the home screen for a whole run.
+      { click: '[data-testid="tile-maintenance"]', label: 'Maintenance tile' },
       { wait: 2400 },
       { scroll: 220 },
       { wait: 1600 },
@@ -176,7 +179,7 @@ BEATS.push(
     optional: true,
     actions: [
       { wait: 2000 },
-      { click: 'text="Messages"', label: 'Messages tile' },
+      { click: '[data-testid="tile-messages"]', label: 'Messages tile' },
       { wait: 2400 },
       { scroll: 180 },
       { wait: 1600 },
@@ -204,7 +207,7 @@ BEATS.push(
     optional: true,
     actions: [
       { wait: 2000 },
-      { click: 'text="Pay"', label: 'Pay tile' },
+      { click: '[data-testid="tile-pay"]', label: 'Pay tile' },
       { wait: 2600 },
       { scroll: 200 },
       { wait: 2000 },
@@ -219,7 +222,7 @@ BEATS.push(
     optional: true,
     actions: [
       { wait: 2000 },
-      { click: 'text="Lease"', label: 'Lease tile' },
+      { click: '[data-testid="tile-lease"]', label: 'Lease tile' },
       { wait: 2600 },
       { scroll: 200 },
       { wait: 2000 },

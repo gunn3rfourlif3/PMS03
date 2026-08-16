@@ -176,10 +176,14 @@ export type BentoTone = keyof typeof BENTO;
 
 /** Colour-blocked stat tile. The workhorse of the redesigned dashboards. */
 export function BentoTile({
-  tone, icon, value, label, chip, onPress, style, size = 'md',
+  tone, icon, value, label, chip, onPress, style, size = 'md', testID,
 }: {
   tone: BentoTone; icon?: keyof typeof Ionicons.glyphMap; value: React.ReactNode; label: string;
   chip?: string; onPress?: () => void; style?: StyleProp<ViewStyle>; size?: 'md' | 'lg';
+  // Stable hook for the video recorder. Tile copy is marketing surface and
+  // changes; a text selector that silently matches nothing films the wrong
+  // screen under the right caption, which is worse than failing.
+  testID?: string;
 }) {
   const t = useTheme();
   const c = BENTO[tone];
@@ -210,7 +214,11 @@ export function BentoTile({
     </View>
   );
   if (!onPress) return body;
-  return <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={{ flex: 1 }}>{body}</TouchableOpacity>;
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={{ flex: 1 }} testID={testID}>
+      {body}
+    </TouchableOpacity>
+  );
 }
 
 /** Full-width feature tile — the one number a screen is actually about. */
