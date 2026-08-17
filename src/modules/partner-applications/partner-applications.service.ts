@@ -10,7 +10,7 @@ import { maskBanking } from '@common/security/pii-crypto';
 import { toE164 } from '@common/phone/e164';
 import { CHANNEL_PROVIDERS, Channel, ChannelProvider } from '@providers/notification/notification-provider.interface';
 import { KYC_PROVIDER, KycProvider } from '@providers/kyc/kyc-provider.interface';
-import { renderEmail } from '@common/email/email';
+import { renderEmail, EmailTable } from '@common/email/email';
 import {
   PartnerApplication, ApplicationDocument, PartnerApplicationType, PartnerApplicationStatus,
 } from './partner-application.entity';
@@ -18,6 +18,9 @@ import {
 const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const APPLY_URL = () => (process.env.PARTNER_APPLY_URL || 'https://app.locare.co.za/partner-apply').replace(/\/+$/, '');
 const TEAM_EMAIL = () => process.env.PARTNER_NOTIFY_EMAIL || 'partners@locare.co.za';
+/** Must be a publicly reachable PNG — mail clients fetch it, and they drop SVG. */
+const LOCARE_EMAIL_LOGO =
+  process.env.LOCARE_EMAIL_LOGO_URL || 'https://locare.co.za/brand/locare-logo-email-white.png';
 
 export interface CreateApplicationInput {
   type: PartnerApplicationType;
@@ -473,22 +476,118 @@ export class PartnerApplicationsService {
     if (kind === 'start' || kind === 'reminder') {
       const link = this.continueUrl(app, token);
       const days = Math.round(this.tokenTtlMs / 86_400_000);
-      const heading = kind === 'start' ? `Thanks, ${first} — one more step` : `Still interested, ${first}?`;
-      const intro = kind === 'start'
-        ? 'Thanks for your interest in the Locare partner programme.'
-        : "You started a partner application with us but haven't finished it yet.";
+
+      // The introduction pack. This is the only chance to explain the commission
+      // model before someone hits an ID-upload wall, and the drop-off happens
+      // there — so the money, the audience and the reason for KYC all go here.
+      // Figures mirror docs/LOCARE_COMMISSION_STRUCTURE.md §5. Keep them in step.
+      const rates: EmailTable = {
+        head: ['Their plan', 'You earn / month'],
+        rows: [
+          ['Starter — R925', 'R74'],
+          ['Growth — R2,660', 'R213'],
+          ['Scale — R6,014', 'R481'],
+        ],
+      };
+
+      const opening = kind === 'start'
+        ? 'Thanks for putting your details in. Before you complete the verification step, here is exactly what you would be signing up to — no vagueness about the money.'
+        : 'You started a partner application with us but have not finished it yet. Here is what is on the table.';
+
+      const text = [
+        `Hi ${first},`,
+        '',
+        opening,
+        '',
+        'WHAT YOU EARN',
+        'You start as an Introducer: 8% of the agency\'s subscription, every month, for 24 months. Not a once-off finder\'s fee.',
+        '  Starter (R925)  -> R74 / month',
+        '  Growth (R2,660) -> R213 / month',
+        '  Scale (R6,014)  -> R481 / month',
+        'Five Growth agencies is R1,065 a month for introductions you made once.',
+        '',
+        'Two rungs above that: Partner pays 17% and Reseller pays 26%, and at both, commission runs for as long as the agency stays a customer.',
+        '',
+        'WHO TO APPROACH',
+        'Independent agencies, 10 to 150 units, usually one or two principals, still running rent collection on spreadsheets and a bank app.',
+        '',
+        'WHAT WE DO',
+        'You introduce. We demo, close, onboard and support.',
+        '',
+        'WHY THERE IS A VERIFICATION STEP',
+        'Because real money moves. Commission is paid into your bank account monthly, so we verify who you are — ID or company registration, and banking details. About ten minutes.',
+        '',
+        `Continue here: ${link}`,
+        `This link is valid for ${days} days.`,
+        '',
+        'Commission is calculated on recurring subscription fees actually received, excluding VAT. Figures are current published prices — they show how commission is calculated, not earnings you should expect.',
+      ].join('\n');
+
       return this.email(
         app.contactEmail,
-        kind === 'start' ? 'Complete your Locare partner application' : 'Finish your Locare partner application',
-        `Hi ${first}, ${intro}\n\nTo finish, we need to verify who you are (KYC/KYB). Have your ID or company registration and banking details ready — it takes a few minutes.\n\nContinue here: ${link}\n\nThis link is valid for ${days} days.`,
+        kind === 'start'
+          ? 'Your Locare partner application — what you\'ll earn, and the next step'
+          : 'Finish your Locare partner application',
+        text,
         renderEmail({
-          heading,
+          // Locare's own mail, not an agency's — so it carries the Locare mark
+          // on the ink bar. The white PNG variant, because Gmail drops SVG and
+          // marketing/locare-logo.png is a green-screen asset.
+          logoUrl: LOCARE_EMAIL_LOGO,
+          headerStyle: 'ink',
+          eyebrow: 'Partner programme',
+          preheader: kind === 'start'
+            ? "8% of every referred agency's subscription, every month, for 24 months."
+            : 'Your partner application is still open — here is what is on the table.',
+          heading: kind === 'start' ? `Welcome, ${first}` : `Still interested, ${first}?`,
           paragraphs: [
-            intro,
-            'To complete it we need to verify who you are. Have your ID document (or company registration) and your banking details to hand — it only takes a few minutes.',
-            `This link stays valid for ${days} days.`,
+            opening,
+            'Locare is property management software for South African rental agencies. Each agency runs their whole rental operation — leasing, rent collection, maintenance, owner payouts — under their own brand and their own domain. Their tenants never see us.',
+          ],
+          sections: [
+            {
+              title: 'What you earn',
+              paragraphs: [
+                'You start as an Introducer: 8% of the agency\'s subscription, every month, for 24 months. Not a once-off finder\'s fee.',
+              ],
+              table: rates,
+            },
+            {
+              callout: {
+                label: 'Five Growth agencies',
+                value: 'R1,065 / month',
+                note: 'Recurring, for introductions you made once.',
+              },
+              paragraphs: [
+                'There are two rungs above that. Partner pays 17% and Reseller pays 26% — and at both, commission runs for as long as the agency stays a customer, not for a fixed term. You move up by doing more of the work: Partner when you run your own demos, Reseller when you handle first-line support.',
+                'Most referral programmes pay well in month one and little after. We would rather pay you for as long as we are being paid.',
+              ],
+            },
+            {
+              title: 'Who to approach',
+              paragraphs: [
+                'The agencies that fit are independent, 10 to 150 units, usually one or two principals, still running rent collection on spreadsheets and a bank app. If you know someone who complains about month-end, that is the person.',
+              ],
+            },
+            {
+              title: 'What we do, what you do',
+              paragraphs: [
+                'You introduce. We demo, close, onboard and support. You are not being signed up as unpaid support staff.',
+              ],
+            },
+            {
+              title: 'Why there is a verification step',
+              paragraphs: [
+                'Because real money moves. Commission is paid into your bank account every month, so we are required to verify who you are — your ID or company registration, and your banking details. It takes about ten minutes, and it is the last thing between you and your first referral.',
+                `The link below stays valid for ${days} days.`,
+              ],
+            },
           ],
           buttons: [{ label: 'Complete your application', url: link }],
+          footerNote: 'Questions before you start? Just reply to this email.',
+          fineprint:
+            'Commission is calculated on recurring subscription fees actually received, excluding VAT. '
+            + 'Figures above are current published prices — they show how commission is calculated, not earnings you should expect.',
         }),
       );
     }

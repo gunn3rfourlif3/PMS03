@@ -11,6 +11,7 @@ import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
 import { MediaService } from '@modules/media/media.service';
 import { renderEmail } from '@common/email/email';
+import { emailBrandForVendor } from '@common/email/email-brand';
 import { buildMoveInLines, renderMoveInInvoice } from './move-in-invoice';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
@@ -285,9 +286,10 @@ export class ApplicationsService {
     const firstName = app.applicantName?.trim().split(/\s+/)[0];
     const greeting = firstName ? `Welcome home, ${firstName}!` : 'Welcome home!';
 
-    // Sign off with the agency's name (vendor is RLS-scoped to the caller here).
-    const rows = await this.tenant.getManager().query('SELECT name FROM vendors WHERE id = $1', [this.tenant.vendorId]);
-    const agency = (rows?.[0]?.name ?? '').trim();
+    // Sign off with the agency's name, and dress the email in their logo and
+    // colour (vendor is RLS-scoped to the caller here).
+    const brand = await emailBrandForVendor(this.tenant.getManager(), this.tenant.vendorId);
+    const agency = (brand.agencyName ?? '').trim();
 
     // The one required next step is signing the lease — that unlocks portal
     // access. Portal sign-in is intentionally NOT offered here.
@@ -314,6 +316,7 @@ export class ApplicationsService {
       if (signUrl) buttons.push({ label: 'Review & sign your lease', url: signUrl });
       if (invoiceUrl) buttons.push({ label: 'View your move-in invoice', url: invoiceUrl });
       html = renderEmail({
+        ...brand,
         agencyName: agency || undefined,
         heading: greeting,
         paragraphs: [

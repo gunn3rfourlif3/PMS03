@@ -6,6 +6,7 @@ import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { renderEmail } from '@common/email/email';
+import { emailBrandForVendor, emailMarkBase, mailSafeLogo } from '@common/email/email-brand';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { cascadeSend, parseChannels } from '@providers/notification/cascade';
 import { toE164 } from '@common/phone/e164';
@@ -91,6 +92,9 @@ export class LeaseAgreementService {
         `Hi ${firstName},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${data.agencyName}`,
         renderEmail({
           agencyName: data.agencyName,
+          brandColor: branding.colors?.brand,
+          logoUrl: mailSafeLogo(branding.logo?.imageUrl),
+          markUrl: emailMarkBase(),
           heading: `Hi ${firstName}, your lease is ready to sign`,
           paragraphs: ['Please review your lease agreement and sign it online — it only takes a moment.'],
           buttons: [{ label: 'Review & sign your lease', url: signUrl }],
@@ -286,7 +290,9 @@ export class LeaseAgreementService {
     const waTemplate = process.env.WHATSAPP_WELCOME_TEMPLATE ?? 'locare_welcome';
     const subject = `Welcome to ${args.agencyName} 🎉`;
     const body = `Hi ${args.firstName}, your ${args.agencyName} tenant account is ready. Open the app to view your lease, pay rent and log maintenance: ${portalUrl}`;
+    const brand = await emailBrandForVendor(this.tenant.getManager(), this.tenant.vendorId);
     const html = renderEmail({
+      ...brand,
       agencyName: args.agencyName,
       heading: `Welcome aboard, ${args.firstName}!`,
       paragraphs: [

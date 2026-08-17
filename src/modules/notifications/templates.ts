@@ -1,5 +1,6 @@
 import { Channel } from '@providers/notification/notification-provider.interface';
 import { renderEmail } from '@common/email/email';
+import { EmailBrand } from '@common/email/email-brand';
 
 /**
  * Notification templates. Pure: `render` interpolates {{var}} placeholders from
@@ -59,6 +60,7 @@ export function render(text: string, payload: Record<string, unknown>): string {
 export function renderTemplate(
   key: TemplateKey,
   payload: Record<string, unknown>,
+  brand: EmailBrand = {},
 ): { subject: string; body: string; html?: string } {
   const t = TEMPLATES[key];
   const subject = render(t.subject, payload);
@@ -67,6 +69,7 @@ export function renderTemplate(
   if (t.email) {
     const url = payload[t.email.urlKey];
     html = renderEmail({
+      ...brand,
       heading: render(t.email.heading, payload),
       paragraphs: [render(t.email.paragraph, payload)],
       buttons: url ? [{ label: t.email.label, url: String(url) }] : [],

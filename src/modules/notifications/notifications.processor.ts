@@ -14,6 +14,7 @@ import {
   Channel,
   ChannelProvider,
 } from '@providers/notification/notification-provider.interface';
+import { emailBrandForVendor } from '@common/email/email-brand';
 import { TEMPLATES, renderTemplate, TemplateKey } from './templates';
 import { allowedChannels, NotificationPrefs } from './preferences';
 import { Notification } from './notification.entity';
@@ -54,7 +55,16 @@ export class NotificationsProcessor extends WorkerHost {
       const requested = input.channels ?? TEMPLATES[input.template as TemplateKey].defaultChannels;
       const channels = allowedChannels(requested, prefs, new Date().getUTCHours());
 
-      const { subject, body, html } = renderTemplate(input.template as TemplateKey, input.payload);
+      // Resolved per job rather than cached: an agency can change its logo or
+      // colour at any time, and mail is low-volume enough that one extra row
+      // read per send is not worth a cache-invalidation problem.
+      const brand = await emailBrandForVendor(this.tenant.getManager(), input.vendorId);
+
+      const { subject, body, html } = renderTemplate(
+        input.template as TemplateKey,
+        input.payload,
+        brand,
+      );
       const repo = this.tenant.getRepository(Notification);
 
       let sent = 0;
