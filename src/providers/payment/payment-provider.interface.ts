@@ -26,6 +26,16 @@ export interface PayoutRequest {
   ownerId: string;
   amount: number;
   currency: string;
+  /**
+   * Stable key identifying THIS payout, for provider-side de-duplication.
+   * Must be the same value on every retry of the same payout and different for
+   * every distinct one — the owner statement id is the natural choice, since a
+   * statement is exactly the unit of "one payout".
+   *
+   * Without it a retried request pays an owner twice, and money-out has no
+   * equivalent of a chargeback to undo it.
+   */
+  idempotencyKey?: string;
   bankAccount?: {
     bankName?: string;
     accountHolder?: string;

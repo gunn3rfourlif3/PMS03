@@ -30,18 +30,39 @@ export class PartnerCommissionsService {
   /**
    * Accrue commissions for a period across every referred, paying agency. One
    * pending row per (partner, vendor, period) — idempotent, so safe to re-run.
+   *
+   * **Basis is cash collected, not billed** (docs/LOCARE_COMMISSION_STRUCTURE.md
+   * §4). It sums `subscription_invoices` actually marked paid, keyed on the
+   * month the payment landed rather than the month it was billed for — an
+   * invoice for July settled in August earns in August, which is when Locare
+   * has the money.
+   *
+   * This replaced accruing on `vendor_subscriptions.mrr`, which paid a partner
+   * on subscribed MRR: commission on trials that never converted and on
+   * invoices never paid. Paying out on money that had not arrived is how a
+   * channel ends up clawing back, and a clawback is the fastest way to lose a
+   * partner (§4, "why arrears, and why collected").
    */
   async accrue(period = thisPeriod()): Promise<{ period: string; accrued: number; withheld: number }> {
-    const rows: Array<{ partner_id: string; vendor_id: string; mrr: string; rate: string; commission_months: number | null; started_at: string }> =
+    const rows: Array<{ partner_id: string; vendor_id: string; collected: string; rate: string; commission_months: number | null; started_at: string }> =
       await this.ds.query(
-        `SELECT vs.referred_by_partner_id AS partner_id, vs.vendor_id, vs.mrr, vs.started_at,
+        `SELECT vs.referred_by_partner_id AS partner_id, si.vendor_id, vs.started_at,
+                SUM(si.amount) AS collected,
                 p.commission_rate AS rate, p.commission_months
-         FROM vendor_subscriptions vs
-         JOIN partners p ON p.id = vs.referred_by_partner_id
-         WHERE vs.referred_by_partner_id IS NOT NULL
-           AND vs.status IN ('active','trialing')
-           AND vs.mrr > 0
-           AND p.status = 'active'`,
+           FROM subscription_invoices si
+           JOIN vendor_subscriptions vs ON vs.vendor_id = si.vendor_id
+           JOIN partners p ON p.id = vs.referred_by_partner_id
+          WHERE si.status = 'paid'
+            AND si.paid_at IS NOT NULL
+            AND to_char(si.paid_at, 'YYYY-MM') = $1
+            AND vs.referred_by_partner_id IS NOT NULL
+            -- Belt and braces: a trial should have no paid invoices, but if one
+            -- is ever recorded against a trialing subscription it must not earn.
+            AND vs.status <> 'trialing'
+            AND p.status = 'active'
+          GROUP BY vs.referred_by_partner_id, si.vendor_id, vs.started_at,
+                   p.commission_rate, p.commission_months`,
+        [period],
       );
 
     // §7.4 — a partner earns nothing on an agency they control. Resolved once
@@ -60,16 +81,20 @@ export class PartnerCommissionsService {
         continue;
       }
       const rate = Number(r.rate) || 0;
-      const amount = commissionAmount(Number(r.mrr), rate);
+      const collected = Number(r.collected) || 0;
+      const amount = commissionAmount(collected, rate);
       if (amount <= 0) continue;
       // Insert if absent; if a still-pending row exists, refresh its basis/amount.
+      // `basis_mrr` now holds cash collected in the period, not subscribed MRR —
+      // the column name predates the change in basis and is kept to avoid a
+      // rename across the entity, both portals and the admin list.
       await this.ds.query(
         `INSERT INTO partner_commissions (partner_id, vendor_id, period, basis_mrr, rate, amount, status)
          VALUES ($1,$2,$3,$4,$5,$6,'pending')
          ON CONFLICT (partner_id, vendor_id, period) DO UPDATE
            SET basis_mrr = EXCLUDED.basis_mrr, rate = EXCLUDED.rate, amount = EXCLUDED.amount, updated_at = now()
            WHERE partner_commissions.status = 'pending'`,
-        [r.partner_id, r.vendor_id, period, Number(r.mrr), rate, amount],
+        [r.partner_id, r.vendor_id, period, collected, rate, amount],
       );
       accrued += 1;
     }

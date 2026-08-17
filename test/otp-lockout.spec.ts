@@ -15,7 +15,18 @@ describe('OTP brute-force lockout', () => {
     const users: any = { findOne: jest.fn().mockResolvedValue(user), save: jest.fn(async (u: any) => u), create: jest.fn(() => user) };
     const jwt: any = { sign: jest.fn().mockReturnValue('tok'), signAsync: jest.fn().mockResolvedValue('tok') };
     const ds: any = { query: jest.fn().mockResolvedValue([]) };
-    return { svc: new AuthService(otps, users, jwt, ds), otps };
+    // AuthService gained `sessions` (instant revocation) and `google` after this
+    // spec was written. Only `sessions.create` is reached on the verify path —
+    // the rest are stubbed so the constructor is satisfied without pulling Redis
+    // or the Google client into a pure unit test.
+    const sessions: any = {
+      create: jest.fn().mockResolvedValue(undefined),
+      createDevice: jest.fn().mockResolvedValue('dev-token'),
+      rotateDevice: jest.fn().mockResolvedValue(null),
+      revokeDevice: jest.fn().mockResolvedValue(undefined),
+    };
+    const google: any = { enabled: false };
+    return { svc: new AuthService(otps, users, jwt, ds, sessions, google), otps };
   };
 
   const challenge = (over: Partial<any> = {}) => ({

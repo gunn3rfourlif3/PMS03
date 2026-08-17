@@ -25,6 +25,11 @@ describe('PayFast provider', () => {
   it('collect builds a signed redirect URL when configured', async () => {
     process.env.PAYFAST_MERCHANT_ID = '10000100';
     process.env.PAYFAST_MERCHANT_KEY = '46f0cd694581a';
+    // Credentials alone are not enough: the provider also requires PAYFAST_LIVE,
+    // so a half-configured environment cannot start redirecting real customers
+    // to a payment page. "Configured" means both.
+    const prevLive = process.env.PAYFAST_LIVE;
+    process.env.PAYFAST_LIVE = 'true';
     const r = await new PayfastPaymentProvider().collect(collectReq);
     expect(r.status).toBe('pending');
     expect(r.redirectUrl).toContain('payfast.co.za/eng/process?');
@@ -32,6 +37,10 @@ describe('PayFast provider', () => {
     expect(r.redirectUrl).toContain('m_payment_id=inv-9');
     expect(r.redirectUrl).toContain('amount=1234.50');
     delete process.env.PAYFAST_MERCHANT_ID; delete process.env.PAYFAST_MERCHANT_KEY;
+    // Restore rather than delete: leaking PAYFAST_LIVE=true into later specs
+    // would silently arm a live gateway in whatever runs next.
+    if (prevLive === undefined) delete process.env.PAYFAST_LIVE;
+    else process.env.PAYFAST_LIVE = prevLive;
   });
 
   it('refuses payouts', async () => {

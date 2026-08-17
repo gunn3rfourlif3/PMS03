@@ -419,19 +419,27 @@ Also built:
   suffixes are ignored, because "both on Gmail" and "both called Properties"
   describe half the market.
 
+- **Accrual on collected payments, trials excluded** (§4). `accrue()` now sums
+  `subscription_invoices` actually marked paid, grouped by the month `paid_at`
+  falls in — so an invoice for July settled in August earns in August, which is
+  when Locare has the money. A trialing subscription earns nothing even if a
+  paid invoice is somehow recorded against it. Note `partner_commissions.basis_mrr`
+  now holds cash collected rather than subscribed MRR; the column name predates
+  the change and was left alone to avoid a rename across the entity, both
+  portals and the admin list.
+
 Work required, in order:
 
-1. **Accrue on collected payments, excluding trials** (§4). Blocks launch.
-2. **`tier` on `partners`**, so portal and admin show the rung rather than
+1. **`tier` on `partners`**, so portal and admin show the rung rather than
    inferring it from a rate.
-3. **Ex-VAT basis** — ensure the accrual reads the ex-VAT subscription amount,
+2. **Ex-VAT basis** — ensure the accrual reads the ex-VAT subscription amount,
    not a VAT-inclusive total, once agency invoicing carries VAT.
-4. **Self-billed tax invoice** as the statement format, with both VAT numbers.
-5. **Reseller gate reporting** — collected MRR per partner over a rolling three
+3. **Self-billed tax invoice** as the statement format, with both VAT numbers.
+4. **Reseller gate reporting** — collected MRR per partner over a rolling three
    months, so the §1 threshold can be checked without a manual tally.
-6. **Admin UI** for the payout run and the self-dealing report. Both are
+5. **Admin UI** for the payout run and the self-dealing report. Both are
    API-only today.
-7. **Company registration at agency onboarding**, so self-dealing detection can
+6. **Company registration at agency onboarding**, so self-dealing detection can
    match on identity rather than contact details. §7.4 describes comparing
    registration numbers and director IDs against partner KYB — but `vendors`
    stores no registration number, so the strongest check currently has nothing
@@ -444,7 +452,7 @@ Work required, in order:
 
 - [ ] VAT number issued and placed in all four locations (§7.3)
 - [ ] Site prices restated as "excl. VAT"; Dantalan grandfathering confirmed in writing
-- [ ] Accrual job switched to collected payments, trials excluded (§4)
+- [x] Accrual on collected payments, trials excluded (§4)
 - [ ] Self-billing agreement wording approved by the accountant
 - [ ] Partner terms updated: commissionable revenue, attribution, demotion, termination, **self-dealing exclusion (§7.4)**
 - [ ] Statement format carries both VAT numbers and self-billed labelling

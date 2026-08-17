@@ -130,6 +130,9 @@ export class OwnerStatementService {
       ownerId: owner.id,
       amount: Number(statement.netPayout),
       currency: 'ZAR',
+      // One statement, one payout. Retrying a timed-out request with this same
+      // key is rejected provider-side instead of paying the owner twice.
+      idempotencyKey: statement.id,
       bankAccount: {
         bankName: banking.bankName,
         accountHolder: banking.accountHolder,
