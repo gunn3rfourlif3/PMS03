@@ -11,9 +11,10 @@ Supersedes the two drafts that preceded it — a four-tier rate ladder
 was adopted.
 
 > **Read §12 first.** This document is written as though every prerequisite is
-> settled, so it can be published and built against. Four of those prerequisites
-> are assumptions, not confirmed facts. §12 lists them, and each is cheap to
-> correct if wrong.
+> settled, so it can be published and built against. Six of those prerequisites
+> are assumptions, not confirmed facts. §12 lists them. The first four are cheap
+> to correct if wrong; assumption 5 is not, because lifetime rates cannot be
+> reduced once granted.
 
 ---
 
@@ -25,10 +26,31 @@ was adopted.
 | **Term** | 24 months per agency | Lifetime | Lifetime |
 | **They do** | Introduce | Introduce, demo, help onboard | Sell, onboard, first-line support |
 | **Locare does** | Demo, close, onboard, support | Close, support | Back-stop only |
-| **Qualifies on** | Registration + KYC/KYB | 2 active agencies, **or** completed training | 5 active agencies + signed Reseller Support Addendum |
+| **Qualifies on** | Registration + KYC/KYB | 2 agencies the partner demoed, **confirmed by Locare** | **R15,000/month collected** across referred agencies for 3 consecutive months, + signed Reseller Support Addendum |
 
 Rate applies to the referred agency's recurring subscription revenue, excluding
 VAT, for as long as that agency keeps paying.
+
+### Qualification is on work done, not intent
+
+Each rate is priced for work transferred off Locare, so each gate has to
+measure that work rather than a proxy for it.
+
+**Partner is granted on demos Locare witnessed.** An earlier draft qualified on
+"2 active agencies **or** completed training". Training is attendance: a partner
+could sit through a session, forward two emails, and hold 17% for life while
+Locare still ran every demo and every onboarding. Training remains a
+prerequisite for *running* demos — it is how a partner becomes competent to do
+the work — but the tier is granted only when Locare has confirmed two of them.
+
+**Reseller is gated on collected revenue, not agency count.** An earlier draft
+said "5 active agencies", which the code counts with no reference to MRR. Five
+of the smallest possible agencies — free, if Starter ever goes free — would have
+bought 26% for life on every referral afterwards, including Scale at
+R1,564/month. A rand threshold cannot be gamed with shells, and three
+consecutive months stops a one-month spike from clearing it.
+
+Both gates are admin actions against evidence, not automatic promotions.
 
 ---
 
@@ -42,13 +64,16 @@ VAT, for as long as that agency keeps paying.
 | 4 | Lifetime | **Earned, not given.** 24 months at Introducer; lifetime from Partner up. |
 | 5 | Basis | **Cash collected**, not billed (§4). |
 | 6 | Timing | Statement on the 7th, payout by the 15th, both for the prior month. |
-| 7 | Minimum payout | **R500**, rolling over below that. |
+| 7 | Minimum payout | **R250**, rolling over below that, swept quarterly regardless (§4.1). |
 | 8 | Distributor / white-label | **Not a published tier.** Negotiated wholesale deal (§6). |
 | 9 | Commissionable revenue | **Recurring subscription only**, ex-VAT. Once-off and pass-through excluded (§5.1). |
 | 10 | Partner VAT | Rates are **VAT-exclusive**; Locare self-bills registered partners (§7.1). |
 | 11 | Agency pricing | Published prices are **VAT-exclusive**; Dantalan grandfathered (§7.2). |
 | 12 | Starter plan | **R925/month, paid.** The live site is the source of truth (§5). |
 | 13 | Reseller support terms | **Separate addendum** (§6.1). |
+| 14 | Tier qualification | **Measured work**: confirmed demos for Partner, collected MRR for Reseller (§1). |
+| 15 | Self-dealing | **Not commissionable.** No commission on an agency under the partner's own control (§7.4). |
+| 16 | Attribution mechanism | **Ref link or Locare-confirmed introduction**, with a cap on open leads (§7). |
 
 ---
 
@@ -62,11 +87,22 @@ for us.
 Locare actual hours. Slightly more than doubling the rate for meaningfully more
 work is a clear, motivating jump rather than a marginal one.
 
-**26% when they own first-line support.** Support is Locare's biggest cost of
-scale, and a Reseller absorbing it for five agencies is worth more than the
-points it costs. Contribution per customer should still *improve* at this tier
-despite the higher headline rate — that is the test any channel rate must pass,
-and it is worth re-checking once real support costs are known.
+**26% when they own first-line support.** A Reseller sells, onboards and
+absorbs first-line support, so 26% buys both acquisition and an operating cost.
+
+Be precise about which of those is doing the work, because an earlier draft of
+this section was not. It claimed contribution per customer *improves* at this
+tier because support is Locare's biggest cost of scale. That claim is not
+supported by any number Locare has. 26% of Growth is R692/month; a 10–150 unit
+agency is likely to generate one or two support tickets in a month, which does
+not plausibly cost R692 to answer. On support economics alone, 26% probably
+overpays.
+
+The honest justification is that 26% buys **distribution** — a Reseller selling
+under their own brand, at zero CAC to Locare, in a market Locare cannot cover
+alone. That is worth paying for. Support absorption is a secondary benefit, not
+the arithmetic that makes the rate work. Recorded as assumption 5 in §12; revisit
+once there is real support-cost data.
 
 ### Lifetime is earned
 
@@ -92,7 +128,7 @@ productive referrers to stop referring.
 | Commission accrues on payments **received** in | month N |
 | Statement issued | **7th** of month N+1 |
 | Payout | by the **15th** of month N+1 |
-| Below R500 | rolls to the next month |
+| Below R250 | rolls to the next month, swept quarterly regardless (§4.1) |
 
 ### Why arrears, and why collected
 
@@ -101,6 +137,28 @@ anyone knows whether the debit order bounced. Recovering money already paid to a
 partner is the fastest way to poison a channel. Paying in arrears on collected
 revenue means clawbacks never arise. It costs a few weeks of partner patience,
 which is easy to explain up front and impossible to explain afterwards.
+
+### 4.1 The minimum payout, and why it was lowered
+
+A R500 floor looks like sensible admin hygiene until it is applied to the tier
+most partners actually join at. An Introducer with one Starter agency earns
+R74/month. At R500 their first payout arrives in **month seven**, and the whole
+24-month term pays out in three lumps totalling about R1,776.
+
+That is a recruitment problem disguised as a payments policy. Someone who
+referred an agency in January and has seen nothing by June has concluded the
+programme is not real, and they are not wrong to.
+
+Two changes:
+
+- **Floor drops to R250.** First payout for that same Introducer moves to month
+  four.
+- **Quarterly sweep.** Any balance above zero is paid at the end of March, June,
+  September and December regardless of the floor. Nobody waits more than one
+  quarter for money they have earned.
+
+The floor exists to avoid R12 EFTs, not to hold partner money. A sweep keeps the
+first purpose and drops the second.
 
 ### Required change: the accrual job
 
@@ -205,7 +263,17 @@ no real support volume, would produce numbers invented rather than observed.
 partner. State it in the terms and in the intro pack.
 
 **Attribution.** First referral recorded wins, within a **90-day window** from
-first contact.
+first contact. Attribution is established one of two ways only: the agency
+arrives through the partner's referral link, or the partner registers a **named**
+prospect — agency name and a contact — which Locare confirms is a genuine
+introduction before it counts.
+
+Self-declared first contact with no named prospect is not attribution. Without
+that constraint a partner can register every agency in a metro and collect on
+whichever one later signs organically, having done nothing. For the same reason
+a partner may hold at most **20 open unconverted prospects** at a time; beyond
+that, older ones expire. Lead registration is meant to prevent two partners
+colliding on the same agency, not to let one partner reserve a market.
 
 **Tier demotion.** If a Reseller stops meeting the support addendum, the rate
 already earned on existing agencies is retained; the tier for *new* referrals
@@ -279,6 +347,31 @@ Once issued, in four places:
 4. Legal pages, alongside the registered entity name and company registration
    number outstanding for POPIA. One trip through those pages, not two.
 
+### 7.4 No commission on your own agency
+
+**A partner earns no commission on an agency they control.**
+
+Nothing in the earlier draft prevented a partner from signing their own agency
+through their own referral link. That is not an edge case: an agency principal
+who joins the programme, reaches Reseller, and self-refers converts the
+programme into a permanent 26% discount on their own subscription — and does so
+without breaking a single stated rule. It would not be fraud under those terms.
+It would be the terms working as written.
+
+The exclusion covers the partner, any entity in which the partner or an
+immediate family member is a director, member or beneficial owner, and any
+agency under common control with one of those.
+
+This is enforceable with data already collected. Partner KYB captures company
+registration number and director identity; agency onboarding captures the same
+for the vendor. Matching registration numbers, director ID numbers and banking
+details across the two is a check that can run at approval time rather than a
+clause nobody verifies.
+
+Where a partner genuinely operates an agency and wants to use Locare, they pay
+for it like any other customer. Their commission is for agencies they bring, not
+the one they run.
+
 ---
 
 ## 8. Implementation
@@ -288,7 +381,21 @@ Already supported by existing fields:
 - `partners.commission_rate` — 0.08 / 0.17 / 0.26, set on promotion.
 - `partners.commission_months` — **24** for Introducer, **null** (lifetime) for
   Partner and Reseller. `withinWindow()` already honours it.
-- Tier promotion is an admin action; no new rate-resolution logic needed.
+- Tier promotion is an admin action; no new rate-resolution logic needed. The
+  §1 gates are evidence an admin checks, not thresholds the system enforces.
+
+Already fixed — migration `1720000039000-PartnerAttributionIntegrity`:
+
+- **`provision_agency()` no longer overwrites attribution.** It upserted
+  `referred_by_partner_id` with `DO UPDATE`, so a second partner onboarding an
+  existing agency silently took over someone else's lifetime commission. Now
+  `DO NOTHING`, matching `signup_agency()` and the stated first-wins rule.
+- **`approve_agency()` stamps `started_at` on activation.** The column defaults
+  to `now()` at INSERT — for a referral signup, the moment the form is
+  submitted, while the row is still `pending`. Since accrual only runs on
+  `active`/`trialing`, an Introducer's 24-month window was being eaten by an
+  approval delay they do not control. Guarded to the pending → active
+  transition so re-approval cannot restart the clock.
 
 Work required, in order:
 
@@ -297,9 +404,16 @@ Work required, in order:
    inferring it from a rate.
 3. **Ex-VAT basis** — ensure the accrual reads the ex-VAT subscription amount,
    not a VAT-inclusive total, once agency invoicing carries VAT.
-4. **Minimum-payout roll-over** in the payout run.
-5. **Attribution window** enforced at referral capture.
+4. **Minimum-payout roll-over at R250, plus the quarterly sweep** (§4.1).
+5. **Attribution window** enforced at referral capture, with the 20-open-lead
+   cap (§7).
 6. **Self-billed tax invoice** as the statement format, with both VAT numbers.
+7. **Self-dealing check at partner approval** (§7.4) — compare partner KYB
+   company registration, director ID and banking details against the referred
+   vendor's. A report for the admin to review is enough; it does not need to
+   block automatically.
+8. **Reseller gate reporting** — collected MRR per partner over a rolling three
+   months, so the §1 threshold can be checked without a manual tally.
 
 ---
 
@@ -309,9 +423,12 @@ Work required, in order:
 - [ ] Site prices restated as "excl. VAT"; Dantalan grandfathering confirmed in writing
 - [ ] Accrual job switched to collected payments, trials excluded (§4)
 - [ ] Self-billing agreement wording approved by the accountant
-- [ ] Partner terms updated: commissionable revenue, attribution, demotion, termination
+- [ ] Partner terms updated: commissionable revenue, attribution, demotion, termination, **self-dealing exclusion (§7.4)**
 - [ ] Statement format carries both VAT numbers and self-billed labelling
 - [ ] Intro pack figures match §5 exactly
+- [ ] Migration `1720000039000` run in production (attribution + activation clock)
+- [ ] Payout floor set to R250 and the quarterly sweep scheduled (§4.1)
+- [ ] Self-dealing check runs at partner approval (§7.4)
 - [ ] First payout run rehearsed against test data before any real partner is approved
 
 ---
@@ -431,6 +548,8 @@ four are assumptions, and each is listed with what changes if it is wrong.
 | 2 | **VAT registration completes and the number is issued.** In progress at time of writing. | Until issued, Locare cannot charge VAT or reclaim input tax on commission to registered partners — at 26% on Growth, R692 becomes R796 all-in with R104 unrecoverable. Do not sign partners before the number lands. |
 | 3 | **Published prices become VAT-exclusive** (§7.2). | If they are made inclusive instead, net revenue drops 15% (R925 → R804) and every commission figure in §5 falls with it. |
 | 4 | **The accountant approves self-billing** as described in §7.1. | If not, partners must each raise their own tax invoice before payout, which is slower and more error-prone but does not change any rate. |
+| 5 | **26% at Reseller clears contribution margin.** Justified as buying distribution, not as offsetting support cost (§3). Locare has no support-cost data and has never paid a commission. | If gross margin per agency is thinner than assumed, 26% is unaffordable — and being lifetime, it cannot be reduced for partners already on it. Re-check after six months of real support volume and before promoting the first Reseller. |
+| 6 | **Partner-referred agencies churn no faster than direct ones.** | Lifetime commission on a high-churn cohort is self-limiting, so this is not a cost risk. It is a *forecasting* risk: referred MRR would be worth less than the same direct MRR, and channel payback would be longer than modelled. |
 
 §7.2 (agency pricing) and this section are commercial recommendations, not
 tax advice. Have the accountant confirm the VAT treatment and self-billing
