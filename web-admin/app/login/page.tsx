@@ -31,8 +31,14 @@ export default function LoginPage() {
 
   const request = async () => {
     setErr(''); setBusy(true);
-    try { await api.requestOtp(destination.trim()); setStage('verify'); }
-    catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+    try {
+      await api.requestOtp(destination.trim());
+      // Clear any previous code. Only the newest challenge is checked server-side,
+      // so leaving a stale value in the field means the obvious sequence — resend,
+      // verify — submits a dead code and burns an attempt against the new one.
+      setCode('');
+      setStage('verify');
+    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
   const verify = async () => {
     setErr(''); setBusy(true);

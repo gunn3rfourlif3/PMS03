@@ -397,6 +397,28 @@ Already fixed — migration `1720000039000-PartnerAttributionIntegrity`:
   approval delay they do not control. Guarded to the pending → active
   transition so re-approval cannot restart the clock.
 
+Also built:
+
+- **Payout run with the R250 floor and quarterly sweep** (§4.1).
+  `GET /admin/commissions/payout-run` groups approved-but-unpaid commissions by
+  partner and marks each line payable or held. The sweep is a property of the
+  run, not a separate job: in March, June, September and December every non-zero
+  balance is released. `POST /admin/commissions/payout-run/:partnerId/pay`
+  records the EFT against the whole balance. A payable partner with no banking
+  details on file is held with a reason rather than silently paid. Floor
+  overridable with `PARTNER_PAYOUT_FLOOR`.
+- **Open-lead cap** (§7). Partner-created prospects are refused past 20 open,
+  unconverted deals. Referral-link signups are exempt — they are conversions,
+  not reservations. Overridable with `PARTNER_OPEN_LEAD_CAP`.
+- **Self-dealing detection** (§7.4). `GET /admin/commissions/self-dealing`
+  lists partner/agency pairs with matching contact details or names. An exact
+  match between the partner's contact email and a `vendor_owner` on the referred
+  agency is conclusive, so accrual withholds it and logs a warning; weaker
+  signals — shared private mail domain, shared phone, similar names — are
+  flagged for a human and withhold nothing. Free mail hosts and generic company
+  suffixes are ignored, because "both on Gmail" and "both called Properties"
+  describe half the market.
+
 Work required, in order:
 
 1. **Accrue on collected payments, excluding trials** (§4). Blocks launch.
@@ -404,16 +426,17 @@ Work required, in order:
    inferring it from a rate.
 3. **Ex-VAT basis** — ensure the accrual reads the ex-VAT subscription amount,
    not a VAT-inclusive total, once agency invoicing carries VAT.
-4. **Minimum-payout roll-over at R250, plus the quarterly sweep** (§4.1).
-5. **Attribution window** enforced at referral capture, with the 20-open-lead
-   cap (§7).
-6. **Self-billed tax invoice** as the statement format, with both VAT numbers.
-7. **Self-dealing check at partner approval** (§7.4) — compare partner KYB
-   company registration, director ID and banking details against the referred
-   vendor's. A report for the admin to review is enough; it does not need to
-   block automatically.
-8. **Reseller gate reporting** — collected MRR per partner over a rolling three
+4. **Self-billed tax invoice** as the statement format, with both VAT numbers.
+5. **Reseller gate reporting** — collected MRR per partner over a rolling three
    months, so the §1 threshold can be checked without a manual tally.
+6. **Admin UI** for the payout run and the self-dealing report. Both are
+   API-only today.
+7. **Company registration at agency onboarding**, so self-dealing detection can
+   match on identity rather than contact details. §7.4 describes comparing
+   registration numbers and director IDs against partner KYB — but `vendors`
+   stores no registration number, so the strongest check currently has nothing
+   to compare against and the detection falls back to emails, phones and names.
+   Needed before the first Reseller is promoted.
 
 ---
 
@@ -427,8 +450,9 @@ Work required, in order:
 - [ ] Statement format carries both VAT numbers and self-billed labelling
 - [ ] Intro pack figures match §5 exactly
 - [ ] Migration `1720000039000` run in production (attribution + activation clock)
-- [ ] Payout floor set to R250 and the quarterly sweep scheduled (§4.1)
-- [ ] Self-dealing check runs at partner approval (§7.4)
+- [x] Payout floor at R250 with the quarterly sweep (§4.1)
+- [x] Open-lead cap enforced at deal creation (§7)
+- [x] Self-dealing detection withholding on conclusive matches (§7.4)
 - [ ] First payout run rehearsed against test data before any real partner is approved
 
 ---

@@ -19,7 +19,9 @@ export default function LoginScreen() {
 
   const request = async () => {
     setBusy(true);
-    try { await api.requestOtp(destination.trim()); setStage('verify'); Alert.alert('Code sent', `We sent a 6-digit code to ${destination.trim()}.`); }
+    // setCode('') matters: only the newest challenge is checked server-side, so a
+    // stale value left in the field would submit a dead code and burn an attempt.
+    try { await api.requestOtp(destination.trim()); setCode(''); setStage('verify'); Alert.alert('Code sent', `We sent a 6-digit code to ${destination.trim()}.`); }
     catch (e: any) { Alert.alert('Could not send code', e.message); } finally { setBusy(false); }
   };
   const verify = async () => {

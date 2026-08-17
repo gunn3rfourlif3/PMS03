@@ -4,6 +4,14 @@ import { DataSource } from 'typeorm';
 import { maskBanking } from '@common/security/pii-crypto';
 import { Partner, PartnerCommission } from './partner.entities';
 import { commissionAmount, withinWindow } from './commission-calc';
+import { buildPayoutRun, PayoutCandidate, PAYOUT_FLOOR_DEFAULT } from './payout-run';
+import { selfDealingSignals, SelfDealingSignal, SIGNAL_LABELS } from './self-dealing';
+
+/** Rands. Override per environment; see docs §4.1. */
+const payoutFloor = () => {
+  const n = Number(process.env.PARTNER_PAYOUT_FLOOR);
+  return Number.isFinite(n) && n >= 0 ? n : PAYOUT_FLOOR_DEFAULT;
+};
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
@@ -23,7 +31,7 @@ export class PartnerCommissionsService {
    * Accrue commissions for a period across every referred, paying agency. One
    * pending row per (partner, vendor, period) — idempotent, so safe to re-run.
    */
-  async accrue(period = thisPeriod()): Promise<{ period: string; accrued: number }> {
+  async accrue(period = thisPeriod()): Promise<{ period: string; accrued: number; withheld: number }> {
     const rows: Array<{ partner_id: string; vendor_id: string; mrr: string; rate: string; commission_months: number | null; started_at: string }> =
       await this.ds.query(
         `SELECT vs.referred_by_partner_id AS partner_id, vs.vendor_id, vs.mrr, vs.started_at,
@@ -36,9 +44,21 @@ export class PartnerCommissionsService {
            AND p.status = 'active'`,
       );
 
+    // §7.4 — a partner earns nothing on an agency they control. Resolved once
+    // per run rather than per row; the set is small and the query is not.
+    const blocked = await this.selfDealingBlocks();
+
     let accrued = 0;
+    let withheld = 0;
     for (const r of rows) {
       if (!withinWindow(r.started_at, period, r.commission_months)) continue;
+      if (blocked.has(`${r.partner_id}:${r.vendor_id}`)) {
+        this.log.warn(
+          `Self-dealing: withholding ${period} commission for partner ${r.partner_id} on vendor ${r.vendor_id}`,
+        );
+        withheld += 1;
+        continue;
+      }
       const rate = Number(r.rate) || 0;
       const amount = commissionAmount(Number(r.mrr), rate);
       if (amount <= 0) continue;
@@ -53,8 +73,146 @@ export class PartnerCommissionsService {
       );
       accrued += 1;
     }
-    this.log.log(`Accrued ${accrued} partner commissions for ${period}`);
-    return { period, accrued };
+    this.log.log(
+      `Accrued ${accrued} partner commissions for ${period}` +
+        (withheld ? ` (${withheld} withheld for self-dealing)` : ''),
+    );
+    return { period, accrued, withheld };
+  }
+
+  // ── Self-dealing (§7.4) ──
+
+  /**
+   * Every referred (partner, agency) pair with the partner's contact details
+   * and the agency's owners, so signals can be computed in one pass.
+   */
+  private async selfDealingRows(): Promise<
+    Array<{
+      partner_id: string; partner_name: string; contact_email: string | null;
+      contact_phone: string | null; company: string | null;
+      vendor_id: string; vendor_name: string;
+      owner_emails: string[]; owner_phones: string[];
+    }>
+  > {
+    return this.ds.query(
+      `SELECT p.id AS partner_id, p.name AS partner_name, p.contact_email, p.contact_phone, p.company,
+              vs.vendor_id, v.name AS vendor_name,
+              COALESCE(array_agg(u.email) FILTER (WHERE u.email IS NOT NULL), '{}') AS owner_emails,
+              COALESCE(array_agg(u.phone) FILTER (WHERE u.phone IS NOT NULL), '{}') AS owner_phones
+         FROM vendor_subscriptions vs
+         JOIN partners p ON p.id = vs.referred_by_partner_id
+         JOIN vendors  v ON v.id = vs.vendor_id
+         LEFT JOIN memberships m ON m.vendor_id = vs.vendor_id AND m.role = 'vendor_owner'
+         LEFT JOIN users u ON u.id = m.user_id
+        WHERE vs.referred_by_partner_id IS NOT NULL
+        GROUP BY p.id, p.name, p.contact_email, p.contact_phone, p.company, vs.vendor_id, v.name`,
+    );
+  }
+
+  /** `partnerId:vendorId` keys where the evidence is conclusive. */
+  private async selfDealingBlocks(): Promise<Set<string>> {
+    const out = new Set<string>();
+    for (const r of await this.selfDealingRows()) {
+      const { blocking } = selfDealingSignals({
+        partnerEmail: r.contact_email, partnerPhone: r.contact_phone,
+        partnerName: r.partner_name, partnerCompany: r.company,
+        ownerEmails: r.owner_emails, ownerPhones: r.owner_phones,
+        vendorName: r.vendor_name,
+      });
+      if (blocking) out.add(`${r.partner_id}:${r.vendor_id}`);
+    }
+    return out;
+  }
+
+  /**
+   * Admin review list. Everything with at least one signal, blocking or not —
+   * the weak signals are common enough among legitimate partners that a human
+   * has to look, which is exactly why they do not withhold anything by
+   * themselves.
+   */
+  async selfDealingReport(): Promise<
+    Array<{
+      partnerId: string; partnerName: string; agencyName: string; vendorId: string;
+      signals: SelfDealingSignal[]; reasons: string[]; blocking: boolean;
+    }>
+  > {
+    const out = [];
+    for (const r of await this.selfDealingRows()) {
+      const { signals, blocking } = selfDealingSignals({
+        partnerEmail: r.contact_email, partnerPhone: r.contact_phone,
+        partnerName: r.partner_name, partnerCompany: r.company,
+        ownerEmails: r.owner_emails, ownerPhones: r.owner_phones,
+        vendorName: r.vendor_name,
+      });
+      if (!signals.length) continue;
+      out.push({
+        partnerId: r.partner_id, partnerName: r.partner_name,
+        agencyName: r.vendor_name, vendorId: r.vendor_id,
+        signals, reasons: signals.map((s) => SIGNAL_LABELS[s]), blocking,
+      });
+    }
+    return out.sort((a, b) => Number(b.blocking) - Number(a.blocking));
+  }
+
+  // ── Payout run (§4.1) ──
+
+  /**
+   * What to pay this month. Groups approved-but-unpaid commissions by partner
+   * and applies the floor, with the quarter-end sweep releasing everything.
+   *
+   * Read-only: it produces the run sheet. Money moves by EFT, and `payPartner()`
+   * records that it happened.
+   */
+  async payoutRun(asOf = new Date()) {
+    const rows: Array<{
+      partner_id: string; partner_name: string; total: string;
+      ids: string[]; periods: string[]; has_banking: boolean;
+    }> = await this.ds.query(
+      `SELECT p.id AS partner_id, p.name AS partner_name,
+              SUM(pc.amount) AS total,
+              array_agg(pc.id ORDER BY pc.period) AS ids,
+              array_agg(DISTINCT pc.period) AS periods,
+              (p.banking IS NOT NULL AND p.banking::text <> '{}') AS has_banking
+         FROM partner_commissions pc
+         JOIN partners p ON p.id = pc.partner_id
+        WHERE pc.status = 'approved'
+        GROUP BY p.id, p.name, p.banking`,
+    );
+
+    const candidates: PayoutCandidate[] = rows.map((r) => ({
+      partnerId: r.partner_id,
+      partnerName: r.partner_name,
+      total: Math.round((Number(r.total) || 0) * 100) / 100,
+      commissionIds: r.ids ?? [],
+      periods: r.periods ?? [],
+      hasBanking: !!r.has_banking,
+    }));
+
+    return {
+      asOf: asOf.toISOString().slice(0, 10),
+      ...buildPayoutRun(candidates, { floor: payoutFloor(), asOf }),
+    };
+  }
+
+  /** Mark a partner's whole approved balance paid, after the EFT has gone out. */
+  async payPartner(partnerId: string, ref?: string): Promise<{ paid: number; amount: number }> {
+    const run = await this.payoutRun();
+    const line = run.lines.find((l) => l.partnerId === partnerId);
+    if (!line) throw new NotFoundException('No approved commissions for that partner.');
+    if (!line.payable) {
+      throw new BadRequestException(
+        `Below the R${run.floor} payout floor (R${line.total}). It rolls over, and the quarterly sweep will release it.`,
+      );
+    }
+    if (line.blocked) throw new BadRequestException(line.blocked);
+
+    await this.ds.query(
+      `UPDATE partner_commissions SET status='paid', paid_at=now(), paid_ref=$2, updated_at=now()
+        WHERE id = ANY($1) AND status='approved'`,
+      [line.commissionIds, ref ?? null],
+    );
+    this.log.log(`Paid ${line.commissionIds.length} commissions to ${line.partnerName} (R${line.total})`);
+    return { paid: line.commissionIds.length, amount: line.total };
   }
 
   // ── Partner-facing ──

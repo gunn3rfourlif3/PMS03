@@ -20,6 +20,18 @@ export class AdminCommissionsController {
   /** Accrue a period now (defaults to the current month). */
   @Post('run') run(@Body() body: { period?: string }) { return this.commissions.accrue(body?.period); }
 
+  /** This month's run sheet: who is payable, who is held, and why (§4.1). */
+  @Get('payout-run') payoutRun() { return this.commissions.payoutRun(); }
+
+  /** Record that a partner's approved balance has been paid out by EFT. */
+  @Post('payout-run/:partnerId/pay')
+  payPartner(@Param('partnerId') partnerId: string, @Body() body: { ref?: string }) {
+    return this.commissions.payPartner(partnerId, body?.ref);
+  }
+
+  /** Partner/agency pairs showing signs of self-dealing (§7.4). */
+  @Get('self-dealing') selfDealing() { return this.commissions.selfDealingReport(); }
+
   @Post(':id/approve') approve(@Param('id') id: string) { return this.commissions.approve(id); }
   @Post(':id/pay') pay(@Param('id') id: string, @Body() body: { ref?: string }) { return this.commissions.pay(id, body?.ref); }
   @Post(':id/cancel') cancel(@Param('id') id: string) { return this.commissions.cancel(id); }

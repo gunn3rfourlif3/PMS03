@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PartnerActivity, PartnerDeal, ActivityType } from './partner.entities';
-import { isDealStage } from './pipeline';
+import { isDealStage, isAtOpenLeadCap, openLeadCap, OPEN_STAGES } from './pipeline';
 
 @Injectable()
 export class PartnerDealsService {
@@ -27,9 +27,28 @@ export class PartnerDealsService {
     return this.deals().find({ where: { partnerId: this.assert(partnerId) }, order: { updatedAt: 'DESC' } });
   }
 
+  /** Open, unconverted prospects a partner is holding right now. */
+  async openLeadCount(partnerId: string): Promise<number> {
+    const [r] = await this.ds.query(
+      `SELECT COUNT(*)::int AS n FROM partner_deals WHERE partner_id = $1 AND stage = ANY($2)`,
+      [partnerId, OPEN_STAGES],
+    );
+    return Number(r?.n) || 0;
+  }
+
   async create(partnerId: string | null | undefined, input: Partial<PartnerDeal>): Promise<PartnerDeal> {
     const id = this.assert(partnerId);
     if (!input.prospectName?.trim()) throw new BadRequestException('Prospect name is required.');
+
+    // Applies to self-registered prospects only. Deals created by the referral
+    // link (signup_agency) are already-converted signups, not reservations.
+    const cap = openLeadCap();
+    if (isAtOpenLeadCap(await this.openLeadCount(id), cap)) {
+      throw new BadRequestException(
+        `You already have ${cap} open prospects. Close or mark some as lost before registering more.`,
+      );
+    }
+
     const repo = this.deals();
     const d = repo.create({
       partnerId: id,

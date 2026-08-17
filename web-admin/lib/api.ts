@@ -272,6 +272,10 @@ export const api = {
   approvePartnerCommission: (id: string) => req(`/admin/commissions/${id}/approve`, { method: 'POST' }),
   payPartnerCommission: (id: string, ref?: string) => req(`/admin/commissions/${id}/pay`, { method: 'POST', body: JSON.stringify({ ref }) }),
   cancelPartnerCommission: (id: string) => req(`/admin/commissions/${id}/cancel`, { method: 'POST' }),
+  payoutRun: () => req('/admin/commissions/payout-run'),
+  payPartnerPayout: (partnerId: string, ref?: string) =>
+    req(`/admin/commissions/payout-run/${partnerId}/pay`, { method: 'POST', body: JSON.stringify({ ref }) }),
+  selfDealingReport: () => req('/admin/commissions/self-dealing'),
   validateRef: (code: string) => req(`/partners/ref/${encodeURIComponent(code)}`),
   publicSignup: (b: { ref: string; agencyName: string; ownerName: string; ownerEmail: string }) => req('/partners/signup', { method: 'POST', body: JSON.stringify(b) }),
   adminSignups: () => req('/admin/signups'),
