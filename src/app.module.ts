@@ -40,6 +40,7 @@ import { LeaseParsingModule } from './modules/lease-parsing/lease-parsing.module
 import { AgentsModule } from './modules/agents/agents.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { PartnersModule } from './modules/partners/partners.module';
+import { DebiCheckModule } from './modules/debicheck/debicheck.module';
 import { KycModule } from './providers/kyc/kyc.module';
 import { PartnerApplicationsModule } from './modules/partner-applications/partner-applications.module';
 
@@ -93,6 +94,7 @@ import { EsignModule } from './providers/esign/esign.module';
     AgentsModule,
     SubscriptionsModule,
     PartnersModule,
+    DebiCheckModule,
     KycModule,
     PartnerApplicationsModule,
   ],

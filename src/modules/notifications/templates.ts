@@ -7,7 +7,9 @@ import { EmailBrand } from '@common/email/email-brand';
  * a payload. Each template declares its default channels. Keys are stable
  * identifiers referenced by domain events.
  */
-export type TemplateKey = 'RENT_INVOICE_ISSUED' | 'PAYMENT_RECEIVED' | 'RENT_OVERDUE';
+export type TemplateKey =
+  | 'RENT_INVOICE_ISSUED' | 'PAYMENT_RECEIVED' | 'RENT_OVERDUE'
+  | 'DEBIT_ORDER_STOPPED' | 'DEBIT_ORDER_STOPPED_AGENCY';
 
 export interface Template {
   key: TemplateKey;
@@ -47,6 +49,47 @@ export const TEMPLATES: Record<TemplateKey, Template> = {
     defaultChannels: ['push', 'sms', 'email'],
     subject: 'Rent overdue',
     body: 'Hi {{name}}, your rent for {{period}} is overdue. A late fee of {{currency}} {{lateFee}} has been applied.',
+  },
+
+  /**
+   * TENANT — the debit order stopped (docs/LOCARE_DEBIT_ORDER_DESIGN.md §11.9).
+   *
+   * Sent the same day the mandate leaves a collecting state. If nobody tells
+   * the tenant, they simply don't pay and land in arrears through an
+   * administrative event rather than a decision — then get chased by dunning
+   * for it.
+   *
+   * Tone is deliberate: this is not a warning and not an accusation. Most
+   * revocations are a bank action or an expired contract, not the tenant
+   * dodging rent, and a threatening message to someone who has paid on time for
+   * two years is how an agency loses a good tenant. SMS is included because
+   * this is time-critical and email alone gets missed.
+   */
+  DEBIT_ORDER_STOPPED: {
+    key: 'DEBIT_ORDER_STOPPED',
+    defaultChannels: ['push', 'sms', 'email'],
+    subject: 'Your rent debit order has stopped — action needed',
+    body: 'Hi {{name}}, the debit order for your rent at {{propertyName}} is no longer active, so your next payment of {{currency}} {{amount}} on {{dueDate}} will not go off automatically. Please pay it manually this month. {{payLink}}',
+    email: {
+      heading: 'Your rent debit order has stopped',
+      paragraph: 'The debit order for {{propertyName}} is no longer active, so your rent of {{currency}} {{amount}} due on {{dueDate}} will not be collected automatically. Please pay it manually this month — your account is up to date, and we will be in touch about setting the debit order up again.',
+      label: 'Pay your rent',
+      urlKey: 'payUrl',
+    },
+  },
+
+  /** AGENCY — same event, staff side. Their action is re-authorising the mandate. */
+  DEBIT_ORDER_STOPPED_AGENCY: {
+    key: 'DEBIT_ORDER_STOPPED_AGENCY',
+    defaultChannels: ['push', 'email'],
+    subject: 'Debit order stopped: {{tenantName}} at {{propertyName}}',
+    body: 'The DebiCheck mandate for {{tenantName}} at {{propertyName}} moved to {{state}}{{reasonSuffix}}. The tenant has been asked to pay manually. Re-authorise the mandate to resume automatic collection.',
+    email: {
+      heading: 'Debit order stopped for {{tenantName}}',
+      paragraph: 'The DebiCheck mandate for {{tenantName}} at {{propertyName}} moved to {{state}}{{reasonSuffix}}. The tenant has been notified and asked to pay manually this month. Collection will not resume until a new mandate is authorised.',
+      label: 'Open the lease',
+      urlKey: 'leaseUrl',
+    },
   },
 };
 

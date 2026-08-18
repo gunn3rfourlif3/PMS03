@@ -1,7 +1,9 @@
 # Locare — Debit Orders (DebiCheck) as the Rent Collection Rail
 
-Status: **Decided — ready to build.** Owner: Arthur. Last updated: 2026-08-17.
+Status: **Decided — building.** Owner: Arthur. Last updated: 2026-08-18.
 The four questions that blocked the build are answered in §11.6–§11.9.
+Provider revised in §8.1: **Netcash collects, Stitch does everything else.**
+Mandate lifecycle is built; collection submission is not (§5.2).
 
 Move rent collection from manual EFT + proof-of-payment onto an authenticated
 debit order (DebiCheck), with PayShap Request as the arrears rail and
@@ -56,7 +58,7 @@ account, and posts to the ledger only when it has actually settled.
 | 1 | Primary rent rail | **DebiCheck**, per-tenancy mandate. |
 | 2 | Arrears rail | **PayShap Request**, sent from the arrears queue. |
 | 3 | Fallback | **Proof of payment stays**, unchanged and permanent. |
-| 4 | Provider | **Stitch** — already integrated (`#24`), and covers DebiCheck, PayShap Request, Pay by bank and VRP behind one API. Netcash as competing quote. |
+| 4 | Provider | **Netcash for DebiCheck collections; Stitch for pay-by-bank, PayShap Request and disbursements.** Revised 2026-08-18 after reading both sets of developer docs — see §8.1. |
 | 5 | Settlement destination | Agency **trust account**. |
 | 5a | Merchant of record | **Each agency is its own merchant.** Locare never holds tenant money. See §7. |
 | 6 | Ledger posting | **On settlement confirmation only.** Never on submission. |
@@ -162,6 +164,45 @@ There is also a limit to how much headroom is wise. The tenant sees the maximum
 when they authenticate at their bank. Rent + 30% on a three-year lease reads as
 reasonable; rent + 100% invites a decline at the one moment the mandate depends
 on the tenant saying yes.
+
+---
+
+### 5.2 Collections are files, not API calls — found 2026-08-18
+
+**The mandate is an API; the collection is not.** Confirmed against Stitch's
+docs while building: mandates are GraphQL
+(`clientPaymentConsentRequestCreate` / `Confirm` / `Revoke` / `Cancel`), but
+collections against an authorised mandate are **batch files uploaded over
+SFTP**, with two file types coming back:
+
+- `REPLY` — was the submitted batch, and each line in it, valid?
+- `OUTPUT` — did each collection line actually succeed or fail?
+
+New-file arrivals are announced by webhook, so there is no polling, but the
+integration shape is a file pipeline rather than a request/response call. This
+was not what §9's build outline assumed and it is materially more work:
+
+- an SFTP client and per-agency credentials, issued at onboarding — a second
+  credential type alongside the DebiCheck user code (§7.1);
+- a fixed-format batch writer, and a parser for each of `REPLY` and `OUTPUT`;
+- two-stage result handling — a batch can be *accepted* and still contain lines
+  that fail, so "submitted" and "succeeded" are further apart than on a card
+  rail. §6's rule (post to the ledger on settlement only) maps to `OUTPUT`, not
+  to a successful upload;
+- a resubmission path for corrected files.
+
+Two consequences worth weighing before building:
+
+**It changes the provider comparison (§8).** A file-based rail is a bigger
+integration than the quotes in §8 assume. Ask Netcash and any other candidate
+whether they offer an API for collections, because that difference is worth
+more than a few cents per collection.
+
+**Collecting outside the mandate terms is possible and dangerous.** Stitch notes
+a collection that breaches the mandate can still go through — and will almost
+certainly lose the resulting dispute. That makes the T-3 pre-collection check
+(§5.5) a control rather than a convenience: nothing else stops a breaching
+collection from being written into a batch file.
 
 ---
 
@@ -289,6 +330,67 @@ availability.
 | Netcash | Established bureau. DebiCheck via batch file + `NIWS_NIF` web service — more integration work than a REST API. |
 | Direct Debit / others | Worth a third quote for price discovery. |
 
+### 8.1 Decided 2026-08-18 — Netcash for DebiCheck, Stitch for everything else
+
+The row above understated Netcash and overstated Stitch, because both were
+judged on marketing pages rather than developer docs. Reading both changed the
+answer.
+
+**Neither offers an API for collections. Both are batch files.** The difference
+is delivery:
+
+| | Mandates | Collections | Results |
+|---|---|---|---|
+| **Stitch** | GraphQL — genuinely good | **SFTP** batch files | `REPLY` + `OUTPUT` files, arrival announced by webhook |
+| **Netcash** | `NIWS_NIF` web service | **SOAP** `BatchFileUpload` (service key + file) over HTTPS | `RequestFileUploadReport` (service key + file token) |
+
+Same file-format work either way. Wildly different operational surface: SFTP
+means connection management, key rotation, directory watching, retry and
+archive handling — and it fails quietly. An HTTPS call with a service key and a
+report endpoint is a fraction of that, which matters for a team of one.
+
+**Decision: Netcash collects; Stitch keeps pay-by-bank, PayShap Request and
+disbursements** (built and tested 2026-08-17). Reasons, in order of weight:
+
+1. **Service keys map onto the per-agency merchant model (§7).** Netcash
+   authenticates each call with the *debit order service key* of that merchant
+   account. Each agency issues Locare its key; Locare stores it in
+   `vendor_payment_credentials`, which already exists for precisely this. There
+   is no equivalently clean per-agency story for SFTP credentials.
+2. **SFTP is the wrong burden.** See above.
+3. **Netcash was already the competing quote**, so this is not a new
+   relationship — it is choosing the one we were going to price anyway.
+
+Two providers is the right shape, not a compromise: they serve different rails
+and the provider interface already isolates them.
+
+**The cost, stated plainly.** Two providers means two onboarding processes per
+agency — a Netcash merchant account *and* Stitch merchant registration. §7.1
+already named onboarding as the weak point of the per-agency decision, and this
+sharpens it. Worth deciding whether per-agency pay-by-bank needs to be live on
+day one, or whether Netcash alone covers the initial product.
+
+### 8.2 Before committing — one call each
+
+**RealPay, BankTech and Direct Debit** advertise REST APIs covering mandates
+*and* collection results. If any is genuinely REST end-to-end, it beats both
+choices above on integration cost. Those are marketing claims, unverified —
+unlike Netcash's SOAP methods, which were read directly from their developer
+documentation.
+
+The qualifying question, ahead of pricing: **can a third party submit
+collections on behalf of many client merchants, each under their own user
+code?** That eliminates faster than fees do, and most bureaux aimed at
+end-businesses (Corporate Collect, ThreePeaks, Bitventure, EasyDebit, PaySoft)
+will not have a clean answer.
+
+### 8.3 Regulatory change worth banking
+
+**From 13 April 2026, debit orders, DebiCheck and registered mandates are
+disputable for 60 days, not 12 months.** That shortens the dispute tail on rent
+collection considerably and improves the case for this rail over cards. Reflected
+in §10.
+
 ---
 
 ## 9. Build outline (not estimated)
@@ -330,7 +432,8 @@ availability.
 | Collection submitted against the wrong vendor's credentials | Credentials resolved through the existing per-vendor gateway registry, inside the RLS transaction. Never a global default. |
 | Tenant never authenticates the mandate | Mandate expiry chase; proof-of-payment fallback always available. |
 | Provider lock-in | Keep it behind the provider interface, as with payment/notification/kyc. |
-| Disputes | DebiCheck's authenticated mandate is the defence; retain mandate evidence. |
+| Disputes | DebiCheck's authenticated mandate is the defence; retain mandate evidence (`mandateReferenceNumber` is captured off the consent webhook). Exposure shortened by the 60-day dispute window from 13 Apr 2026 (§8.3). |
+| Collection submitted outside the mandate terms | Possible, and it will lose the dispute (§5.2). The T-3 check (§5.5) is the control that prevents it reaching a batch file. |
 
 ---
 
@@ -412,6 +515,9 @@ lifecycle should be observable and correct before any money moves through it.
 - [Stitch — a guide to South African payment rails](https://stitch.money/blog/a-guide-to-south-african-payment-rails)
 - [Stitch — DebiCheck](https://stitch.money/payment-methods/debicheck)
 - [Netcash — DebiCheck](https://netcash.co.za/services/debicheck/)
+- [Netcash developers — DebiCheck batch file upload (`NIWS_NIF`)](https://api.netcash.co.za/inbound-payments/dc/debi-check-2/)
+- [Stitch — DebiCheck collections (SFTP)](https://docs.stitch.money/payment-products/payins/debicheck/collections)
+- [Stitch — DebiCheck integration process (mandates)](https://docs.stitch.money/payment-products/payins/debicheck/integration-process)
 - [Hyphen — three years of PayShap](https://www.hyphen.co.za/news/payshap/)
 
 Fees and rail details were gathered in August 2026 from provider and industry

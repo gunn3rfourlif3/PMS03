@@ -1,3 +1,4 @@
+import { DebitMandate } from '@modules/debicheck/debit-mandate.entity';
 /**
  * Central registry of persisted entities. Keeping this in one place lets the
  * TypeORM DataSource (migrations/CLI) and the runtime module share exactly the
@@ -83,4 +84,5 @@ export const ENTITIES = [
   PartnerDeal,
   PartnerActivity,
   PartnerCommission,
+  DebitMandate,
 ];
