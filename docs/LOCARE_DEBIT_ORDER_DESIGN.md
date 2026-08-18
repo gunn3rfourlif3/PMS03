@@ -1,7 +1,7 @@
 # Locare — Debit Orders (DebiCheck) as the Rent Collection Rail
 
-Status: **Draft for discussion — not approved for build.** Owner: Arthur.
-Last updated: 2026-08-15.
+Status: **Decided — ready to build.** Owner: Arthur. Last updated: 2026-08-17.
+The four questions that blocked the build are answered in §11.6–§11.9.
 
 Move rent collection from manual EFT + proof-of-payment onto an authenticated
 debit order (DebiCheck), with PayShap Request as the arrears rail and
@@ -126,9 +126,13 @@ see.
 
 Mitigations, all required:
 
-1. **Set the ceiling above the rent at mandate creation** — rent plus a
-   configured headroom (`DEBICHECK_MANDATE_HEADROOM_PCT`, suggest 15%), so
-   routine escalations fit without an amendment.
+1. **Set the ceiling from the lease, not from a constant** (§11.6). An earlier
+   draft of this section suggested a flat 15% headroom. Work it through and it
+   fails: a three-year lease escalating 8% a year ends **26%** above the opening
+   rent, so a 15% ceiling breaches in year two and triggers exactly the failure
+   this section exists to prevent. The ceiling is instead the rent at the
+   **final escalation of the lease term, plus ~10%** — both inputs are already
+   on the lease, so it is computable at mandate creation.
 2. **Check before escalating.** The escalation job must compare the new rent
    against the mandate ceiling and, where it breaches, open an amendment and
    notify the tenant **before** the new amount is due.
@@ -138,6 +142,26 @@ Mitigations, all required:
    month is recoverable; a failed collection and a false arrears record is not.
 4. **Surface it.** Mandate state belongs on the lease view and in the arrears
    queue, not buried in settings.
+5. **Pre-collection check, T-3 days.** Before each collection run, verify every
+   scheduled lease still has an `active` mandate whose ceiling covers the amount
+   due, and raise anything that fails *before* submission. A dead or breaching
+   mandate found three days early is an admin task; found on the day it is a
+   failed collection and a false arrears record against a tenant who did nothing.
+
+### 5.1 The ceiling covers rent only
+
+Size the mandate to rent. Do **not** inflate it to absorb utilities, late fees
+or damage recoveries.
+
+A R2,000 utility recovery pushing a collection over the ceiling is the
+escalation trap wearing a different hat — same rejection, same false arrears,
+harder to diagnose because the rent itself was within limits. Recover
+non-rent items on their own instrument.
+
+There is also a limit to how much headroom is wise. The tenant sees the maximum
+when they authenticate at their bank. Rent + 30% on a three-year lease reads as
+reasonable; rent + 100% invites a decline at the one moment the mandate depends
+on the tenant saying yes.
 
 ---
 
@@ -297,7 +321,9 @@ availability.
 
 | Risk | Mitigation |
 |---|---|
-| Escalation breaches mandate ceiling | §5 — headroom, pre-checks, hold rather than fail. |
+| Escalation breaches mandate ceiling | §5 — ceiling derived from the lease's final escalated rent, pre-collection check at T-3, hold rather than fail. |
+| Mandate revoked mid-lease and nobody notices | §11.9 — agency notified, tenant switched to proof-of-payment and told the same day. |
+| Tenant disputes a debit they don't recognise | §11.6 — creditor short name must match the trading name on the lease. |
 | Money posted before it settles | §6 — post on confirmation only. |
 | Locare inadvertently holds client money | §7 — decided: per-agency merchant, Locare submits as technical agent only. Confirm with an attorney (§7.2). |
 | Agency can't collect on day one | §7.1 — registration state machine; proof-of-payment covers the gap and the back office says why. |
@@ -312,6 +338,64 @@ availability.
 
 1. ~~Trust account structure~~ — **decided (§7): each agency is its own
    merchant.** Residual legal confirmation in §7.2.
+
+### Decided 2026-08-17, before build
+
+**6. Creditor identity — the agency, and the short name is what matters.**
+
+§7 settled *who* collects. What it did not settle is the string the tenant
+actually sees. Stitch's consent payload carries `creditor.name`,
+`ultimateCreditorName` and `ultimateCreditorAbbreviatedShortName`; the last of
+these lands on the tenant's bank statement and is short — around ten characters.
+
+**It must match the trading name on the lease, not the registered entity.** A
+tenant who signed with "Dantalan Properties" and sees `DANTALAN` is fine. One
+who sees the holding company's name disputes the debit — and disputed DebiCheck
+debits are expensive and damage the agency's standing with its bureau.
+
+Captured at agency onboarding, on the same screen as the DebiCheck user code and
+the company registration number that self-dealing detection needs
+(LOCARE_COMMISSION_STRUCTURE §8 item 7). One form, not three.
+
+**7. Collection day — from the lease, adjustable, per-lease overridable.**
+
+Default to the lease's rent due day, allow a per-lease override, and set
+`dayAdjustmentAllowed: true` so a collection falling on a weekend or public
+holiday moves instead of failing.
+
+Worth raising with agencies rather than assuming: the 1st is when every debit
+order in the country hits, and a salary paid on the 25th is largely spent by
+then. Collection success is materially better close to payday. An agency that
+wants a better collection rate should draft leases to collect on the 25th or the
+last working day of the preceding month — a lease-drafting decision the system
+should support either way, not a code decision.
+
+**8. Maximum collection amount — derived from the lease (§5.1).**
+
+Rent at the final escalation of the lease term, plus ~10%. Rent only; other
+recoveries do not size the mandate.
+
+**9. Revocation reaching staff — and the tenant.**
+
+A revocation arrives as a `payment-consent-request` webhook with status
+`REVOKED` (or `PAUSED`) and a `statusReason`, so the event is not the problem.
+What happens next is. Four parts, all required:
+
+- **Notify the agency in-app and by email** on any mandate leaving `active`. The
+  notifications module already does this; a log line is not a notification.
+- **Badge mandate state** on the lease view and in the arrears queue (§5.4).
+- **One "mandates needing attention" queue** — revoked, paused, expiring, and
+  ceiling-breaching in a single place, worked like the proof-of-payment queue.
+- **Tell the tenant.** This is the part most systems miss. A revoked mandate
+  means the tenant must now pay manually; if nobody tells them, they don't, and
+  they land in arrears through an administrative event rather than a decision.
+  Revocation switches that lease back to proof-of-payment and sends the tenant
+  payment instructions the same day.
+
+**Build order.** Mandate entity + migration with RLS → consent webhook wired to
+the state machine → pre-collection check (§5.5) → collection submission last.
+§6 notes a debit order can fail days after appearing to succeed, so the
+lifecycle should be observable and correct before any money moves through it.
 2. Per-collection pricing from all three providers — none publish it. Ask
    whether pricing is per-merchant or whether Locare can negotiate a partner
    rate card its agencies inherit; that materially changes the sales pitch.
