@@ -194,7 +194,14 @@ the single largest remaining hole in the recovery story.
 
 Honest list, roughly in order of what would hurt.
 
-1. **Off-site backup copies** (§3) — the biggest one.
+1. **Off-site backup copies** (§3) — the biggest one. Parked on a decision, not
+   on work: an `rclone` job on the same 02:00 cron is an afternoon. The open
+   questions are the target (Hetzner Storage Box ~€4/mo in Germany, Backblaze
+   B2, or Cloudflare R2) and whether to `age`-encrypt before upload. Encrypting
+   means the provider only ever holds ciphertext, which largely removes the
+   POPIA cross-border processor question — at the cost of a key that must live
+   somewhere other than the VPS, with the same lose-it-lose-everything property
+   as `PII_ENCRYPTION_KEY`.
 2. **A restore *drill*, not just a restore test.** The script proves the dump is
    good. It does not prove you can rebuild the whole stack on a new box inside
    an acceptable window. Worth doing once, timed, and writing down.
