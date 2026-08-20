@@ -40,6 +40,8 @@ echo "Loading dump..."
 gunzip -c "$DUMP" | $COMPOSE exec -T postgres psql -U pms -d "$TEST_DB" -v ON_ERROR_STOP=1 -q >/dev/null
 
 q() { $COMPOSE exec -T postgres psql -U pms -d "$TEST_DB" -tAc "$1" | tr -d '\r'; }
+# Read-only, against LIVE production — used to compare the copy to the original.
+qlive() { $COMPOSE exec -T postgres psql -U pms -d pms -tAc "$1" | tr -d '\r'; }
 
 echo
 echo "── Verification ─────────────────────────────────────────"
@@ -77,8 +79,20 @@ check "RLS enabled on leases" "$(q "SELECT rowsecurity FROM pg_tables WHERE tabl
 check "RLS enabled on invoices" "$(q "SELECT rowsecurity FROM pg_tables WHERE tablename='invoices';")" eq t
 check "tenant isolation policies" "$(q "SELECT count(*) FROM pg_policies WHERE policyname LIKE '%tenant_isolation%';")" gt 5
 
-# 5. SECURITY DEFINER functions the webhooks depend on.
-check "webhook lookup functions" "$(q "SELECT count(*) FROM pg_proc WHERE proname IN ('payment_vendor_by_ref','mandate_vendor_by_id','public_branding');")" gt 2
+# 5. SECURITY DEFINER functions survived. These carry the webhook vendor lookups
+#    and the public rentals/branding reads, so losing them silently breaks
+#    payments after a restore.
+#
+#    Compared against LIVE production rather than a hard-coded list. An earlier
+#    draft asserted `count(...) > 2` over three names I had written from memory;
+#    it failed on the first real run because one of those functions ships in a
+#    migration production had not run yet. The test was wrong, not the backup.
+#    A magic number here goes stale every time a migration adds a function —
+#    "the copy matches the original" is the actual question, and it self-updates.
+SECDEF="SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+         WHERE n.nspname = 'public' AND p.prosecdef;"
+LIVE_SECDEF="$(qlive "$SECDEF")"
+check "SECURITY DEFINER fns (live has $LIVE_SECDEF)" "$(q "$SECDEF")" eq "$LIVE_SECDEF"
 
 # 6. The ledger still balances. If a restore truncated mid-write, this catches
 #    it where a row count would not.
@@ -98,5 +112,9 @@ if [ "$FAIL" = 0 ]; then
   echo "Record the date. An untested backup is not a backup."
 else
   echo "FAIL — this backup did NOT restore correctly. Investigate before relying on it."
+  echo
+  echo "One benign cause: if a migration ran AFTER this dump was taken, the copy"
+  echo "legitimately has fewer objects than live. Check the dump's age above, and"
+  echo "re-run after tonight's backup before treating it as a real failure."
   exit 1
 fi

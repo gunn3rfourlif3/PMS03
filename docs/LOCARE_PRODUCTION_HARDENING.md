@@ -42,11 +42,27 @@ a slightly less useful stack trace is a cheap price.
 
 ### Setup
 
-```bash
+The API runs in Docker and the VPS has no Node on the host, so this is a
+**local** install committed to the lockfile — the image build runs `npm ci`,
+which fails if `package.json` and `package-lock.json` disagree.
+
+```powershell
+# on your machine
 npm install @sentry/node
+git add package.json package-lock.json
+git commit -m "Add @sentry/node"
+git push
 ```
 
-Then in `deploy/.env.prod`:
+Then on the VPS, rebuild — a `restart` will not pick up a new dependency:
+
+```bash
+cd ~/PMS03 && git pull
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod build api
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --force-recreate api
+```
+
+And in `deploy/.env.prod`:
 
 ```
 SENTRY_DSN=https://…@…ingest.sentry.io/…
@@ -106,8 +122,15 @@ breaks. Most monitors check certificate expiry — turn it on, 14 days' notice.
 
 ## 3. Backups — proving them, not assuming them
 
-`deploy/backup.sh` dumps nightly and keeps 14 days. It has never been restored.
-**An untested backup is not a backup; it is a file that might be one.**
+`deploy/backup.sh` dumps nightly and keeps 14 days — *if* something calls it.
+
+> **2026-08-20: it wasn't.** The first run of `restore-test.sh` on production
+> returned `FAIL: no backup found`. `deploy/backups` was empty. The script had
+> existed for weeks and had never once been executed, so at that moment
+> production had **zero** backups of a live agency's data.
+>
+> This is exactly the failure the restore test is for, and it found it on the
+> first run — before a disk did.
 
 ### Confirm cron is actually running it
 
@@ -116,13 +139,19 @@ crontab -l | grep backup
 ls -lht ~/PMS03/deploy/backups | head -5
 ```
 
-Expect a dump from last night. If the newest is days old, cron is not running
-and you have no backups at all. To install:
+Expect a dump from last night. **An empty directory means you have no backups
+at all**, not that backups are merely untested. To install:
 
 ```bash
+chmod +x ~/PMS03/deploy/backup.sh
+~/PMS03/deploy/backup.sh          # take one NOW, don't wait for 02:00
 crontab -e
 # 0 2 * * *  /home/deploy/PMS03/deploy/backup.sh >> /home/deploy/backup.log 2>&1
 ```
+
+Check the log a day later. A cron job that fails silently is the same as no
+cron job, and `docker compose` needs an absolute path plus a `PATH` that
+includes it — which is why the log redirect is not optional.
 
 ### Test the restore
 
