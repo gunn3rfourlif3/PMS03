@@ -1,0 +1,54 @@
+# Line-ending policy.
+#
+# The repo stores LF and every deploy target is Linux (Docker, Caddy, the VPS).
+# Without this file, git's core.autocrlf was unset while something on Windows
+# wrote CRLF into the working tree — so 18 untouched files showed as modified
+# on every `git status`, and a real change was ~1,100 lines of noise away from
+# being readable.
+#
+# `text=auto eol=lf` means: detect text, normalise to LF on commit, check out
+# LF. A CRLF working-tree file whose LF form matches the index no longer counts
+# as modified, so the churn stops whichever way an editor saves.
+
+* text=auto eol=lf
+
+# Windows-native tooling. PowerShell handles LF fine but the ISE and some
+# signing tools do not, and these are only ever run on Arthur's machine.
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+*.psd1 text eol=crlf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Must be LF regardless of platform — CRLF breaks a shebang line ("bad
+# interpreter: /bin/bash^M") and Caddy/Docker parsing.
+*.sh          text eol=lf
+*.Caddyfile   text eol=lf
+Caddyfile     text eol=lf
+Dockerfile    text eol=lf
+Dockerfile.*  text eol=lf
+*.dockerignore text eol=lf
+
+# Binary — never touched, never diffed as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.mp3  binary
+*.wav  binary
+*.mp4  binary
+*.webm binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.xlsx binary
+*.pptx binary
+*.docx binary
+*.zip  binary
+
+# Generated / vendored — keep them out of diffs and language stats.
+package-lock.json  -diff linguist-generated
