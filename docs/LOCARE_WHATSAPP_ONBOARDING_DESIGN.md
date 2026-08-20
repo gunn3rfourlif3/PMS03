@@ -110,7 +110,7 @@ OTP_CHANNELS=whatsapp,email          # ordered; falls through left→right
 
 # WhatsApp Cloud API (Meta, direct)
 WHATSAPP_TOKEN=                       # permanent access token
-WHATSAPP_PHONE_ID=                    # sender phone-number ID
+WHATSAPP_PHONE_ID=+27749474307                    # sender phone-number ID
 WHATSAPP_OTP_TEMPLATE=locare_otp      # approved authentication template name
 WHATSAPP_WELCOME_TEMPLATE=locare_welcome  # approved utility template name
 WHATSAPP_TEMPLATE_LANG=en

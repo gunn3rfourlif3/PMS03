@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { LoggingInterceptor } from './common/observability/logging.interceptor';
 import { AllExceptionsFilter } from './common/observability/all-exceptions.filter';
+import { ErrorReporter } from './common/observability/error-reporter';
 import { securityHeaders } from './common/observability/security-headers.middleware';
 import { validateEnv } from './common/config/validate-env';
 
@@ -25,7 +26,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalFilters(new AllExceptionsFilter());
+  // Resolved from the container so the filter reports 5xx to Sentry when
+  // configured, and logs only when it is not.
+  app.useGlobalFilters(new AllExceptionsFilter(app.get(ErrorReporter, { strict: false })));
   app.enableShutdownHooks();
 
   const port = process.env.PORT ?? 3000;

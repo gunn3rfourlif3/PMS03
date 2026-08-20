@@ -1,7 +1,7 @@
 # Locare — Partner Commission Structure
 
-Status: **Approved — ready to publish, subject to §12.** Owner: Arthur.
-Last updated: 2026-08-16.
+Status: **Approved — ready to publish, subject to §12.** Owner: Vernon.
+Last updated: 2026-08-19.
 
 The commission model for partners who bring agencies to Locare: three tiers,
 rate rising with work transferred off Locare, paid on cash actually collected.
@@ -11,10 +11,13 @@ Supersedes the two drafts that preceded it — a four-tier rate ladder
 was adopted.
 
 > **Read §12 first.** This document is written as though every prerequisite is
-> settled, so it can be published and built against. Six of those prerequisites
+> settled, so it can be published and built against. Seven of those prerequisites
 > are assumptions, not confirmed facts. §12 lists them. The first four are cheap
 > to correct if wrong; assumption 5 is not, because lifetime rates cannot be
 > reduced once granted.
+>
+> **§5.0 matters for anything partner-facing:** the subscription is Locare's fee,
+> not the agency's total cost of collecting rent.
 
 ---
 
@@ -192,6 +195,62 @@ That is the headline for the intro pack. It is arithmetic on published prices
 and must be presented as illustrative — Locare has no partners, no billing
 history, and has never paid a commission. Nothing in partner-facing material may
 imply earned results.
+
+### 5.0 The subscription is not the agency's whole bill — added 2026-08-19
+
+Every figure above is the Locare subscription. Once debit-order collection is
+live, an agency also pays a bureau directly, and that bill is not small.
+
+From Direct Debit's EFT price sheet (2026-08-19, ex-VAT, **per facility** — and
+a floor, since DebiCheck is quoted separately as the premium option):
+R419/month Standard or R759/month Automated, R349 once-off vetting, and
+R5.70 per collection falling to R3.62 at 2 000+ collections a month.
+
+| Tier | units | Locare | Bureau | Combined | Bureau share |
+|---|---|---|---|---|---|
+| Starter | 8 | R925 | R465 | R1,390 | 33% |
+| Growth | 60 | R2,660 | R761 | R3,421 | 22% |
+| Growth | 200 | R2,660 | R1,899 | R4,559 | **42%** |
+| Scale | 500 | R6,014 | R3,009 | R9,023 | 33% |
+
+**Locare earns none of the bureau column.** Under
+LOCARE_DEBIT_ORDER_DESIGN.md §7 each agency holds its own facility and pays the
+bureau directly — which is the right structure, and the reason Locare never
+touches tenant money, but it means the collection rail generates no revenue
+here.
+
+Two consequences worth holding on to:
+
+**Pricing headroom is tighter than it looks.** A Growth agency's real cost of
+running rent collection is ~R4,559, not R2,660. Any future price rise competes
+with a bill they cannot avoid.
+
+**Nothing partner-facing may quote the subscription as the cost.** §5's figures
+are what Locare bills and what commission is calculated on, and that is all they
+are. A partner who tells a prospect "R2,660 a month" and is corrected at the
+first invoice has lost the deal and some credibility with it.
+
+#### The only route to revenue on this rail
+
+A **partner rate on aggregated volume**. The per-collection fee drops R5.70 →
+R3.62 across the volume bands; if a bureau prices on Locare's introduced
+portfolio rather than per facility, the spread is Locare's. At R2.08 a
+collection that is R1,040/month at 500 units under management and R10,400 at
+5 000 — negligible early, material later. Requested from Direct Debit
+2026-08-19; unanswered.
+
+Two constraints on it:
+
+- It cuts against §7 as written. Each agency having its own facility means each
+  agency's volume stands alone, so a 20-unit agency pays the top-band rate no
+  matter how many agencies Locare has introduced. Aggregation is a different
+  commercial arrangement, and may simply be refused.
+- **Take a rebate; do not mark up.** Invoicing agencies for collections at a
+  margin makes Locare look like it is selling payment services — the exact
+  positioning §7 of the debit-order design went to some trouble to avoid. A
+  rebate paid by the bureau for introduction and integration keeps the agency
+  contracting and paying directly. Put this to the attorney alongside the
+  §7.2 question already open.
 
 ### 5.1 What is commissionable
 
@@ -457,6 +516,8 @@ Work required, in order:
 - [ ] Partner terms updated: commissionable revenue, attribution, demotion, termination, **self-dealing exclusion (§7.4)**
 - [ ] Statement format carries both VAT numbers and self-billed labelling
 - [ ] Intro pack figures match §5 exactly
+- [ ] Partner material states the subscription is Locare's fee only, not the
+      agency's total cost of collection (§5.0)
 - [ ] Migration `1720000039000` run in production (attribution + activation clock)
 - [x] Payout floor at R250 with the quarterly sweep (§4.1)
 - [x] Open-lead cap enforced at deal creation (§7)
@@ -581,7 +642,8 @@ four are assumptions, and each is listed with what changes if it is wrong.
 | 3 | **Published prices become VAT-exclusive** (§7.2). | If they are made inclusive instead, net revenue drops 15% (R925 → R804) and every commission figure in §5 falls with it. |
 | 4 | **The accountant approves self-billing** as described in §7.1. | If not, partners must each raise their own tax invoice before payout, which is slower and more error-prone but does not change any rate. |
 | 5 | **26% at Reseller clears contribution margin.** Justified as buying distribution, not as offsetting support cost (§3). Locare has no support-cost data and has never paid a commission. | If gross margin per agency is thinner than assumed, 26% is unaffordable — and being lifetime, it cannot be reduced for partners already on it. Re-check after six months of real support volume and before promoting the first Reseller. |
-| 6 | **Partner-referred agencies churn no faster than direct ones.** | Lifetime commission on a high-churn cohort is self-limiting, so this is not a cost risk. It is a *forecasting* risk: referred MRR would be worth less than the same direct MRR, and channel payback would be longer than modelled. |
+| 6 | **Bureau collection costs do not deter agencies from adopting the rail.** At 200 units the bureau takes 42% of combined spend (§5.0), and DebiCheck is quoted as premium over the EFT prices used there. | If it does deter them, rent stays on proof-of-payment, which weakens the product but changes no commission rate — commission is on subscription revenue only (§5.1). |
+| 7 | **Partner-referred agencies churn no faster than direct ones.** | Lifetime commission on a high-churn cohort is self-limiting, so this is not a cost risk. It is a *forecasting* risk: referred MRR would be worth less than the same direct MRR, and channel payback would be longer than modelled. |
 
 §7.2 (agency pricing) and this section are commercial recommendations, not
 tax advice. Have the accountant confirm the VAT treatment and self-billing
