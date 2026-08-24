@@ -903,9 +903,11 @@ documents.
   goes in the portal, which is access-controlled and auditable.
 - Your own KYC data is encrypted at rest and masked in admin views.
 
-Locare's own legal pages are still missing the registered entity name and company
-registration number, which POPIA requires before taking a paying customer. **This
-is outstanding**, and it is one reason no partner has been approved yet.
+Locare is **Locare (Pty) Ltd, registration number 2026/670864/07**, named as the
+responsible party in the privacy policy. Two things are still outstanding on
+those pages: the registered address, and a **named** Information Officer —
+POPIA wants a person registered with the Information Regulator, not a role
+mailbox.
 
 ## 8.5 No financial, legal or tax advice
 
@@ -1091,9 +1093,10 @@ marketing site. Six things must be settled before it goes to a real partner.
 1. **VAT number issued.** No partner can be approved without it
    (commission structure §12, assumption 2). Module 3.7 says so explicitly, but
    the whole document assumes the programme can actually run.
-2. **Legal pages carry the registered entity and company registration number.**
-   POPIA requires an identifiable responsible party before taking a paying
-   customer. Module 8.4 names this as outstanding.
+2. ~~**Legal pages carry the registered entity and company registration
+   number.**~~ Done 2026-08-24 — Locare (Pty) Ltd, reg 2026/670864/07, on the
+   privacy policy, the terms and the homepage structured data. Still to add:
+   registered address and a named Information Officer (Module 8.4).
 3. **Partner terms updated** to match Modules 3 and 4 — commissionable revenue,
    attribution and the open-lead cap, tier demotion, termination, and the
    self-dealing exclusion. A curriculum that is stricter than the signed terms is

@@ -148,9 +148,16 @@ records the product, ffmpeg assembles three cuts. See `scripts/video/README.md`.
 
 ## Outstanding
 
-- Legal pages need the registered entity name, company reg number and address —
-  placeholders were removed as an interim measure. **POPIA requires an
-  identifiable responsible party before taking a paying customer.**
+- **Locare (Pty) Ltd, reg 2026/670864/07** (CIPC, 2026-08-24). Now named as the
+  POPIA responsible party in `marketing/privacy.html`, as the contracting entity
+  in `terms.html`, and in the homepage Organization JSON-LD. Two gaps remain:
+  the **registered address** is not on the pages, and the **Information Officer
+  is not named** — POPIA wants a person, registered with the Information
+  Regulator, not a role mailbox.
+- **VAT number still outstanding** — separate from the company registration and
+  still the blocker on approving any partner (commission structure §12,
+  assumption 2). Goes in four places when it lands: `VAT_NUMBER` in
+  `deploy/.env.prod`, agency invoices, partner statements, legal pages.
 - Meta WhatsApp Business account not set up, so WhatsApp is off and everything
   falls back to email. Templates must be created and approved first; the auth
   template's expiry warning must match `OTP_TTL_SECONDS` (300 = 5 min).

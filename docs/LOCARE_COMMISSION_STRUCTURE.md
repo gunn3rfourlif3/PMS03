@@ -403,8 +403,9 @@ Once issued, in four places:
 2. Agency invoices — a registered vendor must show its VAT number or the
    recipient cannot claim input tax.
 3. Partner statements (§7.1).
-4. Legal pages, alongside the registered entity name and company registration
-   number outstanding for POPIA. One trip through those pages, not two.
+4. Legal pages. The registered entity and company registration number landed
+   2026-08-24 (Locare (Pty) Ltd, 2026/670864/07); the VAT number is the last
+   item those pages are waiting on, so make it one more trip, not two.
 
 ### 7.4 No commission on your own agency
 
