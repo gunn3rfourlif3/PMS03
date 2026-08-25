@@ -26,7 +26,12 @@ warn() { printf "  \033[33m!\033[0m %-42s %s\n" "$1" "${2:-}"; WARN=1; }
 
 echo
 echo "── Gateway credentials ──────────────────────────────────"
-for k in IKHOKHA_APP_ID IKHOKHA_APP_SECRET IKHOKHA_ENTITY_ID IKHOKHA_CALLBACK_URL; do
+# Only APP_ID and APP_SECRET gate the real API call: IkhokhaPaymentProvider
+# .collect() returns the dev stub on `!appId || !secret` and nothing else.
+# An earlier draft of this script marked a blank ENTITY_ID as blocking. It is
+# not — it is free-text and falls back to the vendor id — and reporting a
+# working configuration as BLOCKED is worse than not checking it at all.
+for k in IKHOKHA_APP_ID IKHOKHA_APP_SECRET IKHOKHA_CALLBACK_URL; do
   v="$(envv "$k")"
   if [ -n "$v" ]; then
     case "$k" in
@@ -34,9 +39,13 @@ for k in IKHOKHA_APP_ID IKHOKHA_APP_SECRET IKHOKHA_ENTITY_ID IKHOKHA_CALLBACK_UR
       *)       ok "$k" "$v" ;;
     esac
   else
-    bad "$k" "EMPTY — checkout will fall back to the dev stub and no money moves"
+    bad "$k" "EMPTY — collect() returns the dev stub and no money moves"
   fi
 done
+
+EID="$(envv IKHOKHA_ENTITY_ID)"
+[ -n "$EID" ] && ok "IKHOKHA_ENTITY_ID" "$EID" \
+  || warn "IKHOKHA_ENTITY_ID" "blank — falls back to the vendor id. Works, but the reference iKhokha shows you is a uuid rather than something you can read"
 
 PROVIDER="$(envv PAYMENT_PROVIDER)"
 [ "$PROVIDER" = "ikhokha" ] && ok "PAYMENT_PROVIDER" "$PROVIDER" \
@@ -53,6 +62,18 @@ esac
 # mismatch here fails the signature even when the secret is right.
 CB="$(envv IKHOKHA_CALLBACK_URL)"
 if [ -n "$CB" ]; then
+  # Wait for the API to finish booting before probing.
+  #
+  # `docker compose up -d` returns as soon as the container has STARTED, not
+  # when Nest is listening — so running this straight after a recreate gets a
+  # 502 from Caddy and reports a healthy deployment as broken. That happened
+  # twice and cost real time chasing a fault that did not exist.
+  HEALTH="$(echo "$CB" | sed 's#\(https\?://[^/]*\).*#\1#')/api/health"
+  for _ in $(seq 1 20); do
+    [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH")" = "200" ] && break
+    sleep 2
+  done
+
   CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$CB" -H 'Content-Type: application/json' -d '{}' || echo 000)
   case "$CODE" in
     000) bad  "callback reachable"  "no response from $CB" ;;
@@ -88,6 +109,22 @@ if [ "${OVERRIDES:-0}" -gt 0 ]; then
        FROM vendor_subscriptions WHERE price_override IS NOT NULL;"
 else
   warn "negotiated prices on file" "none — check Dantalan is meant to be on list price (commission structure §7.2 grandfathers them at R925)"
+fi
+
+# Band cliffs. Pricing is flat per band, so crossing 12→13 units takes an
+# agency from R925 to R2,660 — a 188% rise, applied automatically by the next
+# unit anyone adds. That is a conversation to have before the invoice, not
+# after, so surface anyone sitting within two units of a boundary.
+NEAR=$(q "SELECT vendor_name(vendor_id)||' is on '||unit_count||' units ('||tier||', '||mrr||') — '||
+                 CASE WHEN unit_count BETWEEN 11 AND 12 THEN 'unit 13 moves them to Growth at 2660'
+                      WHEN unit_count BETWEEN 363 AND 364 THEN 'unit 365 moves them to Scale at 6014'
+                 END
+            FROM vendor_subscriptions
+           WHERE unit_count BETWEEN 11 AND 12 OR unit_count BETWEEN 363 AND 364;")
+if [ -n "$NEAR" ]; then
+  echo
+  echo "── Approaching a price band ─────────────────────────────"
+  echo "$NEAR" | while read -r l; do warn "band cliff" "$l"; done
 fi
 
 echo
