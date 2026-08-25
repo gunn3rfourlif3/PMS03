@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { PartnerDealsService } from './deals.service';
 import { PartnerCommissionsService } from './commissions.service';
@@ -24,7 +24,10 @@ export class PartnerController {
   @Get('me') me(@CurrentTenant() p: P) { return this.partners.me(p.partnerId); }
   @Get('agencies') agencies(@CurrentTenant() p: P) { return this.partners.agencies(p.partnerId); }
   @Get('referral') referral(@CurrentTenant() p: P) { return this.partners.referral(p.partnerId); }
-  @Get('leaderboard') leaderboard() { return this.deals.leaderboard(); }
+  @Get('leaderboard')
+  leaderboard(@CurrentTenant() p: P, @Query('window') window?: string) {
+    return this.deals.leaderboard(p.partnerId, window);
+  }
 
   @Post('agencies')
   onboard(@CurrentTenant() p: P, @Body() body: { agencyName: string; slug?: string; ownerName: string; ownerEmail: string; expectedUnits?: number }) {

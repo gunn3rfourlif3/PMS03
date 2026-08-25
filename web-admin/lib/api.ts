@@ -249,7 +249,8 @@ export const api = {
   partnerMe: () => req('/partner/me'),
   partnerAgencies: () => req('/partner/agencies'),
   partnerReferral: () => req('/partner/referral'),
-  partnerLeaderboard: () => req('/partner/leaderboard'),
+  partnerLeaderboard: (window: 'month' | 'quarter' | 'all' = 'month') =>
+    req(`/partner/leaderboard?window=${window}`),
   onboardAgency: (b: { agencyName: string; slug?: string; ownerName: string; ownerEmail: string; expectedUnits?: number }) =>
     req('/partner/agencies', { method: 'POST', body: JSON.stringify(b) }),
   partnerDeals: () => req('/partner/deals'),

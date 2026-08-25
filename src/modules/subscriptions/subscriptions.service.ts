@@ -36,6 +36,10 @@ export class SubscriptionsService {
     if (!sub) sub = repo.create({ vendorId, tier: 'starter', status: 'active' });
     sub.unitCount = unitCount;
     sub.currentPeriod = new Date().toISOString().slice(0, 7);
+    // `mrr` always tracks the ladder, even for an agency on a negotiated price.
+    // The override is applied at billing time (see effectivePrice), so the tier
+    // and its list price stay honest in the back-office and in the commission
+    // basis while the customer is still billed what they were promised.
     if (sub.tier !== 'enterprise') {
       const r = tierForUnits(unitCount);
       sub.tier = r.tier;

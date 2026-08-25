@@ -17,6 +17,14 @@ export class VendorSubscription {
   @Column('int', { name: 'unit_count', default: 0 }) unitCount: number;
   @Column('numeric', { default: 0 }) mrr: number;
   @Column('uuid', { name: 'referred_by_partner_id', nullable: true }) referredByPartnerId?: string;
+  /**
+   * Negotiated price that survives the pricing ladder (§7.2 grandfathering).
+   * NULL means "bill the tier price". See migration 1720000043000.
+   */
+  @Column('numeric', { name: 'price_override', nullable: true }) priceOverride?: number | null;
+  @Column({ name: 'price_override_reason', type: 'text', nullable: true }) priceOverrideReason?: string | null;
+  /** Last day the override applies. NULL is open-ended. */
+  @Column({ name: 'price_override_until', type: 'date', nullable: true }) priceOverrideUntil?: Date | string | null;
   @Column({ name: 'current_period', type: 'text', nullable: true }) currentPeriod?: string;
   @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
   @UpdateDateColumn({ name: 'updated_at' }) updatedAt: Date;

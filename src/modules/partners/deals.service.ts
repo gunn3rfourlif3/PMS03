@@ -1,8 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PartnerActivity, PartnerDeal, ActivityType } from './partner.entities';
 import { isDealStage, isAtOpenLeadCap, openLeadCap, OPEN_STAGES } from './pipeline';
+import { LeaderboardRow, LeaderboardWindow, isLeaderboardWindow, leaksOtherPartnersMoney } from './leaderboard';
 
 @Injectable()
 export class PartnerDealsService {
@@ -104,10 +105,27 @@ export class PartnerDealsService {
     return this.log(id, input.type, input.summary ?? '', input.dealId);
   }
 
-  /** Global leaderboard (read-only aggregate; safe cross-partner exposure). */
-  async leaderboard(): Promise<unknown[]> {
-    const [row] = await this.ds.query(`SELECT partner_leaderboard() AS d`);
+  /**
+   * Global leaderboard, ranked on cash collected.
+   *
+   * The caller's partner id goes to the SQL function, which returns rand
+   * figures for that partner's row only — every other row is rank, name and
+   * headline counts (PARTNER_PORTAL_DESIGN.md §6.2). The id comes from the
+   * verified token, never from the request, so a partner cannot ask for
+   * someone else's detail by passing a different id.
+   */
+  async leaderboard(partnerId: string | null | undefined, window: unknown = 'month'): Promise<LeaderboardRow[]> {
+    const w: LeaderboardWindow = isLeaderboardWindow(window) ? window : 'month';
+    const [row] = await this.ds.query(`SELECT partner_leaderboard($1, $2) AS d`, [partnerId ?? null, w]);
     const d = row?.d;
-    return (typeof d === 'string' ? JSON.parse(d) : d) ?? [];
+    const rows: LeaderboardRow[] = (typeof d === 'string' ? JSON.parse(d) : d) ?? [];
+
+    // Belt and braces. The function scopes this already; if a future edit to
+    // the SQL regresses it, failing loudly is better than quietly publishing
+    // every partner's revenue to their competitors.
+    if (leaksOtherPartnersMoney(rows)) {
+      throw new InternalServerErrorException('Leaderboard privacy check failed');
+    }
+    return rows;
   }
 }
