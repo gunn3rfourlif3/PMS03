@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { brandKeyFromHost, isPlatformHostFor, LOCARE_BRAND, DEFAULT_BRANDING } from '@/lib/brand-shared';
+import { brandKeyFromHost, isPlatformHostFor, DEFAULT_BRANDING } from '@/lib/brand-shared';
+import { LOCARE_MARK_SVG } from '@/lib/locare-mark';
 
 /**
  * Per-host favicon.
@@ -104,12 +105,10 @@ export async function GET(req: NextRequest) {
 
   let body: string;
   if (isPlatformHostFor(host)) {
-    // The platform gets the real mark, not a generated letter.
-    const res = await fetch(new URL('/brand/locare-mark.svg', req.nextUrl.origin), { cache: 'force-cache' })
-      .catch(() => null);
-    body = res?.ok
-      ? await res.text()
-      : markSvg(initialOf(LOCARE_BRAND.name), LOCARE_BRAND.colors.brand, LOCARE_BRAND.colors.onBrand);
+    // Inlined, not fetched: see lib/locare-mark.ts. An earlier version pulled
+    // this from our own public URL, which does not resolve from inside the
+    // container, so the platform host quietly served a lettered tile instead.
+    body = LOCARE_MARK_SVG;
   } else {
     const b = await agencyBrand(brandKeyFromHost(host));
     if (b.markUrl) {
