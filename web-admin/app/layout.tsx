@@ -18,6 +18,9 @@ export function generateMetadata(): Metadata {
     title: `${brand.name} — Back-office`,
     description,
     applicationName: brand.name,
+    // Resolved per-host by app/api/icon — a static icon here would show
+    // Locare's mark in every agency's browser tab.
+    icons: { icon: [{ url: '/api/icon', type: 'image/svg+xml' }], apple: '/api/icon' },
     openGraph: {
       siteName: brand.name,
       title: `${brand.name} — Back-office`,
