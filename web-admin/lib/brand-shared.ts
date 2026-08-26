@@ -9,7 +9,8 @@ export interface Branding {
   name: string;
   slug: string;
   tagline?: string;
-  logo: { text: string; imageUrl?: string; wordmarkUrl?: string };
+  /** `markUrl` is a SQUARE mark for the tab/app icon; imageUrl/wordmarkUrl are wide. */
+  logo: { text: string; imageUrl?: string; wordmarkUrl?: string; markUrl?: string };
   colors: {
     brand: string; onBrand: string; tint: string; accent: string;
     ink: string; muted: string; line: string; bg: string; card: string;

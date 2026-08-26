@@ -35,7 +35,18 @@ export interface Branding {
   name: string;
   slug: string;
   tagline?: string;
-  logo: { text: string; imageUrl?: string };
+  logo: {
+    text: string;
+    /** Wide logo for headers and email. Any aspect ratio. */
+    imageUrl?: string;
+    /**
+     * SQUARE mark, for the browser tab and app icons. Deliberately separate
+     * from `imageUrl`: a wide logo squashed into 16px is illegible, so the
+     * favicon prefers a generated lettered tile over guessing that a header
+     * logo happens to be square.
+     */
+    markUrl?: string;
+  };
   colors: BrandColors;
   font: BrandFont;
   contact: BrandContact;

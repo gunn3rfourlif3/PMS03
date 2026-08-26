@@ -48,7 +48,31 @@ function markSvg(letter: string, bg: string, fg: string): string {
     ` font-size="19" font-weight="700" fill="${xmlEscape(fg)}">${xmlEscape(letter)}</text></svg>`;
 }
 
-async function agencyBrand(slug: string): Promise<{ name: string; brand: string; onBrand: string }> {
+/**
+ * A vendor-supplied mark URL is agency-controlled input that we would be
+ * redirecting to from our own origin, so restrict it to https (or a
+ * same-origin path) rather than following whatever was typed into a settings
+ * field. An open redirect on a favicon is minor; it is also free to prevent.
+ */
+function safeMarkUrl(raw: unknown): string | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  const url = raw.trim();
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  try {
+    return new URL(url).protocol === 'https:' ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+interface AgencyMark {
+  name: string;
+  brand: string;
+  onBrand: string;
+  markUrl?: string;
+}
+
+async function agencyBrand(slug: string): Promise<AgencyMark> {
   const fallback = {
     name: DEFAULT_BRANDING.name,
     brand: DEFAULT_BRANDING.colors.brand,
@@ -65,6 +89,9 @@ async function agencyBrand(slug: string): Promise<{ name: string; brand: string;
       name: b?.name || fallback.name,
       brand: b?.colors?.brand || fallback.brand,
       onBrand: b?.colors?.onBrand || fallback.onBrand,
+      // Only `markUrl` — never `imageUrl`. A wide header logo scaled into a
+      // 16px square is mud; the generated tile is the better fallback.
+      markUrl: safeMarkUrl(b?.logo?.markUrl),
     };
   } catch {
     // A favicon is never worth a 500. Neutral mark and move on.
@@ -85,6 +112,11 @@ export async function GET(req: NextRequest) {
       : markSvg(initialOf(LOCARE_BRAND.name), LOCARE_BRAND.colors.brand, LOCARE_BRAND.colors.onBrand);
   } else {
     const b = await agencyBrand(brandKeyFromHost(host));
+    if (b.markUrl) {
+      // Hand the browser straight to the agency's own asset rather than
+      // proxying the bytes through here on every tab.
+      return Response.redirect(new URL(b.markUrl, req.nextUrl.origin), 307);
+    }
     body = markSvg(initialOf(b.name), b.brand, b.onBrand);
   }
 
