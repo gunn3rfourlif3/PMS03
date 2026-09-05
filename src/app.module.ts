@@ -43,6 +43,7 @@ import { PartnersModule } from './modules/partners/partners.module';
 import { DebiCheckModule } from './modules/debicheck/debicheck.module';
 import { KycModule } from './providers/kyc/kyc.module';
 import { PartnerApplicationsModule } from './modules/partner-applications/partner-applications.module';
+import { HostsModule } from './modules/hosts/hosts.module';
 
 // Cross-cutting provider layers
 import { PaymentModule } from './providers/payment/payment.module';
@@ -97,6 +98,7 @@ import { EsignModule } from './providers/esign/esign.module';
     DebiCheckModule,
     KycModule,
     PartnerApplicationsModule,
+    HostsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

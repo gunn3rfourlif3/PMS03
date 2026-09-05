@@ -109,6 +109,9 @@ services:
       PAYFAST_PASSPHRASE: ${PAYFAST_PASSPHRASE:-}
       PAYFAST_SANDBOX: ${PAYFAST_SANDBOX:-false}
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
+      # TLS allowlist for Caddy's on-demand issuance.
+      PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:-locare.co.za}
+      TLS_EXTRA_HOSTS: ${TLS_EXTRA_HOSTS:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       # Acknowledgement sent back to the form submitter (see .env.prod.example).
       LEADS_ACK: ${LEADS_ACK:-}
