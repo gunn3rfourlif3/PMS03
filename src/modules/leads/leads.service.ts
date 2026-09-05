@@ -1,6 +1,7 @@
-import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { resolveMx } from 'node:dns/promises';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 
 export interface CreateLead {
@@ -17,15 +18,59 @@ export interface CreateLead {
  * Captures marketing leads from the public product site and notifies the team.
  * Stored durably in `leads`; an email is sent to LEADS_NOTIFY_EMAIL when the
  * email channel is configured, otherwise the lead is logged.
+ *
+ * The lead row is written BEFORE the notification and the notification never
+ * throws, so a broken mail path loses nothing — `leads` is the record, email is
+ * only the alert.
  */
 @Injectable()
-export class LeadsService {
+export class LeadsService implements OnModuleInit {
   private readonly log = new Logger('Leads');
 
   constructor(
     @InjectDataSource() private readonly ds: DataSource,
     @Optional() @Inject(CHANNEL_PROVIDERS) private readonly channels?: Map<Channel, ChannelProvider>,
   ) {}
+
+  /**
+   * A notify address on a domain with no MX is indistinguishable from a working
+   * one at send time: the relay accepts the message and the bounce arrives
+   * later, somewhere else entirely. Nine demo leads went to a placeholder
+   * address on a mail-less domain before anyone noticed, so resolve the
+   * configured recipients once at boot — where a wrong answer is visible in the
+   * startup log next to the `channels — …` line, not weeks later.
+   *
+   * Deliberately non-fatal: a DNS blip at boot must not stop the API serving.
+   */
+  async onModuleInit(): Promise<void> {
+    await Promise.all([
+      this.checkRecipient('LEADS_NOTIFY_EMAIL', process.env.LEADS_NOTIFY_EMAIL),
+      this.checkRecipient('PARTNER_NOTIFY_EMAIL', process.env.PARTNER_NOTIFY_EMAIL || 'partners@locare.co.za'),
+    ]);
+  }
+
+  private async checkRecipient(name: string, addr?: string): Promise<void> {
+    if (!addr) {
+      this.log.warn(`${name} is not set — those leads are stored and logged, never emailed`);
+      return;
+    }
+    const domain = addr.split('@')[1];
+    if (!domain) {
+      this.log.error(`${name}="${addr}" is not an email address — leads to it cannot be sent`);
+      return;
+    }
+    try {
+      const mx = await resolveMx(domain);
+      if (!mx.length) throw new Error('no MX records');
+      this.log.log(`${name} → ${addr} (${domain} MX ok)`);
+    } catch (e: any) {
+      this.log.error(
+        `${name}="${addr}" — ${domain} has no reachable MX (${e.code ?? e.message}). ` +
+          `Mail to it will be accepted by the relay and bounce out of band, so the send will ` +
+          `look successful in these logs. Fix the address or leads will silently go nowhere.`,
+      );
+    }
+  }
 
   async create(input: CreateLead): Promise<{ received: true }> {
     const type = (input.type || 'contact').slice(0, 40);
@@ -35,7 +80,59 @@ export class LeadsService {
       [type, input.name, input.email, input.phone ?? null, input.company ?? null, input.message ?? null, JSON.stringify(input.meta ?? {})],
     );
     await this.notify(type, input);
+    await this.acknowledge(type, input);
     return { received: true };
+  }
+
+  /**
+   * Confirms receipt to the person who submitted the form.
+   *
+   * The site promises "we'll reach out to get you started" and then, until now,
+   * said nothing until Arthur replied by hand — so a slow reply read as no
+   * reply. This buys that time back and gives someone not yet ready to talk the
+   * walkthrough to watch instead.
+   *
+   * Not sent for 'agent' (partner registrations), which have their own staged
+   * application emails and would otherwise get two messages for one form.
+   *
+   * Never throws and never blocks the caller's success: the lead row is already
+   * committed, and a failed courtesy email must not turn a captured lead into a
+   * 500 for the submitter.
+   */
+  private async acknowledge(type: string, l: CreateLead): Promise<void> {
+    if (type === 'agent') return;
+    if (process.env.LEADS_ACK === 'off') return;
+    const email = this.channels?.get('email');
+    if (!email || !l.email?.includes('@')) return;
+
+    const fromEmail = process.env.LEADS_ACK_FROM?.trim();
+    const fromName = process.env.LEADS_ACK_FROM_NAME?.trim() || 'Locare';
+    const replyTo = process.env.LEADS_ACK_REPLY_TO?.trim() || fromEmail;
+    const demoUrl = process.env.LEADS_ACK_DEMO_URL?.trim() || 'https://locare.co.za/demo';
+    const first = (l.name ?? '').trim().split(/\s+/)[0] || 'there';
+
+    const body =
+      `Hi ${first},\n\n` +
+      `Thanks for getting in touch about Locare — this is just to confirm it arrived. ` +
+      `I'll come back to you personally within one working day.\n\n` +
+      `In the meantime, here is a two-minute walkthrough of the product:\n${demoUrl}\n\n` +
+      `If it's easier, reply to this email with a time that suits you and we'll do ` +
+      `twenty minutes on a call instead.\n\n` +
+      `${fromName}\nLocare (Pty) Ltd · locare.co.za`;
+
+    try {
+      const res = await email.send({
+        to: l.email,
+        subject: 'Thanks — we got your details',
+        body,
+        ...(fromEmail ? { from: { email: fromEmail, name: fromName } } : {}),
+        ...(replyTo ? { replyTo: { email: replyTo, name: fromName } } : {}),
+      });
+      if (res.ok) this.log.log(`lead ack accepted → ${l.email} (${res.providerRef ?? 'no-ref'})`);
+      else this.log.warn(`lead ack rejected → ${l.email}: ${res.error ?? 'unknown'}`);
+    } catch (e: any) {
+      this.log.warn(`lead ack threw for ${l.email}: ${e.message}`);
+    }
   }
 
   private async notify(type: string, l: CreateLead): Promise<void> {
@@ -53,14 +150,26 @@ export class LeadsService {
       // Replies go straight to the applicant; log both failures AND successes so
       // "form said sent but inbox is empty" is diagnosable from the api logs
       // (provider name + accepted message-id vs. an error).
-      const res = await email.send({
-        to,
-        subject: `New ${type} lead: ${l.name}`,
-        body,
-        replyTo: { email: l.email, name: l.name },
-      });
-      if (res.ok) this.log.log(`lead notify sent → ${to} via ${email.constructor.name} (${res.providerRef ?? 'no-ref'})`);
-      else this.log.error(`lead notify failed → ${to}: ${res.error ?? 'unknown'}`);
+      // The lead row is already committed, so a mail failure must not surface as
+      // a 500 to the submitter — that would report a captured lead as lost.
+      try {
+        const res = await email.send({
+          to,
+          subject: `New ${type} lead: ${l.name}`,
+          body,
+          replyTo: { email: l.email, name: l.name },
+        });
+        // "accepted", not "sent": all the relay promises is that it took the
+        // message. Saying more than we know is what hid a dead notify address
+        // for a fortnight.
+        if (res.ok) {
+          this.log.log(`lead notify accepted → ${to} by ${email.constructor.name} (${res.providerRef ?? 'no-ref'})`);
+        } else {
+          this.log.error(`lead notify rejected → ${to}: ${res.error ?? 'unknown'} — lead is safe in the leads table`);
+        }
+      } catch (e: any) {
+        this.log.error(`lead notify threw → ${to}: ${e.message} — lead is safe in the leads table:\n${body}`);
+      }
     } else if (!email) {
       this.log.warn(`no email channel configured — ${type} lead not emailed; logged only:\n${body}`);
     } else {

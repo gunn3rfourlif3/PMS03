@@ -36,7 +36,9 @@ export class SmtpEmailProvider implements ChannelProvider {
   async send(req: DeliveryRequest): Promise<DeliveryResult> {
     try {
       const info = await this.transport.sendMail({
-        from: this.from,
+        from: req.from
+          ? (req.from.name ? `${req.from.name} <${req.from.email}>` : req.from.email)
+          : this.from,
         to: req.to,
         subject: req.subject,
         text: req.body,
@@ -45,7 +47,17 @@ export class SmtpEmailProvider implements ChannelProvider {
           ? { replyTo: req.replyTo.name ? `${req.replyTo.name} <${req.replyTo.email}>` : req.replyTo.email }
           : {}),
       });
-      return { ok: true, providerRef: info.messageId };
+      // nodemailer throws only when EVERY recipient is rejected; a partial
+      // rejection resolves normally. So the absence of an exception is not
+      // proof the recipient was taken — `accepted` is.
+      const accepted = (info.accepted ?? []).map(String);
+      const rejected = (info.rejected ?? []).map(String);
+      if (!accepted.some((a) => a.toLowerCase() === req.to.toLowerCase())) {
+        const detail = info.response ?? 'no SMTP response';
+        this.logger.error(`relay rejected ${req.to}: ${detail}`);
+        return { ok: false, error: `relay rejected recipient: ${detail}`, accepted, rejected };
+      }
+      return { ok: true, providerRef: info.messageId, accepted, rejected };
     } catch (e: any) {
       this.logger.error(`send failed: ${e.message}`);
       return { ok: false, error: e.message };
@@ -72,7 +84,9 @@ export class SendGridEmailProvider implements ChannelProvider {
         headers: { Authorization: `Bearer ${this.key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: req.to }] }],
-          from: { email: this.from },
+          from: req.from
+            ? { email: req.from.email, ...(req.from.name ? { name: req.from.name } : {}) }
+            : { email: this.from },
           ...(req.replyTo ? { reply_to: { email: req.replyTo.email, ...(req.replyTo.name ? { name: req.replyTo.name } : {}) } } : {}),
           subject: req.subject,
           // Plain text first (fallback), then HTML when provided.

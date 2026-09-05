@@ -59,6 +59,39 @@ immediately.
 
 Start local. An SA agency buys from someone who can sit in their office.
 
+## POPIA constrains how this is sent — read before writing a list
+
+POPIA **section 69** prohibits direct marketing by unsolicited electronic
+communication unless the recipient consented or is an existing customer. Two
+features of it matter here and both are easy to get wrong:
+
+- **A juristic person is a data subject under POPIA.** Unlike GDPR, "it's a
+  company not a person" is not a defence.
+- **The Information Regulator's December 2024 guidance note** draws the line at
+  who the message targets. A **role-based address** — `info@`, `rentals@`,
+  `admin@` — aimed at the business as a legal entity sits outside the strictest
+  consent requirement. An email to a **named individual's** work address is
+  targeting a natural person and needs consent.
+
+**So: send to the agency's role mailbox, not to the principal by name.** At a
+15–120 unit agency the `info@` inbox is usually read by the principal anyway, so
+the cost is a slightly less personal opening and the benefit is not having to
+rely on section 69(2)'s single-approach-for-consent route, which requires the
+prescribed Form 4 and is impractical in an email.
+
+Non-negotiable in every send, regardless:
+
+- identify the sender clearly — real name, real company, `Locare (Pty) Ltd`
+- a working opt-out in the message
+- honour an objection immediately and permanently; keep a suppression list
+- do not buy lists, and do not collect personal information you do not need
+  (POPIA's minimisation principle applies to Locare too, and it would be a poor
+  look for a company selling POPIA-aware software)
+
+Not legal advice — worth ten minutes with the attorney already being briefed on
+the trust-account question (`LOCARE_DEBIT_ORDER_DESIGN.md` §7.2), since they are
+looking at Locare's compliance posture anyway.
+
 ## The email
 
 Short, specific, no attachment, one link, one question. It leads with the
@@ -67,7 +100,7 @@ which is also what makes it a defensible thing to send.
 
 > **Subject:** the part of the trust audit that costs the money
 >
-> Hi {first name},
+> Hello,
 >
 > If {agency} runs a February year-end, your trust audit report went in this
 > week. I wrote something for the fortnight afterwards rather than the fortnight
@@ -89,7 +122,10 @@ which is also what makes it a defensible thing to send.
 > Worth twenty minutes?
 >
 > Arthur Jones
-> Locare · locare.co.za
+> Locare (Pty) Ltd · locare.co.za
+>
+> *Sent to {agency}'s published business address. Reply "no thanks" and I will
+> not contact you again.*
 
 **Why it is written this way.** The "one agency is live" line is not modesty, it
 is qualification: it screens out anyone who needs a safe, established vendor,
@@ -104,7 +140,7 @@ reputation in a market this small.
 
 > **Subject:** re: the part of the trust audit that costs the money
 >
-> Hi {first name},
+> Hello again,
 >
 > Following up once and then I will leave you alone.
 >
@@ -114,6 +150,7 @@ reputation in a market this small.
 > I would say so.
 >
 > Arthur
+> Locare (Pty) Ltd · reply "no thanks" to be removed.
 
 ## What to do with a reply
 

@@ -44,3 +44,5 @@ docs/video/music.mp3
 # Regenerate a scrubbed transcript with scripts/export-transcript.py instead.
 docs/handover/*.jsonl
 docs/handover/*.jsonl.gz
+
+Claude outputs/

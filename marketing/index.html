@@ -248,7 +248,7 @@ input,textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);ba
 input:focus,textarea:focus{border-color:var(--accent);background:#fff}
 textarea{min-height:96px;resize:vertical}
 .form-note{font-size:12.5px;color:var(--muted)}
-.form-ok{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-dark);border-radius:14px;padding:16px 18px;font-size:15px}
+.form-ok{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-dark);border-radius:14px;padding:20px 22px;font-size:15px;line-height:1.6;max-width:520px;margin:32px auto 0;text-align:center}
 .form-err{color:#a23a26;font-size:13.5px}
 
 /* FAQ */
@@ -262,10 +262,12 @@ textarea{min-height:96px;resize:vertical}
 .faq-item p{margin:-2px 2px 20px;color:var(--muted);font-size:15px;line-height:1.65;max-width:66ch}
 
 /* CTA band */
-.band{background:var(--ink);color:#fff;border-radius:28px;padding:64px 40px;text-align:center}
+.band{background:var(--ink);color:#fff;border-radius:28px;padding:80px 40px;text-align:center}
 .band h2{color:#fff;font-size:clamp(30px,4vw,44px)}
-.band p{color:rgba(255,255,255,.7);margin:16px auto 0;max-width:520px}
+.band p{color:rgba(255,255,255,.7);margin:20px auto 0;max-width:520px;line-height:1.6}
 .band .btn-accent{margin-top:30px}
+.band .form-ok{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22);color:#fff;margin-top:36px;padding:22px 24px}
+@media(max-width:640px){.band{padding:56px 22px;border-radius:22px}}
 
 /* Footer */
 footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
@@ -508,16 +510,16 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="band reveal">
       <h2>Bring your agency to <img src="/brand/locare-logo-white.svg" alt="Locare" style="height:1.05em;vertical-align:baseline;display:inline-block;transform:translateY(.16em);margin-left:4px" /></h2>
       <p>Start free, or book a 20-minute walkthrough — we’ll show you exactly how Locare fits your agency and get you live under your own brand.</p>
-      <form class="lead" style="max-width:520px;margin:28px auto 0;text-align:left" onsubmit="return submitLead(event,'demo')">
+      <form class="lead" style="max-width:520px;margin:36px auto 0;text-align:left" onsubmit="return submitLead(event,'demo')">
         <div class="row">
-          <div><label style="color:#fff">Name</label><input name="name" required placeholder="Your name" /></div>
-          <div><label style="color:#fff">Agency</label><input name="company" placeholder="Your agency name" /></div>
+          <div><label>Name</label><input name="name" required placeholder="Your name" /></div>
+          <div><label>Agency</label><input name="company" placeholder="Your agency name" /></div>
         </div>
         <div class="row">
-          <div><label style="color:#fff">Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
-          <div><label style="color:#fff">Phone</label><input name="phone" placeholder="+27…" /></div>
+          <div><label>Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
+          <div><label>Phone</label><input name="phone" placeholder="+27…" /></div>
         </div>
-        <div><label style="color:#fff">Anything specific you’d like to see?</label><textarea name="message"></textarea></div>
+        <div><label>Anything specific you’d like to see?</label><textarea name="message"></textarea></div>
         <button class="btn btn-accent" type="submit">Get started</button>
       </form>
     </div>
