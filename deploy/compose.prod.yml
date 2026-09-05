@@ -116,6 +116,8 @@ services:
       LEADS_ACK_FROM_NAME: ${LEADS_ACK_FROM_NAME:-}
       LEADS_ACK_REPLY_TO: ${LEADS_ACK_REPLY_TO:-}
       LEADS_ACK_DEMO_URL: ${LEADS_ACK_DEMO_URL:-}
+      LEADS_ACK_POSTER_URL: ${LEADS_ACK_POSTER_URL:-}
+      LEADS_ACK_LOGO_URL: ${LEADS_ACK_LOGO_URL:-}
       PARTNER_NOTIFY_EMAIL: ${PARTNER_NOTIFY_EMAIL:-partners@locare.co.za}
       PARTNER_APPLY_URL: ${PARTNER_APPLY_URL:-https://app.locare.co.za/partner-apply}
       # POPIA retention: purge PII from rejected partner applications after N days.

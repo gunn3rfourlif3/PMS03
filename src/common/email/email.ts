@@ -49,6 +49,25 @@ const PAPER = '#F2F3F1';
 
 export interface EmailButton { label: string; url: string; }
 
+/**
+ * A picture — a video poster, a screenshot — optionally linking somewhere.
+ *
+ * Same raster-only, https-only rule as the header logo: Gmail and Outlook drop
+ * SVG, and an http:// or relative src is blocked or unresolvable in the
+ * recipient's client. Anything else is silently omitted rather than rendered as
+ * a broken-image icon, so the email still reads correctly without it — which is
+ * also how most recipients first see it, since images are blocked by default.
+ * That is why `alt` is required and why a media block is never the only link.
+ */
+export interface EmailMedia {
+  imageUrl: string;
+  href?: string;
+  alt: string;
+  caption?: string;
+}
+
+const MAIL_SAFE_IMG = /^https:\/\/\S+\.(png|jpe?g|gif)(\?\S*)?$/i;
+
 /** A small data table. Two or three columns — wider wraps badly on a phone. */
 export interface EmailTable { head: string[]; rows: string[][]; }
 
@@ -67,6 +86,8 @@ export interface EmailOptions {
   paragraphs?: string[];
   sections?: EmailSection[];
   buttons?: EmailButton[];
+  /** Rendered between the copy and the buttons. Omitted if not mail-safe. */
+  media?: EmailMedia;
   agencyName?: string;
   /**
    * Absolute URL to a PNG/JPG logo for the header. Must NOT be an SVG — Gmail
@@ -175,6 +196,21 @@ export function renderEmail(o: EmailOptions): string {
     ].join(''))
     .join('');
 
+  // Fixed width as an attribute as well as CSS: Outlook ignores max-width on
+  // images and will otherwise render the asset at its intrinsic size, blowing
+  // the 600px card open. 536 = 600 card - 32px padding each side.
+  const media = (() => {
+    const m = o.media;
+    if (!m || !MAIL_SAFE_IMG.test(m.imageUrl.trim())) return '';
+    const img = `<img src="${esc(m.imageUrl)}" alt="${esc(m.alt)}" width="536" style="display:block;width:100%;max-width:536px;height:auto;border:0;outline:none;text-decoration:none">`;
+    return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:8px 0 22px;border-collapse:separate">
+      <tr><td style="border:1px solid ${LINE};border-radius:12px;overflow:hidden;background:${PAPER};font-size:0;line-height:0">
+        ${m.href ? `<a href="${esc(m.href)}" style="display:block;text-decoration:none">${img}</a>` : img}
+      </td></tr>
+      ${m.caption ? `<tr><td style="padding:8px 2px 0;font-family:${FONT};font-size:12.5px;line-height:1.5;color:${MUTED}">${esc(m.caption)}</td></tr>` : ''}
+    </table>`;
+  })();
+
   // Bulletproof-ish button: a table cell with a background, which Outlook honours
   // where a styled <a> alone collapses to a plain link.
   const buttons = (o.buttons ?? [])
@@ -212,6 +248,7 @@ ${preheader}
       <h1 style="margin:0 0 16px;font-family:${FONT};font-size:27px;line-height:1.2;font-weight:700;color:${INK};letter-spacing:-.025em">${esc(o.heading)}</h1>
       ${paras}
       ${sections}
+      ${media}
       ${buttons}
       ${o.footerNote ? `<p style="margin:20px 0 0;font-size:14.5px;line-height:1.6;color:${BODY}">${esc(o.footerNote)}</p>` : ''}
       ${o.fineprint ? `<p style="margin:26px 0 0;padding-top:16px;border-top:1px solid ${LINE};font-size:12px;line-height:1.55;color:${MUTED}">${esc(o.fineprint)}</p>` : ''}

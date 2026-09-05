@@ -76,3 +76,37 @@ describe('emailMarkPng', () => {
     expect(emailMarkPng('white').equals(emailMarkPng('ink'))).toBe(false);
   });
 });
+
+describe('email media block', () => {
+  const base = { agencyName: 'Locare', heading: 'Hi', markUrl: API };
+
+  it('renders a linked poster with a caption', () => {
+    const html = renderEmail({
+      ...base,
+      media: {
+        imageUrl: 'https://locare.co.za/demo/poster.jpg',
+        href: 'https://locare.co.za/demo',
+        alt: 'Watch the walkthrough',
+        caption: 'Two minutes',
+      },
+    });
+    expect(html).toContain('src="https://locare.co.za/demo/poster.jpg"');
+    expect(html).toContain('href="https://locare.co.za/demo"');
+    expect(html).toContain('alt="Watch the walkthrough"');
+    expect(html).toContain('Two minutes');
+    // Outlook ignores max-width on images; the width attribute is what stops it
+    // rendering the asset at its intrinsic size and bursting the 600px card.
+    expect(html).toContain('width="536"');
+  });
+
+  // Same rule as the header logo: anything a mail client would show as a broken
+  // image is better left out, because the copy already carries the link.
+  it.each([
+    ['svg', 'https://locare.co.za/demo/poster.svg'],
+    ['plain http', 'http://locare.co.za/demo/poster.jpg'],
+    ['relative', '/demo/poster.jpg'],
+  ])('omits an unsafe %s image', (_label, url) => {
+    const html = renderEmail({ ...base, media: { imageUrl: url, alt: 'x' } });
+    expect(html).not.toContain(url);
+  });
+});

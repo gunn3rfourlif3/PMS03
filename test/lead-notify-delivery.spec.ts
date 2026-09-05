@@ -116,6 +116,18 @@ describe('LeadsService acknowledges the submitter', () => {
     expect(ack().body).toContain('https://locare.co.za/demo');
   });
 
+  it('sends branded HTML with the demo poster, and plain text alongside it', async () => {
+    await service().create({ type: 'demo', name: 'Sam Nkosi', email: 'sam@agency.co.za' });
+    const m = ack();
+    expect(m.html).toContain('https://locare.co.za/demo/poster.jpg');
+    expect(m.html).toContain('locare-logo-email-white.png');
+    expect(m.html).toContain('Watch the walkthrough');
+    // The text part is what a text-only client and most spam filters read, so
+    // the link has to survive without the poster.
+    expect(m.body).toContain('https://locare.co.za/demo');
+    expect(m.body).not.toContain('<');
+  });
+
   it('does not double-email partner registrations', async () => {
     await service().create({ type: 'agent', name: 'Sam Nkosi', email: 'sam@agency.co.za' });
     expect(ack()).toBeUndefined();

@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { resolveMx } from 'node:dns/promises';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
+import { renderEmail } from '@common/email/email';
 
 export interface CreateLead {
   type?: string;
@@ -109,22 +110,49 @@ export class LeadsService implements OnModuleInit {
     const fromName = process.env.LEADS_ACK_FROM_NAME?.trim() || 'Locare';
     const replyTo = process.env.LEADS_ACK_REPLY_TO?.trim() || fromEmail;
     const demoUrl = process.env.LEADS_ACK_DEMO_URL?.trim() || 'https://locare.co.za/demo';
+    const posterUrl = process.env.LEADS_ACK_POSTER_URL?.trim() || 'https://locare.co.za/demo/poster.jpg';
+    const logoUrl = process.env.LEADS_ACK_LOGO_URL?.trim() || 'https://locare.co.za/brand/locare-logo-email-white.png';
     const first = (l.name ?? '').trim().split(/\s+/)[0] || 'there';
 
-    const body =
-      `Hi ${first},\n\n` +
+    const intro =
       `Thanks for getting in touch about Locare — this is just to confirm it arrived. ` +
-      `I'll come back to you personally within one working day.\n\n` +
-      `In the meantime, here is a two-minute walkthrough of the product:\n${demoUrl}\n\n` +
-      `If it's easier, reply to this email with a time that suits you and we'll do ` +
-      `twenty minutes on a call instead.\n\n` +
+      `${fromName === 'Locare' ? 'We' : 'I'}'ll come back to you within one working day.`;
+    const watch = `While you wait, here is a two-minute walkthrough: the back-office, the tenant app and the landlord app, all under an agency's own brand.`;
+    const offer = `If it's easier, reply to this email with a time that suits you and we'll do twenty minutes on a call instead.`;
+
+    // Plain text is not a formality — it is what a text-only client and most
+    // spam filters actually read, and the link must survive without the poster.
+    const body =
+      `Hi ${first},\n\n${intro}\n\n${watch}\n${demoUrl}\n\n${offer}\n\n` +
       `${fromName}\nLocare (Pty) Ltd · locare.co.za`;
+
+    const html = renderEmail({
+      heading: `Thanks, ${first} — we have your details`,
+      preheader: 'A two-minute walkthrough while you wait for our reply.',
+      // No eyebrow: the header already carries the wordmark, and "Locare" twice
+      // in one bar reads as a template someone forgot to fill in.
+      logoUrl,
+      headerStyle: 'ink', // the email wordmark is the white variant
+      paragraphs: [intro, watch],
+      media: {
+        imageUrl: posterUrl,
+        href: demoUrl,
+        alt: 'Watch the two-minute Locare walkthrough',
+        caption: 'Two minutes · back-office, tenant app, landlord app',
+      },
+      buttons: [{ label: 'Watch the walkthrough', url: demoUrl }],
+      footerNote: offer,
+      fineprint:
+        `You are receiving this because you asked to hear from Locare at locare.co.za. ` +
+        `Reply "no thanks" and we will not contact you again.`,
+    });
 
     try {
       const res = await email.send({
         to: l.email,
         subject: 'Thanks — we got your details',
         body,
+        html,
         ...(fromEmail ? { from: { email: fromEmail, name: fromName } } : {}),
         ...(replyTo ? { replyTo: { email: replyTo, name: fromName } } : {}),
       });
