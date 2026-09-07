@@ -6,6 +6,20 @@
 
 {
 	email admin@dantalan.co.za
+
+	# On-demand TLS: certificates for agency domains are issued during the
+	# first handshake, but ONLY for hosts the API vouches for — an active
+	# vendor's custom_domain, or the platform's own hosts. Without the `ask`
+	# endpoint, anyone pointing a domain at this IP would get a certificate
+	# issued in Locare's name and burn our Let's Encrypt budget.
+	#
+	# The endpoint answers 200 (issue) or 404 (refuse) and nothing else.
+	# See docs/LOCARE_ONDEMAND_TLS_DESIGN.md.
+	on_demand_tls {
+		ask http://api:3000/api/public/tls-check
+		interval 2m
+		burst 5
+	}
 }
 
 # Web back-office (Next.js)
@@ -100,4 +114,67 @@ app.locare.co.za {
 api.locare.co.za {
 	encode zstd gzip
 	reverse_proxy api:3000
+}
+
+# ── Agency domains, certificated on demand ───────────────────────────────
+# Everything above is an exact hostname, and Caddy matches the most specific
+# site address first — so these blocks keep their own config and their existing
+# certificates, and nothing here can change how they behave. This block only
+# ever sees hosts nothing above matched, which makes it additive and makes
+# rollback "delete this block and restart".
+#
+# Adding an agency is therefore: set vendors.custom_domain, point DNS here.
+# No Caddyfile edit, no restart, no SSH.
+
+# Port 80 for those same hosts: send them to HTTPS rather than 404. Caddy
+# serves ACME HTTP-01 challenges ahead of site routes, so this does not
+# interfere with issuance — verify that on the throwaway domain in step 4.
+http:// {
+	redir https://{host}{uri} permanent
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+
+	# Caddy's `host` matcher treats * as exactly one label, so `app.*` would NOT
+	# match app.agency.co.za. Match the Host header by regex instead.
+	@app header_regexp host Host ^app\.
+	handle @app {
+		@assets path /_next/static/* /brand/*
+		handle @assets {
+			reverse_proxy web:3001
+		}
+		# Identical to the explicit agency blocks: Next sets its own
+		# Cache-Control and a plain `header` directive loses to it, which is how
+		# a deploy appears to half-break for anyone holding a stale page.
+		handle {
+			reverse_proxy web:3001 {
+				header_down Cache-Control "no-cache"
+			}
+		}
+	}
+
+	@api header_regexp host Host ^api\.
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	@tenant header_regexp host Host ^tenant\.
+	handle @tenant {
+		reverse_proxy tenant:80
+	}
+
+	@landlord header_regexp host Host ^landlord\.
+	handle @landlord {
+		reverse_proxy landlord:80
+	}
+
+	# Apex, www and rentals. all serve the public rentals site.
+	handle {
+		redir / /rentals
+		reverse_proxy web:3001
+	}
 }

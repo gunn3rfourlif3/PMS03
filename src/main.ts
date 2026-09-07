@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './common/observability/all-exceptions.filte
 import { ErrorReporter } from './common/observability/error-reporter';
 import { securityHeaders } from './common/observability/security-headers.middleware';
 import { validateEnv } from './common/config/validate-env';
+import { HostsService } from './modules/hosts/hosts.service';
 
 async function bootstrap() {
   // Refuse to boot on an insecure production configuration.
@@ -14,10 +15,23 @@ async function bootstrap() {
   // rawBody:true exposes req.rawBody (exact bytes) for webhook HMAC verification.
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
-  // CORS: explicit allowlist in production; permissive only for local dev.
-  const origins = (process.env.CORS_ORIGINS ?? '').split(',').map((o) => o.trim()).filter(Boolean);
+  // CORS is resolved PER REQUEST, not fixed at boot: CORS_ORIGINS first, then
+  // any host an active vendor claims. An agency's domain therefore starts
+  // working the moment it is set in the back-office, with no redeploy — and it
+  // can never disagree with the TLS allowlist, because it is the same lookup.
+  // (docs/LOCARE_ONDEMAND_TLS_DESIGN.md §5)
+  const hosts = app.get(HostsService);
+  const devOpen = process.env.NODE_ENV !== 'production' && !process.env.CORS_ORIGINS;
   app.enableCors({
-    origin: origins.length ? origins : process.env.NODE_ENV === 'production' ? false : true,
+    origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+      if (devOpen) return cb(null, true);
+      hosts
+        .isAllowedOrigin(origin)
+        // false, not an error: a rejected origin should be a clean CORS block,
+        // not a 500 that looks like the API fell over.
+        .then((ok) => cb(null, ok))
+        .catch(() => cb(null, false));
+    },
     credentials: true,
   });
 

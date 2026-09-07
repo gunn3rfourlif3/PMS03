@@ -11,6 +11,9 @@ import { HostsService } from '@modules/hosts/hosts.service';
 
 const PD = 'locare.co.za';
 
+// @types/node declares NODE_ENV readonly; the index signature is the way in.
+const setEnv = (k: string, v: string) => { (process.env as Record<string, string>)[k] = v; };
+
 describe('normaliseHost', () => {
   it.each([
     ['lowercases', 'App.Agency.CO.ZA', 'app.agency.co.za'],
@@ -126,4 +129,71 @@ describe('HostsService.isAllowed', () => {
     await service.isAllowed('app.agency.co.za');
     expect(query).toHaveBeenCalledTimes(1);
   });
+});
+
+describe('HostsService.isAllowedOrigin', () => {
+  const svc = (claims: boolean) => {
+    const query = jest.fn(async () => [{ ok: claims }]);
+    return { service: new HostsService({ query } as any), query };
+  };
+
+  beforeEach(() => {
+    process.env.PLATFORM_DOMAIN = PD;
+    setEnv('NODE_ENV', 'production');
+    process.env.CORS_ORIGINS = 'https://app.dantalan.co.za,https://dantalan.co.za';
+    delete process.env.TLS_EXTRA_HOSTS;
+  });
+  afterEach(() => setEnv('NODE_ENV', 'test'));
+
+  it('allows a configured origin without a database lookup', async () => {
+    const { service, query } = svc(false);
+    await expect(service.isAllowedOrigin('https://app.dantalan.co.za')).resolves.toBe(true);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('tolerates a trailing slash and odd casing on the configured list', async () => {
+    const { service } = svc(false);
+    await expect(service.isAllowedOrigin('https://APP.dantalan.co.za/')).resolves.toBe(true);
+  });
+
+  // The whole point: a domain set in the back-office works with no redeploy.
+  it('allows an origin whose host an active vendor claims', async () => {
+    const { service, query } = svc(true);
+    await expect(service.isAllowedOrigin('https://app.newagency.co.za')).resolves.toBe(true);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('tls_host_allowed'), ['newagency.co.za', '']);
+  });
+
+  it('refuses an origin nobody claims', async () => {
+    const { service } = svc(false);
+    await expect(service.isAllowedOrigin('https://evil.example.com')).resolves.toBe(false);
+  });
+
+  it('refuses http in production, even for a claimed host', async () => {
+    const { service } = svc(true);
+    await expect(service.isAllowedOrigin('http://app.newagency.co.za')).resolves.toBe(false);
+  });
+
+  it('refuses localhost in production', async () => {
+    const { service } = svc(true);
+    await expect(service.isAllowedOrigin('http://localhost:3001')).resolves.toBe(false);
+  });
+
+  it('allows localhost outside production', async () => {
+    setEnv('NODE_ENV', 'development');
+    const { service } = svc(false);
+    await expect(service.isAllowedOrigin('http://localhost:3001')).resolves.toBe(true);
+  });
+
+  // No Origin header at all: a webhook or curl, not a browser. Nothing to police.
+  it.each([['undefined', undefined], ['empty', '']])('allows a request with %s origin', async (_l, o) => {
+    const { service } = svc(false);
+    await expect(service.isAllowedOrigin(o as string)).resolves.toBe(true);
+  });
+
+  it.each([['garbage', 'not-a-url'], ['a bare host', 'app.newagency.co.za'], ['a file url', 'file:///etc/passwd']])(
+    'refuses %s', async (_l, o) => {
+      const { service } = svc(true);
+      await expect(service.isAllowedOrigin(o)).resolves.toBe(false);
+    },
+  );
 });

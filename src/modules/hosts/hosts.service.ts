@@ -45,6 +45,48 @@ export class HostsService {
     return new Set([pd, `www.${pd}`, `app.${pd}`, `api.${pd}`, ...extra]);
   }
 
+  /**
+   * Browser origins the API accepts, resolved per request rather than fixed at
+   * boot.
+   *
+   * Same source of truth as the TLS check on purpose. If these two could
+   * disagree, a new agency would get a valid certificate, serve the app, and
+   * then have every API call blocked by the browser — an app that looks broken
+   * while the logs stay clean. `CORS_ORIGINS` is still consulted first, so the
+   * platform's own origins never depend on a database lookup.
+   */
+  async isAllowedOrigin(origin?: string | null): Promise<boolean> {
+    // No Origin header: not a browser cross-origin request (curl, a webhook,
+    // server-to-server). There is nothing to police here.
+    if (!origin) return true;
+
+    let url: URL;
+    try {
+      url = new URL(origin);
+    } catch {
+      return false;
+    }
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const localhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    if (url.protocol !== 'https:' && !(localhost && !isProd)) return false;
+    if (localhost) return !isProd;
+
+    // Exact match on the configured list, normalised for a stray trailing slash.
+    const normalised = origin.trim().toLowerCase().replace(/\/+$/, '');
+    if (this.staticOrigins.has(normalised)) return true;
+
+    return this.isAllowed(url.hostname);
+  }
+
+  /** `CORS_ORIGINS`, the boot-time allowlist. Env is fixed at container creation. */
+  private get staticOrigins(): Set<string> {
+    return new Set(
+      (process.env.CORS_ORIGINS ?? '')
+        .split(',').map((o) => o.trim().toLowerCase().replace(/\/+$/, '')).filter(Boolean),
+    );
+  }
+
   async isAllowed(rawHost?: string | null): Promise<boolean> {
     const { host, base, slug } = parseHost(rawHost, this.platformDomain);
     if (!host || !base) return false;
@@ -54,7 +96,7 @@ export class HostsService {
 
     const allowed = this.platformHosts.has(host) || (await this.vendorClaims(base, slug));
     this.remember(host, allowed);
-    if (!allowed) this.log.warn(`tls-check refused ${host} — no active vendor claims ${base}`);
+    if (!allowed) this.log.warn(`host not served: ${host} — no active vendor claims ${base}`);
     return allowed;
   }
 

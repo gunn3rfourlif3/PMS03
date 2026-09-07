@@ -194,10 +194,14 @@ week — ample). The real risk is a mass re-issue, not normal operation.
    `test/tls-host.spec.ts` (35 assertions). Deployed it changes nothing: the
    endpoint simply exists and answers correctly. Verify by hand with the
    Dantalan domain (200) and a domain we do not serve (404).
-2. **Dynamic CORS.** Deploy. Existing origins keep working because the env list
-   is still consulted first.
-3. **Caddy global + catch-all block.** Validate, then restart Caddy. Existing
-   hosts are untouched by construction.
+2. **Dynamic CORS.** ✅ **Built 2026-09-05** — `HostsService.isAllowedOrigin()`,
+   wired in `main.ts`. Existing origins keep working because the env list is
+   still consulted first.
+3. **Caddy global + catch-all block.** ✅ **Written 2026-09-05** in
+   `deploy/Caddyfile` — global `on_demand_tls` plus an `http://` redirect and an
+   `https://` catch-all appended after every explicit block. **Not yet applied:**
+   validate in the container, then restart Caddy. Existing hosts are untouched
+   by construction.
 4. **Prove it end to end** with a real throwaway domain: set `custom_domain`,
    point DNS, browse `app.<domain>` and watch the certificate issue in the Caddy
    logs. Do this before an agency is watching.
