@@ -20,11 +20,13 @@
 	# issued in Locare's name and burn our Let's Encrypt budget.
 	#
 	# The endpoint answers 200 (issue) or 404 (refuse) and nothing else.
-	# See docs/LOCARE_ONDEMAND_TLS_DESIGN.md.
+	#
+	# `ask` is the ONLY control here: Caddy removed the built-in interval/burst
+	# rate limiter, and setting either now refuses to start the server. So the
+	# endpoint's deny-by-default behaviour is not defence in depth, it is the
+	# whole defence. See docs/LOCARE_ONDEMAND_TLS_DESIGN.md.
 	on_demand_tls {
 		ask http://api:3000/api/public/tls-check
-		interval 2m
-		burst 5
 	}
 }
 

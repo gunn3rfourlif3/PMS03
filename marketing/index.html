@@ -109,13 +109,38 @@ a{color:inherit;text-decoration:none}
 h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
 .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .muted{color:var(--muted)}
-.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:999px;font-weight:500;font-size:15px;cursor:pointer;border:1px solid transparent;transition:.2s}
-.btn-primary{background:var(--ink);color:#fff}
-.btn-primary:hover{background:#000;transform:translateY(-1px)}
-.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
-.btn-ghost:hover{border-color:var(--ink)}
-.btn-accent{background:var(--accent);color:#fff}
-.btn-accent:hover{filter:brightness(1.05);transform:translatey(-1px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 24px;border-radius:999px;font-weight:600;font-size:15px;line-height:1;letter-spacing:.005em;white-space:nowrap;cursor:pointer;border:1px solid transparent;text-decoration:none;
+  /* Transition only what animates: `all` also animates the focus outline, which
+     makes the keyboard ring crawl into place instead of appearing. */
+  transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .18s ease}
+/* Every button is reachable by keyboard; without this the only focus indicator
+   was the browser default, which the pill shape hides against a light card. */
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.btn:active{transform:translateY(0)}
+
+.btn-primary{background:var(--ink);color:#fff;box-shadow:0 10px 22px -14px rgba(21,22,27,.75)}
+.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:0 16px 30px -16px rgba(21,22,27,.8)}
+.btn-primary:active{box-shadow:0 4px 10px -8px rgba(21,22,27,.8)}
+
+/* Secondary, but still a button. It was transparent on a near-white page with a
+   hairline border, which read as disabled text rather than something to click —
+   so it now sits on the card surface with a real edge, and commits to the
+   accent on hover. */
+.btn-ghost{background:var(--card);border-color:#d7dbe2;color:var(--ink);box-shadow:0 1px 2px rgba(21,22,27,.05)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent-dark);transform:translateY(-1px);box-shadow:0 12px 24px -16px rgba(21,22,27,.45)}
+.btn-ghost:active{box-shadow:0 1px 2px rgba(21,22,27,.05)}
+
+.btn-accent{background:var(--accent);color:#fff;box-shadow:0 10px 22px -14px rgba(45,106,143,.85)}
+.btn-accent:hover{background:var(--accent-dark);transform:translateY(-1px);box-shadow:0 16px 30px -16px rgba(45,106,143,.9)}
+.btn-accent:active{box-shadow:0 4px 10px -8px rgba(45,106,143,.9)}
+
+/* A pricing card's CTA spans the card: it is the card's one action, and equal
+   widths keep the four plans reading as a row rather than four odd shapes. */
+.plan .btn,.plan-custom .btn{width:100%}
+
+@media(prefers-reduced-motion:reduce){
+  .btn,.btn:hover,.btn:active{transform:none}
+}
 
 /* Nav */
 header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(180%) blur(14px);background:rgba(247,248,250,.78);border-bottom:1px solid var(--line)}
@@ -181,7 +206,10 @@ section{padding:96px 0}
 /* Three priced tiers across; "Custom" lives in its own band below (.plan-custom)
    so it never competes on price with them and they each get a wider card. */
 .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;max-width:1040px;margin-left:auto;margin-right:auto}
-.plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column}
+/* Grid stretches the cards to equal height; pushing the CTA down aligns all
+   three buttons on one line no matter how many features a plan lists. */
+.plan .btn{margin-top:auto}
 .plan.pro{border-color:var(--accent);position:relative;box-shadow:0 30px 60px -40px rgba(45,106,143,.5)}
 .plan .tag{position:absolute;top:-12px;right:28px;background:var(--accent);color:#fff;font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px}
 .plan h3{font-family:var(--sans);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
@@ -440,7 +468,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
         </ul>
       </div>
       <div class="custom-cta">
-        <a class="btn" href="#start">Contact sales</a>
+        <a class="btn btn-ghost" href="#start">Contact sales</a>
         <span class="custom-note">We&rsquo;ll scope it with you</span>
       </div>
     </div>

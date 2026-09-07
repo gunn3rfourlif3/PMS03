@@ -99,14 +99,14 @@ a 429 to Caddy reads as "not allowed" and would refuse a legitimate agency.
 	email admin@locare.co.za
 	on_demand_tls {
 		ask http://api:3000/api/public/tls-check
-		interval 2m
-		burst 5
 	}
 }
 ```
 
-`interval`/`burst` throttle *issuance*, not the ask. They are the second line of
-defence behind the allowlist.
+**`ask` is the only option here.** Caddy removed the built-in `interval`/`burst`
+issuance limiter; including either makes the server refuse to start — it cost a
+two-minute outage on 2026-09-07 (§8b). The allowlist endpoint is therefore not
+one layer of two, it is the entire control, which is why it denies by default.
 
 ### 4.2 A catch-all site block, added **after** the existing ones
 
@@ -240,6 +240,35 @@ Those blocks are now in the repo, and the file carries a warning at the top.
 **Worth doing the same audit for `deploy/.env.prod`**, which is not in git at all
 and is the other place where the box and the repo can disagree — this time with
 no diff to catch it.
+
+## 8b. Outage while applying step 3 (2026-09-07)
+
+`on_demand_tls { interval 2m; burst 5 }` was written from an older form of the
+documentation. Caddy has removed those options, and rather than warning it
+refuses to adapt the config — so the container entered a restart loop and every
+site on the box, including an unrelated third-party one, went down for about two
+minutes until the previous Caddyfile was restored.
+
+`caddy validate` would have caught it. It was run, but as a separate command in
+the same pasted block as `docker restart`, so its failure scrolled past and the
+restart proceeded anyway.
+
+**The procedure now chains them**, so a failed validation cannot be followed by a
+restart:
+
+```bash
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod \
+  exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile \
+  && docker restart $(docker ps -aqf name=caddy)
+```
+
+Two smaller lessons kept from the same hour:
+
+- `docker ps -qf` finds nothing when the container has exited; the restart then
+  silently does nothing. Use `-aqf`.
+- Adaptation stops at the first error, so a config that fails early has had its
+  later blocks parsed by nothing. A clean validate after fixing one error is not
+  evidence the rest was ever checked.
 
 ## 9. What this does not solve
 
