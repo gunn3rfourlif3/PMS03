@@ -1,4 +1,10 @@
 # Reverse proxy with automatic HTTPS (Let's Encrypt).
+#
+# ⚠ THIS FILE IS THE SOURCE OF TRUTH. Edit it here and deploy with `git pull`,
+# never directly on the VPS. Blocks added on the server in 2026 (BuddhaPets,
+# tenant./landlord.locare.co.za) were invisible to the repo for weeks, and a
+# `git checkout` of this file would have taken a live site down. If a change is
+# urgent enough to make on the box, commit it the same day.
 # Replace the two hostnames and the email, then Caddy handles TLS certs for you.
 # DNS: create A records  app / api / tenant / landlord / rentals / www .dantalan.co.za  ->  169.58.46.223
 #      and an apex A record   @ (dantalan.co.za)  ->  169.58.46.223
@@ -114,6 +120,61 @@ app.locare.co.za {
 api.locare.co.za {
 	encode zstd gzip
 	reverse_proxy api:3000
+}
+
+# ── Locare app surfaces on the platform domain ───────────────────────────
+# Same Expo web export containers as the agency hosts. These have no DNS A
+# record yet, so they resolve nowhere — the blocks are ready for when they do.
+
+# Locare tenant app (same Expo web export container as dantalan)
+tenant.locare.co.za {
+	encode zstd gzip
+	reverse_proxy tenant:80
+}
+
+# Locare landlord app (same Expo web export container as dantalan)
+landlord.locare.co.za {
+	encode zstd gzip
+	reverse_proxy landlord:80
+}
+
+# ── BuddhaPets ───────────────────────────────────────────────────────────
+# A separate project sharing this box and this Caddy. Nothing below belongs to
+# Locare; it is here because one Caddy fronts the whole VPS.
+#
+# DNS: A records  cms / @ / www .buddhapets.co.za  ->  169.58.46.223
+#
+# `buddhapets-wp` and `buddhapets-web` are network aliases set in the
+# buddhapets compose project; they resolve over deploy_default, the same
+# network this Caddy is on.
+
+# WooCommerce engine + wp-admin (headless: the storefront reads its REST API)
+cms.buddhapets.co.za {
+	encode zstd gzip
+	reverse_proxy buddhapets-wp:80
+
+	# wp-admin, login and the REST API must never be cached anywhere upstream.
+	@dynamic path /wp-admin/* /wp-json/* /wp-login.php /wp-cron.php
+	header @dynamic Cache-Control "no-store"
+
+	# xmlrpc is the single most brute-forced endpoint in WordPress and this
+	# install has no use for it.
+	@xmlrpc path /xmlrpc.php
+	respond @xmlrpc 403
+}
+
+# BuddhaPets storefront (Next.js)
+buddhapets.co.za, www.buddhapets.co.za {
+	encode zstd gzip
+	@assets path /_next/static/* /images/*
+	handle @assets {
+		reverse_proxy buddhapets-web:3000
+	}
+	handle {
+		reverse_proxy buddhapets-web:3000 {
+			header_down Cache-Control "no-cache"
+		}
+	}
 }
 
 # ── Agency domains, certificated on demand ───────────────────────────────

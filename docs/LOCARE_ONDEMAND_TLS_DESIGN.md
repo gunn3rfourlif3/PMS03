@@ -223,6 +223,24 @@ behaviour.
 - Refused for an unknown domain.
 - Cache: a second call within the window does not hit the database.
 
+## 8a. Config drift found while applying this (2026-09-07)
+
+The live `deploy/Caddyfile` had 66 lines the repo did not: a second project
+(BuddhaPets — `cms.`, apex and `www.`) and the `tenant.`/`landlord.locare.co.za`
+blocks, all added directly on the VPS and never committed.
+
+It surfaced because a `git pull` reported "Already up to date" and a Caddy
+restart came up on the old config — the giveaway being hosts in the
+`enabling automatic TLS certificate management` list that appear nowhere in the
+repo. The trap underneath it was worse than the delay: resolving the drift with
+`git checkout deploy/Caddyfile` would have deleted a live third-party site's
+configuration at the next restart.
+
+Those blocks are now in the repo, and the file carries a warning at the top.
+**Worth doing the same audit for `deploy/.env.prod`**, which is not in git at all
+and is the other place where the box and the repo can disagree — this time with
+no diff to catch it.
+
 ## 9. What this does not solve
 
 DNS is still the agency's job and still the most common delay, so Stage 0.6 of
