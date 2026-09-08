@@ -266,13 +266,25 @@ section{padding:96px 0}
    rather than more page, and the apply panel as a real card rather than text
    floating in whitespace — which is what the 132px top padding was papering
    over. */
-#partners{background:var(--accent-soft);border-top:1px solid #d5e1e9;border-bottom:1px solid #d5e1e9}
-#partners .p-lede{color:var(--ink-soft);font-size:17.5px;line-height:1.6;margin-top:18px;max-width:52ch}
-#partners .p-points{list-style:none;margin:28px 0 0;display:flex;flex-direction:column;gap:14px;font-size:15.5px;color:var(--ink-soft)}
-#partners .p-points li{display:flex;gap:12px;align-items:flex-start}
-#partners .p-points li:before{content:"\2713";color:var(--accent);font-weight:700;flex:none;line-height:1.5}
-#partners .p-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:34px;
-  box-shadow:0 30px 60px -38px rgba(21,22,27,.45)}
+/* Full brand-colour band. The page is otherwise white-on-grey with two
+   near-black panels, so blue is the one surface that reads as "different and
+   important" without repeating the ink treatment a third time. */
+#partners{background:linear-gradient(160deg,#2f7196 0%,var(--accent) 42%,var(--accent-dark) 100%);
+  color:#fff;padding:118px 0;position:relative;overflow:hidden}
+/* Soft light source behind the card, so the panel has depth rather than being
+   a flat rectangle of colour. */
+#partners:before{content:"";position:absolute;inset:-30% -10% auto auto;width:760px;height:760px;
+  background:radial-gradient(circle,rgba(255,255,255,.16),rgba(255,255,255,0) 62%);pointer-events:none}
+#partners .wrap{position:relative}
+#partners .eyebrow{color:#a8dcf0}
+#partners h2{color:#fff}
+#partners .p-lede{color:rgba(255,255,255,.82);font-size:18px;line-height:1.62;margin-top:20px;max-width:50ch}
+#partners .p-points{list-style:none;margin:32px 0 0;display:flex;flex-direction:column;gap:16px;
+  font-size:16px;color:#fff}
+#partners .p-points li{display:flex;gap:13px;align-items:flex-start}
+#partners .p-points li:before{content:"\2713";color:#8fd3ef;font-weight:700;font-size:17px;flex:none;line-height:1.45}
+#partners .p-card{background:var(--card);border:1px solid rgba(255,255,255,.5);border-radius:24px;padding:38px;
+  box-shadow:0 40px 80px -30px rgba(10,32,46,.55)}
 #partners .p-card h3{font-family:var(--serif);font-weight:600;font-size:23px;color:var(--ink);margin:0}
 #partners .p-card p{margin-top:12px;font-size:15px}
 #partners .p-card .btn{width:100%;height:52px;margin-top:26px}
@@ -509,7 +521,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
   <div class="wrap split">
     <div class="reveal">
       <p class="eyebrow">Partner programme</p>
-      <h2 style="font-size:clamp(32px,4.4vw,48px);margin-top:14px">Earn with every agency you bring</h2>
+      <h2 style="font-size:clamp(34px,5vw,54px);margin-top:16px;letter-spacing:-.025em">Earn with every agency you bring</h2>
       <p class="p-lede">Refer property agencies to Locare and earn recurring commission on their subscription — for as long as they stay. Register as a partner and we’ll set you up with everything you need.</p>
       <ul class="p-points">
         <li>Recurring commission on every agency you introduce</li>
@@ -520,7 +532,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="p-card reveal">
       <h3>Become a partner</h3>
       <p class="muted">Apply online to join the Locare partner programme. We vet every partner (KYC/KYB), so have your ID or company registration and banking details ready — it only takes a few minutes.</p>
-      <a class="btn btn-accent" href="https://app.locare.co.za/partner-apply">Apply to become a partner</a>
+      <a class="btn btn-primary" href="https://app.locare.co.za/partner-apply">Apply to become a partner</a>
       <p class="form-note">Approved partners get a login to the partner portal to track referrals and commission.</p>
     </div>
   </div>
