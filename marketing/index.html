@@ -261,11 +261,26 @@ section{padding:96px 0}
 
 /* Split (partners) */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+
+/* Partner programme. A tinted band so the section reads as its own thing
+   rather than more page, and the apply panel as a real card rather than text
+   floating in whitespace — which is what the 132px top padding was papering
+   over. */
+#partners{background:var(--accent-soft);border-top:1px solid #d5e1e9;border-bottom:1px solid #d5e1e9}
+#partners .p-lede{color:var(--ink-soft);font-size:17.5px;line-height:1.6;margin-top:18px;max-width:52ch}
+#partners .p-points{list-style:none;margin:28px 0 0;display:flex;flex-direction:column;gap:14px;font-size:15.5px;color:var(--ink-soft)}
+#partners .p-points li{display:flex;gap:12px;align-items:flex-start}
+#partners .p-points li:before{content:"\2713";color:var(--accent);font-weight:700;flex:none;line-height:1.5}
+#partners .p-card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:34px;
+  box-shadow:0 30px 60px -38px rgba(21,22,27,.45)}
+#partners .p-card h3{font-family:var(--serif);font-weight:600;font-size:23px;color:var(--ink);margin:0}
+#partners .p-card p{margin-top:12px;font-size:15px}
+#partners .p-card .btn{width:100%;height:52px;margin-top:26px}
+#partners .p-card .form-note{margin-top:14px}
+@media(max-width:860px){#partners .p-card{padding:26px}}
 @media(max-width:860px){.split{grid-template-columns:1fr;gap:36px}}
 /* Partner section: top-align columns and drop the CTA to the paragraph line */
-#partners .split{align-items:start}
-#partners .split>.lead{padding-top:132px}
-@media(max-width:860px){#partners .split>.lead{padding-top:0}}
+#partners .split{align-items:center;gap:64px}
 
 /* Forms */
 form.lead{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column;gap:14px}
@@ -494,18 +509,18 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
   <div class="wrap split">
     <div class="reveal">
       <p class="eyebrow">Partner programme</p>
-      <h2 style="font-size:clamp(30px,4vw,44px);margin-top:14px">Earn with every agency you bring</h2>
-      <p class="muted" style="font-size:17px;margin-top:16px">Refer property agencies to Locare and earn recurring commission on their subscription — for as long as they stay. Register as a partner and we’ll set you up with everything you need.</p>
-      <ul style="list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:12px;font-size:15px;color:var(--ink-soft)">
-        <li>— Recurring commission on every agency you introduce</li>
-        <li>— Transparent tracking of your referrals &amp; earnings</li>
-        <li>— Paid out to your account, on your terms</li>
+      <h2 style="font-size:clamp(32px,4.4vw,48px);margin-top:14px">Earn with every agency you bring</h2>
+      <p class="p-lede">Refer property agencies to Locare and earn recurring commission on their subscription — for as long as they stay. Register as a partner and we’ll set you up with everything you need.</p>
+      <ul class="p-points">
+        <li>Recurring commission on every agency you introduce</li>
+        <li>Transparent tracking of your referrals &amp; earnings</li>
+        <li>Paid out to your account, on your terms</li>
       </ul>
     </div>
-    <div class="lead reveal">
-      <div style="font-family:var(--serif);font-size:22px">Become a partner</div>
-      <p class="muted" style="margin-top:12px;font-size:15px">Apply online to join the Locare partner programme. We vet every partner (KYC/KYB), so have your ID or company registration and banking details ready — it only takes a few minutes.</p>
-      <a class="btn btn-accent" href="https://app.locare.co.za/partner-apply" style="margin-top:22px;padding:0 30px;height:50px;font-weight:600;letter-spacing:.01em;text-decoration:none;box-shadow:0 16px 34px -14px rgba(45,106,143,.65)">Apply to become a partner</a>
+    <div class="p-card reveal">
+      <h3>Become a partner</h3>
+      <p class="muted">Apply online to join the Locare partner programme. We vet every partner (KYC/KYB), so have your ID or company registration and banking details ready — it only takes a few minutes.</p>
+      <a class="btn btn-accent" href="https://app.locare.co.za/partner-apply">Apply to become a partner</a>
       <p class="form-note">Approved partners get a login to the partner portal to track referrals and commission.</p>
     </div>
   </div>
