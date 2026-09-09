@@ -6,7 +6,10 @@ import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, BentoTile, EmptyState, money } from '@/components/ui';
 
 const tone = (s: string): 'success' | 'brand' | 'muted' => (s === 'paid' ? 'success' : s === 'void' ? 'muted' : 'brand');
-const TIER_LABEL: Record<string, string> = { starter: 'Starter (free)', growth: 'Growth', enterprise: 'Enterprise' };
+const TIER_LABEL: Record<string, string> = { starter: 'Starter', growth: 'Growth', scale: 'Scale', enterprise: 'Enterprise' };
+
+const band = (b?: { minUnits: number; maxUnits: number | null }) =>
+  !b ? '' : b.maxUnits === null ? `${b.minUnits}+ units` : `${b.minUnits}–${b.maxUnits} units`;
 
 export default function BillingPage() {
   const router = useRouter();
@@ -50,12 +53,36 @@ export default function BillingPage() {
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <BentoTile tone={tier === 'growth' ? 'teal' : tier === 'enterprise' ? 'purple' : 'blue'} value={TIER_LABEL[tier] ?? tier} label="Your plan" />
         <BentoTile tone="blue" value={String(plan?.unitCount ?? 0)} label="Billable units" />
-        <BentoTile tone="amber" value={money(plan?.mrr ?? 0)} label="Monthly fee" />
+        <BentoTile tone="amber" value={money(plan?.payable ?? plan?.mrr ?? 0)}
+          label={plan?.overridden ? 'Monthly fee (agreed)' : 'Monthly fee'} />
       </div>
 
-      {tier === 'starter' && (
+      {plan && tier !== 'enterprise' && (
         <GlassCard className="mb-4">
-          <p className="text-sm text-muted">You're on the free Starter plan (up to 10 units). Once you pass 10 units you move to Growth at R250/unit/month, billed here.</p>
+          <p className="text-sm text-muted">
+            {(() => {
+              const units = plan.unitCount ?? 0;
+              const current = (plan.ladder ?? []).find((b: any) => b.tier === tier);
+              const next = plan.nextBand;
+              const entry = (plan.ladder ?? [])[0];
+
+              // Below the published entry point there is no cheaper tier — the
+              // price is negotiated, so quoting the ladder here would be wrong.
+              if (entry && units < entry.minUnits) {
+                return plan.overridden
+                  ? `You're on an agreed price of ${money(plan.payable)} a month for ${units} unit${units === 1 ? '' : 's'}. Published pricing starts at ${band(entry)}.`
+                  : `You have ${units} unit${units === 1 ? '' : 's'}. Published pricing starts at ${band(entry)} — smaller portfolios are priced individually, so talk to us before your first invoice.`;
+              }
+
+              const now = plan.overridden
+                ? `You're on ${TIER_LABEL[tier] ?? tier} (${band(current)}) at an agreed price of ${money(plan.payable)} a month.`
+                : `You're on ${TIER_LABEL[tier] ?? tier} — ${band(current)} at ${money(plan.payable ?? plan.mrr)} a month, billed here.`;
+
+              return next
+                ? `${now} At ${next.minUnits} units you move to ${TIER_LABEL[next.tier] ?? next.tier} at ${money(next.price)} a month.`
+                : `${now} This is the largest published band.`;
+            })()}
+          </p>
         </GlassCard>
       )}
 

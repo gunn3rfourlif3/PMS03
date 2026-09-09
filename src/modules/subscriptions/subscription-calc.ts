@@ -35,6 +35,38 @@ export interface TierResult {
   mrr: number;
 }
 
+export interface LadderBand {
+  tier: PricedTier;
+  minUnits: number;
+  /** null on the top band — it has no ceiling. */
+  maxUnits: number | null;
+  price: number;
+}
+
+/**
+ * The published ladder, as data.
+ *
+ * Exists so the back-office can describe an agency's plan from the same source
+ * that bills them. Before this, `web-admin/app/billing/page.tsx` hard-coded
+ * "free Starter plan (up to 10 units) … R250/unit/month" — a pricing model that
+ * had already been replaced, so a real customer was being told about a free
+ * tier that does not exist. Copy that restates prices in a second place will
+ * drift; copy generated from here cannot.
+ */
+export function ladder(): LadderBand[] {
+  return [
+    { tier: 'starter', minUnits: STARTER_MIN_UNITS, maxUnits: STARTER_MAX_UNITS, price: TIER_PRICES.starter },
+    { tier: 'growth', minUnits: STARTER_MAX_UNITS + 1, maxUnits: GROWTH_MAX_UNITS, price: TIER_PRICES.growth },
+    { tier: 'scale', minUnits: GROWTH_MAX_UNITS + 1, maxUnits: null, price: TIER_PRICES.scale },
+  ];
+}
+
+/** The band an agency moves into next, or null when already on the top band. */
+export function nextBand(unitCount: number): LadderBand | null {
+  const n = Math.max(0, Math.floor(Number(unitCount) || 0));
+  return ladder().find((b) => n < b.minUnits) ?? null;
+}
+
 /** Tier + monthly recurring revenue for a given unit count (non-enterprise). */
 export function tierForUnits(unitCount: number): TierResult {
   const n = Math.max(0, Math.floor(Number(unitCount) || 0));

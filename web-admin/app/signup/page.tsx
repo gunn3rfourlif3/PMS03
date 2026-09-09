@@ -45,7 +45,7 @@ export default function SignupPage() {
           <>
             <div className="mb-1 flex items-center gap-2 text-brand"><Sparkles size={18} /><span className="text-sm font-semibold">Start your agency</span></div>
             <h1 className="font-heading text-2xl font-bold text-ink">Create your account</h1>
-            <p className="mt-1 text-sm text-muted">{partnerName ? `Referred by ${partnerName}. ` : ''}Free for up to 10 units — no card needed.</p>
+            <p className="mt-1 text-sm text-muted">{partnerName ? `Referred by ${partnerName}. ` : ''}No card needed — nothing is billed until your portfolio is loaded.</p>
             {err && <div className="mt-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
             <div className="mt-5 grid gap-3">
               <label className="block"><span className="field-label">Agency name</span><input className="input" value={form.agencyName} onChange={(e) => setForm({ ...form, agencyName: e.target.value })} placeholder="Acme Rentals" /></label>

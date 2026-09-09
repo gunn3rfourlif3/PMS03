@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
 import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
+import { effectivePrice, ladder, nextBand } from './subscription-calc';
 
 /** Vendor-facing: an agency sees its own plan (tier, units, MRR) and bills. */
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -16,9 +17,19 @@ export class SubscriptionsController {
     private readonly billing: SubscriptionBillingService,
   ) {}
 
+  /**
+   * The agency's own plan, plus the ladder it is priced against.
+   *
+   * `mrr` is the tier's list price; `payable` is what they are actually billed,
+   * which differs for an agency on a negotiated `priceOverride`. The back-office
+   * must show the second one — telling a grandfathered customer they owe list
+   * price is how a billing conversation starts badly.
+   */
   @Get()
-  mine(@CurrentTenant() principal: { vendorId: string }) {
-    return this.subs.mine(principal.vendorId);
+  async mine(@CurrentTenant() principal: { vendorId: string }) {
+    const sub = await this.subs.mine(principal.vendorId);
+    const { amount, overridden } = effectivePrice(sub);
+    return { ...sub, payable: amount, overridden, ladder: ladder(), nextBand: nextBand(sub.unitCount ?? 0) };
   }
 
   @Get('invoices')

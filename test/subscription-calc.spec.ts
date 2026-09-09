@@ -1,4 +1,4 @@
-import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS } from '../src/modules/subscriptions/subscription-calc';
+import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS, ladder, nextBand } from '../src/modules/subscriptions/subscription-calc';
 
 /**
  * Repriced 2026-09-09 for the move upmarket. The band EDGES are the assertions
@@ -38,5 +38,37 @@ describe('subscription pricing (flat banded tiers)', () => {
   it('is defensive about junk input', () => {
     expect(tierForUnits(-5)).toEqual({ tier: 'starter', mrr: 0 });
     expect(tierForUnits(199.9)).toEqual({ tier: 'starter', mrr: 6014 }); // floors to 199
+  });
+});
+
+/**
+ * The back-office describes an agency's plan from this, rather than restating
+ * prices in the UI. It did restate them once, and told a live customer they
+ * were on a free tier with per-unit pricing that had already been replaced.
+ */
+describe('ladder as data', () => {
+  it('describes contiguous bands with no gap or overlap', () => {
+    const bands = ladder();
+    expect(bands.map((b) => b.tier)).toEqual(['starter', 'growth', 'scale']);
+    expect(bands[0]).toMatchObject({ minUnits: 70, maxUnits: 199, price: 6014 });
+    expect(bands[1]).toMatchObject({ minUnits: 200, maxUnits: 499, price: 12600 });
+    expect(bands[2]).toMatchObject({ minUnits: 500, maxUnits: null, price: 22100 });
+    // Each band starts exactly where the previous one ends.
+    expect(bands[1].minUnits).toBe((bands[0].maxUnits as number) + 1);
+    expect(bands[2].minUnits).toBe((bands[1].maxUnits as number) + 1);
+  });
+
+  it('agrees with the biller at every boundary', () => {
+    for (const b of ladder()) {
+      expect(tierForUnits(b.minUnits)).toEqual({ tier: b.tier, mrr: b.price });
+      if (b.maxUnits !== null) expect(tierForUnits(b.maxUnits)).toEqual({ tier: b.tier, mrr: b.price });
+    }
+  });
+
+  it('names the band an agency moves into next', () => {
+    expect(nextBand(40)?.tier).toBe('starter');   // not yet at the entry point
+    expect(nextBand(150)?.tier).toBe('growth');
+    expect(nextBand(300)?.tier).toBe('scale');
+    expect(nextBand(900)).toBeNull();             // already on the top band
   });
 });
