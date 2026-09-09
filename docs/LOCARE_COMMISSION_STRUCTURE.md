@@ -71,7 +71,7 @@ Both gates are admin actions against evidence, not automatic promotions.
 | 8 | Distributor / white-label | **Not a published tier.** Negotiated wholesale deal (§6). |
 | 9 | Commissionable revenue | **Recurring subscription only**, ex-VAT. Once-off and pass-through excluded (§5.1). |
 | 10 | Partner VAT | Rates are **VAT-exclusive**; Locare self-bills registered partners (§7.1). |
-| 11 | Agency pricing | Published prices are **VAT-exclusive**; Dantalan grandfathered (§7.2). |
+| 11 | Agency pricing | Published prices are **displayed VAT-inclusive**; the taxable value and the commission basis stay ex-VAT. Dantalan grandfathered (§7.2). |
 | 12 | Starter plan | **R6,014/month, paid**, 70–199 units. Repriced 2026-09-09 (§5). The live site is the source of truth. |
 | 13 | Reseller support terms | **Separate addendum** (§6.1). |
 | 14 | Tier qualification | **Measured work**: confirmed demos for Partner, collected MRR for Reseller (§1). |
@@ -389,19 +389,31 @@ tax invoice.
 
 ### 7.2 Agency pricing and VAT
 
-**Published prices are VAT-exclusive.** An agency on Growth pays R12,600 +
-R1,890 VAT = R14,490.
+**Published prices are displayed VAT-inclusive** (changed 2026-09-09). The site
+leads with R14,490 for Growth and shows R12,600 excl. beneath it. Nothing about
+the money changed: the taxable value is still R12,600, the invoice still shows
+R12,600 + R1,890 VAT, and **commission is still calculated on the ex-VAT amount**
+(§5.1). Only the number the prospect reads first has changed.
 
 Standard for B2B software, and the right call here because the buyers are
 businesses: any agency at Growth or Scale is almost certainly VAT-registered
 (compulsory above R1m turnover) and reclaims it, so the real cost to them is
-unchanged. Absorbing the VAT instead would cut Locare's net revenue by 15% —
-R6,014 becoming R5,229 — to spare a cost most customers do not actually bear.
+unchanged. Displaying the gross is a presentation choice, not a discount: an
+agency comparing quotes sees the number that will leave their bank account, and
+Locare's net is untouched. What would cut net revenue by 13% is treating the
+published figure as the taxable value — R6,916 gross would net R6,014, but
+R6,014 treated as gross nets only R5,229. The distinction is the whole point of
+this section.
 
 Two consequences:
 
-- **The site must say "excl. VAT" on every price.** A quoted price that silently
-  becomes 15% higher at invoice is the kind of thing that ends a sale.
+- **The site must label the VAT basis on every price.** It now says "incl. VAT"
+  on the headline with the ex-VAT figure beneath. A quoted price that silently
+  becomes 15% higher at invoice is the kind of thing that ends a sale — showing
+  the gross removes that risk entirely.
+- **Partner-facing material must keep quoting ex-VAT.** Commission is 8/17/26%
+  of the ex-VAT amount. A partner who computes 17% of R14,490 will expect
+  R2,463 and be paid R2,142, and that argument is avoidable.
 - **Dantalan is grandfathered.** They signed at R925 with no VAT position
   stated. Honour that as VAT-inclusive for their current term rather than
   invoicing your only customer a surprise increase. Move them to the standard
@@ -659,7 +671,7 @@ are assumptions, and each is listed with what changes if it is wrong.
 |---|---------|----------|
 | 1 | **Starter is paid at R6,014**, 70–199 units (repriced 2026-09-09). The live site is the source of truth over `PARTNER_PORTAL_DESIGN.md` §4, which says free at MRR 0. | If Starter is free, the Starter column in §5 becomes R0 and Introducers earn nothing on the entry segment. The tier model survives; the intro pack's Starter figures do not. |
 | 2 | **VAT registration completes and the number is issued.** In progress at time of writing. | Until issued, Locare cannot charge VAT or reclaim input tax on commission to registered partners — at 26% on Growth, R3,276 becomes R3,767 all-in with R491 unrecoverable. The reprice makes this materially more expensive per partner per month. Do not sign partners before the number lands. |
-| 3 | **Published prices become VAT-exclusive** (§7.2). | If they are made inclusive instead, net revenue drops 15% (R6,014 → R5,229) and every commission figure in §5 falls with it. |
+| 3 | **Published prices are displayed VAT-inclusive, on an unchanged ex-VAT taxable value** (§7.2, changed 2026-09-09). | The risk is a later decision to treat the *displayed* figure as the taxable value. That drops net revenue 13% (R6,014 → R5,229) and every commission figure in §5 falls with it. The prices in `subscription-calc.ts` are ex-VAT and must stay that way. |
 | 4 | **The accountant approves self-billing** as described in §7.1. | If not, partners must each raise their own tax invoice before payout, which is slower and more error-prone but does not change any rate. |
 | 5 | **26% at Reseller clears contribution margin.** Justified as buying distribution, not as offsetting support cost (§3). Locare has no support-cost data and has never paid a commission. | If gross margin per agency is thinner than assumed, 26% is unaffordable — and being lifetime, it cannot be reduced for partners already on it. The 2026-09-09 reprice eases this considerably (26% of R12,600 is R3,276 against a much larger fee), but it also raises the absolute cost of a wrong rate. Re-check after six months of real support volume and before promoting the first Reseller. |
 | 6 | **Bureau collection costs do not deter agencies from adopting the rail.** Post-reprice the bureau is 14–16% of combined spend (§5.0), not 42% — the deterrent is now the subscription, not the bureau. | If it does deter them, rent stays on proof-of-payment, which weakens the product but changes no commission rate — commission is on subscription revenue only (§5.1). |

@@ -39,9 +39,13 @@ Stage 0 exists mostly to prevent that.
 | 7 · Dry run | Day 4 | 1 h |
 | 8 · First rent run | First billing date | 1 h, watched |
 
-Stage 5 dominates. Everything else is an afternoon. Any promise of "live in an
-afternoon" refers to a **new** agency with no history to migrate — say so
-plainly rather than letting the marketing line set the expectation.
+Stage 5 dominates. Everything else is an afternoon.
+
+The site now says **"live in a week"** (changed 2026-09-09 from "live in an
+afternoon", which this runbook contradicted). A week is honest for an agency
+with a portfolio to migrate, and it is the promise the timeline above supports.
+An agency with nothing to migrate really can be live the same day — say that as
+the exception rather than letting it set the expectation for everyone.
 
 ---
 

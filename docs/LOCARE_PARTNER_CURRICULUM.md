@@ -249,7 +249,10 @@ Published on the live site. **All prices exclude VAT.**
 | Scale | 500+ | **R22,100** |
 | Custom | Bespoke | Talk to Locare |
 
-**Repriced 2026-09-09**, repositioning to larger agencies. Scale includes
+**Repriced 2026-09-09**, repositioning to larger agencies. Prices below are
+**ex-VAT**, because that is the commission basis. The website leads with the
+VAT-inclusive figure — R6,916 / R14,490 / R25,415 — so expect a prospect to
+quote you the gross. Scale includes
 DebiCheck *integration* — the agency still holds and pays for its own bureau
 facility (Module 3.4). Under 70 units there is no published price: Locare
 prices those individually, so bring the conversation rather than a number.
@@ -258,9 +261,13 @@ Flat per band. Not per unit. An agency at 480 units and one at 210 both pay
 R12,600, which is a genuinely good story for a growing agency — their cost does
 not move as they win landlords.
 
-VAT at 15% is added. Growth is R12,600 + R1,890 = **R14,490** on the invoice.
-Always say "excluding VAT" out loud. A quoted price that grows 15% at invoice is
-how deals die at the last step.
+VAT at 15%. Growth is R12,600 + R1,890 = **R14,490** on the invoice, and
+R14,490 is what the site shows. Quote the gross to a prospect — it is the number
+that leaves their account — and be explicit that it includes VAT.
+
+**Your commission is on the ex-VAT amount.** 17% of Growth is R2,142, not 17% of
+R14,490. Getting this wrong is the most common way a partner ends up arguing
+about a statement.
 
 ## 3.2 What you earn
 
@@ -558,7 +565,7 @@ you run.
 
 **This module is the Partner gate.** Two demos Locare witnesses, and the 8%
 becomes 17% for life. Nothing else in this curriculum has a better return on an
-afternoon.
+hour of practice.
 
 Reading it is not enough. Book practice runs with Locare.
 
@@ -972,8 +979,10 @@ referrals only.
 # Appendix A — One-page field reference
 
 **Prices, ex-VAT, per month**
-Starter (70–199 units) R6,014 · Growth (200–499) R12,600 · Scale (500+)
-R22,100 · Custom by arrangement. Add 15% VAT. Under 70 units: priced
+Ex-VAT (the commission basis): Starter (70–199 units) R6,014 · Growth
+(200–499) R12,600 · Scale (500+) R22,100 · Custom by arrangement.
+Incl. VAT (what the site shows and what the agency pays): R6,916 · R14,490 ·
+R25,415. Under 70 units: priced
 individually — escalate, do not quote. Scale includes DebiCheck integration
 (agency's own bureau facility).
 
@@ -1040,7 +1049,7 @@ prospect at 15. (5) Unit count → tier and qualification; rent run duration →
 pain; whose brand on statements → white-label opening; last trust reconciliation
 → ledger opening.
 
-**Module 3.** (1) 200 units is Growth: R12,600 + R1,890 VAT = R14,490. (2) A
+**Module 3.** (1) 200 units is Growth: R14,490 incl. VAT, which is R12,600 + R1,890. (2) A
 collection bureau, directly, roughly R1,900/month at that volume — around 13% of
 their combined spend. (3) Two demos the partner ran, witnessed and confirmed by
 Locare. Not signings, not attendance. (4) March, because accrual is on cash
