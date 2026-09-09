@@ -72,7 +72,7 @@ Both gates are admin actions against evidence, not automatic promotions.
 | 9 | Commissionable revenue | **Recurring subscription only**, ex-VAT. Once-off and pass-through excluded (§5.1). |
 | 10 | Partner VAT | Rates are **VAT-exclusive**; Locare self-bills registered partners (§7.1). |
 | 11 | Agency pricing | Published prices are **VAT-exclusive**; Dantalan grandfathered (§7.2). |
-| 12 | Starter plan | **R925/month, paid.** The live site is the source of truth (§5). |
+| 12 | Starter plan | **R6,014/month, paid**, 70–199 units. Repriced 2026-09-09 (§5). The live site is the source of truth. |
 | 13 | Reseller support terms | **Separate addendum** (§6.1). |
 | 14 | Tier qualification | **Measured work**: confirmed demos for Partner, collected MRR for Reseller (§1). |
 | 15 | Self-dealing | **Not commissionable.** No commission on an agency under the partner's own control (§7.4). |
@@ -180,16 +180,24 @@ Two changes, both required before the first partner is approved:
 
 ## 5. Worked figures
 
-Starter is a paid plan at **R925/month**. Prices below exclude VAT (§7.2), and
-commission is calculated on these ex-VAT amounts.
+**Repriced 2026-09-09.** The ladder moved upmarket: the old bands (R925 across
+1–12 units, R2,660 to 364, R6,014 above) priced the floor of each band at a rate
+no small agency could carry — R925 is the whole fee for a one-unit portfolio.
+The new bands are set so the fee at the FLOOR of each band sits between 5% and
+10% of what the agency earns per unit (~R850/month on R10k rent at 8.5%).
 
-| Plan | Fee (ex-VAT) | Introducer 8% | Partner 17% | Reseller 26% |
-|---|---|---|---|---|
-| Starter | R925 | R74 | R157 | R241 |
-| Growth | R2,660 | R213 | R452 | R692 |
-| Scale | R6,014 | R481 | R1,022 | R1,564 |
+| Plan | Units | Fee (ex-VAT) | At band floor | Introducer 8% | Partner 17% | Reseller 26% |
+|---|---|---|---|---|---|---|
+| Starter | 70–199 | R6,014 | R86/unit | R481 | R1,022 | R1,564 |
+| Growth | 200–499 | R12,600 | R63/unit | R1,008 | R2,142 | R3,276 |
+| Scale | 500+ | R22,100 | R44/unit | R1,768 | R3,757 | R5,746 |
 
-**Five Growth agencies as a Partner is R2,260/month, recurring.**
+Scale includes DebiCheck **integration** — the agency still holds and pays for
+its own bureau facility (§5.0). Portfolios under 70 units have no published
+price: they are recorded on Starter and billed a negotiated `price_override`,
+so a small agency can still be taken on without publishing a cheap number.
+
+**Five Growth agencies as a Partner is R10,710/month, recurring.**
 
 That is the headline for the intro pack. It is arithmetic on published prices
 and must be presented as illustrative — Locare has no partners, no billing
@@ -206,12 +214,17 @@ a floor, since DebiCheck is quoted separately as the premium option):
 R419/month Standard or R759/month Automated, R349 once-off vetting, and
 R5.70 per collection falling to R3.62 at 2 000+ collections a month.
 
+Recomputed on the 2026-09-09 ladder, at a representative point inside each
+band rather than at its edge:
+
 | Tier | units | Locare | Bureau | Combined | Bureau share |
 |---|---|---|---|---|---|
-| Starter | 8 | R925 | R465 | R1,390 | 33% |
-| Growth | 60 | R2,660 | R761 | R3,421 | 22% |
-| Growth | 200 | R2,660 | R1,899 | R4,559 | **42%** |
-| Scale | 500 | R6,014 | R3,009 | R9,023 | 33% |
+| Starter | 100 | R6,014 | R989 | R7,003 | 14% |
+| Growth | 300 | R12,600 | R2,469 | R15,069 | 16% |
+| Scale | 800 | R22,100 | R4,359 | R26,459 | 16% |
+
+(Standard facility to 199 units, Automated above, per-collection tapering to
+R4.50 by 800 — the same assumptions as the pre-reprice table.)
 
 **Locare earns none of the bureau column.** Under
 LOCARE_DEBIT_ORDER_DESIGN.md §7 each agency holds its own facility and pays the
@@ -221,13 +234,16 @@ here.
 
 Two consequences worth holding on to:
 
-**Pricing headroom is tighter than it looks.** A Growth agency's real cost of
-running rent collection is ~R4,559, not R2,660. Any future price rise competes
-with a bill they cannot avoid.
+**The bureau is no longer the dominant share — Locare is.** Before the reprice
+the bureau took 22–42% of combined spend and the subscription looked cheap
+beside it. It now takes 14–16%, which means the subscription is the number an
+agency argues about and the one that has to be justified on its own merits.
+That headroom was bought, not found: the pricing has to be defended with the
+ledger, the trust accounting and the white-label, not by comparison.
 
 **Nothing partner-facing may quote the subscription as the cost.** §5's figures
 are what Locare bills and what commission is calculated on, and that is all they
-are. A partner who tells a prospect "R2,660 a month" and is corrected at the
+are. A partner who tells a prospect "R12,600 a month" and is corrected at the
 first invoice has lost the deal and some credibility with it.
 
 #### The only route to revenue on this rail
@@ -373,14 +389,14 @@ tax invoice.
 
 ### 7.2 Agency pricing and VAT
 
-**Published prices are VAT-exclusive.** An agency on Growth pays R2,660 + R399
-VAT = R3,059.
+**Published prices are VAT-exclusive.** An agency on Growth pays R12,600 +
+R1,890 VAT = R14,490.
 
 Standard for B2B software, and the right call here because the buyers are
 businesses: any agency at Growth or Scale is almost certainly VAT-registered
 (compulsory above R1m turnover) and reclaims it, so the real cost to them is
 unchanged. Absorbing the VAT instead would cut Locare's net revenue by 15% —
-R925 becoming R804 — to spare a cost most customers do not actually bear.
+R6,014 becoming R5,229 — to spare a cost most customers do not actually bear.
 
 Two consequences:
 
@@ -389,7 +405,10 @@ Two consequences:
 - **Dantalan is grandfathered.** They signed at R925 with no VAT position
   stated. Honour that as VAT-inclusive for their current term rather than
   invoicing your only customer a surprise increase. Move them to the standard
-  basis at renewal, with notice.
+  basis at renewal, with notice. **After the 2026-09-09 reprice this is no
+  longer a rounding difference** — the ladder would put them on R6,014, so the
+  `price_override` is what stands between your only customer and a 6× increase
+  arriving without a conversation. Set it before the next billing run.
 
 Commission is unaffected either way: it is always calculated on the ex-VAT
 subscription amount, which is the published price under this model.
@@ -634,17 +653,18 @@ and it should be the first thing said to a serious Reseller candidate.
 ## 12. Assumptions
 
 This document reads as settled so it can be published and built against. These
-four are assumptions, and each is listed with what changes if it is wrong.
+are assumptions, and each is listed with what changes if it is wrong.
 
 | # | Assumed | If wrong |
 |---|---------|----------|
-| 1 | **Starter is paid at R925.** The live site is treated as the source of truth over `PARTNER_PORTAL_DESIGN.md` §4, which says free at MRR 0. | If Starter is free, the Starter column in §5 becomes R0 and Introducers earn nothing on the segment they can most easily reach. The tier model survives; the intro pack's Starter figures do not. |
-| 2 | **VAT registration completes and the number is issued.** In progress at time of writing. | Until issued, Locare cannot charge VAT or reclaim input tax on commission to registered partners — at 26% on Growth, R692 becomes R796 all-in with R104 unrecoverable. Do not sign partners before the number lands. |
-| 3 | **Published prices become VAT-exclusive** (§7.2). | If they are made inclusive instead, net revenue drops 15% (R925 → R804) and every commission figure in §5 falls with it. |
+| 1 | **Starter is paid at R6,014**, 70–199 units (repriced 2026-09-09). The live site is the source of truth over `PARTNER_PORTAL_DESIGN.md` §4, which says free at MRR 0. | If Starter is free, the Starter column in §5 becomes R0 and Introducers earn nothing on the entry segment. The tier model survives; the intro pack's Starter figures do not. |
+| 2 | **VAT registration completes and the number is issued.** In progress at time of writing. | Until issued, Locare cannot charge VAT or reclaim input tax on commission to registered partners — at 26% on Growth, R3,276 becomes R3,767 all-in with R491 unrecoverable. The reprice makes this materially more expensive per partner per month. Do not sign partners before the number lands. |
+| 3 | **Published prices become VAT-exclusive** (§7.2). | If they are made inclusive instead, net revenue drops 15% (R6,014 → R5,229) and every commission figure in §5 falls with it. |
 | 4 | **The accountant approves self-billing** as described in §7.1. | If not, partners must each raise their own tax invoice before payout, which is slower and more error-prone but does not change any rate. |
-| 5 | **26% at Reseller clears contribution margin.** Justified as buying distribution, not as offsetting support cost (§3). Locare has no support-cost data and has never paid a commission. | If gross margin per agency is thinner than assumed, 26% is unaffordable — and being lifetime, it cannot be reduced for partners already on it. Re-check after six months of real support volume and before promoting the first Reseller. |
-| 6 | **Bureau collection costs do not deter agencies from adopting the rail.** At 200 units the bureau takes 42% of combined spend (§5.0), and DebiCheck is quoted as premium over the EFT prices used there. | If it does deter them, rent stays on proof-of-payment, which weakens the product but changes no commission rate — commission is on subscription revenue only (§5.1). |
+| 5 | **26% at Reseller clears contribution margin.** Justified as buying distribution, not as offsetting support cost (§3). Locare has no support-cost data and has never paid a commission. | If gross margin per agency is thinner than assumed, 26% is unaffordable — and being lifetime, it cannot be reduced for partners already on it. The 2026-09-09 reprice eases this considerably (26% of R12,600 is R3,276 against a much larger fee), but it also raises the absolute cost of a wrong rate. Re-check after six months of real support volume and before promoting the first Reseller. |
+| 6 | **Bureau collection costs do not deter agencies from adopting the rail.** Post-reprice the bureau is 14–16% of combined spend (§5.0), not 42% — the deterrent is now the subscription, not the bureau. | If it does deter them, rent stays on proof-of-payment, which weakens the product but changes no commission rate — commission is on subscription revenue only (§5.1). |
 | 7 | **Partner-referred agencies churn no faster than direct ones.** | Lifetime commission on a high-churn cohort is self-limiting, so this is not a cost risk. It is a *forecasting* risk: referred MRR would be worth less than the same direct MRR, and channel payback would be longer than modelled. |
+| 8 | **The new ladder is sellable at all.** Added 2026-09-09. No agency has ever paid Locare anything, at any price, so R6,014–R22,100 is a judgement about what larger agencies will bear, not an observation. | If it is wrong, the discovery costs a sales cycle per prospect. Quote the new numbers to the next three prospects and record the reaction before building the partner intro pack on top of them. The prices are env-driven (`STARTER_PRICE` and friends), so a correction is a config change, not a release. |
 
 §7.2 (agency pricing) and this section are commercial recommendations, not
 tax advice. Have the accountant confirm the VAT treatment and self-billing

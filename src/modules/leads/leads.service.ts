@@ -4,9 +4,11 @@ import { DataSource } from 'typeorm';
 import { resolveMx } from 'node:dns/promises';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { renderEmail } from '@common/email/email';
+import { sourceLabel } from '@common/lead-sources';
 
 export interface CreateLead {
   type?: string;
+  source?: string;
   name: string;
   email: string;
   phone?: string;
@@ -76,9 +78,9 @@ export class LeadsService implements OnModuleInit {
   async create(input: CreateLead): Promise<{ received: true }> {
     const type = (input.type || 'contact').slice(0, 40);
     await this.ds.query(
-      `INSERT INTO leads (type, name, email, phone, company, message, meta)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [type, input.name, input.email, input.phone ?? null, input.company ?? null, input.message ?? null, JSON.stringify(input.meta ?? {})],
+      `INSERT INTO leads (type, name, email, phone, company, message, meta, source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [type, input.name, input.email, input.phone ?? null, input.company ?? null, input.message ?? null, JSON.stringify(input.meta ?? {}), input.source ?? null],
     );
     await this.notify(type, input);
     await this.acknowledge(type, input);
@@ -173,7 +175,8 @@ export class LeadsService implements OnModuleInit {
     const body =
       `New ${type} lead\n\n` +
       `Name: ${l.name}\nEmail: ${l.email}\nPhone: ${l.phone ?? '-'}\n` +
-      `Company: ${l.company ?? '-'}\nMessage: ${l.message ?? '-'}`;
+      `Company: ${l.company ?? '-'}\nHeard about us: ${sourceLabel(l.source)}\n` +
+      `Message: ${l.message ?? '-'}`;
     if (to && email) {
       // Replies go straight to the applicant; log both failures AND successes so
       // "form said sent but inbox is empty" is diagnosable from the api logs

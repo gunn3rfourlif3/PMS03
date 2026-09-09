@@ -33,6 +33,12 @@ export class PartnerApplication {
   @Column({ name: 'contact_name', nullable: true }) contactName?: string;
   @Index() @Column({ name: 'contact_email' }) contactEmail: string;
   @Column({ name: 'contact_phone', nullable: true }) contactPhone?: string;
+  /**
+   * "Where did you hear about us?" — self-reported, and NOT attribution.
+   * A partner's commission comes from a referral code or a partner-created
+   * agency, never from someone ticking "a Locare partner" on this form.
+   */
+  @Column({ type: 'text', nullable: true }) source?: string;
 
   // ── Individual (KYC) — non-sensitive ──
   @Column({ name: 'full_name', nullable: true }) fullName?: string;

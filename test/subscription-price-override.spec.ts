@@ -17,11 +17,15 @@ describe('grandfathered pricing', () => {
   });
 
   it('leaves the tier and its list price alone', () => {
-    // The agency really is on Growth — they just pay something else for it.
-    // Misreporting the tier to protect a price would corrupt the back-office,
-    // the admin list and the commission basis.
-    const ladder = tierForUnits(60);
-    expect(ladder).toEqual({ tier: 'growth', mrr: 2660 });
+    // The agency really is on the tier the ladder says — they just pay
+    // something else for it. Misreporting the tier to protect a price would
+    // corrupt the back-office, the admin list and the commission basis.
+    //
+    // 60 units sits below the published entry point after the 2026-09-09
+    // reprice, which is precisely the case an override exists for: recorded on
+    // Starter at the Starter list price, billed whatever was negotiated.
+    expect(tierForUnits(60)).toEqual({ tier: 'starter', mrr: 6014 });
+    expect(tierForUnits(250)).toEqual({ tier: 'growth', mrr: 12600 });
   });
 
   it('resumes the ladder once the term ends', () => {
@@ -69,12 +73,12 @@ describe('grandfathered pricing', () => {
 describe('tier ladder still matches the published site', () => {
   it.each([
     [0, 'starter', 0],
-    [1, 'starter', 925],
-    [12, 'starter', 925],
-    [13, 'growth', 2660],
-    [364, 'growth', 2660],
-    [365, 'scale', 6014],
-    [5000, 'scale', 6014],
+    [70, 'starter', 6014],
+    [199, 'starter', 6014],
+    [200, 'growth', 12600],
+    [499, 'growth', 12600],
+    [500, 'scale', 22100],
+    [5000, 'scale', 22100],
   ])('%i units -> %s', (units, tier, mrr) => {
     expect(tierForUnits(units as number)).toEqual({ tier, mrr });
   });

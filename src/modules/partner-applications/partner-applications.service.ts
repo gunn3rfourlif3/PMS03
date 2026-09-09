@@ -7,6 +7,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { PartnersService } from '@modules/partners/partners.service';
 import { maskBanking } from '@common/security/pii-crypto';
+import { sourceLabel } from '@common/lead-sources';
 import { toE164 } from '@common/phone/e164';
 import { CHANNEL_PROVIDERS, Channel, ChannelProvider } from '@providers/notification/notification-provider.interface';
 import { KYC_PROVIDER, KycProvider } from '@providers/kyc/kyc-provider.interface';
@@ -34,7 +35,7 @@ export interface CreateApplicationInput {
 
 /** Stage 1 — all we ask for before emailing the KYC link. */
 export interface StartApplicationInput {
-  contactName?: string; contactEmail: string; contactPhone?: string;
+  contactName?: string; contactEmail: string; contactPhone?: string; source?: string;
 }
 
 /** Stage 2 — the vetting detail, saved against an existing draft. Everything is
@@ -103,6 +104,9 @@ export class PartnerApplicationsService {
     app.contactPhone = input.contactPhone
       ? (toE164(input.contactPhone) ?? input.contactPhone.trim())
       : app.contactPhone;
+    // Only set on first contact: a re-application keeps the answer given when
+    // they actually arrived, rather than the last time they came back.
+    if (!app.source && input.source) app.source = input.source;
     app.uploadTokenHash = this.hashToken(token);
     app.uploadTokenExpires = new Date(Date.now() + this.tokenTtlMs);
     const saved = await this.repo().save(app);
@@ -458,7 +462,7 @@ export class PartnerApplicationsService {
 
   private notifyTeamOfLead(app: PartnerApplication): Promise<void> {
     return this.email(TEAM_EMAIL(), `New partner enquiry: ${app.contactName ?? app.contactEmail}`,
-      `Someone started a partner application.\n\nName: ${app.contactName ?? '-'}\nEmail: ${app.contactEmail}\nPhone: ${app.contactPhone ?? '-'}\n\nThey've been emailed a link to complete KYC. Track it in Admin → Partners → Applications.`);
+      `Someone started a partner application.\n\nName: ${app.contactName ?? '-'}\nEmail: ${app.contactEmail}\nPhone: ${app.contactPhone ?? '-'}\nHeard about us: ${sourceLabel(app.source)}\n\nThey've been emailed a link to complete KYC. Track it in Admin → Partners → Applications.`);
   }
 
   /** The stage-2 link. Continues the application without a login. */

@@ -55,7 +55,7 @@ Stage 1 or later starts until every row is answered.
 | 0.1 | **Registered legal entity + registration number** | Goes on their invoices; it is the contracting party, not the trading name |
 | 0.2 | **Signatory** — who can commit the agency | Avoids a demo-to-nowhere with someone who cannot buy |
 | 0.3 | **VAT position** and VAT number if registered | They are invoiced ex-VAT plus 15% |
-| 0.4 | **Unit count** (active leases, not properties) | Sets the tier. A 13th unit moves R925 → R2,660 and they must hear it from you now |
+| 0.4 | **Unit count** (active leases, not properties) | Sets the tier. The 200th unit moves R6,014 → R12,600 and they must hear it from you now. Under 70 units there is no published price — escalate for a negotiated one rather than quoting |
 | 0.5 | **Domain** for their branded site | Decides Stage 2 entirely |
 | 0.6 | **Who controls that domain's DNS** — name, email, phone | The most common source of delay |
 | 0.7 | **Collection intention** — debit order, EFT + proof of payment, or card | Debit orders need *their own* bureau facility, with its own vetting timeline run by the bureau, not by Locare |

@@ -1,10 +1,12 @@
 import { IsArray, IsBoolean, IsEmail, IsIn, IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
+import { LEAD_SOURCES } from '@common/lead-sources';
 
 /** Stage 1 — contact details only, so the entry form stays a 3-field ask. */
 export class StartApplicationDto {
   @IsOptional() @IsString() contactName?: string;
   @IsEmail() contactEmail: string;
   @IsOptional() @IsString() contactPhone?: string;
+  @IsOptional() @IsIn(LEAD_SOURCES as unknown as string[]) source?: string;
 }
 
 /** Stage 2 — vetting detail saved against an existing draft. All optional so the

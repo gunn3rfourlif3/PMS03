@@ -52,12 +52,12 @@
       "publisher": { "@id": "https://locare.co.za/#org" },
       "description": "Locare runs the entire rental lifecycle for South African property agencies — leasing, rent collection, trust accounting, owner payouts, maintenance, and branded tenant and landlord apps.",
       "offers": [
-        { "@type": "Offer", "name": "Starter", "price": "925", "priceCurrency": "ZAR", "description": "1–12 units. Excludes VAT at 15%.",
-          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "925", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } },
-        { "@type": "Offer", "name": "Growth", "price": "2660", "priceCurrency": "ZAR", "description": "13–364 units. Excludes VAT at 15%.",
-          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "2660", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } },
-        { "@type": "Offer", "name": "Scale", "price": "6014", "priceCurrency": "ZAR", "description": "365+ units. Excludes VAT at 15%.",
-          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "6014", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } }
+        { "@type": "Offer", "name": "Starter", "price": "6014", "priceCurrency": "ZAR", "description": "70–199 units. Excludes VAT at 15%.",
+          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "6014", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } },
+        { "@type": "Offer", "name": "Growth", "price": "12600", "priceCurrency": "ZAR", "description": "200–499 units. Excludes VAT at 15%.",
+          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "12600", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } },
+        { "@type": "Offer", "name": "Scale", "price": "22100", "priceCurrency": "ZAR", "description": "500+ units. Includes DebiCheck integration. Excludes VAT at 15%.",
+          "priceSpecification": { "@type": "UnitPriceSpecification", "price": "22100", "priceCurrency": "ZAR", "valueAddedTaxIncluded": false, "unitCode": "MON" } }
       ]
     },
     {
@@ -65,7 +65,7 @@
       "mainEntity": [
         { "@type": "Question", "name": "What is Locare?", "acceptedAnswer": { "@type": "Answer", "text": "Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant and landlord apps — all under your own brand and domain." } },
         { "@type": "Question", "name": "Who is it for?", "acceptedAnswer": { "@type": "Answer", "text": "Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios." } },
-        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Flat monthly pricing by portfolio size: Starter (1–12 units) R925/month, Growth (13–364 units) R2,660/month, and Scale (365+ units) R6,014/month. All prices exclude VAT at 15%, so Growth invoices at R3,059 including VAT. Larger or multi-country needs are quoted as a Custom plan." } },
+        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Flat monthly pricing by portfolio size: Starter (70–199 units) R6,014/month, Growth (200–499 units) R12,600/month, and Scale (500+ units) R22,100/month. All prices exclude VAT at 15%, so Growth invoices at R14,490 including VAT. Scale adds DebiCheck integration, used with the agency's own debit-order bureau facility. Portfolios under 70 units are priced individually, and larger or multi-country needs are quoted as a Custom plan." } },
         { "@type": "Question", "name": "Can I use my own brand and domain?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand." } },
         { "@type": "Question", "name": "How do tenants pay rent?", "acceptedAnswer": { "@type": "Answer", "text": "Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods." } },
         { "@type": "Question", "name": "Do you have mobile apps?", "acceptedAnswer": { "@type": "Answer", "text": "Shared Locare tenant and landlord apps are included. A fully branded native app for your agency is available as an Enterprise add-on." } },
@@ -299,8 +299,13 @@ form.lead{background:var(--card);border:1px solid var(--line);border-radius:22px
 form.lead .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:560px){form.lead .row{grid-template-columns:1fr}}
 label{font-size:13px;color:var(--ink-soft);font-weight:500;display:block;margin-bottom:6px}
-input,textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:.15s}
-input:focus,textarea:focus{border-color:var(--accent);background:#fff}
+input,textarea,select{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;transition:.15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff}
+/* Native select arrow varies wildly by platform; draw our own and leave room
+   for it so the control matches the text inputs beside it. */
+select{appearance:none;-webkit-appearance:none;padding-right:38px;cursor:pointer;
+  background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7e88' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
 textarea{min-height:96px;resize:vertical}
 .form-note{font-size:12.5px;color:var(--muted)}
 .form-ok{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-dark);border-radius:14px;padding:20px 22px;font-size:15px;line-height:1.6;max-width:520px;margin:32px auto 0;text-align:center}
@@ -441,14 +446,14 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="section-head center reveal">
       <p class="eyebrow">Pricing</p>
       <h2>Simple, flat monthly pricing</h2>
-      <p>One predictable fee per band — no per-unit surprises. Your plan follows your portfolio as it grows. All prices exclude VAT at 15%.</p>
+      <p>One predictable fee per band — no per-unit surprises. Your plan follows your portfolio as it grows. All prices exclude VAT at 15%. Under 70 units? <a href="#start" style="color:var(--accent);text-decoration:underline">Talk to us</a> — we price smaller portfolios individually.</p>
     </div>
     <div class="pricing">
       <div class="plan reveal">
         <h3>Starter</h3>
-        <div class="price">R925<small> / month</small></div>
-        <span class="vat">Excl. VAT — R1,064 incl.</span>
-        <p class="muted" style="font-size:14px">1–12 units.</p>
+        <div class="price">R6,014<small> / month</small></div>
+        <span class="vat">Excl. VAT — R6,916 incl.</span>
+        <p class="muted" style="font-size:14px">70–199 units.</p>
         <ul>
           <li>Leasing &amp; tenant onboarding</li>
           <li>Tenant app</li>
@@ -460,9 +465,9 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
       <div class="plan pro reveal">
         <span class="tag">Most popular</span>
         <h3>Growth</h3>
-        <div class="price">R2,660<small> / month</small></div>
-        <span class="vat">Excl. VAT — R3,059 incl.</span>
-        <p class="muted" style="font-size:14px">13–364 units.</p>
+        <div class="price">R12,600<small> / month</small></div>
+        <span class="vat">Excl. VAT — R14,490 incl.</span>
+        <p class="muted" style="font-size:14px">200–499 units.</p>
         <ul>
           <li>Everything in Starter, plus:</li>
           <li>White-label + custom domain</li>
@@ -476,11 +481,12 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
       </div>
       <div class="plan reveal">
         <h3>Scale</h3>
-        <div class="price">R6,014<small> / month</small></div>
-        <span class="vat">Excl. VAT — R6,916 incl.</span>
-        <p class="muted" style="font-size:14px">365+ units.</p>
+        <div class="price">R22,100<small> / month</small></div>
+        <span class="vat">Excl. VAT — R25,415 incl.</span>
+        <p class="muted" style="font-size:14px">500+ units.</p>
         <ul>
           <li>Everything in Growth, plus:</li>
+          <li>DebiCheck integration included</li>
           <li>Priority support</li>
           <li>Multi-branch</li>
           <li>Annual billing</li>
@@ -548,7 +554,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="faq-list reveal">
       <details class="faq-item"><summary>What is Locare?</summary><p>Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.</p></details>
       <details class="faq-item"><summary>Who is it for?</summary><p>Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios.</p></details>
-      <details class="faq-item"><summary>How much does it cost?</summary><p>Flat monthly pricing by portfolio size: <b>Starter</b> (1–12 units) R925/month, <b>Growth</b> (13–364 units) R2,660/month, and <b>Scale</b> (365+ units) R6,014/month. <b>All prices exclude VAT at 15%</b> — so Growth invoices at R3,059 including VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Larger or multi-country needs — talk to us for a Custom plan.</p></details>
+      <details class="faq-item"><summary>How much does it cost?</summary><p>Flat monthly pricing by portfolio size: <b>Starter</b> (70–199 units) R6,014/month, <b>Growth</b> (200–499 units) R12,600/month, and <b>Scale</b> (500+ units) R22,100/month. <b>All prices exclude VAT at 15%</b> — so Growth invoices at R14,490 including VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, which you use with your own debit-order bureau facility. Managing fewer than 70 units? We price smaller portfolios individually — talk to us. Larger or multi-country needs — a Custom plan.</p></details>
       <details class="faq-item"><summary>Can I use my own brand and domain?</summary><p>Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.</p></details>
       <details class="faq-item"><summary>What’s included?</summary><p>Leasing &amp; tenant onboarding, online rent collection with reconciliation, deposit trust accounting &amp; owner payouts, an owner portal, branded tenant &amp; landlord apps, your own rentals site, documents &amp; e-signature, and reports with CSV/API access.</p></details>
       <details class="faq-item"><summary>How do tenants pay rent?</summary><p>Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods.</p></details>
@@ -573,6 +579,20 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
         <div class="row">
           <div><label>Email</label><input name="email" type="email" required placeholder="you@example.com" /></div>
           <div><label>Phone</label><input name="phone" placeholder="+27…" /></div>
+        </div>
+        <div><label>Where did you hear about us?</label>
+          <select name="source">
+            <option value="">Select one (optional)</option>
+            <option value="google">Google / search</option>
+            <option value="facebook">Facebook</option>
+            <option value="instagram">Instagram</option>
+            <option value="twitter">X (Twitter)</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="referral">Word of mouth</option>
+            <option value="partner">A Locare partner</option>
+            <option value="event">Industry event or group</option>
+            <option value="other">Other</option>
+          </select>
         </div>
         <div><label>Anything specific you’d like to see?</label><textarea name="message"></textarea></div>
         <button class="btn btn-accent" type="submit">Get started</button>
@@ -630,6 +650,9 @@ async function submitLead(ev, type){
   const btn = form.querySelector('button[type=submit]');
   const data = Object.fromEntries(new FormData(form).entries());
   data.type = type;
+  // "Select one (optional)" posts an empty string, which fails the API's
+  // whitelist of known sources. Omit the field rather than send a blank.
+  if (!data.source) delete data.source;
   btn.disabled = true; const label = btn.textContent; btn.textContent = 'Sending…';
   try{
     const res = await fetch(window.LOCARE_CONFIG.apiBase + '/leads', {
@@ -715,7 +738,7 @@ async function submitLead(ev, type){
   var FAQS=[
     {id:'what',q:'What is Locare?',keys:['what is','what does','about locare','platform','tell me'],a:'Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.'},
     {id:'who',q:'Who is it for?',keys:['who is','who for','suitable','agency','agencies','landlord'],a:'Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios.'},
-    {id:'price',q:'Pricing',keys:['price','pricing','cost','how much','fee','expensive','month','plan'],a:'Flat monthly pricing by portfolio size: Starter (1–12 units) R925/month, Growth (13–364 units) R2,660/month, and Scale (365+ units) R6,014/month. All prices exclude VAT at 15%, so Growth invoices at R3,059 including VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. For larger or multi-country needs we offer a Custom plan — talk to us.',cta:'pricing',intent:true},
+    {id:'price',q:'Pricing',keys:['price','pricing','cost','how much','fee','expensive','month','plan'],a:'Flat monthly pricing by portfolio size: Starter (70–199 units) R6,014/month, Growth (200–499 units) R12,600/month, and Scale (500+ units) R22,100/month. All prices exclude VAT at 15%, so Growth invoices at R14,490 including VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, used with your own bureau facility. Under 70 units we price individually, and larger or multi-country needs are a Custom plan — talk to us.',cta:'pricing',intent:true},
     {id:'brand',q:'Own brand & domain?',keys:['brand','white label','white-label','domain','my own'],a:'Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.'},
     {id:'incl',q:'What’s included?',keys:['included','feature','what do i get','offer','capab'],a:'Leasing &amp; tenant onboarding, online rent collection with reconciliation, deposit trust accounting &amp; owner payouts, an owner portal, branded tenant &amp; landlord apps, your own rentals site, documents &amp; e-signature, and reports with CSV/API access.'},
     {id:'pay',q:'How do tenants pay rent?',keys:['pay rent','payment','collect rent','how tenants'],a:'Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods.'},

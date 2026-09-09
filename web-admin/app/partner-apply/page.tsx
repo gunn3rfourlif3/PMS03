@@ -5,6 +5,24 @@ import { useBrand } from '@/components/brand-provider';
 import { Button, Field } from '@/components/ui';
 
 /**
+ * Mirrors LEAD_SOURCES in the API (src/common/lead-sources.ts) — the values are
+ * validated server-side, so an option added here without adding it there is
+ * rejected on submit. "A Locare partner" is marketing attribution only and
+ * earns nobody a commission.
+ */
+const SOURCES: Array<[string, string]> = [
+  ['google', 'Google / search'],
+  ['facebook', 'Facebook'],
+  ['instagram', 'Instagram'],
+  ['twitter', 'X (Twitter)'],
+  ['linkedin', 'LinkedIn'],
+  ['referral', 'Word of mouth'],
+  ['partner', 'A Locare partner'],
+  ['event', 'Industry event or group'],
+  ['other', 'Other'],
+];
+
+/**
  * Stage 1 of the partner application: contact details only.
  *
  * Asking for ID numbers, directors and banking on this page deterred applicants,
@@ -13,7 +31,7 @@ import { Button, Field } from '@/components/ui';
  */
 export default function PartnerApplyPage() {
   const b = useBrand();
-  const [f, setF] = useState<{ contactName?: string; contactEmail?: string; contactPhone?: string }>({});
+  const [f, setF] = useState<{ contactName?: string; contactEmail?: string; contactPhone?: string; source?: string }>({});
   const set = (k: string, v: string) => setF((s) => ({ ...s, [k]: v }));
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -26,6 +44,8 @@ export default function PartnerApplyPage() {
         contactName: f.contactName?.trim(),
         contactEmail: (f.contactEmail ?? '').trim(),
         contactPhone: f.contactPhone?.trim(),
+        // Omitted rather than sent blank: the API validates against a fixed list.
+        ...(f.source ? { source: f.source } : {}),
       });
       setSent(true);
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
@@ -76,6 +96,14 @@ export default function PartnerApplyPage() {
             <Field label="Mobile number">
               <input className="input" value={f.contactPhone ?? ''}
                 onChange={(e) => set('contactPhone', e.target.value)} placeholder="+27…" />
+            </Field>
+            <Field label="Where did you hear about us?">
+              <select className="input" value={f.source ?? ''} onChange={(e) => set('source', e.target.value)}>
+                <option value="">Select one (optional)</option>
+                {SOURCES.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
             </Field>
             <Button className="w-full" onClick={submit} loading={busy} disabled={!emailValid}>
               Get started

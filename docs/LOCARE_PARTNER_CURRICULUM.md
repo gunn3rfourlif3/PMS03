@@ -244,18 +244,23 @@ Published on the live site. **All prices exclude VAT.**
 
 | Plan | Units | Price / month (ex-VAT) |
 |---|---|---|
-| Starter | 1–12 | **R925** |
-| Growth | 13–364 | **R2,660** |
-| Scale | 365+ | **R6,014** |
+| Starter | 70–199 | **R6,014** |
+| Growth | 200–499 | **R12,600** |
+| Scale | 500+ | **R22,100** |
 | Custom | Bespoke | Talk to Locare |
 
-Flat per band. Not per unit. An agency at 300 units and one at 20 both pay
-R2,660, which is a genuinely good story for a growing agency — their cost does
+**Repriced 2026-09-09**, repositioning to larger agencies. Scale includes
+DebiCheck *integration* — the agency still holds and pays for its own bureau
+facility (Module 3.4). Under 70 units there is no published price: Locare
+prices those individually, so bring the conversation rather than a number.
+
+Flat per band. Not per unit. An agency at 480 units and one at 210 both pay
+R12,600, which is a genuinely good story for a growing agency — their cost does
 not move as they win landlords.
 
-VAT at 15% is added. Growth is R2,660 + R399 = **R3,059** on the invoice. Always
-say "excluding VAT" out loud. A quoted price that grows 15% at invoice is how
-deals die at the last step.
+VAT at 15% is added. Growth is R12,600 + R1,890 = **R14,490** on the invoice.
+Always say "excluding VAT" out loud. A quoted price that grows 15% at invoice is
+how deals die at the last step.
 
 ## 3.2 What you earn
 
@@ -269,11 +274,11 @@ In rands per agency per month:
 
 | Plan | Introducer 8% | Partner 17% | Reseller 26% |
 |---|---|---|---|
-| Starter R925 | R74 | R157 | R241 |
-| Growth R2,660 | R213 | R452 | R692 |
-| Scale R6,014 | R481 | R1,022 | R1,564 |
+| Starter R6,014 | R481 | R1,022 | R1,564 |
+| Growth R12,600 | R1,008 | R2,142 | R3,276 |
+| Scale R22,100 | R1,768 | R3,757 | R5,746 |
 
-**Five Growth agencies as a Partner is R2,260 a month, recurring.**
+**Five Growth agencies as a Partner is R10,710 a month, recurring.**
 
 That figure is arithmetic on published prices. It is not a result any partner
 has achieved, because no partner has ever been paid. Present it as what the
@@ -313,15 +318,14 @@ What that does to the real bill:
 
 | Agency | Locare | Bureau | Combined |
 |---|---|---|---|
-| Starter, 8 units | R925 | ~R465 | ~R1,390 |
-| Growth, 60 units | R2,660 | ~R761 | ~R3,421 |
-| Growth, 200 units | R2,660 | ~R1,899 | ~R4,559 |
-| Scale, 500 units | R6,014 | ~R3,009 | ~R9,023 |
+| Starter, 100 units | R6,014 | ~R989 | ~R7,003 |
+| Growth, 300 units | R12,600 | ~R2,469 | ~R15,069 |
+| Scale, 800 units | R22,100 | ~R4,359 | ~R26,459 |
 
 At 200 units the bureau is **42% of what the agency spends.**
 
-So: never say "Locare costs R2,660 a month" as though that is the cost of
-running rent collection. Say **"Locare is R2,660 a month excluding VAT. You'll
+So: never say "Locare costs R12,600 a month" as though that is the cost of
+running rent collection. Say **"Locare is R12,600 a month excluding VAT. You'll
 also hold your own debit-order facility with a bureau and pay them directly —
 budget roughly R700 to R1,900 a month depending on volume."**
 
@@ -690,16 +694,25 @@ their last trust reconciliation took. If both answers are comfortable, they are
 not a prospect today. Log it as Lost with the real reason and move on.
 
 **"That's expensive."**
-Reframe to time, not features. A principal spending a day a month on the rent
-run and half a day assembling owner statements is spending more than R2,660 of
-their own time. Then be straight about Module 3.4 — the bureau cost too. Being
-the person who volunteered the full number is worth more than the discount you
-did not have authority to give anyway.
+It is a real number and you should not wave it away. Reframe to what the
+portfolio earns, not to features: an agency at 300 units collecting R10k rents
+at 8.5% earns roughly R255,000 a month in management commission, and R12,600 is
+about 5% of it — for the ledger, the trust accounting, the owner portal and the
+apps, under their own brand. Below that ratio the maths stops working, which is
+why there is no published price under 70 units.
+
+Then be straight about Module 3.4 — the bureau cost too. Being the person who
+volunteered the full number is worth more than the discount you did not have
+authority to give anyway.
 
 **"We're too small."**
-Under about 10 units they are right, and you should say so (Module 2.3). At
-15–40 they are exactly the target: growing past the spreadsheet, and Starter at
-R925 covers it.
+Under 70 units there is no published price, and you should say so plainly rather
+than implying one exists. That does not always mean walk away — Locare prices
+smaller portfolios individually — but it does mean you cannot quote, and you
+must not invent a number. Escalate it.
+
+The published ladder starts at 70–199 units on Starter: an agency that has grown
+past the spreadsheet and has real staff running the rent run.
 
 **"What happens to my data if you disappear?"**
 Fair, and the honest answer is better than a reassuring one. Their data is
@@ -714,9 +727,10 @@ is not their accountant.** The agency's own trust account, its PPRA obligations
 and its auditor are unchanged. Module 8.1.
 
 **"Can we try it free?"**
-There is no free tier. Starter is R925. What you can offer is a demo and a
-guided onboarding conversation. Someone who will not pay R925 to solve the
-problem they just described does not have the problem they described.
+There is no free tier. Starter is R6,014. What you can offer is a demo and a
+guided onboarding conversation. At this price the demo has to do more work than
+it used to — show the ledger and one owner statement end to end, because that is
+what the number is being judged against.
 
 **"Who else uses it?"**
 The hardest one, and the one where you must not improvise. One agency is live.
@@ -748,7 +762,7 @@ Escalate — do not improvise — on:
 ### Knowledge check — Module 6
 
 1. Why should you avoid comparing Locare's features to a named competitor?
-2. A prospect says R2,660 is expensive. What two things do you do?
+2. A prospect says R12,600 is expensive. What two things do you do?
 3. What is the accurate answer to "can you handle our trust account"?
 4. A prospect asks who else uses Locare. What do you say?
 5. List four things you escalate rather than answer.
@@ -766,8 +780,9 @@ Confirm, in writing:
 
 - **The legal entity and who signs.** Not the trading name.
 - **Their VAT position.** They are invoiced ex-VAT plus 15%.
-- **Unit count**, which sets the band. Be honest — a 13th unit moves them from
-  R925 to R2,660 and they should hear that from you, now, not from an invoice.
+- **Unit count**, which sets the band. Be honest — the 200th unit moves them
+  from R6,014 to R12,600 and they should hear that from you, now, not from an
+  invoice. An agency sitting at 190 units needs to know before they sign.
 - **The domain** they want their branded site on, and who controls its DNS.
   This is the single most common delay. The person who can change DNS records is
   often not the person you are talking to.
@@ -874,7 +889,7 @@ subscription automatically. No live payment has been processed.
 named.
 
 **Do say:** "the programme pays 17% of subscription for as long as the agency
-stays — on Growth that's R452 a month per agency."
+stays — on Growth that's R2,142 a month per agency."
 
 The difference is between describing a structure and inventing a track record.
 One is a fact about the terms; the other is misrepresentation.
@@ -957,10 +972,12 @@ referrals only.
 # Appendix A — One-page field reference
 
 **Prices, ex-VAT, per month**
-Starter (1–12 units) R925 · Growth (13–364) R2,660 · Scale (365+) R6,014 ·
-Custom by arrangement. Add 15% VAT.
+Starter (70–199 units) R6,014 · Growth (200–499) R12,600 · Scale (500+)
+R22,100 · Custom by arrangement. Add 15% VAT. Under 70 units: priced
+individually — escalate, do not quote. Scale includes DebiCheck integration
+(agency's own bureau facility).
 
-**Plus the agency's own bureau cost** — roughly R700–R1,900/month at Growth
+**Plus the agency's own bureau cost** — roughly R1,000–R2,500/month at Growth
 volumes, paid directly to the bureau. Not Locare's, and not optional to mention.
 
 **Commission**
@@ -971,9 +988,9 @@ On recurring subscription actually received, ex-VAT.
 
 | | 8% | 17% | 26% |
 |---|---|---|---|
-| Starter | R74 | R157 | R241 |
-| Growth | R213 | R452 | R692 |
-| Scale | R481 | R1,022 | R1,564 |
+| Starter | R481 | R1,022 | R1,564 |
+| Growth | R1,008 | R2,142 | R3,276 |
+| Scale | R1,768 | R3,757 | R5,746 |
 
 **Promotion**
 → Partner: 2 demos you ran, witnessed by Locare.
@@ -1023,8 +1040,8 @@ prospect at 15. (5) Unit count → tier and qualification; rent run duration →
 pain; whose brand on statements → white-label opening; last trust reconciliation
 → ledger opening.
 
-**Module 3.** (1) 200 units is Growth: R2,660 + R399 VAT = R3,059. (2) A
-collection bureau, directly, roughly R1,900/month at that volume — around 42% of
+**Module 3.** (1) 200 units is Growth: R12,600 + R1,890 VAT = R14,490. (2) A
+collection bureau, directly, roughly R1,900/month at that volume — around 13% of
 their combined spend. (3) Two demos the partner ran, witnessed and confirmed by
 Locare. Not signings, not attendance. (4) March, because accrual is on cash
 collected. It is better because commission is never paid on money that did not
@@ -1067,7 +1084,7 @@ legal or tax advice.
 
 **Module 7.** (1) DNS — the person who controls the domain is often not the
 person in the room; start that conversation on day one. (2) That 13 units moves
-them from R925 to R2,660, before they see it on an invoice. (3) Email clients do
+them from R6,014 to R12,600, before they see it on an invoice. (3) Email clients do
 not render SVG; it will silently fall back. (4) No — once-off fees including
 migration are excluded. (5) Invoices for every active lease, correct amounts, a
 balanced ledger, and one owner statement correct end to end.
@@ -1103,13 +1120,11 @@ marketing site. Six things must be settled before it goes to a real partner.
    worth nothing.
 4. **Reseller Support Addendum drafted** (Module 7.6), or Module 7.6 stays
    explicitly marked as not-yet-written, which it currently is.
-5. **The site must actually say "excl. VAT".** It currently does not — the
-   pricing section shows "R2,660 / month" with no qualifier anywhere on the
-   page. Module 3.1 trains partners to say "excluding VAT" out loud, which is
-   right, but it puts them in the position of adding 15% to a number the
-   prospect just read unqualified on Locare's own website. That is the exact
-   last-step objection §7.2 of the commission structure wants to avoid, and it
-   is a one-line fix on the marketing site.
+5. **The site says "excl. VAT" — done.** Each plan card carries the ex-VAT
+   price and the incl.-VAT figure beneath it, and the section lede repeats it.
+   Re-check after any reprice: the 2026-09-09 change touched the cards, the FAQ,
+   the chatbot answer and the JSON-LD offers, and all four have to agree or the
+   structured data feeds Google a price the page does not show.
 6. **Bureau figures confirmed.** Module 3.4 uses Direct Debit's 2026-08-19 EFT
    price sheet, which is indicative, per-facility, and excludes DebiCheck —
    quoted as premium over those prices. They are flagged as approximate
@@ -1119,8 +1134,11 @@ Two source-document conflicts, resolved here in favour of the newer document,
 recorded so the older ones can be corrected:
 
 - **`PARTNER_PORTAL_DESIGN.md` §4** says Starter is free and Growth is R250 per
-  unit. The live site and the commission structure say flat band pricing at
-  R925 / R2,660 / R6,014. This curriculum follows the live site.
+  unit. The live site and the commission structure say flat band pricing, from
+  2026-09-09 at R6,014 / R12,600 / R22,100. This curriculum follows the live
+  site. (The stale `GROWTH_PRICE_PER_UNIT` and `FREE_UNIT_THRESHOLD` env vars
+  from that model were removed from `deploy/.env.prod.example` in the same
+  change; nothing in `src` ever read them.)
 - **`PARTNER_PORTAL_DESIGN.md` §13** locks the commission rate at a flat 10%
   lifetime. The commission structure supersedes it with 8 / 17 / 26 and earned
   lifetime. This curriculum follows the commission structure.

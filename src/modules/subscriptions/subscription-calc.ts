@@ -1,18 +1,32 @@
 /**
  * Pure subscription pricing. Flat monthly fee per unit-count band:
- *  - Starter:  1–12 units    → R925/month
- *  - Growth:   13–364 units  → R2,660/month
- *  - Scale:    365+ units    → R6,014/month
+ *  - Starter:  70–199 units  → R6,014/month
+ *  - Growth:   200–499 units → R12,600/month
+ *  - Scale:    500+ units    → R22,100/month
  *  - Custom/Enterprise: manual — never auto-computed from unit count.
  * (0 units bills nothing until the agency adds inventory.)
+ *
+ * Repriced 2026-09-09, repositioning to larger agencies. The bands exist so
+ * that the fee at the BOTTOM of each band — where every new customer lands —
+ * stays between 5% and 10% of what the agency earns per unit (roughly R850 a
+ * month on R10k rent at 8.5%). The old ladder broke that badly: R925 across
+ * 1–12 units is R925 per unit for a single-unit agency.
+ *
+ * Below STARTER_MIN_UNITS there is no published price. Such an agency is priced
+ * by negotiation through `priceOverride`, so a small portfolio can still be
+ * taken on without publishing a number we would rather not honour. They are
+ * still recorded on the `starter` tier: the ladder reports what they are, and
+ * the override reports what they pay (see effectivePrice below).
  */
 export const TIER_PRICES = {
-  starter: Number(process.env.STARTER_PRICE ?? 925),
-  growth: Number(process.env.GROWTH_PRICE ?? 2660),
-  scale: Number(process.env.SCALE_PRICE ?? 6014),
+  starter: Number(process.env.STARTER_PRICE ?? 6014),
+  growth: Number(process.env.GROWTH_PRICE ?? 12600),
+  scale: Number(process.env.SCALE_PRICE ?? 22100),
 };
-export const STARTER_MAX_UNITS = Number(process.env.STARTER_MAX_UNITS ?? 12);
-export const GROWTH_MAX_UNITS = Number(process.env.GROWTH_MAX_UNITS ?? 364);
+/** Published entry point. Fewer units than this is a negotiated price, not a cheaper tier. */
+export const STARTER_MIN_UNITS = Number(process.env.STARTER_MIN_UNITS ?? 70);
+export const STARTER_MAX_UNITS = Number(process.env.STARTER_MAX_UNITS ?? 199);
+export const GROWTH_MAX_UNITS = Number(process.env.GROWTH_MAX_UNITS ?? 499);
 
 export type PricedTier = 'starter' | 'growth' | 'scale';
 

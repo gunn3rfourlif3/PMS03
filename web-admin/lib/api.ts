@@ -301,7 +301,7 @@ export const api = {
 
   // ── Public: partner application (no auth), two stages ──
   /** Stage 1: contact details only. Returns no token — the link is emailed. */
-  startPartnerApplication: (b: { contactName?: string; contactEmail: string; contactPhone?: string }):
+  startPartnerApplication: (b: { contactName?: string; contactEmail: string; contactPhone?: string; source?: string }):
     Promise<{ id: string; emailed: boolean }> =>
     req('/partner-applications', { method: 'POST', body: JSON.stringify(b) }),
   /** Stage 2: load the saved draft behind the emailed link. */

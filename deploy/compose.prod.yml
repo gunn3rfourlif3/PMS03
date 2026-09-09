@@ -112,6 +112,14 @@ services:
       # TLS allowlist for Caddy's on-demand issuance.
       PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:-locare.co.za}
       TLS_EXTRA_HOSTS: ${TLS_EXTRA_HOSTS:-}
+      # Subscription price ladder — the code's defaults match these, so an
+      # unset value bills the published price rather than zero.
+      STARTER_PRICE: ${STARTER_PRICE:-6014}
+      GROWTH_PRICE: ${GROWTH_PRICE:-12600}
+      SCALE_PRICE: ${SCALE_PRICE:-22100}
+      STARTER_MIN_UNITS: ${STARTER_MIN_UNITS:-70}
+      STARTER_MAX_UNITS: ${STARTER_MAX_UNITS:-199}
+      GROWTH_MAX_UNITS: ${GROWTH_MAX_UNITS:-499}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       # Acknowledgement sent back to the form submitter (see .env.prod.example).
       LEADS_ACK: ${LEADS_ACK:-}
