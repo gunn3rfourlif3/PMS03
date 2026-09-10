@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
@@ -14,24 +14,28 @@ import { OnboardingStatus, WaitingOn } from './agency-onboarding-item.entity';
 @Roles('platform_admin')
 @Controller('admin/onboarding')
 export class AdminOnboardingController {
+  // ParseUUIDPipe so a bad id returns a plain 400 instead of Postgres'
+  // "invalid input syntax for type uuid" surfacing in the UI — which is what a
+  // caller reading the wrong field name produced the first time this shipped.
+
   constructor(private readonly svc: OnboardingService) {}
 
   /** Every agency with an onboarding, longest-stalled first. */
   @Get() portfolio() { return this.svc.portfolio(); }
 
-  @Get(':vendorId') detail(@Param('vendorId') vendorId: string) {
+  @Get(':vendorId') detail(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
     return this.svc.detail(vendorId);
   }
 
   /** Idempotent — safe on an agency that already has a checklist. */
-  @Post(':vendorId/seed') seed(@Param('vendorId') vendorId: string) {
+  @Post(':vendorId/seed') seed(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
     return this.svc.seed(vendorId);
   }
 
   @Patch(':vendorId/items/:itemKey')
   update(
     @CurrentTenant() principal: { userId: string },
-    @Param('vendorId') vendorId: string,
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
     @Param('itemKey') itemKey: string,
     @Body() body: { status?: OnboardingStatus; waitingOn?: WaitingOn; ownerUserId?: string | null; notes?: string | null },
   ) {

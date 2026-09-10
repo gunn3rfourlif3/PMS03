@@ -249,8 +249,20 @@ export class AuthService {
   // ── Platform-admin "sign in as agency" (support impersonation) ────────────
 
   /** Every active vendor, for the admin agencies picker (vendors is FORCE-RLS). */
+  /**
+   * Every agency, for the platform-admin console.
+   *
+   * The alias is not cosmetic. `platform_agencies()` declares
+   * `RETURNS TABLE(vendor_id uuid, ...)` unquoted, so Postgres folds it to
+   * lowercase and `SELECT *` handed the browser `vendor_id` while this
+   * signature promised `vendorId` — a lie TypeScript cannot catch across a
+   * raw query. Every caller read `undefined`, which is how impersonation and
+   * the onboarding link both ended up posting the string "undefined" as a uuid.
+   */
   listAgencies(): Promise<Array<{ vendorId: string; name: string; slug: string; status: string }>> {
-    return this.dataSource.query('SELECT * FROM platform_agencies()');
+    return this.dataSource.query(
+      'SELECT vendor_id AS "vendorId", name, slug, status FROM platform_agencies()',
+    );
   }
 
   /** Paged impersonation audit log (platform admin). */
