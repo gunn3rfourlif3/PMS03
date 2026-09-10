@@ -5,7 +5,7 @@ import { PAYMENT_PROVIDER } from '@providers/payment/payment-provider.interface'
 import type { PaymentProvider } from '@providers/payment/payment-provider.interface';
 import { SubscriptionInvoice } from './subscription-invoice.entity';
 import { payToReference } from '@common/config/pay-to';
-import { effectivePrice } from './subscription-calc';
+import { belowFloor, effectivePrice, STARTER_MIN_UNITS } from './subscription-calc';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
@@ -32,8 +32,16 @@ export class SubscriptionBillingService {
    * subscription row, and is invoiced what it was promised. The selection is
    * deliberately NOT filtered on `mrr > 0` alone — an agency whose override is
    * positive must still be billed even if the ladder would price it at zero.
+   *
+   * Refuses to bill a portfolio below the published entry point that has no
+   * agreed price. `refresh()` recomputes `mrr` from the ladder on every plan
+   * read, so a small agency taken on at a negotiated rate will silently acquire
+   * the list price on its row the moment someone opens the billing page. Left
+   * unguarded, the next run turns that into an invoice nobody agreed to. The
+   * guard makes the missing decision a loud no-invoice instead of a quiet
+   * six-times-larger one.
    */
-  async generate(period = thisPeriod()): Promise<{ period: string; generated: number; skipped: number }> {
+  async generate(period = thisPeriod()): Promise<{ period: string; generated: number; skipped: number; blocked: number }> {
     const subs: Array<{
       vendor_id: string; tier: string; unit_count: number; mrr: string;
       price_override: string | null; price_override_until: string | null;
@@ -45,10 +53,27 @@ export class SubscriptionBillingService {
 
     let generated = 0;
     let skipped = 0;
+    let blocked = 0;
     for (const s of subs) {
       const { amount, overridden } = effectivePrice(
         { tier: s.tier, mrr: s.mrr, priceOverride: s.price_override, priceOverrideUntil: s.price_override_until },
       );
+
+      // A portfolio below the published entry point has no list price anyone
+      // has agreed to (see belowFloor). Billing it would send an agency of a
+      // dozen units the same invoice as one of a hundred and ninety, which is
+      // how a founding customer finds out about a reprice — from an invoice.
+      // Refuse, loudly, and leave a human to set the negotiated price.
+      // Enterprise is exempt: its price is manual by definition.
+      if (s.tier !== 'enterprise' && belowFloor(s.unit_count) && !overridden) {
+        this.log.error(
+          `NOT BILLING vendor ${s.vendor_id} for ${period}: ${s.unit_count} units is below the ` +
+          `${STARTER_MIN_UNITS}-unit entry point and no price_override is active. ` +
+          `Set a negotiated price (see the agency onboarding runbook, stage 1.2) or this agency bills nothing.`,
+        );
+        blocked += 1;
+        continue;
+      }
 
       // A zero invoice is not a debt; raising one gives the agency a payable
       // that cannot be paid and puts a R0 row into the collected-revenue
@@ -68,8 +93,8 @@ export class SubscriptionBillingService {
       }
       generated += 1;
     }
-    this.log.log(`Generated ${generated} subscription invoices for ${period} (${skipped} skipped at zero)`);
-    return { period, generated, skipped };
+    this.log.log(`Generated ${generated} subscription invoices for ${period} (${skipped} skipped at zero, ${blocked} blocked below floor)`);
+    return { period, generated, skipped, blocked };
   }
 
   // ── Agency-facing ──

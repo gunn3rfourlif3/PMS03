@@ -100,17 +100,59 @@ atomically.
 Attribution is permanent: the first recorded referral wins, and a later partner
 cannot take it over. Get it right at creation.
 
-### 1.2 Correct the tier
+### 1.2 Set the price
 
-`provision_agency()` always writes tier `starter`. If the intake unit count
-(0.4) puts them on Growth or Scale, correct it now — before the first invoice,
-not after.
+`provision_agency()` always writes tier `starter`. Two things can be wrong after
+it runs, and both are cheaper to fix now than after an invoice has gone out.
+
+**If the intake unit count (0.4) puts them on Growth or Scale**, correct the tier
+now — before the first invoice, not after.
+
+**If they are under 70 units, a `price_override` is mandatory.** This is the step
+that is easiest to skip and most expensive to skip. The published ladder starts
+at 70 units; below that there is no list price. But `tierForUnits()` answers
+`starter` for anything from one unit upward, so an agency of eleven units is
+priced at the full Starter fee unless someone says otherwise. Worse,
+`SubscriptionsService.refresh()` rewrites `mrr` from the ladder on *every* read
+of the plan — so the list price lands on their row the first time anyone opens
+the billing page, with no action from you.
+
+Billing refuses to issue an invoice in that state (it logs `NOT BILLING vendor …`
+at error level and counts it as `blocked` on the job result), so the failure mode
+is an agency that bills nothing rather than one that is overcharged. That is the
+safer direction, but it is still a customer you are not invoicing. Set the
+override at provisioning, not when you notice the missing revenue.
+
+```sql
+UPDATE vendor_subscriptions s
+   SET price_override = <agreed monthly fee, ex-VAT>,
+       price_override_reason = '<why — who agreed it, and when>',
+       price_override_until = '<YYYY-MM-DD, the last day it applies>'
+  FROM vendors v
+ WHERE v.id = s.vendor_id AND v.slug = '<slug>';
+```
+
+Three notes on that statement:
+
+- **`price_override_reason` is required** by a check constraint when an override
+  is set. Write it for whoever reads it in a year, not for the constraint.
+- **`price_override_until` is the last day the price applies**, not the first day
+  it stops. An agency told "held until end March" is honoured on 31 March.
+  Leaving it `NULL` makes the price open-ended — only do that deliberately.
+- **The date is a commitment.** Put the review in a calendar three months before
+  it, because the alternative is that the agency discovers the new price from an
+  invoice. Nothing in the system will warn either of you.
+
+The override does not stop `mrr` tracking the ladder, and it should not: the
+tier and its list price stay honest in the back-office and in the commission
+basis, while `effectivePrice()` bills what was actually agreed.
 
 ### 1.3 Verify
 
 ```sql
 SELECT v.id, v.name, v.slug, v.status, v.custom_domain,
-       s.tier, s.status AS sub_status, s.referred_by_partner_id
+       s.tier, s.status AS sub_status, s.referred_by_partner_id,
+       s.unit_count, s.mrr, s.price_override, s.price_override_until
 FROM vendors v JOIN vendor_subscriptions s ON s.vendor_id = v.id
 WHERE v.name ILIKE '%<agency>%';
 
@@ -118,7 +160,9 @@ SELECT u.email, m.role FROM memberships m
 JOIN users u ON u.id = m.user_id WHERE m.vendor_id = '<vendor-id>';
 ```
 
-**Gate:** vendor `active`, one `vendor_owner` membership, tier matches intake.
+**Gate:** vendor `active`, one `vendor_owner` membership, tier matches intake,
+and — for any agency under 70 units — `price_override` set with a reason and an
+end date.
 
 ---
 
@@ -400,5 +444,6 @@ ledger. Suspend it, and get a decision from Locare.
 - [ ] One payment reconciled end to end
 - [ ] One owner statement agreed correct by the principal
 - [ ] First rent run watched and correct
-- [ ] First Locare subscription invoice issued and paid
+- [ ] Price agreed in writing, and an override recorded if they are under 70 units
+- [ ] First Locare subscription invoice issued and paid — for the agreed amount
 - [ ] Second-rent-run check-in diarised

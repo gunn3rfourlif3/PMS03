@@ -77,6 +77,26 @@ export function tierForUnits(unitCount: number): TierResult {
 }
 
 /**
+ * Whether a portfolio is too small to have a published price.
+ *
+ * `tierForUnits` answers `starter` for anything from 1 unit upward, because an
+ * agency of 11 units really is on the Starter tier — it is simply below the
+ * point where the published fee is defensible. R6,014 against eleven units is
+ * R547 a unit, most of what the agency earns on each one.
+ *
+ * So this is not a pricing rule, it is a "someone must decide" rule. Billing
+ * uses it to refuse to issue an invoice that no one has agreed to, and the
+ * onboarding runbook uses it to say when a `priceOverride` is mandatory.
+ *
+ * Zero units is not below the floor: an agency with no inventory loaded yet is
+ * mid-onboarding, bills nothing, and needs no decision.
+ */
+export function belowFloor(unitCount: number | string | null | undefined): boolean {
+  const n = Math.floor(Number(unitCount) || 0);
+  return n > 0 && n < STARTER_MIN_UNITS;
+}
+
+/**
  * Whether a negotiated price still applies on a given date.
  *
  * A null `until` is open-ended. The date is the LAST day the override applies,

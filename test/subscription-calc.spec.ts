@@ -1,4 +1,4 @@
-import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS, ladder, nextBand } from '../src/modules/subscriptions/subscription-calc';
+import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS, ladder, nextBand, belowFloor, effectivePrice } from '../src/modules/subscriptions/subscription-calc';
 
 /**
  * Repriced 2026-09-09 for the move upmarket. The band EDGES are the assertions
@@ -70,5 +70,59 @@ describe('ladder as data', () => {
     expect(nextBand(150)?.tier).toBe('growth');
     expect(nextBand(300)?.tier).toBe('scale');
     expect(nextBand(900)).toBeNull();             // already on the top band
+  });
+});
+
+/**
+ * The floor guard. `tierForUnits` prices an 11-unit agency at the full Starter
+ * fee, because it really is on Starter — it is simply below the point where
+ * that fee is defensible. `belowFloor` is what billing and the runbook use to
+ * insist a human names a price instead.
+ *
+ * The live case this exists for: a founding agency on a legacy R925, whose
+ * `mrr` is rewritten to the ladder's R6,014 the first time anyone opens the
+ * billing page. Without the guard the next run invoices the new figure.
+ */
+describe('below the published entry point', () => {
+  it('is true from one unit up to the entry point, exclusive', () => {
+    expect(belowFloor(1)).toBe(true);
+    expect(belowFloor(11)).toBe(true);
+    expect(belowFloor(STARTER_MIN_UNITS - 1)).toBe(true);
+  });
+
+  it('is false at and above the entry point', () => {
+    expect(belowFloor(STARTER_MIN_UNITS)).toBe(false);
+    expect(belowFloor(200)).toBe(false);
+    expect(belowFloor(10_000)).toBe(false);
+  });
+
+  it('does not treat an empty portfolio as below the floor', () => {
+    // No inventory loaded yet is mid-onboarding, not a pricing decision.
+    expect(belowFloor(0)).toBe(false);
+    expect(belowFloor(null)).toBe(false);
+    expect(belowFloor(undefined)).toBe(false);
+    expect(belowFloor('')).toBe(false);
+  });
+
+  it('tolerates the strings Postgres numerics arrive as', () => {
+    expect(belowFloor('11')).toBe(true);
+    expect(belowFloor('70')).toBe(false);
+    expect(belowFloor('nonsense')).toBe(false);
+  });
+
+  it('is the condition billing pairs with an inactive override', () => {
+    // Together these two are the guard in SubscriptionBillingService.generate:
+    // small portfolio AND nobody has agreed a price => do not invoice.
+    const dantalan = { tier: 'starter', mrr: 6014, priceOverride: null, priceOverrideUntil: null };
+    expect(belowFloor(11) && !effectivePrice(dantalan).overridden).toBe(true);
+
+    const held = { ...dantalan, priceOverride: 925, priceOverrideUntil: '2027-03-31' };
+    expect(belowFloor(11) && !effectivePrice(held, new Date('2026-10-01')).overridden).toBe(false);
+    expect(effectivePrice(held, new Date('2026-10-01')).amount).toBe(925);
+
+    // Once the agreed term lapses the guard bites again rather than silently
+    // reverting the customer to list price.
+    expect(effectivePrice(held, new Date('2027-04-01')).overridden).toBe(false);
+    expect(belowFloor(11) && !effectivePrice(held, new Date('2027-04-01')).overridden).toBe(true);
   });
 });

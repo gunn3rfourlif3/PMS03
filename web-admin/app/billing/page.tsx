@@ -45,6 +45,16 @@ export default function BillingPage() {
   if (!ready) return null;
   const tier = plan?.tier ?? 'starter';
 
+  // Below the published entry point with nothing negotiated, there is no figure
+  // to show. `payable` still carries the ladder's answer, but billing refuses to
+  // raise that invoice (see SubscriptionBillingService.generate), so quoting it
+  // here would promise a customer a price we will not charge — and would
+  // contradict the paragraph directly beneath this tile.
+  const entryBand = (plan?.ladder ?? [])[0];
+  const noPublishedPrice =
+    !!plan && tier !== 'enterprise' && !plan.overridden &&
+    !!entryBand && (plan.unitCount ?? 0) > 0 && (plan.unitCount ?? 0) < entryBand.minUnits;
+
   return (
     <div>
       <PageHeader title="Billing" subtitle="Your plan and monthly subscription invoices" />
@@ -53,7 +63,8 @@ export default function BillingPage() {
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <BentoTile tone={tier === 'growth' ? 'teal' : tier === 'enterprise' ? 'purple' : 'blue'} value={TIER_LABEL[tier] ?? tier} label="Your plan" />
         <BentoTile tone="blue" value={String(plan?.unitCount ?? 0)} label="Billable units" />
-        <BentoTile tone="amber" value={money(plan?.payable ?? plan?.mrr ?? 0)}
+        <BentoTile tone="amber"
+          value={noPublishedPrice ? 'By arrangement' : money(plan?.payable ?? plan?.mrr ?? 0)}
           label={plan?.overridden ? 'Monthly fee (agreed)' : 'Monthly fee'} />
       </div>
 
