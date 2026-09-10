@@ -12,6 +12,7 @@ import { toE164 } from '@common/phone/e164';
 import { CHANNEL_PROVIDERS, Channel, ChannelProvider } from '@providers/notification/notification-provider.interface';
 import { KYC_PROVIDER, KycProvider } from '@providers/kyc/kyc-provider.interface';
 import { renderEmail, EmailTable } from '@common/email/email';
+import { ladder, MIN_BILLABLE_UNITS, STARTER_MIN_UNITS } from '@modules/subscriptions/subscription-calc';
 import {
   PartnerApplication, ApplicationDocument, PartnerApplicationType, PartnerApplicationStatus,
 } from './partner-application.entity';
@@ -20,6 +21,23 @@ const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'
 const APPLY_URL = () => (process.env.PARTNER_APPLY_URL || 'https://app.locare.co.za/partner-apply').replace(/\/+$/, '');
 const TEAM_EMAIL = () => process.env.PARTNER_NOTIFY_EMAIL || 'partners@locare.co.za';
 /** Must be a publicly reachable PNG — mail clients fetch it, and they drop SVG. */
+/**
+ * Introducer commission rate, used only to show an applicant what the money
+ * looks like. The rate an approved partner is actually paid lives on their
+ * partner row (PARTNER_DEFAULT_RATE / commission_rate) — this is the headline
+ * for the entry rung, and the two are set together.
+ */
+const INTRODUCER_RATE = Number(process.env.PARTNER_INTRODUCER_RATE ?? 0.08);
+/**
+ * Whole rands with a comma separator: R12,600.
+ *
+ * Formatted by hand rather than with toLocaleString('en-ZA'), which groups with
+ * a non-breaking space in some ICU builds and a narrow one in others — invisible
+ * in a terminal, wrong in an email, and different depending on how Node was
+ * compiled. Prices here are never cents.
+ */
+const rands = (n: number) => `R${Math.round(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+
 const LOCARE_EMAIL_LOGO =
   process.env.LOCARE_EMAIL_LOGO_URL || 'https://locare.co.za/brand/locare-logo-email-white.png';
 
@@ -484,15 +502,25 @@ export class PartnerApplicationsService {
       // The introduction pack. This is the only chance to explain the commission
       // model before someone hits an ID-upload wall, and the drop-off happens
       // there — so the money, the audience and the reason for KYC all go here.
-      // Figures mirror docs/LOCARE_COMMISSION_STRUCTURE.md §5. Keep them in step.
+      //
+      // GENERATED from the live ladder, never typed in. These figures were once
+      // copied from the commission doc with a "keep them in step" comment, and
+      // they did not stay in step: after the 2026-09-09 reprice this email spent
+      // days quoting R925 Starter and R74 commission to real applicants. Copy
+      // that restates a price in a second place will drift.
+      const bandLabel: Record<string, string> = { starter: 'Starter', growth: 'Growth', scale: 'Scale' };
+      const bands = ladder();
+      const commission = (price: number) => Math.round(price * INTRODUCER_RATE);
       const rates: EmailTable = {
         head: ['Their plan', 'You earn / month'],
-        rows: [
-          ['Starter — R925', 'R74'],
-          ['Growth — R2,660', 'R213'],
-          ['Scale — R6,014', 'R481'],
-        ],
+        rows: bands.map((b) => [
+          `${bandLabel[b.tier] ?? b.tier} — ${rands(b.price)}`,
+          rands(commission(b.price)),
+        ]),
       };
+      const growthBand = bands.find((b) => b.tier === 'growth') ?? bands[0];
+      const fiveGrowth = rands(commission(growthBand.price) * 5);
+      const pct = Math.round(INTRODUCER_RATE * 100);
 
       const opening = kind === 'start'
         ? 'Thanks for putting your details in. Before you complete the verification step, here is exactly what you would be signing up to — no vagueness about the money.'
@@ -504,16 +532,15 @@ export class PartnerApplicationsService {
         opening,
         '',
         'WHAT YOU EARN',
-        'You start as an Introducer: 8% of the agency\'s subscription, every month, for 24 months. Not a once-off finder\'s fee.',
-        '  Starter (R925)  -> R74 / month',
-        '  Growth (R2,660) -> R213 / month',
-        '  Scale (R6,014)  -> R481 / month',
-        'Five Growth agencies is R1,065 a month for introductions you made once.',
+        `You start as an Introducer: ${pct}% of the agency's subscription, every month, for 24 months. Not a once-off finder's fee.`,
+        ...bands.map((b) => `  ${bandLabel[b.tier] ?? b.tier} (${rands(b.price)}) -> ${rands(commission(b.price))} / month`),
+        `Five Growth agencies is ${fiveGrowth} a month for introductions you made once.`,
         '',
         'Two rungs above that: Partner pays 17% and Reseller pays 26%, and at both, commission runs for as long as the agency stays a customer.',
         '',
         'WHO TO APPROACH',
-        'Independent agencies, 10 to 150 units, usually one or two principals, still running rent collection on spreadsheets and a bank app.',
+        `Independent agencies from about ${MIN_BILLABLE_UNITS} units upward, usually one or two principals, still running rent collection on spreadsheets and a bank app.`,
+        `Published pricing starts at ${STARTER_MIN_UNITS} units; smaller portfolios are priced individually and you get those numbers once you are verified.`,
         '',
         'WHAT WE DO',
         'You introduce. We demo, close, onboard and support.',
@@ -541,7 +568,7 @@ export class PartnerApplicationsService {
           headerStyle: 'ink',
           eyebrow: 'Partner programme',
           preheader: kind === 'start'
-            ? "8% of every referred agency's subscription, every month, for 24 months."
+            ? `${pct}% of every referred agency's subscription, every month, for 24 months.`
             : 'Your partner application is still open — here is what is on the table.',
           heading: kind === 'start' ? `Welcome, ${first}` : `Still interested, ${first}?`,
           paragraphs: [
@@ -552,14 +579,14 @@ export class PartnerApplicationsService {
             {
               title: 'What you earn',
               paragraphs: [
-                'You start as an Introducer: 8% of the agency\'s subscription, every month, for 24 months. Not a once-off finder\'s fee.',
+                `You start as an Introducer: ${pct}% of the agency's subscription, every month, for 24 months. Not a once-off finder's fee.`,
               ],
               table: rates,
             },
             {
               callout: {
                 label: 'Five Growth agencies',
-                value: 'R1,065 / month',
+                value: `${fiveGrowth} / month`,
                 note: 'Recurring, for introductions you made once.',
               },
               paragraphs: [
@@ -570,7 +597,8 @@ export class PartnerApplicationsService {
             {
               title: 'Who to approach',
               paragraphs: [
-                'The agencies that fit are independent, 10 to 150 units, usually one or two principals, still running rent collection on spreadsheets and a bank app. If you know someone who complains about month-end, that is the person.',
+                `The agencies that fit are independent, from about ${MIN_BILLABLE_UNITS} units upward, usually one or two principals, still running rent collection on spreadsheets and a bank app. If you know someone who complains about month-end, that is the person.`,
+                `Published pricing starts at ${STARTER_MIN_UNITS} units. Smaller portfolios are priced individually — we will give you those numbers once you are verified, so you can quote them yourself.`,
               ],
             },
             {
