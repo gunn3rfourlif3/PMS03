@@ -31,7 +31,9 @@ export class OnboardingService {
    * this shipped (Dantalan) get a checklist on first open.
    */
   async seed(vendorId: string): Promise<{ created: number; existing: number }> {
-    const [vendor] = await this.ds.query(`SELECT id FROM vendors WHERE id = $1`, [vendorId]);
+    // Via the SECURITY DEFINER function, not `vendors` directly: the console runs
+    // outside any tenant context, so RLS hides every row from a direct read.
+    const [vendor] = await this.ds.query(`SELECT * FROM platform_agency($1)`, [vendorId]);
     if (!vendor) throw new NotFoundException('Agency not found');
 
     const existing = new Set(
@@ -65,12 +67,7 @@ export class OnboardingService {
    */
   async portfolio(): Promise<unknown[]> {
     const rows: Array<{ vendorId: string; name: string; slug: string; status: string }> =
-      await this.ds.query(
-        `SELECT v.id AS "vendorId", v.name, v.slug, v.status
-           FROM vendors v
-          WHERE EXISTS (SELECT 1 FROM agency_onboarding_items i WHERE i.vendor_id = v.id)
-          ORDER BY v.name`,
-      );
+      await this.ds.query(`SELECT * FROM platform_onboarding_agencies()`);
 
     const all = await this.repo().find();
     const byVendor = new Map<string, AgencyOnboardingItem[]>();
@@ -104,10 +101,7 @@ export class OnboardingService {
 
   /** One agency's full checklist, grouped by stage, with the progress rollup. */
   async detail(vendorId: string): Promise<unknown> {
-    const [vendor] = await this.ds.query(
-      `SELECT id AS "vendorId", name, slug, status, custom_domain AS "customDomain" FROM vendors WHERE id = $1`,
-      [vendorId],
-    );
+    const [vendor] = await this.ds.query(`SELECT * FROM platform_agency($1)`, [vendorId]);
     if (!vendor) throw new NotFoundException('Agency not found');
 
     const items = await this.repo().find({ where: { vendorId }, order: { stage: 'ASC', itemKey: 'ASC' } });
