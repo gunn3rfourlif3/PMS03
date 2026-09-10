@@ -1,6 +1,6 @@
 # Locare — Platform-Admin "Sign in as Agency" (Support Impersonation)
 
-Status: **Draft for build.** Owner: Arthur. Last updated: 2026-07-31.
+Status: **Draft for build.** Owner: Vernon. Last updated: 2026-07-31.
 
 Let a Locare **platform admin** open a specific agency's back office to
 troubleshoot/support — data-scoped to that one agency, time-boxed, clearly

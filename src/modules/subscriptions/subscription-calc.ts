@@ -1,9 +1,10 @@
 /**
  * Pure subscription pricing. Flat monthly fee per unit-count band:
+ *  - Custom:   1–69 units    → per unit, UNPUBLISHED (see below)
  *  - Starter:  70–199 units  → R6,014/month
  *  - Growth:   200–499 units → R12,600/month
  *  - Scale:    500+ units    → R22,100/month
- *  - Custom/Enterprise: manual — never auto-computed from unit count.
+ *  - Enterprise: manual — never auto-computed from unit count.
  * (0 units bills nothing until the agency adds inventory.)
  *
  * Repriced 2026-09-09, repositioning to larger agencies. The bands exist so
@@ -12,23 +13,33 @@
  * month on R10k rent at 8.5%). The old ladder broke that badly: R925 across
  * 1–12 units is R925 per unit for a single-unit agency.
  *
- * Below STARTER_MIN_UNITS there is no published price. Such an agency is priced
- * by negotiation through `priceOverride`, so a small portfolio can still be
- * taken on without publishing a number we would rather not honour. They are
- * still recorded on the `starter` tier: the ladder reports what they are, and
- * the override reports what they pay (see effectivePrice below).
+ * Below STARTER_MIN_UNITS the price is PER UNIT and is not published anywhere:
+ * not on the site, only in the sales conversation and the partner pack. The
+ * rate is Starter's fee divided by its entry point, so the two meet exactly at
+ * the boundary — 69 units costs slightly less than 70, never more, and there is
+ * no cliff for a growing agency to fall off.
+ *
+ * A minimum billable unit count applies, because cost to serve scales with
+ * AGENCIES, not units: onboarding and support cost about the same for twelve
+ * units as for a hundred and ninety. An agency below the minimum is billed the
+ * minimum. Anything softer than that is a `priceOverride`, decided by a human.
  */
 export const TIER_PRICES = {
   starter: Number(process.env.STARTER_PRICE ?? 6014),
   growth: Number(process.env.GROWTH_PRICE ?? 12600),
   scale: Number(process.env.SCALE_PRICE ?? 22100),
 };
-/** Published entry point. Fewer units than this is a negotiated price, not a cheaper tier. */
+/** Published entry point. Fewer units than this is the unpublished Custom tier. */
 export const STARTER_MIN_UNITS = Number(process.env.STARTER_MIN_UNITS ?? 70);
+/**
+ * Smallest portfolio we will bill for. An agency with fewer units pays as if it
+ * had this many; below it, onboarding never pays back inside a year.
+ */
+export const MIN_BILLABLE_UNITS = Number(process.env.MIN_BILLABLE_UNITS ?? 30);
 export const STARTER_MAX_UNITS = Number(process.env.STARTER_MAX_UNITS ?? 199);
 export const GROWTH_MAX_UNITS = Number(process.env.GROWTH_MAX_UNITS ?? 499);
 
-export type PricedTier = 'starter' | 'growth' | 'scale';
+export type PricedTier = 'custom' | 'starter' | 'growth' | 'scale';
 
 export interface TierResult {
   tier: PricedTier;
@@ -70,23 +81,68 @@ export function nextBand(unitCount: number): LadderBand | null {
 /** Tier + monthly recurring revenue for a given unit count (non-enterprise). */
 export function tierForUnits(unitCount: number): TierResult {
   const n = Math.max(0, Math.floor(Number(unitCount) || 0));
+  // An agency with nothing loaded is mid-onboarding. It is not on Custom — we
+  // do not know yet how big it is — and it bills nothing either way.
   if (n === 0) return { tier: 'starter', mrr: 0 };
+  if (n < STARTER_MIN_UNITS) return { tier: 'custom', mrr: customPrice(n) };
   if (n <= STARTER_MAX_UNITS) return { tier: 'starter', mrr: TIER_PRICES.starter };
   if (n <= GROWTH_MAX_UNITS) return { tier: 'growth', mrr: TIER_PRICES.growth };
   return { tier: 'scale', mrr: TIER_PRICES.scale };
 }
 
 /**
+ * The per-unit rate for the Custom tier.
+ *
+ * Derived from the published ladder rather than set independently: Starter's
+ * fee divided by Starter's entry point. That is what makes the boundary
+ * continuous — 69 units bills R5,928 and 70 bills R6,014 — and it means a
+ * future reprice of Starter carries the small-agency rate with it instead of
+ * silently opening a gap at 70 units.
+ *
+ * Rounded to the cent so the figure an agency multiplies out by hand matches
+ * the one on the invoice.
+ */
+export function customUnitRate(): number {
+  const override = Number(process.env.CUSTOM_UNIT_RATE);
+  if (Number.isFinite(override) && override > 0) return Math.round(override * 100) / 100;
+  return Math.round((TIER_PRICES.starter / STARTER_MIN_UNITS) * 100) / 100;
+}
+
+/** Units actually charged for: never fewer than the minimum. */
+export function billableUnits(unitCount: number | string | null | undefined): number {
+  const n = Math.max(0, Math.floor(Number(unitCount) || 0));
+  return n === 0 ? 0 : Math.max(n, MIN_BILLABLE_UNITS);
+}
+
+/** Custom-tier monthly fee, rounded to the rand. Zero units bills zero. */
+export function customPrice(unitCount: number | string | null | undefined): number {
+  return Math.round(billableUnits(unitCount) * customUnitRate());
+}
+
+/**
+ * Whether an agency is being charged for units it does not have.
+ *
+ * This is the case a human must sign off. The minimum is defensible as policy —
+ * cost to serve is per agency, not per unit — but an eleven-unit agency billed
+ * for thirty will ask, and someone should have decided to charge it before the
+ * invoice goes out rather than after. Billing refuses until they do.
+ */
+export function belowMinimum(unitCount: number | string | null | undefined): boolean {
+  const n = Math.floor(Number(unitCount) || 0);
+  return n > 0 && n < MIN_BILLABLE_UNITS;
+}
+
+/**
  * Whether a portfolio is too small to have a published price.
  *
- * `tierForUnits` answers `starter` for anything from 1 unit upward, because an
- * agency of 11 units really is on the Starter tier — it is simply below the
- * point where the published fee is defensible. R6,014 against eleven units is
- * R547 a unit, most of what the agency earns on each one.
+ * A flat published fee cannot stretch this far down: R6,014 against eleven
+ * units is R547 a unit, most of what the agency earns on each one. Per-unit
+ * pricing holds the same 10% of the agency's income at every size below the
+ * entry point instead.
  *
- * So this is not a pricing rule, it is a "someone must decide" rule. Billing
- * uses it to refuse to issue an invoice that no one has agreed to, and the
- * onboarding runbook uses it to say when a `priceOverride` is mandatory.
+ * So this is what selects the Custom tier: below the entry point an agency is
+ * priced per unit at an unpublished rate, not given a cheaper published band.
+ * The separate `belowMinimum` is the "someone must decide" rule.
  *
  * Zero units is not below the floor: an agency with no inventory loaded yet is
  * mid-onboarding, bills nothing, and needs no decision.

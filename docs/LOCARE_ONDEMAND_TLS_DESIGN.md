@@ -1,6 +1,6 @@
 # Locare — on-demand TLS for agency domains
 
-Written 2026-09-05. Owner: Arthur. Status: design, not built.
+Written 2026-09-05. Owner: Vernon. Status: design, not built.
 
 Resolves **R-1** in `LOCARE_AGENCY_ONBOARDING_REQUIREMENTS.md`, and makes R-4
 and R-6 small. The goal is one sentence:

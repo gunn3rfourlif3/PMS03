@@ -1,6 +1,6 @@
 # Locare Marketing Chatbot — Design
 
-Status: **Draft for review.** Owner: Arthur. Last updated: 2026-07-31.
+Status: **Draft for review.** Owner: Vernon. Last updated: 2026-07-31.
 
 An FAQ chatbot on the Locare marketing site (`locare.co.za`) that answers
 prospective agencies' questions, stays strictly on-topic, and funnels

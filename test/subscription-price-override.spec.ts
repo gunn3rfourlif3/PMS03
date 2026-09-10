@@ -21,10 +21,10 @@ describe('grandfathered pricing', () => {
     // something else for it. Misreporting the tier to protect a price would
     // corrupt the back-office, the admin list and the commission basis.
     //
-    // 60 units sits below the published entry point after the 2026-09-09
-    // reprice, which is precisely the case an override exists for: recorded on
-    // Starter at the Starter list price, billed whatever was negotiated.
-    expect(tierForUnits(60)).toEqual({ tier: 'starter', mrr: 6014 });
+    // 60 units sits below the published entry point, so the ladder reports the
+    // unpublished Custom tier and its computed per-unit price. An override
+    // changes what is BILLED, never what the row says the agency is.
+    expect(tierForUnits(60)).toEqual({ tier: 'custom', mrr: 5155 });
     expect(tierForUnits(250)).toEqual({ tier: 'growth', mrr: 12600 });
   });
 

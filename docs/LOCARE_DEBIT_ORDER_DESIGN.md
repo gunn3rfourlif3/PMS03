@@ -1,6 +1,6 @@
 # Locare — Debit Orders (DebiCheck) as the Rent Collection Rail
 
-Status: **Decided — building.** Owner: Arthur. Last updated: 2026-08-18.
+Status: **Decided — building.** Owner: Vernon. Last updated: 2026-08-18.
 The four questions that blocked the build are answered in §11.6–§11.9.
 Provider revised in §8.1: **Netcash collects, Stitch does everything else.**
 Mandate lifecycle is built; collection submission is not (§5.2).

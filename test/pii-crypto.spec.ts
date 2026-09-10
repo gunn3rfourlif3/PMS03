@@ -1,7 +1,7 @@
 import { encryptJson, decryptJson, encryptedJson, maskBanking } from '../src/common/security/pii-crypto';
 
 describe('PII crypto (AES-256-GCM)', () => {
-  const banking = { bankName: 'FNB', accountHolder: 'A Jones', accountNumber: '62012345678', branchCode: '250655' };
+  const banking = { bankName: 'FNB', accountHolder: 'T Mokoena', accountNumber: '62012345678', branchCode: '250655' };
 
   it('round-trips an encrypted value', () => {
     const env = encryptJson(banking);

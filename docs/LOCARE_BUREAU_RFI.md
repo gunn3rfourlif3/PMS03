@@ -99,7 +99,7 @@ point me at them.
 
 Kind regards,
 
-Arthur Jones
+Vernon Venter
 Locare
 <email> · <phone> · locare.co.za
 

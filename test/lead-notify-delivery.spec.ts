@@ -40,11 +40,11 @@ describe('SmtpEmailProvider reports acceptance, not delivery', () => {
   it('succeeds only when the recipient is in accepted', async () => {
     sendMail.mockResolvedValue({
       messageId: '<id@locare.co.za>',
-      accepted: ['Arthur@locare.co.za'], // case must not matter
+      accepted: ['Vernon@locare.co.za'], // case must not matter
       rejected: [],
     });
     const res = await new SmtpEmailProvider().send({
-      to: 'arthur@locare.co.za', subject: 's', body: 'b',
+      to: 'vernon@locare.co.za', subject: 's', body: 'b',
     });
     expect(res.ok).toBe(true);
     expect(res.providerRef).toBe('<id@locare.co.za>');
@@ -74,14 +74,14 @@ describe('LeadsService checks the notify address at boot', () => {
   });
 
   it('stays quiet when the domain resolves', async () => {
-    process.env.LEADS_NOTIFY_EMAIL = 'arthur@locare.co.za';
+    process.env.LEADS_NOTIFY_EMAIL = 'vernon@locare.co.za';
     resolveMx.mockResolvedValue([{ exchange: 'mail.locare.co.za', priority: 10 }]);
     await service().onModuleInit();
     expect(errors).toEqual([]);
   });
 
   it('does not throw when DNS itself fails', async () => {
-    process.env.LEADS_NOTIFY_EMAIL = 'arthur@locare.co.za';
+    process.env.LEADS_NOTIFY_EMAIL = 'vernon@locare.co.za';
     resolveMx.mockRejectedValue(Object.assign(new Error('timeout'), { code: 'ETIMEOUT' }));
     await expect(service().onModuleInit()).resolves.toBeUndefined();
   });

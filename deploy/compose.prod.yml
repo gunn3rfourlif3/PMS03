@@ -120,6 +120,8 @@ services:
       STARTER_MIN_UNITS: ${STARTER_MIN_UNITS:-70}
       STARTER_MAX_UNITS: ${STARTER_MAX_UNITS:-199}
       GROWTH_MAX_UNITS: ${GROWTH_MAX_UNITS:-499}
+      MIN_BILLABLE_UNITS: ${MIN_BILLABLE_UNITS:-30}
+      CUSTOM_UNIT_RATE: ${CUSTOM_UNIT_RATE:-}
       # Banking details for EFT payment of subscription invoices. Unset = panel hidden.
       PAYTO_BANK: ${PAYTO_BANK:-}
       PAYTO_ACCOUNT_NAME: ${PAYTO_ACCOUNT_NAME:-}

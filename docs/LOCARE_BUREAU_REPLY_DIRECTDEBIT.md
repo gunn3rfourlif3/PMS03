@@ -84,7 +84,7 @@ Happy to jump on a call.
 
 Kind regards,
 
-Arthur Jones
+Vernon Venter
 Locare
 <email> · <phone> · locare.co.za
 

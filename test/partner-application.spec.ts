@@ -69,7 +69,7 @@ describe('PartnerApplicationsService.approve', () => {
 describe('PartnerApplicationsService — two-stage application', () => {
   it('stage 1 stores contact only, emails a continue link, and returns no token', async () => {
     const { svc, sent } = makeSvc(null);
-    const r = await svc.start({ contactName: 'Vee Jones', contactEmail: ' V@X.com ', contactPhone: '0820000000' });
+    const r = await svc.start({ contactName: 'Vee Mokoena', contactEmail: ' V@X.com ', contactPhone: '0820000000' });
 
     expect(r.emailed).toBe(true);
     // The token must never reach the browser — it only travels by email, which

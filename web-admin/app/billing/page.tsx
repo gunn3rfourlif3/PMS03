@@ -6,7 +6,7 @@ import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, BentoTile, EmptyState, money } from '@/components/ui';
 
 const tone = (s: string): 'success' | 'brand' | 'muted' => (s === 'paid' ? 'success' : s === 'void' ? 'muted' : 'brand');
-const TIER_LABEL: Record<string, string> = { starter: 'Starter', growth: 'Growth', scale: 'Scale', enterprise: 'Enterprise' };
+const TIER_LABEL: Record<string, string> = { custom: 'Custom', starter: 'Starter', growth: 'Growth', scale: 'Scale', enterprise: 'Enterprise' };
 
 const band = (b?: { minUnits: number; maxUnits: number | null }) =>
   !b ? '' : b.maxUnits === null ? `${b.minUnits}+ units` : `${b.minUnits}–${b.maxUnits} units`;
@@ -45,15 +45,13 @@ export default function BillingPage() {
   if (!ready) return null;
   const tier = plan?.tier ?? 'starter';
 
-  // Below the published entry point with nothing negotiated, there is no figure
-  // to show. `payable` still carries the ladder's answer, but billing refuses to
-  // raise that invoice (see SubscriptionBillingService.generate), so quoting it
-  // here would promise a customer a price we will not charge — and would
-  // contradict the paragraph directly beneath this tile.
   const entryBand = (plan?.ladder ?? [])[0];
-  const noPublishedPrice =
-    !!plan && tier !== 'enterprise' && !plan.overridden &&
-    !!entryBand && (plan.unitCount ?? 0) > 0 && (plan.unitCount ?? 0) < entryBand.minUnits;
+  // Billing refuses to invoice an agency charged for units it does not have
+  // until a price is agreed (SubscriptionBillingService.generate). Showing a
+  // figure we will not charge would contradict the paragraph under the tile.
+  const awaitingAgreedPrice =
+    !!plan && tier === 'custom' && !plan.overridden &&
+    !!plan.custom && (plan.unitCount ?? 0) > 0 && (plan.unitCount ?? 0) < plan.custom.minUnits;
 
   return (
     <div>
@@ -62,9 +60,11 @@ export default function BillingPage() {
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <BentoTile tone={tier === 'growth' ? 'teal' : tier === 'enterprise' ? 'purple' : 'blue'} value={TIER_LABEL[tier] ?? tier} label="Your plan" />
-        <BentoTile tone="blue" value={String(plan?.unitCount ?? 0)} label="Billable units" />
+        <BentoTile tone="blue"
+          value={String(plan?.custom?.billableUnits ?? plan?.unitCount ?? 0)}
+          label={plan?.custom && plan.custom.billableUnits !== plan.unitCount ? `Billable units (min ${plan.custom.minUnits})` : 'Billable units'} />
         <BentoTile tone="amber"
-          value={noPublishedPrice ? 'By arrangement' : money(plan?.payable ?? plan?.mrr ?? 0)}
+          value={awaitingAgreedPrice ? 'By arrangement' : money(plan?.payable ?? plan?.mrr ?? 0)}
           label={plan?.overridden ? 'Monthly fee (agreed)' : 'Monthly fee'} />
       </div>
 
@@ -77,12 +77,20 @@ export default function BillingPage() {
               const next = plan.nextBand;
               const entry = (plan.ladder ?? [])[0];
 
-              // Below the published entry point there is no cheaper tier — the
-              // price is negotiated, so quoting the ladder here would be wrong.
-              if (entry && units < entry.minUnits) {
-                return plan.overridden
-                  ? `You're on an agreed price of ${money(plan.payable)} a month for ${units} unit${units === 1 ? '' : 's'}. Published pricing starts at ${band(entry)}.`
-                  : `You have ${units} unit${units === 1 ? '' : 's'}. Published pricing starts at ${band(entry)} — smaller portfolios are priced individually, so talk to us before your first invoice.`;
+              // Custom is priced per unit, not by band, so the ladder copy does
+              // not apply. Show the arithmetic: rate, units charged, total.
+              if (tier === 'custom' && plan.custom) {
+                const { unitRate, billableUnits, minUnits } = plan.custom;
+                if (plan.overridden) {
+                  return `You're on an agreed price of ${money(plan.payable)} a month for ${units} unit${units === 1 ? '' : 's'}. Published pricing starts at ${band(entry)}.`;
+                }
+                if (awaitingAgreedPrice) {
+                  return `You have ${units} unit${units === 1 ? '' : 's'}, below our ${minUnits}-unit minimum. We'll agree your price with you before the first invoice — nothing is billed until then.`;
+                }
+                const line = `You're on Custom — ${billableUnits} units at ${money(unitRate)} a unit, ${money(plan.payable ?? plan.mrr)} a month, billed here.`;
+                return entry
+                  ? `${line} At ${entry.minUnits} units you move to ${TIER_LABEL[entry.tier] ?? entry.tier} at ${money(entry.price)} a month.`
+                  : line;
               }
 
               const now = plan.overridden

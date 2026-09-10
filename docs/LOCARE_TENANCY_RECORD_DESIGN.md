@@ -1,6 +1,6 @@
 # Locare — Verifiable Tenancy Records and the Consortium Question
 
-Status: **Exploratory.** Owner: Arthur. Written 2026-08-19.
+Status: **Exploratory.** Owner: Vernon. Written 2026-08-19.
 
 Nothing here is decided. §7 is the only part with a recommendation to act on
 now; everything else is a position to hold while the business gets big enough

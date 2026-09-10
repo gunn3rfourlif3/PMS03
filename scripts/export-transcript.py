@@ -118,11 +118,11 @@ def main() -> int:
                 text = content if isinstance(content, str) else ''
                 if not text.strip():
                     continue
-                # System reminders are injected context, not things Arthur said.
+                # System reminders are injected context, not things Vernon said.
                 if text.lstrip().startswith('<system-reminder>'):
                     continue
                 stats['user'] += 1
-                out.append(f'\n### 🧑 Arthur · {when}\n\n{scrub(text.strip())}\n')
+                out.append(f'\n### 🧑 Vernon · {when}\n\n{scrub(text.strip())}\n')
                 continue
 
             # ── assistant ─────────────────────────────────────────────────
@@ -152,7 +152,7 @@ def main() -> int:
     header = (
         '# Session transcript\n\n'
         f'Exported {datetime.now().strftime("%Y-%m-%d %H:%M")} from `{a.source}`.\n\n'
-        f'{stats["user"]} messages from Arthur · {stats["assistant"]} from Claude · '
+        f'{stats["user"]} messages from Vernon · {stats["assistant"]} from Claude · '
         f'{stats["tools"]} tool calls'
         + ('' if a.thinking else ' · reasoning omitted (use --thinking)')
         + '\n\nTool results are summarised to one line. The original `.jsonl` is the '

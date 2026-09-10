@@ -1,4 +1,4 @@
-import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS, ladder, nextBand, belowFloor, effectivePrice } from '../src/modules/subscriptions/subscription-calc';
+import { tierForUnits, TIER_PRICES, STARTER_MIN_UNITS, MIN_BILLABLE_UNITS, ladder, nextBand, belowFloor, belowMinimum, billableUnits, customPrice, customUnitRate, effectivePrice } from '../src/modules/subscriptions/subscription-calc';
 
 /**
  * Repriced 2026-09-09 for the move upmarket. The band EDGES are the assertions
@@ -26,13 +26,14 @@ describe('subscription pricing (flat banded tiers)', () => {
     expect(tierForUnits(5000)).toEqual({ tier: 'scale', mrr: TIER_PRICES.scale });
   });
 
-  // Below the published entry point there is no cheaper tier. Such an agency is
-  // recorded on Starter at the Starter price, and whatever was negotiated is
-  // applied as a priceOverride — so the ladder never quietly under-bills.
-  it('does not invent a cheaper tier below the published entry point', () => {
+  // Below the published entry point an agency is on Custom — priced per unit at
+  // an unpublished rate, not handed a cheaper published band. See the dedicated
+  // describe block below for the arithmetic.
+  it('routes everything below the entry point to the custom tier', () => {
     expect(STARTER_MIN_UNITS).toBe(70);
-    expect(tierForUnits(1)).toEqual({ tier: 'starter', mrr: TIER_PRICES.starter });
-    expect(tierForUnits(69)).toEqual({ tier: 'starter', mrr: TIER_PRICES.starter });
+    expect(tierForUnits(1).tier).toBe('custom');
+    expect(tierForUnits(69).tier).toBe('custom');
+    expect(tierForUnits(70)).toEqual({ tier: 'starter', mrr: TIER_PRICES.starter });
   });
 
   it('is defensive about junk input', () => {
@@ -112,17 +113,92 @@ describe('below the published entry point', () => {
 
   it('is the condition billing pairs with an inactive override', () => {
     // Together these two are the guard in SubscriptionBillingService.generate:
-    // small portfolio AND nobody has agreed a price => do not invoice.
-    const dantalan = { tier: 'starter', mrr: 6014, priceOverride: null, priceOverrideUntil: null };
-    expect(belowFloor(11) && !effectivePrice(dantalan).overridden).toBe(true);
+    // charged for units they do not have AND nobody has agreed it => no invoice.
+    const dantalan = { tier: 'custom', mrr: customPrice(11), priceOverride: null, priceOverrideUntil: null };
+    expect(belowMinimum(11) && !effectivePrice(dantalan).overridden).toBe(true);
 
     const held = { ...dantalan, priceOverride: 925, priceOverrideUntil: '2027-03-31' };
-    expect(belowFloor(11) && !effectivePrice(held, new Date('2026-10-01')).overridden).toBe(false);
+    expect(belowMinimum(11) && !effectivePrice(held, new Date('2026-10-01')).overridden).toBe(false);
     expect(effectivePrice(held, new Date('2026-10-01')).amount).toBe(925);
 
     // Once the agreed term lapses the guard bites again rather than silently
     // reverting the customer to list price.
     expect(effectivePrice(held, new Date('2027-04-01')).overridden).toBe(false);
-    expect(belowFloor(11) && !effectivePrice(held, new Date('2027-04-01')).overridden).toBe(true);
+    expect(belowMinimum(11) && !effectivePrice(held, new Date('2027-04-01')).overridden).toBe(true);
+  });
+});
+
+/**
+ * The Custom tier: unpublished, per-unit, below the entry point.
+ *
+ * Two properties carry the whole design. The rate is DERIVED from Starter, so
+ * the boundary cannot drift apart in a future reprice. And the minimum means a
+ * very small agency is billed for units it does not have — defensible as policy,
+ * but only once a human has agreed it, which is what `belowMinimum` gates.
+ */
+describe('custom tier (below the published entry point)', () => {
+  it('derives the rate from Starter, not from a separate number', () => {
+    expect(customUnitRate()).toBeCloseTo(TIER_PRICES.starter / STARTER_MIN_UNITS, 2);
+    expect(customUnitRate()).toBe(85.91);
+  });
+
+  it('prices per unit and reports the custom tier', () => {
+    expect(tierForUnits(30)).toEqual({ tier: 'custom', mrr: 2577 });
+    expect(tierForUnits(42)).toEqual({ tier: 'custom', mrr: 3608 });
+    expect(tierForUnits(69)).toEqual({ tier: 'custom', mrr: 5928 });
+  });
+
+  it('never charges more than the band above it — the boundary is continuous', () => {
+    const justBelow = tierForUnits(STARTER_MIN_UNITS - 1);
+    const atEntry = tierForUnits(STARTER_MIN_UNITS);
+    expect(justBelow.mrr).toBeLessThan(atEntry.mrr);
+    expect(atEntry).toEqual({ tier: 'starter', mrr: TIER_PRICES.starter });
+    // The gap is a rounding artefact, not a step: pennies, not a cliff.
+    expect(atEntry.mrr - justBelow.mrr).toBeLessThan(customUnitRate() + 1);
+  });
+
+  it('bills the minimum for a portfolio smaller than the minimum', () => {
+    expect(billableUnits(5)).toBe(MIN_BILLABLE_UNITS);
+    expect(billableUnits(29)).toBe(MIN_BILLABLE_UNITS);
+    expect(billableUnits(30)).toBe(30);
+    expect(billableUnits(45)).toBe(45);
+    expect(customPrice(5)).toBe(customPrice(MIN_BILLABLE_UNITS));
+  });
+
+  it('bills nothing at zero units, and does not call that Custom', () => {
+    // An agency mid-migration with nothing loaded must never be invoiced the
+    // minimum. This is the way this feature would most plausibly go wrong, and
+    // it would go wrong on a brand-new customer.
+    expect(billableUnits(0)).toBe(0);
+    expect(customPrice(0)).toBe(0);
+    expect(tierForUnits(0)).toEqual({ tier: 'starter', mrr: 0 });
+  });
+
+  it('gates the minimum behind a human decision', () => {
+    expect(belowMinimum(0)).toBe(false);   // nothing loaded yet
+    expect(belowMinimum(11)).toBe(true);   // charged for 30, has 11
+    expect(belowMinimum(29)).toBe(true);
+    expect(belowMinimum(30)).toBe(false);  // charged for what it has
+    expect(belowMinimum(80)).toBe(false);
+  });
+
+  it('separates "no published price" from "below the minimum"', () => {
+    // 40 units has no PUBLISHED price but a perfectly good computed one;
+    // 11 units has both, and only the second needs sign-off.
+    expect(belowFloor(40)).toBe(true);
+    expect(belowMinimum(40)).toBe(false);
+    expect(belowFloor(11)).toBe(true);
+    expect(belowMinimum(11)).toBe(true);
+  });
+
+  it('holds a constant share of the agency income below the entry point', () => {
+    // The rule the ladder exists to satisfy: the fee stays near 10% of what the
+    // agency earns (R850/unit on R10k rent at 8.5%) at every size, instead of
+    // ballooning as the portfolio shrinks.
+    for (const units of [30, 40, 50, 69]) {
+      const share = tierForUnits(units).mrr / (units * 850);
+      expect(share).toBeGreaterThan(0.09);
+      expect(share).toBeLessThan(0.11);
+    }
   });
 });

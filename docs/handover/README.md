@@ -7,7 +7,7 @@ session log.
 
 | File | What it is |
 |---|---|
-| `transcript.md` | The full conversation, 1 Jul – 13 Aug 2026 (35 days). 501 messages from Arthur, ~5,800 from Claude, ~3,600 tool calls. Tool results summarised to one line each. **Credential-scrubbed.** |
+| `transcript.md` | The full conversation, 1 Jul – 13 Aug 2026 (35 days). 501 messages from Vernon, ~5,800 from Claude, ~3,600 tool calls. Tool results summarised to one line each. **Credential-scrubbed.** |
 | `TASKS.md` | All 223 tracked tasks, grouped by phase, with the four still open. |
 
 The raw `.jsonl` is deliberately **not** kept here — see the security note below.

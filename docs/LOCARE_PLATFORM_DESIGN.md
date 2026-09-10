@@ -1,6 +1,6 @@
 # Locare — White-Label Platform Design
 
-Status: **Draft for build.** Owner: Arthur / Vernon. Last updated: 2026-07-30.
+Status: **Draft for build.** Owner: Vernon. Last updated: 2026-07-30.
 
 Locare (`locare.co.za`) is the neutral, sellable brand of the property-management
 platform that PMS0.3 already is. It is **not** a new codebase, VPS, or database —

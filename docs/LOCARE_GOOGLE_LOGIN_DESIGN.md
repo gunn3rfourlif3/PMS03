@@ -1,6 +1,6 @@
 # Locare — Google (Social) Login
 
-Status: **Draft for build.** Owner: Arthur. Last updated: 2026-07-31.
+Status: **Draft for build.** Owner: Vernon. Last updated: 2026-07-31.
 
 Add "Continue with Google" as an **additional** sign-in option alongside the
 existing passwordless OTP — without breaking the multi-tenant, white-label,

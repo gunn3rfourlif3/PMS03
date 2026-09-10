@@ -91,7 +91,7 @@ export class LeadsService implements OnModuleInit {
    * Confirms receipt to the person who submitted the form.
    *
    * The site promises "we'll reach out to get you started" and then, until now,
-   * said nothing until Arthur replied by hand — so a slow reply read as no
+   * said nothing until Vernon replied by hand — so a slow reply read as no
    * reply. This buys that time back and gives someone not yet ready to talk the
    * walkthrough to watch instead.
    *

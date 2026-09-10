@@ -90,7 +90,7 @@ MediaService mock it (see `test/partner-application.spec.ts`).
 
 ## Deploying
 
-Arthur runs all git and docker commands himself — write them out, don't assume
+Vernon runs all git and docker commands himself — write them out, don't assume
 they've been run.
 
 ```bash
@@ -170,7 +170,7 @@ records the product, ffmpeg assembles three cuts. See `scripts/video/README.md`.
 - `ANTHROPIC_API_KEY` unset, so the LLM lease parser is untested.
 - Mobile apps are Expo web exports, not published to the app stores.
 
-## Working with Arthur
+## Working with Vernon
 
 Concise and direct. He runs his own git and docker commands. He'll push back on
 weak reasoning — and has been right to. Flag real risks (POPIA, PII, credential

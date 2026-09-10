@@ -1,6 +1,6 @@
 # Locare Partner Curriculum
 
-**Status:** Draft — not yet issued to any partner. Owner: Arthur.
+**Status:** Draft — not yet issued to any partner. Owner: Vernon.
 Written 2026-08-20.
 
 Training for people who sell Locare to South African rental agencies:
@@ -211,7 +211,7 @@ Disqualify early. Time is the only thing you actually spend.
 
 You are qualifying, not selling. Four questions:
 
-1. **How many units under management?** → tier, and whether they qualify at all
+1. **How many units under management?** → tier, and whether they clear the 30-unit minimum
 2. **Who does your rent run, and how long does it take?** → pain
 3. **Whose brand do your landlords see when you email a statement?** → the
    white-label opening
@@ -242,20 +242,45 @@ The module people skip and then get wrong in front of a prospect. Read it twice.
 
 Published on the live site. **All prices exclude VAT.**
 
-| Plan | Units | Price / month (ex-VAT) |
-|---|---|---|
-| Starter | 70–199 | **R6,014** |
-| Growth | 200–499 | **R12,600** |
-| Scale | 500+ | **R22,100** |
-| Custom | Bespoke | Talk to Locare |
+| Plan | Units | Price / month (ex-VAT) | On the website? |
+|---|---|---|---|
+| **Custom** | 1–69 | **R85.91 per unit**, minimum 30 units | **No** |
+| Starter | 70–199 | **R6,014** | Yes |
+| Growth | 200–499 | **R12,600** | Yes |
+| Scale | 500+ | **R22,100** | Yes |
+| Enterprise | Bespoke | Talk to Locare | No |
 
-**Repriced 2026-09-09**, repositioning to larger agencies. Prices below are
-**ex-VAT**, because that is the commission basis. The website leads with the
-VAT-inclusive figure — R6,916 / R14,490 / R25,415 — so expect a prospect to
-quote you the gross. Scale includes
-DebiCheck *integration* — the agency still holds and pays for its own bureau
-facility (Module 3.4). Under 70 units there is no published price: Locare
-prices those individually, so bring the conversation rather than a number.
+**Repriced 2026-09-09**, repositioning to larger agencies. Prices are **ex-VAT**,
+because that is the commission basis. The website leads with the VAT-inclusive
+figure — R6,916 / R14,490 / R25,415 — so expect a prospect to quote you the
+gross. Scale includes DebiCheck *integration* — the agency still holds and pays
+for its own bureau facility (Module 3.4).
+
+### The Custom tier — quotable, not published
+
+**You may quote R85.91 per unit. Do not put it in writing to anyone who is not
+the prospect, and do not expect to find it on the site.** It is deliberately
+unpublished: it is a conversation, not a shelf price.
+
+The arithmetic is simple and you should be able to do it in front of a prospect.
+Multiply units by R85.91. A 40-unit agency is **R3,436 a month**. A 55-unit
+agency is **R4,725**.
+
+Two rules:
+
+- **Minimum 30 units.** An agency with fewer pays as if it had 30 — **R2,577**.
+  Say that plainly; it is a portfolio-size policy, not a penalty, and it exists
+  because onboarding an agency costs the same whether it has twelve units or
+  ninety.
+- **It never costs more than Starter.** 69 units is R5,928 against Starter's
+  R6,014, so an agency growing into the published ladder sees its rate *improve*.
+  That is a good story — tell it.
+
+There is also a **once-off setup fee of R9,500** on every new agency, which
+Locare is currently waiving for the first ten customers in exchange for a
+reference. Do not promise the waiver yourself — escalate it.
+
+Flat per band above 70 units. Not per unit.
 
 Flat per band. Not per unit. An agency at 480 units and one at 210 both pay
 R12,600, which is a genuinely good story for a growing agency — their cost does
@@ -713,10 +738,14 @@ volunteered the full number is worth more than the discount you did not have
 authority to give anyway.
 
 **"We're too small."**
-Under 70 units there is no published price, and you should say so plainly rather
-than implying one exists. That does not always mean walk away — Locare prices
-smaller portfolios individually — but it does mean you cannot quote, and you
-must not invent a number. Escalate it.
+Usually they are not. Under 70 units they are on Custom at R85.91 per unit, and
+you can quote it — 45 units is R3,867 a month. What you must not do is imply it
+is on the website or send it in a document; it is a figure for the conversation.
+
+Below 30 units the minimum applies: they pay for 30 (R2,577) whatever they have.
+Be straight about that rather than letting it appear on an invoice. An agency of
+eight units is genuinely too small, and saying so early is better than a
+migration that neither side enjoys.
 
 The published ladder starts at 70–199 units on Starter: an agency that has grown
 past the spreadsheet and has real staff running the rent run.
@@ -734,7 +763,8 @@ is not their accountant.** The agency's own trust account, its PPRA obligations
 and its auditor are unchanged. Module 8.1.
 
 **"Can we try it free?"**
-There is no free tier. Starter is R6,014. What you can offer is a demo and a
+There is no free tier. The smallest anyone pays is the 30-unit minimum, R2,577;
+published pricing starts at R6,014. What you can offer is a demo and a
 guided onboarding conversation. At this price the demo has to do more work than
 it used to — show the ledger and one owner statement end to end, because that is
 what the number is being judged against.

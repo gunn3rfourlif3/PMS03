@@ -1,8 +1,8 @@
 # Locare — what onboarding needs before it can be handed over
 
-Written 2026-09-05. Owner: Arthur. Companion to
+Written 2026-09-05. Owner: Vernon. Companion to
 `LOCARE_AGENCY_ONBOARDING_RUNBOOK.md`, which is the procedure as it stands
-today. This document is what has to change for someone other than Arthur to run
+today. This document is what has to change for someone other than Vernon to run
 that procedure end to end.
 
 ---
@@ -22,7 +22,7 @@ an agency is a real week of work for one person, and that selling faster than
 you can onboard is how you acquire a reputation you cannot outrun. The partner
 programme is the thing that scales, and a Reseller earning 26% is being paid
 precisely to do this work. A Reseller who cannot complete an onboarding without
-Arthur's SSH session is not a channel; they are a queue.
+Vernon's SSH session is not a channel; they are a queue.
 
 ---
 
@@ -57,7 +57,7 @@ window all six hosts serve valid TLS, with no VPS access and no restart.
 
 Platform-admin rights come only from `PLATFORM_ADMIN_EMAILS`, never from the
 database. Granting an operator admin access therefore requires editing
-`.env.prod` and recreating the API container — so Arthur must deploy in order to
+`.env.prod` and recreating the API container — so Vernon must deploy in order to
 let someone else work.
 
 **Blocks:** Stage 4.2, and every stage that needs Admin.
@@ -75,7 +75,7 @@ the change is audited and takes effect at the operator's next sign-in.
 ### R-3 · A direct-sold agency cannot be created in the UI · **Blocker**
 
 `/admin/agencies` lists and impersonates, nothing more. Agency creation exists
-only via a partner's referral link or a partner's portal. An agency Arthur sells
+only via a partner's referral link or a partner's portal. An agency Vernon sells
 directly must be created by calling `provision_agency()` in SQL on the VPS.
 
 **Blocks:** Stage 1.1 for exactly the customers the audit-season play is aimed
@@ -144,7 +144,7 @@ There is no record of which stage an agency has reached, so a handover between
 two people is a conversation, and a stalled onboarding is invisible. A stored
 checklist per agency — the Definition of Done from the runbook, with who
 completed each item and when — turns onboarding into something a second person
-can pick up and Arthur can audit without asking.
+can pick up and Vernon can audit without asking.
 
 ### R-8 · Tier is hardcoded at provisioning
 
@@ -198,8 +198,8 @@ The middle row is the one that decides whether this is a channel or a queue.
 ## Suggested sequence
 
 **First — free the operator (R-1, R-2, R-3, R-4, R-6).** Together these remove
-every SSH-gated step. They are what turn the runbook from something Arthur
-executes into something Arthur delegates. R-1 is the biggest single piece;
+every SSH-gated step. They are what turn the runbook from something Vernon
+executes into something Vernon delegates. R-1 is the biggest single piece;
 R-3, R-4 and R-6 are small once it lands.
 
 **Second — cut the week (R-5).** Start with the CSV templates, which cost almost

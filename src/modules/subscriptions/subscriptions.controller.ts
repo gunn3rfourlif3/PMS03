@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
 import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
-import { effectivePrice, ladder, nextBand } from './subscription-calc';
+import { billableUnits, customUnitRate, effectivePrice, ladder, MIN_BILLABLE_UNITS, nextBand } from './subscription-calc';
 import { payToDetails } from '@common/config/pay-to';
 
 /** Vendor-facing: an agency sees its own plan (tier, units, MRR) and bills. */
@@ -36,6 +36,12 @@ export class SubscriptionsController {
       overridden,
       ladder: ladder(),
       nextBand: nextBand(sub.unitCount ?? 0),
+      // Custom pricing is unpublished, but never hidden from the agency PAYING
+      // it: they get the rate and the unit count so the total multiplies out.
+      // A fee an agency cannot check for itself is a fee it queries every month.
+      custom: sub.tier === 'custom'
+        ? { unitRate: customUnitRate(), billableUnits: billableUnits(sub.unitCount ?? 0), minUnits: MIN_BILLABLE_UNITS }
+        : null,
       // Null when unconfigured, so the UI hides the EFT panel rather than
       // showing an agency a half-filled set of banking details.
       payTo: payToDetails(),

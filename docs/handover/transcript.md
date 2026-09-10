@@ -2,7 +2,7 @@
 
 Exported 2026-08-13 10:38 from `/sessions/brave-zealous-goldberg/mnt/.claude/projects/C--Users-verno-AppData-Roaming-Claude-local-agent-mode-sessions-9ef9908b-debd-4e07-a111-61161f6b73b7-dd58cb8c-064e-4b5c-9a8d-2cc5ab2d33f0-local-18816095-3370-4288-9995-e25b3cb054dc-outputs/01936f32-305f-4572-9fca-250e9a04618a.jsonl`.
 
-501 messages from Arthur · 5797 from Claude · 3608 tool calls · reasoning omitted (use --thinking)
+501 messages from Vernon · 5797 from Claude · 3608 tool calls · reasoning omitted (use --thinking)
 
 Tool results are summarised to one line. The original `.jsonl` is the complete record if you need exact payloads.
 
@@ -11,7 +11,7 @@ Tool results are summarised to one line. The original `.jsonl` is the complete r
 
 ## 2026-07-01
 
-### 🧑 Arthur · 2026-07-01 16:12
+### 🧑 Vernon · 2026-07-01 16:12
 
 <uploaded_files>
 <file><file_path>PMS-markdown.md</file_path></file>
@@ -136,7 +136,7 @@ I also gave you the thing it lacked entirely: a concrete **data model** (~25 ent
 
 One thing worth flagging: payment rails, trust-account rules, and rent-control/compliance vary enormously by market — if you tell me your target country I can make Parts 3–5 much more specific.
 
-### 🧑 Arthur · 2026-07-01 16:51
+### 🧑 Vernon · 2026-07-01 16:51
 
 I showed the other AI your critique and recommendations and this was the response. Tell what you think? This critique is brilliant. Your reviewer saved you months of infrastructure hell and a massive burn rate before launching a single tenant.
 Moving from a distributed microservices pitch to a modular monolith with strict Row-Level Security (RLS) is the exact right call for an early-stage execution. It preserves the clean separation of concerns you wanted while letting you ship features from a single codebase.
@@ -178,7 +178,7 @@ Where it's **slightly overselling**: "Postgres RLS handles isolation beautifully
 
 Want me to update the spec with the immutable-ledger correction and the RLS/JSONB clarifications?
 
-### 🧑 Arthur · 2026-07-01 16:52
+### 🧑 Vernon · 2026-07-01 16:52
 
 Yes.
 
@@ -237,7 +237,7 @@ Updated. Four changes folded in:
 - **Backend** now recommends NestJS outright with the reasoning, Fastify/Django noted as alternatives.
 - **Mobile** now defaults to Expo with the reasoning, and flags the Capacitor/PWA route only for throwaway prototypes.
 
-### 🧑 Arthur · 2026-07-01 17:04
+### 🧑 Vernon · 2026-07-01 17:04
 
 With "PMS-revision 1.md" fully fleshed out, you have an airtight specification. The strategy is clean: NestJS modular backend, PostgreSQL with RLS + App-layer checks, Redis + BullMQ for asynchronous billing/notifications, and Expo for mobile-first user touchpoints.
 To lock down Phase 0, which backend hosting environment are you leaning toward to run the initial containerized monolith (e.g., AWS ECS, Render, or a VPS provider like Hetzner/DigitalOcean paired with a managed Postgres instance)? I already have a VPS with Hetzner.
@@ -259,7 +259,7 @@ Two things regardless of choice: put object storage (docs, inspection photos) on
 
 One quick question so I can tailor the rest of Phase 0 infra: **which region/market are you launching in first?** It drives the data-residency call, the payment provider (Stripe Connect vs. Stitch/Paystack/Adyen), and the tax/compliance layer.
 
-### 🧑 Arthur · 2026-07-01 17:15
+### 🧑 Vernon · 2026-07-01 17:15
 
 i asked the other AI this - explain the connotations of this questions along with your suggestions and reasons.
 The question your reviewer asked—"Which region/market are you launching in first?"—is the ultimate trapdoor question in SaaS architecture. In property management, a geographical region isn't just a location on a map; it represents an entirely different set of legal, financial, and architectural rules.
@@ -311,7 +311,7 @@ One thing neither of us should gloss over: **latency.** If you're launching in S
 
 And the honest bottom line: I still don't know your target market either — so tell me the country and I'll turn all of the above into specifics (which provider, which region, which deposit/tax rules go into that first policy module). If it's South Africa, my starting guess would be Stitch or Ozow for rails, Hetzner EU + a managed EU Postgres, and a POPIA + PPRA-trust-account policy module as your first implementation — but confirm the market and I'll firm that up.
 
-### 🧑 Arthur · 2026-07-01 17:18
+### 🧑 Vernon · 2026-07-01 17:18
 
 South Africa
 
@@ -372,7 +372,7 @@ Sources:
 - [Stitch — payments platform for South African marketplaces](https://stitch.money/)
 - [Payment gateways in South Africa 2026 overview](https://sashares.co.za/payment-gateways/)
 
-### 🧑 Arthur · 2026-07-01 17:20
+### 🧑 Vernon · 2026-07-01 17:20
 
 Yes
 
@@ -405,7 +405,7 @@ Added **Appendix A — South Africa Launch Blueprint** to the spec, covering the
 
 The spec now runs vision → evaluation → architecture → data model → roadmap → SA launch specifics. Natural next step whenever you're ready is turning Phase 0/1 into actual tickets, or sketching the NestJS module skeleton — say the word.
 
-### 🧑 Arthur · 2026-07-01 17:26
+### 🧑 Vernon · 2026-07-01 17:26
 
 create a new project called PMS0.3
 
@@ -700,7 +700,7 @@ Verification: the TypeScript compiles cleanly (`tsc` exit 0) and the ZA policy t
 
 The whole `PMS0.3` folder is in your outputs. Next natural step is wiring TypeORM to Postgres with the RLS session hook and standing up real auth — want me to do the database layer next?
 
-### 🧑 Arthur · 2026-07-01 17:39
+### 🧑 Vernon · 2026-07-01 17:39
 
 Yes.
 
@@ -1085,7 +1085,7 @@ Verified what's verifiable offline: the pure logic compiles under `tsc --strict`
 
 Next logical step is the BullMQ job queue plus the double-entry posting service (the thing that turns a rent charge into balanced ledger entries) — that's the heart of Phase 1. Want me to build that next?
 
-### 🧑 Arthur · 2026-07-01 17:51
+### 🧑 Vernon · 2026-07-01 17:51
 
 Yes
 
@@ -1422,7 +1422,7 @@ Verified offline: all pure logic compiles under `tsc`, and four unit suites now 
 
 Natural next step is closing the money loop: payment collection and allocation through Stitch (tenant pays → `Dr Bank / Cr AR`, invoice marked paid), then the dunning/late-fee job. Want me to build payments next?
 
-### 🧑 Arthur · 2026-07-01 18:02
+### 🧑 Vernon · 2026-07-01 18:02
 
 yes
 
@@ -1733,7 +1733,7 @@ Verified offline: all pure logic compiles, and five unit suites now pass — ZA 
 
 So the loop is: lease → invoice (+VAT, posted to ledger) → tenant pays via Stitch → payment clears the receivable → unpaid invoices accrue late fees. The natural next step is the **owner/agency side** — deposit trust postings and the deposit-return workflow, then owner statements and split payouts via Paystack (Phase 2). Want me to take that on?
 
-### 🧑 Arthur · 2026-07-01 18:20
+### 🧑 Vernon · 2026-07-01 18:20
 
 Yes
 
@@ -1970,7 +1970,7 @@ Verified: pure logic compiles, and seven suites now pass — added deposit-retur
 
 Phase-2 agency flow is functional end to end. The next meaningful gaps are the **notifications fan-out** (rent-due, payment-received, dunning alerts — the queue's already there), then **documents + e-sign** and the **listings/applicant funnel** to open Phase 3. Want me to do notifications next?
 
-### 🧑 Arthur · 2026-07-01 18:34
+### 🧑 Vernon · 2026-07-01 18:34
 
 yes
 
@@ -2261,7 +2261,7 @@ Verified offline: pure logic compiles, and eight suites now pass — added templ
 
 That rounds out the Phase-1/2 backend: the full rent-and-payout cycle now runs end to end with tenant comms. The remaining Phase-2/3 gaps are **documents + e-sign** (S3 storage for leases/inspections), the **owner-billable expense module** (which closes the one simplification in owner statements), and the **listings/applicant funnel**. Want me to take on documents + e-sign next?
 
-### 🧑 Arthur · 2026-07-01 18:42
+### 🧑 Vernon · 2026-07-01 18:42
 
 Yes
 
@@ -2491,7 +2491,7 @@ That closes the Phase-2 backend. A quick status check on where PMS0.3 stands: th
 
 The two remaining items I've been tracking are the **owner-billable expense module** (small — closes the one simplification in owner statements) and the **listings/applicant funnel** (larger — opens Phase 3: vacancy → listing → application → screening → lease). Want me to do the expense module next, or jump to listings?
 
-### 🧑 Arthur · 2026-07-01 18:51
+### 🧑 Vernon · 2026-07-01 18:51
 
 expense module first
 
@@ -2714,7 +2714,7 @@ Verified: pure logic compiles, and ten suites now pass — added expense-period 
 
 That completes the Phase-2 financial backend end to end. The one remaining item on the roadmap before Phase 3 proper is the **listings/applicant funnel** — vacancy → public listing → application → screening → approved → lease, which is what actually fills a unit (the current code assumes a tenant already exists). Want me to build that next?
 
-### 🧑 Arthur · 2026-07-01 18:59
+### 🧑 Vernon · 2026-07-01 18:59
 
 Yes
 
@@ -2976,7 +2976,7 @@ That completes the roadmap through Phase 3's entry point. Stepping back, PMS0.3 
 
 Everything so far has been verified at the pure-logic level; the one thing I haven't been able to do in this sandbox is a full `npm install && nest build && npm test` and a live run against Postgres/Redis, since the install exceeds the time limit here. That's the natural next milestone on your machine. Beyond that, the remaining spec items are the lighter Phase-3/4 pieces — reporting/rent-roll, inspections-as-data, the public API + webhooks, and hardening (real payment/e-sign SDKs, webhook signature verification). Want me to keep going, or pause here so you can stand it up locally first?
 
-### 🧑 Arthur · 2026-07-01 19:08
+### 🧑 Vernon · 2026-07-01 19:08
 
 Yes, lets stand it up locally. Give me detailed steps.
 
@@ -3076,7 +3076,7 @@ You've hit your session limit · resets 11:10pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-01 21:23
+### 🧑 Vernon · 2026-07-01 21:23
 
 Yes, lets stand it up locally. Give me detailed steps.
 
@@ -3119,7 +3119,7 @@ Go ahead and run through steps 1–7. If anything errors, paste me the exact mes
 
 ## 2026-07-02
 
-### 🧑 Arthur · 2026-07-02 07:16
+### 🧑 Vernon · 2026-07-02 07:16
 
 I want to push this to my repo and then clone it to run it locally.
 
@@ -3184,7 +3184,7 @@ If you'd rather not manage a `.git` folder that originated in the sandbox, delet
 
 If you tell me which host you're using (GitHub, GitLab, Bitbucket) I can give you the exact repo-creation command and tailor the auth step.
 
-### 🧑 Arthur · 2026-07-02 07:20
+### 🧑 Vernon · 2026-07-02 07:20
 
 I want to move the project to C:\xampp\htdocs\development
 
@@ -3261,7 +3261,7 @@ The app runs on **Node + Docker Postgres**, independent of XAMPP — start it wi
 
 And since this came out of a zip rather than a clone, if you want it in version control, run the `git init … / git remote add / git push` sequence from my previous message inside the extracted `PMS0.3` folder.
 
-### 🧑 Arthur · 2026-07-02 07:28
+### 🧑 Vernon · 2026-07-02 07:28
 
 PS C:\xampp\htdocs\development\PMS0.3> npm install
 npm ERR! code EJSONPARSE
@@ -3538,7 +3538,7 @@ Then continue with `LOCAL_SETUP.md`: `docker compose up -d` → `cp .env.example
 
 I verified `package.json` (2412 bytes, valid), `.env.example` (all 42 lines), and spot-checked the largest rewritten services — all intact in the archive. If `npm install` still complains about any file, paste the error and I'll fix that specific file, but the whole-project on-disk sweep came back clean.
 
-### 🧑 Arthur · 2026-07-02 07:53
+### 🧑 Vernon · 2026-07-02 07:53
 
 PS C:\xampp\htdocs\development\PMS0.3> npm install
 npm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
@@ -3593,7 +3593,7 @@ Then in a second terminal: `curl http://localhost:3000/api/billing/health` shoul
 
 The two spots most likely to need attention: `docker compose up -d` needs Docker Desktop running (and ports 5432/6379 free), and `migration:run`/`start:dev` run through `ts-node` — if either throws a TypeScript type error on boot, paste it here and I'll fix that file. Go ahead and run them; tell me what the migration and first `start:dev` output.
 
-### 🧑 Arthur · 2026-07-02 07:58
+### 🧑 Vernon · 2026-07-02 07:58
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose up -d
 time="2026-07-02T09:54:15+02:00" level=warning msg="C:\\xampp\\htdocs\\development\\PMS0.3\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
@@ -3701,7 +3701,7 @@ I'd go with the 5433 route — it's the least disruptive since it leaves your ex
 
 (That `version is obsolete` warning is harmless — you can delete the top `version: "3.9"` line from `docker-compose.yml` to silence it, but it doesn't affect anything.)
 
-### 🧑 Arthur · 2026-07-02 08:05
+### 🧑 Vernon · 2026-07-02 08:05
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose down
 >> docker compose up -d
@@ -3780,7 +3780,7 @@ docker compose exec postgres psql -U pms -d pms -c "select 1"
 
 Start with `docker compose down -v` — I'm fairly confident the leftover volume is it, since a fresh `pms/pms` container accepts those credentials by definition.
 
-### 🧑 Arthur · 2026-07-02 08:11
+### 🧑 Vernon · 2026-07-02 08:11
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose down -v
 >> docker compose up -d
@@ -3875,7 +3875,7 @@ npm run migration:run
 
 I moved Redis to 6380 as well — same foreign-service risk (and it's harmless if nothing was on 6379). The container's credentials are already confirmed good, so once the app talks to port 5433 the auth error disappears and the migrations will run. After that: `npm run seed` → `npm run start:dev`.
 
-### 🧑 Arthur · 2026-07-02 08:15
+### 🧑 Vernon · 2026-07-02 08:15
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose down -v                                       
 >> docker compose up -d
@@ -3989,7 +3989,7 @@ npm run migration:run
 
 The `dotenv/config` line is the real fix — without it the migration CLI ignored `.env` entirely and always used the built-in `localhost:5432` default (your other Postgres). With it, `.env` is honored and the 5433 container answers. You should see seven `Migration ... has been executed successfully` lines. Then `npm run seed` and `npm run start:dev`. Paste the migration output — success or error — and we'll keep going.
 
-### 🧑 Arthur · 2026-07-02 08:22
+### 🧑 Vernon · 2026-07-02 08:22
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose down
 >> docker compose up -d
@@ -4612,7 +4612,7 @@ Expect `{"status":"Billing module ready"}`.
 
 Paste the `seed` output and the `start:dev` boot log. The boot is the last place anything could surface (it connects to Postgres + Redis and registers the BullMQ repeatable jobs), so if it starts cleanly you're over the hump and we can run the full smoke test from `LOCAL_SETUP.md` §7.
 
-### 🧑 Arthur · 2026-07-02 08:29
+### 🧑 Vernon · 2026-07-02 08:29
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev
 > pms@0.3.0 start:dev
@@ -4715,7 +4715,7 @@ Drop the staged file in over your copy and re-run `npm run start:dev`. You're ve
 
 If for any reason the boot surfaces another truncated file, tell me the module name in the error and I'll regenerate that one immediately — but the strict full-zip audit now comes back clean, so I don't expect more.
 
-### 🧑 Arthur · 2026-07-02 08:37
+### 🧑 Vernon · 2026-07-02 08:37
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev
 > pms@0.3.0 start:dev
@@ -4805,7 +4805,7 @@ This was a real wiring bug, not a truncation — and I've now traced every cross
 
 Paste the boot log. If it comes up, hit `curl http://localhost:3000/api/billing/health` and then we run the smoke test.
 
-### 🧑 Arthur · 2026-07-02 08:43
+### 🧑 Vernon · 2026-07-02 08:43
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev
 > pms@0.3.0 start:dev
@@ -4943,7 +4943,7 @@ Every module initialized, so the DI graph is fully sound now — this was the la
 
 On the next boot you should see it get **past** `SELECT version()` without the retry loop, then `Nest application successfully started` / `PMS API listening on :3000`, plus a `Recurring rent-invoice + dunning jobs ensured` log from the scheduler. Paste it — and if it's up, `curl http://localhost:3000/api/billing/health` and we start the smoke test.
 
-### 🧑 Arthur · 2026-07-02 08:46
+### 🧑 Vernon · 2026-07-02 08:46
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev
 > pms@0.3.0 start:dev
@@ -5097,7 +5097,7 @@ Run those three and paste the results (health output, the OTP line from the serv
 
 Quick note on the smoke test in `LOCAL_SETUP.md`: those examples use bash-style `-d '{...}'` single quotes. Since you're in PowerShell, either use the escaped-double-quote form I wrote above, or run the commands from Git Bash/WSL where the doc's originals work as-is.
 
-### 🧑 Arthur · 2026-07-02 08:48
+### 🧑 Vernon · 2026-07-02 08:48
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run seed
 > pms@0.3.0 seed
@@ -5144,7 +5144,7 @@ docker compose exec postgres psql -U pms -d pms -c "select id, label, status fro
 
 Paste the token output and the units query result. Then we'll create a listing for that unit, run an applicant through to approval, generate an invoice, and settle a payment — all with `Invoke-RestMethod` so the JSON stays clean. (Alternatively, if you'd rather use the exact `curl` commands from `LOCAL_SETUP.md`, run them in Git Bash/WSL instead of PowerShell.)
 
-### 🧑 Arthur · 2026-07-02 08:52
+### 🧑 Vernon · 2026-07-02 08:52
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run seed
 > pms@0.3.0 seed
@@ -5210,7 +5210,7 @@ Paste the token output (or the server's OTP line if you can't find it), and run 
 docker compose exec postgres psql -U pms -d pms -c "select id, label, status from units;"
 ```
 
-### 🧑 Arthur · 2026-07-02 08:54
+### 🧑 Vernon · 2026-07-02 08:54
 
 PS C:\xampp\htdocs\development\PMS0.3> $verify = @{ destination = "owner@demo.test"; code = "203101" } | ConvertTo-Json
 >> $resp = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/otp/verify" -Method Post -ContentType "application/json" -Body $verify
@@ -5254,7 +5254,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/listings/applications/$($a.id)
 
 Paste the output. If the last call returns an application with `status: approved` and a `leaseId`, the funnel worked end-to-end — then we bill that lease and take a payment.
 
-### 🧑 Arthur · 2026-07-02 08:58
+### 🧑 Vernon · 2026-07-02 08:58
 
 PS C:\xampp\htdocs\development\PMS0.3> # 1. list your vendor's units (RLS-scoped) and grab the vacant one
 >> $units = Invoke-RestMethod -Uri "http://localhost:3000/api/properties/units" -Headers $auth
@@ -5367,7 +5367,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/billing/run" -Method Post -Con
 
 But do the funnel steps first — paste those results and we'll go from there.
 
-### 🧑 Arthur · 2026-07-02 09:05
+### 🧑 Vernon · 2026-07-02 09:05
 
 PS C:\xampp\htdocs\development\PMS0.3> # 1. list your vendor's units (RLS-scoped) and grab the vacant one
 >> $units = Invoke-RestMethod -Uri "http://localhost:3000/api/properties/units" -Headers $auth
@@ -5447,7 +5447,7 @@ docker compose exec postgres psql -U pms -d pms -c "select status from invoices 
 
 Paste the results of A (the invoice row) and B (invoice status + the ledger sums). If the invoice flips to `paid` and every ledger transaction shows `dr = cr`, the accounting is provably balanced and you've driven the entire lifecycle locally — listing → application → lease → invoice → payment.
 
-### 🧑 Arthur · 2026-07-02 09:14
+### 🧑 Vernon · 2026-07-02 09:14
 
 PS C:\xampp\htdocs\development\PMS0.3> $run = @{ period = "2026-08"; dueDate = "2026-08-07" } | ConvertTo-Json
 >> Invoke-RestMethod -Uri "http://localhost:3000/api/billing/run" -Method Post -ContentType "application/json" -Headers $auth -Body $run
@@ -5475,7 +5475,7 @@ docker compose exec postgres psql -U pms -d pms -c "select status from invoices 
 
 Expect the invoice to flip to `paid`, and every ledger `transaction_id` to show `dr = cr` — including the two invoice-side entries (AR 9200 / rental 8000 + VAT 1200) and the payment entry (bank 9200 / AR 9200). Paste that and it's a wrap on the full lifecycle.
 
-### 🧑 Arthur · 2026-07-02 09:17
+### 🧑 Vernon · 2026-07-02 09:17
 
 PS C:\xampp\htdocs\development\PMS0.3> $invoiceId = "2ad3553b-eee5-4464-bfd2-01e96c27ec28"
 >> $init = @{ method = "eft" } | ConvertTo-Json
@@ -5549,7 +5549,7 @@ After this, the webhook will resolve the payment's vendor, settle in that contex
 
 One thing worth calling out now that we've hit this pattern twice: both public endpoints (apply, and now the webhooks) needed the same "resolve vendor from a reference, then run in that vendor's context" treatment. That's the correct design for any unauthenticated entry point into a tenant-scoped system — so if you later add more public routes or provider webhooks, reuse this exact pattern (SECURITY DEFINER lookup → `TenantRunner.runInVendorContext`). It's the one genuinely non-obvious architectural rule in the codebase, and it's now consistent across all three spots.
 
-### 🧑 Arthur · 2026-07-02 09:22
+### 🧑 Vernon · 2026-07-02 09:22
 
 PS C:\xampp\htdocs\development\PMS0.3> $invoiceId = "2ad3553b-eee5-4464-bfd2-01e96c27ec28"
 >> $hook = @{ gatewayRef = "stitch_$invoiceId"; status = "succeeded" } | ConvertTo-Json
@@ -5587,7 +5587,7 @@ Two known dev-only caveats worth writing down for later: your local Postgres rol
 
 If you'd like, next time we can (a) wire a proper non-superuser DB role and confirm RLS blocks cross-tenant access, (b) run `npm test` to see the eleven unit suites pass in your environment, or (c) start on the Phase-3/4 items still on the roadmap (reporting/rent-roll, inspections, public API). For now — it runs. Nicely done pushing it all the way through.
 
-### 🧑 Arthur · 2026-07-02 09:32
+### 🧑 Vernon · 2026-07-02 09:32
 
 Lets do all in that exact order.
 
@@ -5652,7 +5652,7 @@ Expected: context **A** sees only A's unit(s), **B** sees only B's (1), **none**
 
 Paste the outputs of steps 2 and 5. Once RLS is confirmed, we go to **(b)** `npm test`.
 
-### 🧑 Arthur · 2026-07-02 09:44
+### 🧑 Vernon · 2026-07-02 09:44
 
 PS C:\xampp\htdocs\development\PMS0.3> # vendor B + a unit (owner role, bypasses RLS to set up cross-tenant data)
 >> docker compose exec postgres psql -U pms -d pms -c "INSERT INTO vendors (id,name,type) VALUES ('11111111-1111-1111-1111-111111111111','Vendor B','agency') ON CONFLICT DO NOTHING; INSERT INTO properties (id,vendor_id,name,type) VALUES ('22222222-2222-2222-2222-222222222222','11111111-1111-1111-1111-111111111111','B Court','building') ON CONFLICT DO NOTHING; INSERT INTO units (vendor_id,property_id,label,status,market_rent) VALUES ('11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222','B-101','vacant',5000);"
@@ -5719,7 +5719,7 @@ npm test
 
 That runs the eleven Jest suites (ZA policy, OTP, double-entry, invoice math, payments, deposits, owner statements, notifications, documents, expenses, screening). They're pure-logic tests with the alias resolution we set up in `jest.config.js`, so they don't touch the DB — expect all green. Paste both the `0` result and the `npm test` summary.
 
-### 🧑 Arthur · 2026-07-02 09:49
+### 🧑 Vernon · 2026-07-02 09:49
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose exec postgres psql -U pms_app -d pms -c "RESET app.current_vendor_id; SELECT count(*) FROM units;"
 time="2026-07-02T11:47:37+02:00" level=warning msg="C:\\xampp\\htdocs\\development\\PMS0.3\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
@@ -5805,7 +5805,7 @@ Drop the four files in and hit those three endpoints — paste what they return.
 
 Once you confirm reporting works live, the remaining Phase-3/4 roadmap items are **inspections-as-data** (move-in/move-out checklists with photos, tied to the deposit-return flow we already built) and the **public API + webhooks hardening** (signature verification on the payment/e-sign webhooks, rate limiting, API keys). I'd suggest inspections next since it closes a real loop — the deposit-return deductions currently take raw numbers, and inspections would generate them with an audit trail. Want me to build inspections after you verify reporting, or reprioritize?
 
-### 🧑 Arthur · 2026-07-02 09:58
+### 🧑 Vernon · 2026-07-02 09:58
 
 PS C:\xampp\htdocs\development\PMS0.3> Invoke-RestMethod -Uri "http://localhost:3000/api/reporting/rent-roll" -Headers $auth
 >> Invoke-RestMethod -Uri "http://localhost:3000/api/reporting/arrears" -Headers $auth
@@ -5901,7 +5901,7 @@ Expected: `deductionsTotal: 1500`, and the deposit comes back `partially_returne
 
 That's the inspections feature and the deposit loop closed. Once you paste the result (expecting `deductionsTotal: 1500`, deposit `partially_returned`), the only remaining roadmap item is **public-API / webhook hardening** — signature verification on the payment and e-sign webhooks, plus rate limiting and API keys for external integrators. That's the last thing standing between this and something you'd expose to the internet. We can tackle it next, or pause here — your call after you confirm inspections works.
 
-### 🧑 Arthur · 2026-07-02 10:31
+### 🧑 Vernon · 2026-07-02 10:31
 
 PS C:\xampp\htdocs\development\PMS0.3> $leaseId = "7d93a347-2b1f-4eb9-875f-a231a0fa5725"
 >> $unitId  = "92750386-9dfb-4fb9-b30e-b7d06042477a"
@@ -5978,7 +5978,7 @@ Then paste the inspection block again — it'll work now. (Confirm the server ac
 
 Expected once authed: `deductionsTotal: 1500` and the deposit `partially_returned` (6500 refunded, 1500 withheld).
 
-### 🧑 Arthur · 2026-07-02 10:32
+### 🧑 Vernon · 2026-07-02 10:32
 
 }
 PS C:\xampp\htdocs\development\PMS0.3> # fresh OTP
@@ -6017,7 +6017,7 @@ $auth = @{ Authorization = "Bearer $($resp.accessToken)" }
 
 Use the actual code (it's valid for 5 minutes). Once `token refreshed` prints, re-run the inspection block and paste the result.
 
-### 🧑 Arthur · 2026-07-02 10:35
+### 🧑 Vernon · 2026-07-02 10:35
 
 PS C:\xampp\htdocs\development\PMS0.3> $resp = Invoke-RestMethod -Uri "http://localhost:3000/api/auth/otp/verify" -Method Post -ContentType "application/json" -Body (@{ destination="owner@demo.test"; code="775130" } | ConvertTo-Json)
 >> $auth = @{ Authorization = "Bearer $($resp.accessToken)" }
@@ -6058,7 +6058,7 @@ That completes **inspections**, and with it everything from your "(a), (b), (c)"
 
 The one remaining roadmap item is **webhook/API hardening** — provider signature verification on the payment and e-sign webhooks (right now they trust the request body), plus rate limiting and API keys for external callers. That's the gate before exposing this to the internet. Want me to build that next, or pause here?
 
-### 🧑 Arthur · 2026-07-02 10:38
+### 🧑 Vernon · 2026-07-02 10:38
 
 PS C:\xampp\htdocs\development\PMS0.3> docker compose exec postgres psql -U pms -d pms -c "SELECT amount, interest_accrued, status, deductions FROM deposits ORDER BY created_at DESC LIMIT 1; SELECT transaction_id, sum(debit) dr, sum(credit) cr FROM ledger_entries GROUP BY transaction_id ORDER BY min(created_at) DESC LIMIT 2;"
 time="2026-07-02T12:36:00+02:00" level=warning msg="C:\\xampp\\htdocs\\development\\PMS0.3\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
@@ -6188,7 +6188,7 @@ The one genuinely separable feature still open is **API keys for external/machin
 
 Want me to build the API-key layer next, or is this a good place to pause and commit? If you're pausing: `git init` in the working folder and push *that* (it now has all the fixes and features — the older zips are stale), and you're in good shape.
 
-### 🧑 Arthur · 2026-07-02 11:07
+### 🧑 Vernon · 2026-07-02 11:07
 
 PS C:\xampp\htdocs\development\PMS0.3> npm test         
 > pms@0.3.0 test
@@ -6270,7 +6270,7 @@ git push -u origin main
 
 The remaining genuinely-open item is the **API-key layer** for external/machine-to-machine integrators (its own auth surface). Everything else is either built or sensibly post-MVP (frontend apps, IoT, AI triage, prod infra/CI). Happy to build the API-key layer next, or we can leave it here — your call.
 
-### 🧑 Arthur · 2026-07-02 11:11
+### 🧑 Vernon · 2026-07-02 11:11
 
 Build the API key layer.
 
@@ -6365,7 +6365,7 @@ The genuinely remaining work is no longer "core platform" — it's the things th
 
 Strong recommendation now: **commit and push** (`git init` in the working folder → your repo), since your local folder is the definitive source and the patch zips were just transport. After that, this is a solid, honest foundation to build the frontend against or hand to a team. Happy to help with any of the frontend or deployment pieces whenever you want — or to do a final end-to-end review pass. Nicely done seeing it all the way through.
 
-### 🧑 Arthur · 2026-07-02 11:24
+### 🧑 Vernon · 2026-07-02 11:24
 
 PS C:\xampp\htdocs\development\PMS0.3> npm test         
 > pms@0.3.0 test
@@ -6449,7 +6449,7 @@ git push -u origin main
 
 From here it's genuinely post-MVP territory: the mobile/web frontends, swapping the Stitch/Paystack/S3/DocuSign stubs for real credentials, and production deployment/CI on your Hetzner box. Whenever you want to start any of those — or want a final architecture review before you hand this to a team — I'm ready. This was a serious build, and you carried it all the way from a one-page spec to a running, hardened system. Well done.
 
-### 🧑 Arthur · 2026-07-02 12:06
+### 🧑 Vernon · 2026-07-02 12:06
 
 lets do the mobile/web frontends - show me a sample design
 
@@ -6638,7 +6638,7 @@ Get-ChildItem -Path "C:\xampp\htdocs\development\PMS0.3\src\app.module.ts" | Unb
 
 Do the same for the `mobile-tenant-app.zip` (extract via Git Bash `unzip`, or Unblock the zip first). Once the files are in place, restart the API and continue — the block has no effect on the code itself.
 
-### 🧑 Arthur · 2026-07-02 12:33
+### 🧑 Vernon · 2026-07-02 12:33
 
 PS C:\xampp\htdocs\development\PMS0.3> unzip -o ~/Downloads/tenant-selfservice-patch.zip
 unzip: The term 'unzip' is not recognized as a name of a cmdlet, function, script file, or executable program.
@@ -6688,7 +6688,7 @@ Then press `w` for the browser. Because you unblocked the zip *before* extractin
 
 If you'd prefer to avoid this dance entirely in future, the real `unzip` command exists inside **Git Bash** (which you have — we used it earlier), so opening a Git Bash window and running the `unzip -o ...` commands works there; it's only PowerShell that lacks `unzip`.
 
-### 🧑 Arthur · 2026-07-02 13:19
+### 🧑 Vernon · 2026-07-02 13:19
 
 There's nothing coming through on the server console
 
@@ -6758,7 +6758,7 @@ And whenever you're ready to preserve everything: commit the backend (`PMS0.3`) 
 
 Which would you like next — the web back-office, the landlord app, or polishing the tenant app? Or pause and commit.
 
-### 🧑 Arthur · 2026-07-02 13:27
+### 🧑 Vernon · 2026-07-02 13:27
 
 PS C:\xampp\htdocs\development\PMS0.3> # refresh manager token if needed (owner@demo.test), then:
 >> $run = @{ period = "2026-09"; dueDate = "2026-09-07" } | ConvertTo-Json
@@ -6796,7 +6796,7 @@ Two notes so this is less annoying going forward:
 - The manager (`owner@demo.test`) and tenant (`thabo@demo.test`) are **different logins** with different tokens — that's correct behaviour (role separation), just remember which terminal/token is which.
 - If you want longer sessions during dev, bump `JWT_EXPIRES_IN=1h` to something like `12h` in `.env` and restart. (Keep it short in production.)
 
-### 🧑 Arthur · 2026-07-02 13:50
+### 🧑 Vernon · 2026-07-02 13:50
 
 give me the code to get a new token
 
@@ -6816,7 +6816,7 @@ After it prints `token refreshed`, `$auth` is ready — run your billing command
 
 If you'd like to stop doing this every hour during dev, set `JWT_EXPIRES_IN=12h` in `.env` and restart the API; tokens will then last the workday. (Keep it short — 1h or less — in production.)
 
-### 🧑 Arthur · 2026-07-02 14:20
+### 🧑 Vernon · 2026-07-02 14:20
 
 [OTP] owner@demo.test -> 761236
 query: COMMIT
@@ -6855,7 +6855,7 @@ Paste all four. What I'm checking:
 
 Once I see those, the fix is quick.
 
-### 🧑 Arthur · 2026-07-02 14:23
+### 🧑 Vernon · 2026-07-02 14:23
 
 PS C:\xampp\htdocs\development\PMS0.3> $run = @{ period = "2026-09"; dueDate = "2026-09-07" } | ConvertTo-Json                                           
 >> Invoke-RestMethod -Uri "http://localhost:3000/api/billing/run" -Method Post -ContentType "application/json" -Headers $auth -Body $run
@@ -6894,7 +6894,7 @@ That's the full tenant loop working live: log in → see due rent → pay. You'v
 
 Good spot to commit both (`PMS0.3` and `mobile-tenant`). Whenever you're ready to keep building, the next surfaces are the **Next.js web back-office** (richest — rent roll, listings, owner statements) or the **landlord pocket-analytics app**. Just say which.
 
-### 🧑 Arthur · 2026-07-02 14:32
+### 🧑 Vernon · 2026-07-02 14:32
 
 PS C:\xampp\htdocs\development\PMS0.3\mobile-tenant> npm install && npm start
 up to date, audited 1161 packages in 15s
@@ -6936,7 +6936,7 @@ If you want it permanent, change the `start` script in `mobile-tenant/package.js
 
 Once `w` opens the browser, refresh and you should land on the login → then the dashboard with the September rent **Due** and a working Pay button.
 
-### 🧑 Arthur · 2026-07-02 14:41
+### 🧑 Vernon · 2026-07-02 14:41
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev
 > pms@0.3.0 start:dev
@@ -7185,7 +7185,7 @@ That closes the last rough edge in the live tenant loop. Everything's working: l
 
 You've now got the backend and the tenant app both running and hardened. Good checkpoint to **commit both** (`PMS0.3` and `mobile-tenant`). When you're ready for more, the open build items are the **Next.js web back-office** and the **landlord app** — say the word and I'll scaffold whichever you want next.
 
-### 🧑 Arthur · 2026-07-02 15:14
+### 🧑 Vernon · 2026-07-02 15:14
 
 give me the commands to commit both PMS0.3 and mobile-tenant
 
@@ -7246,7 +7246,7 @@ cd C:\xampp\htdocs\development\mobile-tenant
 
 I'd go with the **single repo** unless you have a specific reason to split — it's less to manage and both pieces are versioned together. Create the empty repo on your host (no README/gitignore/license so there's nothing to merge), and use its URL for `<YOUR_REPO_URL>`.
 
-### 🧑 Arthur · 2026-07-02 15:24
+### 🧑 Vernon · 2026-07-02 15:24
 
 Done. What's next?
 
@@ -7347,7 +7347,7 @@ Attached above. Extract, `npm install`, `npm run dev`, and open `localhost:3001`
 
 Paste how it looks (or any boot error) and I'll either fix it or move on to completing the console with the Owners + Applications pages (needs those two small backend GET endpoints, which I'll add alongside).
 
-### 🧑 Arthur · 2026-07-02 19:49
+### 🧑 Vernon · 2026-07-02 19:49
 
 give me a breakdown of the system as it stands - features
 
@@ -7412,7 +7412,7 @@ Want this as a Markdown file for the repo (e.g. `docs/STATUS.md`), or should I k
 
 ## 2026-07-03
 
-### 🧑 Arthur · 2026-07-03 08:23
+### 🧑 Vernon · 2026-07-03 08:23
 
 complete the back office
 
@@ -7520,7 +7520,7 @@ Try the two new pages — the Applications table should show Thabo's approved ap
 
 That's all three surfaces now substantially built (backend, tenant app, manager web). Good moment to commit. When you want to keep going, the remaining meaningful pieces are the **maintenance/ticketing module** (the one real backend gap), the **landlord mobile app**, or a **deploy + CI** pass to get it live on Hetzner.
 
-### 🧑 Arthur · 2026-07-03 08:38
+### 🧑 Vernon · 2026-07-03 08:38
 
 I don't have a web-admin folder.
 
@@ -7546,7 +7546,7 @@ Also make sure you applied the **`backoffice-endpoints-patch.zip`** into `PMS0.3
 
 Paste the result once it's up (or any boot error) and we'll take it from there.
 
-### 🧑 Arthur · 2026-07-03 09:17
+### 🧑 Vernon · 2026-07-03 09:17
 
 PS C:\xampp\htdocs\development\PMS0.3\web-admin> npm install
 npm WARN deprecated next@14.2.5: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
@@ -7600,7 +7600,7 @@ That's the full three-surface system running: backend + tenant app + manager web
 
 When you're ready for the next thing, the honest remaining items are the **maintenance/ticketing module** (last real backend gap — unblocks the tenant app's "log ticket"), the **landlord mobile app**, or a **deploy + CI** pass onto your Hetzner box. Which way do you want to go?
 
-### 🧑 Arthur · 2026-07-03 09:32
+### 🧑 Vernon · 2026-07-03 09:32
 
 lets do the ticketing module and then the landlord app
 
@@ -7720,7 +7720,7 @@ That wraps up the two you asked for — the ticketing gap is closed (with the co
 
 Give them a run and paste anything that errors. Whenever you're ready, the last big-ticket item left is **deploy + CI** — getting this onto your Hetzner box with managed EU Postgres and `npm test`/build on every push — which turns all of this from "runs on my machine" into something real. Or commit where you are; it's a genuinely substantial, working system now.
 
-### 🧑 Arthur · 2026-07-03 09:53
+### 🧑 Vernon · 2026-07-03 09:53
 
 PS C:\xampp\htdocs\development\PMS0.3> $t = Invoke-RestMethod -Uri "http://localhost:3000/api/maintenance/tickets" -Method Post -ContentType "application/json" -Headers $auth -Body (@{ unitId="92750386-9dfb-4fb9-b30e-b7d06042477a"; category="plumbing"; description="Leaking tap"; priority="high" } | ConvertTo-Json)
 >> $wo = Invoke-RestMethod -Uri "http://localhost:3000/api/maintenance/tickets/$($t.id)/work-order" -Method Post -ContentType "application/json" -Headers $auth -Body (@{} | ConvertTo-Json)
@@ -7809,7 +7809,7 @@ docker compose exec postgres psql -U pms -d pms -c "SELECT status FROM tickets O
 
 Two things to make the token dance less painful during dev, both optional: bump `JWT_EXPIRES_IN` to `12h` in `.env` and restart, and confirm the maintenance patch actually landed — if `POST /maintenance/tickets` ever returns `404` (not `401`), the patch didn't apply or migrations didn't run; a `401` just means the token, which the refresh above fixes.
 
-### 🧑 Arthur · 2026-07-03 09:57
+### 🧑 Vernon · 2026-07-03 09:57
 
 PS C:\xampp\htdocs\development\PMS0.3\mobile-landlord> Invoke-RestMethod -Uri "http://localhost:3000/api/auth/otp/request" -Method Post -ContentType "application/json" -Body (@{ destination="owner@demo.test" } | ConvertTo-Json)
 >> $code = Read-Host "OTP from server console"
@@ -7854,7 +7854,7 @@ Line |
 }
 PS C:\xampp\htdocs\development\PMS0.3\mobile-landlord>
 
-### 🧑 Arthur · 2026-07-03 09:59
+### 🧑 Vernon · 2026-07-03 09:59
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -8002,7 +8002,7 @@ npm run migration:run
 
 If the table *does* exist, then it's something else in the insert — paste the red stack-trace line from the API console (the `ERROR [ExceptionsHandler]` line) and I'll pin it exactly. My first suspect in that case would be the `reporterId` uuid column: `CurrentTenant` returns the JWT's `userId`, and if that claim isn't a valid UUID the insert throws `invalid input syntax for type uuid`. The server log will tell us which it is.
 
-### 🧑 Arthur · 2026-07-03 10:05
+### 🧑 Vernon · 2026-07-03 10:05
 
 PS C:\xampp\htdocs\development\PMS0.3> cd .\mobile-landlord\                                                           
 PS C:\xampp\htdocs\development\PMS0.3\mobile-landlord> cd .\mobile-landlord\Invoke-RestMethod -Uri "http://localhost:3000/api/auth/otp/request" -Method Post -ContentType "application/json" -Body (@{ destination="owner@demo.test" } | ConvertTo-Json)                               
@@ -8025,7 +8025,7 @@ docker compose exec postgres psql -U pms -d pms -c "\dt tickets"
 
 Paste what that returns. If it lists a `tickets` table, we go to the token/insert step; if it says no relation found, the migration hasn't run and that's your 500. Either way, that one line tells us which.
 
-### 🧑 Arthur · 2026-07-03 10:06
+### 🧑 Vernon · 2026-07-03 10:06
 
 PS C:\xampp\htdocs\development\PMS0.3\mobile-landlord> docker compose exec postgres psql -U pms -d pms -c "\dt tickets"
 time="2026-07-03T12:05:58+02:00" level=warning msg="C:\\xampp\\htdocs\\development\\PMS0.3\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
@@ -8080,7 +8080,7 @@ Invoke-RestMethod -Uri "http://localhost:3000/api/maintenance/tickets" -Method P
 
 Then switch to the **API terminal window** and copy the red block — the line starting `ERROR [ExceptionsHandler]` plus a few lines under it. That names the exact failure (e.g. `permission denied for table tickets`, `invalid input syntax for type uuid`, or an RLS `new row violates row-level security policy`). Paste it and I'll give you the one-line fix.
 
-### 🧑 Arthur · 2026-07-03 10:08
+### 🧑 Vernon · 2026-07-03 10:08
 
 [Nest] 7156  - 2026/07/03, 12:02:36     LOG [NestApplication] Nest application successfully started +3ms
 PMS API listening on :3000
@@ -8098,7 +8098,7 @@ That's just the OTP request portion — it cuts off before the ticket insert. Co
 
 I'm looking for the block that contains `INSERT INTO "tickets"` and whatever error follows it. That query line (with its `PARAMETERS: [...]`) plus the `ERROR [ExceptionsHandler]` underneath is exactly what pins the cause.
 
-### 🧑 Arthur · 2026-07-03 10:09
+### 🧑 Vernon · 2026-07-03 10:09
 
 [OTP] owner@demo.test -> 638892
 query: COMMIT
@@ -8138,7 +8138,7 @@ docker compose exec postgres psql -U pms -d pms -c "SELECT category, amount FROM
 
 Should read `resolved` and `maintenance | 750`. Paste the results and we've got the ticketing module verified end-to-end — then the landlord app is the last piece.
 
-### 🧑 Arthur · 2026-07-03 10:10
+### 🧑 Vernon · 2026-07-03 10:10
 
 [Nest] 7156  - 2026/07/03, 12:10:25   DEBUG [LedgerService] Posted txn 328d7ae4-8b99-4bb6-88ae-c67d17e1da34 (2 lines)
 query: INSERT INTO "expenses"("id", "vendor_id", "created_at", "updated_at", "deleted_at", "property_id", "unit_id", "owner_id", "category", "amount", "vendor_bill_ref", "owner_billable", "incurred_on", "status", "document_id", "statement_id", "ledger_txn_id") VALUES (DEFAULT, $1, DEFAULT, DEFAULT, DEFAULT, DEFAULT, $2, DEFAULT, $3, $4, DEFAULT, $5, $6, $7, DEFAULT, DEFAULT, $8) RETURNING "id", "created_at", "updated_at", "deleted_at", "owner_billable", "status" -- PARAMETERS: ["666c6cb0-e6ab-4706-b5d7-7e82f5952769","92750386-9dfb-4fb9-b30e-b7d06042477a","maintenance",750,0,"2026-07-03","recorded","328d7ae4-8b99-4bb6-88ae-c67d17e1da34"]
@@ -8222,7 +8222,7 @@ The **frontends** are all standing up against it: the tenant app (login → view
 
 The main thing still outstanding from earlier is deployment — getting this onto your Hetzner box with managed Postgres and a CI pipeline that runs tests/build on push, plus committing everything to git. Want to tackle that next, or is there another module or polish item you'd rather do first?
 
-### 🧑 Arthur · 2026-07-03 10:18
+### 🧑 Vernon · 2026-07-03 10:18
 
 But if you'd rather the two read consistently (e.g. rate net of prior arrears), that's a one-line change in the metric calc — say the word. - I want it to be intuitive.
 
@@ -8303,7 +8303,7 @@ Sounds good — left untouched. Whenever you want to revisit it, I've now got di
 
 Where to next? The main open item is deployment — getting this onto your Hetzner box with managed Postgres and a CI pipeline (tests + build on push), plus committing everything to git. Or we can keep building features. Your call.
 
-### 🧑 Arthur · 2026-07-03 10:30
+### 🧑 Vernon · 2026-07-03 10:30
 
 I want to polish up the UI - make it look like the mock-ups and configurable(logos, color scheme, font, contact details, etc.)
 
@@ -9010,7 +9010,7 @@ You've hit your session limit · resets 2:10pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-03 12:50
+### 🧑 Vernon · 2026-07-03 12:50
 
 The arrears aging doesn't make sense
 
@@ -9134,7 +9134,7 @@ Two housekeeping notes: `tsconfig.tmpcheck.json` in the project root couldn't be
 
 ## 2026-07-04
 
-### 🧑 Arthur · 2026-07-04 09:26
+### 🧑 Vernon · 2026-07-04 09:26
 
 what's next?
 
@@ -9236,7 +9236,7 @@ One thing to note: since you'd set the landlord app's slug to `rivonia` earlier,
 
 That rounds out the theming into a self-serve feature. The remaining big-ticket items whenever you want them: deploying to Hetzner with CI, filling in the feature UIs (tenant ticket filing, landlord ticket management, owner statements), or a test/hardening pass. Want to keep going, or pause here?
 
-### 🧑 Arthur · 2026-07-04 09:38
+### 🧑 Vernon · 2026-07-04 09:38
 
 fill in the feature UIs (tenant ticket filing, landlord ticket management, owner statements)
 
@@ -9616,7 +9616,7 @@ To see it: restart the API (for `/me/profile`), then reload both Expo apps. The 
 
 One heads-up: I built the tenant bottom bar as a custom component rather than pull in `@react-navigation/bottom-tabs` (which the tenant app doesn't have installed), so there's no `npm install` needed — just reload.
 
-### 🧑 Arthur · 2026-07-04 10:30
+### 🧑 Vernon · 2026-07-04 10:30
 
 create scripts i can run to test the frontend - login etc.
 
@@ -9695,7 +9695,7 @@ Each step prints `[PASS]`/`[FAIL]` with the JSON, so you see exactly what the ap
 
 A couple of notes: the API must be running (`npm run dev`) with migrations + seed applied; and these hit the real dev DB, so they create real rows (a ticket, a payment attempt, a statement) — intentional for a smoke test, and safe to re-run. If any call returns 401, the cached token expired — re-run the matching `login.ps1`. To point at a deployed host later: `$env:PMS_API = 'https://your-host/api'`.
 
-### 🧑 Arthur · 2026-07-04 10:43
+### 🧑 Vernon · 2026-07-04 10:43
 
 I want you to use a framework to create a premium looking UI. material/tailwind or whatever. very responsive and intuitive.
 
@@ -9888,7 +9888,7 @@ Want me to go ahead with the mobile glassmorphism now, or would you rather get t
 
 ## 2026-07-05
 
-### 🧑 Arthur · 2026-07-05 20:23
+### 🧑 Vernon · 2026-07-05 20:23
 
 yes
 
@@ -10028,7 +10028,7 @@ If any icon still shows a box right after reload, it's a stale bundle cache; sto
 
 Everything typechecks clean apart from `expo-blur`/`expo-linear-gradient`, which you still need to `npx expo install` per the previous step for the glass effects. Once those are in and the font loads, the tenant app should show frosted cards, the gradient backdrop, and crisp icons together.
 
-### 🧑 Arthur · 2026-07-06 10:09
+### 🧑 Vernon · 2026-07-06 10:09
 
 Use a better,  more premium looking default font throughout the app.
 
@@ -10125,7 +10125,7 @@ Fixed and clean. The text was being typed all along — the frosted blur layer w
 
 Just reload the tenant app; you'll see your typing appear in the box. This same fix applies anywhere a glass card wraps an input (e.g. the landlord period field, login fields), so those get sharper too.
 
-### 🧑 Arthur · 2026-07-06 11:51
+### 🧑 Vernon · 2026-07-06 11:51
 
 Take a look at the navbar in the EternalGuard project - i want to implement something similar here.
 
@@ -10187,7 +10187,7 @@ Just reload the tenant app to see it. The center "+" now duplicates the "Log tic
 
 One note on scope: I applied this to the **tenant** app since that's what you've been viewing, and the center-FAB pattern fits it naturally (a clear primary action). The **landlord** app uses a different navigator (react-navigation tabs, 3 items with no obvious center action), so I left it on its frosted tab bar. If you want the landlord app on the same floating-pill style too, I can build a custom tab bar for it — just say the word, and whether the center should be a FAB (e.g. quick "new listing") or just a 3-item pill.
 
-### 🧑 Arthur · 2026-07-06 12:02
+### 🧑 Vernon · 2026-07-06 12:02
 
 give me the steps to run this app
 
@@ -10278,7 +10278,7 @@ Ports: API `3000`, web `3001`, Postgres `5433`, Redis `6380`, Expo `8081`. The `
 
 Day-to-day after the first setup, it's just three windows: `npm run start:dev` (API), `npm run dev` (web), `npm start` (each mobile app). Only re-run `migration:run` when there are new migrations, and only re-run the installs when I've added a package. If you'd like, I can drop this into a `RUN.md` in the project so it's always at hand.
 
-### 🧑 Arthur · 2026-07-06 12:21
+### 🧑 Vernon · 2026-07-06 12:21
 
 put this is in markdown document
 
@@ -10300,7 +10300,7 @@ I'll write the runbook to `RUN.md` in the project root.
 
 Saved as `RUN.md` in the project root. It covers the backend + database setup, the web console, both mobile apps, login details, the brand switch, ports, a day-to-day quick reference, the optional API test scripts, and a troubleshooting section — so the whole run process is in one place next to your code.
 
-### 🧑 Arthur · 2026-07-06 12:45
+### 🧑 Vernon · 2026-07-06 12:45
 
 update the landlord modules navbar and UI
 
@@ -10330,7 +10330,7 @@ Both mobile apps now share the same premium look end-to-end: aurora gradient bac
 
 Just reload the landlord app to see it — no new packages beyond the `expo-blur` / `expo-linear-gradient` / font install already flagged for that app. If you'd like a center action in the landlord pill after all (e.g. a quick "+" that jumps to the period/refresh or a future "new listing"), I can add it.
 
-### 🧑 Arthur · 2026-07-06 12:49
+### 🧑 Vernon · 2026-07-06 12:49
 
 create a profile tab in the navbar and move the sign out button there.
 
@@ -10356,7 +10356,7 @@ You've hit your session limit · resets 5pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-07 11:16
+### 🧑 Vernon · 2026-07-07 11:16
 
 continue
 
@@ -10368,7 +10368,7 @@ The landlord pill nav is now four items: Home · Approvals · Maintenance · Pro
 
 Worth noting the tenant app keeps sign-out on its own Profile tab already, so both apps are now consistent: account actions live under Profile.
 
-### 🧑 Arthur · 2026-07-07 11:22
+### 🧑 Vernon · 2026-07-07 11:22
 
 make all the Refresh buttons match the Refresh button on the web-admin dashboard
 
@@ -10410,7 +10410,7 @@ Done and clean. The landlord dashboard's "Refresh" is now the same ghost button 
 
 That was the only visible Refresh *button* in the mobile apps — every other "refresh" is pull-to-refresh (`RefreshControl`), which has no button to restyle. Reload the landlord app to see it; no new packages needed.
 
-### 🧑 Arthur · 2026-07-07 11:29
+### 🧑 Vernon · 2026-07-07 11:29
 
 seed the app with all scenarios of data.
 
@@ -10492,7 +10492,7 @@ Logins (OTP prints to the API console): `owner@demo.test` for the web console an
 
 Two notes: everything is on the `demo` vendor (so keep the apps' slug on `demo` to see it); and the sandbox again couldn't delete a temp file — `tsconfig.seedcheck.json` in the project root is safe to remove. If you'd prefer a pristine dataset with nothing left over from earlier manual testing, reset first with `docker compose down -v`, then `npm run migration:run` and `npm run seed`.
 
-### 🧑 Arthur · 2026-07-07 11:54
+### 🧑 Vernon · 2026-07-07 11:54
 
 create and publish listings is not working.
 
@@ -10551,7 +10551,7 @@ It's just the Next.js app, so no install or migration — the dev server hot-rel
 
 For the record, create and publish were working all along — the created listing simply never displayed because the table was querying the wrong (public) endpoint.
 
-### 🧑 Arthur · 2026-07-07 13:22
+### 🧑 Vernon · 2026-07-07 13:22
 
 based on the roadmap what features are still outstanding or can be added?
 
@@ -10580,7 +10580,7 @@ Here's where things stand against the roadmap in `README.md`, and what's genuine
 
 If I had to rank the highest-value next builds: **(1)** documents + e-sign UI, **(2)** the owner portal, **(3)** reporting exports, **(4)** real notification channels, then **(5)** deploy + CI to make it live. Want me to pick one and build it — or want a short written plan for any of them?
 
-### 🧑 Arthur · 2026-07-07 13:26
+### 🧑 Vernon · 2026-07-07 13:26
 
 Yes build everything that you can based on my weekly limit.
 
@@ -10787,7 +10787,7 @@ Where that leaves the roadmap: the Phase-2/3 web gaps I flagged are now largely 
 
 The `tsconfig.tmpcheck.json` in the project root is safe to delete (the sandbox couldn't remove it). Want me to keep going next session with the owner portal or the deploy + CI pipeline?
 
-### 🧑 Arthur · 2026-07-07 14:16
+### 🧑 Vernon · 2026-07-07 14:16
 
 No, I want to do the rest of the outstanding features first.
 
@@ -10997,7 +10997,7 @@ Where the outstanding list stands now — I've closed reporting/exports, documen
 
 `tsconfig.tmpcheck.json` in the project root is still safe to delete. Want me to take on **in-app messaging** next (the last sizable feature UI), or pause here?
 
-### 🧑 Arthur · 2026-07-07 14:58
+### 🧑 Vernon · 2026-07-07 14:58
 
 I want a section where owners/landlords can enter/update the banking details to receive rent/payments and a section to add service providers e.g. maintenance, landscaping, cleaners, lawyers, security etc.
 
@@ -11107,7 +11107,7 @@ Nav now includes **Providers** (next to Owners), and the Owners page has the Ban
 
 That closes out the two you asked for. Remaining outstanding from the roadmap: in-app messaging (comms — still a health-only stub, the last big feature build), localization, real external notification providers, and the deferred owner portal + deploy/CI. `tsconfig.tmpcheck.json` in the root is still safe to delete. Want messaging next?
 
-### 🧑 Arthur · 2026-07-07 15:07
+### 🧑 Vernon · 2026-07-07 15:07
 
 the pay button should be linked to the respective owners bank accounts
 
@@ -11164,7 +11164,7 @@ No migration this turn (the `owners.banking` column came with the previous chang
 
 So the flow is now end-to-end: capture the owner's banking on the Owners page → generate their statement → Pay out sends the net amount to that account (and it's blocked until the account exists). `tsconfig.tmpcheck.json` in the root is still safe to delete.
 
-### 🧑 Arthur · 2026-07-07 18:01
+### 🧑 Vernon · 2026-07-07 18:01
 
 what's features are missing or what can be improved -  besides the deployment CI/CD
 
@@ -11206,7 +11206,7 @@ Good question — plenty of runway beyond deploy/CI. Grouping by type, with the 
 
 If I had to pick the **top 5 next builds** by value-to-effort: (1) property/unit management UI — it's a core gap and quick; (2) wire work orders to service providers; (3) encrypt banking/PII; (4) in-app messaging; (5) the owner portal. Want me to start on any of these — property/unit CRUD is the fastest win and unblocks a lot?
 
-### 🧑 Arthur · 2026-07-07 18:11
+### 🧑 Vernon · 2026-07-07 18:11
 
 start on the property/unit CRUD
 
@@ -11264,7 +11264,7 @@ You've hit your weekly limit · resets 4pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-08 14:10
+### 🧑 Vernon · 2026-07-08 14:10
 
 start on the property/unit CRUD
 
@@ -11350,7 +11350,7 @@ This closes the property/unit management gap, and it also feeds the rest of the 
 
 Next best candidates from the earlier list: wire work orders to service providers, encrypt banking/PII, in-app messaging, or the owner portal. Want me to take the next one?
 
-### 🧑 Arthur · 2026-07-08 14:18
+### 🧑 Vernon · 2026-07-08 14:18
 
 yes
 
@@ -11424,11 +11424,11 @@ To try it: restart the API (enriched work-order query) and reload the landlord a
 
 Remaining from the shortlist: encrypt banking/PII (security, backend-only), in-app messaging, or the owner portal. Want the next one?
 
-### 🧑 Arthur · 2026-07-08 14:28
+### 🧑 Vernon · 2026-07-08 14:28
 
 in-app messaging
 
-### 🧑 Arthur · 2026-07-08 14:30
+### 🧑 Vernon · 2026-07-08 14:30
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -11783,7 +11783,7 @@ API Error: Unable to connect to API (ConnectionRefused)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-08 18:27
+### 🧑 Vernon · 2026-07-08 18:27
 
 in-app messaging
 
@@ -11795,7 +11795,7 @@ You've hit your session limit · resets 9:10pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-08 19:10
+### 🧑 Vernon · 2026-07-08 19:10
 
 in-app messaging
 
@@ -12089,7 +12089,7 @@ To see it live, run `npm run migration:run`, `npm run seed`, and restart the API
 
 That clears the messaging item. Remaining from the shortlist: encrypt banking/PII (POPIA) or the owner portal. Want the next one?
 
-### 🧑 Arthur · 2026-07-08 19:20
+### 🧑 Vernon · 2026-07-08 19:20
 
 owner portal
 
@@ -12304,7 +12304,7 @@ To try it: run `npm run migration:run`, `npm run seed`, restart the API, then lo
 
 That covers the owner portal. The last item on the shortlist is encrypting banking/PII for POPIA. Want me to take it?
 
-### 🧑 Arthur · 2026-07-08 19:49
+### 🧑 Vernon · 2026-07-08 19:49
 
 update the RUN.md
 
@@ -12349,7 +12349,7 @@ RUN.md is updated. Key additions:
 - A **messaging demo** walkthrough under Logging in (tenant `thabo@demo.test` ↔ staff `owner@demo.test`), alongside the existing owner-portal login `sipho@owner.demo.test`.
 - The day-to-day note now reminds you to re-run `migration:run` + `seed` + restart after pulling new migrations, calling out the recent messaging and owner-portal tables.
 
-### 🧑 Arthur · 2026-07-08 20:12
+### 🧑 Vernon · 2026-07-08 20:12
 
 Error: listen EADDRINUSE: address already in use :::3000
     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
@@ -12401,7 +12401,7 @@ Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Want me to add a short "port already in use" entry to the RUN.md troubleshooting section?
 
-### 🧑 Arthur · 2026-07-08 20:17
+### 🧑 Vernon · 2026-07-08 20:17
 
 PS C:\xampp\htdocs\development\PMS0.3\web-admin> npm run dev
 > pms-web-admin@0.1.0 dev
@@ -12450,7 +12450,7 @@ next dev -p 3002
 
 These stale-port situations keep coming up, so it's worth a runbook entry. Want me to add a "Port already in use (EADDRINUSE)" section to RUN.md covering both 3000 and 3001?
 
-### 🧑 Arthur · 2026-07-08 20:18
+### 🧑 Vernon · 2026-07-08 20:18
 
 I want to stop what is already on port 3000 ans take it over
 
@@ -12478,7 +12478,7 @@ npm run start:dev
 
 Either way, if the killed process was a stray `nest start --watch`/ts-node from a Ctrl+C that didn't clean up, this is exactly the right fix — it's your own old server, safe to kill. Want me to drop this into RUN.md as a troubleshooting entry so it's handy next time?
 
-### 🧑 Arthur · 2026-07-08 20:21
+### 🧑 Vernon · 2026-07-08 20:21
 
 write me a script that I can run to start all these apps
 
@@ -12522,7 +12522,7 @@ Flags:
 
 One gotcha: if PowerShell refuses to run it ("running scripts is disabled"), allow it once with `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. I also added this to RUN.md's day-to-day section.
 
-### 🧑 Arthur · 2026-07-08 20:31
+### 🧑 Vernon · 2026-07-08 20:31
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run start:dev         
 > pms@0.3.0 start:dev
@@ -12754,7 +12754,7 @@ npm run start:dev
 
 Want me to add a `-KillOnly` switch to `start-all.ps1` (frees the ports and exits, no launching) so you have a one-command "clear everything" — plus fold this into the RUN.md troubleshooting section?
 
-### 🧑 Arthur · 2026-07-08 20:40
+### 🧑 Vernon · 2026-07-08 20:40
 
 the landlord app styling does not match the rest of the app - it must be identical - font etc.
 
@@ -12850,7 +12850,7 @@ Reload the landlord app (in the Expo window press `r`, or restart with `npm star
 
 Worth knowing for later: that per-app `VENDOR_SLUG` in `src/config.ts` is exactly how the white-label swap is demoed — set both apps to the same slug for a consistent look, or point one at `rivonia` to show a different tenant's branding.
 
-### 🧑 Arthur · 2026-07-08 20:47
+### 🧑 Vernon · 2026-07-08 20:47
 
 add the appropriate back buttons and tailwind/css popup modals
 
@@ -13186,7 +13186,7 @@ Summary of what I added to the web console:
 
 Heads up: the mount truncation struck several files mid-edit again, so I rebuilt `ui.tsx`, `api-keys`, `documents`, `properties`, and `messages` from scratch via the shell — all verified and typecheck-clean now. Reload the web dev server to see them.
 
-### 🧑 Arthur · 2026-07-08 21:11
+### 🧑 Vernon · 2026-07-08 21:11
 
 give me a git commit message for these updates
 
@@ -13231,7 +13231,7 @@ Tooling & docs
 
 If your project uses Conventional Commits and you'd rather split this into separate commits (e.g. `feat(comms)`, `feat(owner-portal)`, `feat(web): modals + back buttons`, `chore: launcher + docs`), I can break it up that way — just say the word.
 
-### 🧑 Arthur · 2026-07-08 21:12
+### 🧑 Vernon · 2026-07-08 21:12
 
 give me the actual command include the message
 
@@ -13253,7 +13253,7 @@ git commit -F commit-msg.txt
 
 (put the full multi-line message from my previous reply into `commit-msg.txt` first). Want me to write that `commit-msg.txt` into the project for you?
 
-### 🧑 Arthur · 2026-07-08 21:26
+### 🧑 Vernon · 2026-07-08 21:26
 
 what's missing?
 
@@ -13288,7 +13288,7 @@ If I had to pick the single most valuable next step, it's **encrypting banking/P
 
 ## 2026-07-09
 
-### 🧑 Arthur · 2026-07-09 07:23
+### 🧑 Vernon · 2026-07-09 07:23
 
 yes
 
@@ -13426,7 +13426,7 @@ That clears the last item on the shortlist. What's left is all production-harden
 
 ## 2026-07-12
 
-### 🧑 Arthur · 2026-07-12 15:05
+### 🧑 Vernon · 2026-07-12 15:05
 
 Do all then finish with CI/CD pipelines.
 
@@ -13758,7 +13758,7 @@ You've hit your session limit · resets 6:40pm (Africa/Johannesburg)
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-12 17:35
+### 🧑 Vernon · 2026-07-12 17:35
 
 Do all then finish with CI/CD pipelines.
 
@@ -13831,7 +13831,7 @@ That closes out the entire hardening list. The codebase is now demo-complete wit
 
 ## 2026-07-16
 
-### 🧑 Arthur · 2026-07-16 12:34
+### 🧑 Vernon · 2026-07-16 12:34
 
 I want to integrate Peach Payments, Yoco & Payfast as payment gateways.
 
@@ -13983,7 +13983,7 @@ One production note: the collection gateways are redirect-based, so the tenant a
 
 ## 2026-07-17
 
-### 🧑 Arthur · 2026-07-17 14:54
+### 🧑 Vernon · 2026-07-17 14:54
 
 run through the app and make sure it is production-ready.
 
@@ -14000,7 +14000,7 @@ API Error: 529 Overloaded. This is a server-side issue, usually temporary — tr
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-18 06:54
+### 🧑 Vernon · 2026-07-18 06:54
 
 run through the app and make sure it is production-ready.
 
@@ -14197,7 +14197,7 @@ I ran a real audit rather than a rubber stamp, and it found genuine problems. **
 
 Fair summary: it's now **secure enough for a pilot with real users**, but I would not call it production-ready until the dependency upgrade and a live sandbox payment test are done. Want me to take the dependency upgrade next?
 
-### 🧑 Arthur · 2026-07-18 07:02
+### 🧑 Vernon · 2026-07-18 07:02
 
 yes
 
@@ -14454,7 +14454,7 @@ Bottom line: the security fixes from the audit are done and tested; the dependen
 
 ## 2026-07-19
 
-### 🧑 Arthur · 2026-07-19 06:33
+### 🧑 Vernon · 2026-07-19 06:33
 
 create 3 user manuals with screenshots of each section in a markdown format
 
@@ -14637,7 +14637,7 @@ Two honest notes:
 
 Want me to convert the screenshots to PNG, or generate a combined print-ready PDF of all three manuals?
 
-### 🧑 Arthur · 2026-07-19 06:46
+### 🧑 Vernon · 2026-07-19 06:46
 
 yes
 
@@ -14677,7 +14677,7 @@ cairosvg works (cairo is present). Rasterizing all 29 SVGs to PNG at 2× for cri
 `⚙ Read` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\manuals\\assets\\png\\staff-dashboard.png"}
 > ↳ result: 
 
-### 🧑 Arthur · 2026-07-19 06:48
+### 🧑 Vernon · 2026-07-19 06:48
 
 [Image: original 2080x1400, displayed at 2000x1346. Multiply coordinates by 1.04 to map to original image.]
 
@@ -14769,7 +14769,7 @@ One tiny housekeeping note: a QA render (`docs/manuals/assets/_qa.png`) got left
 
 So `docs/manuals/` now holds: the 3 markdown manuals + README index, 29 SVGs, 29 PNGs, and the combined PDF. Want me to also produce an editable **DOCX** version (pandoc can build one from the markdown + PNGs), or is the PDF enough?
 
-### 🧑 Arthur · 2026-07-19 06:52
+### 🧑 Vernon · 2026-07-19 06:52
 
 Fix the first page
 
@@ -14812,7 +14812,7 @@ Fixed. The cover now reads cleanly, centred: the green "D" brand mark, **PMS 0.3
 
 ## 2026-07-20
 
-### 🧑 Arthur · 2026-07-20 11:21
+### 🧑 Vernon · 2026-07-20 11:21
 
 I have switched VPS from hetzner to Contabo - vmi3453343
 Running
@@ -15136,7 +15136,7 @@ Two honest flags: I couldn't run the Jest suite this session (the sandbox kept k
 
 Want me to also add a GitHub Actions job that auto-deploys to this VPS over SSH on a tagged release?
 
-### 🧑 Arthur · 2026-07-20 11:54
+### 🧑 Vernon · 2026-07-20 11:54
 
 yes
 
@@ -15197,7 +15197,7 @@ Design choice worth noting: I went registry-based (build in CI, pull on the box)
 
 Same two caveats as before still stand: the Jest suite couldn't run in this session's sandbox (typecheck is clean; your CI runs it on push), and the NestJS 10→11 upgrade in `UPGRADE.md` is still worth doing before go-live.
 
-### 🧑 Arthur · 2026-07-20 12:27
+### 🧑 Vernon · 2026-07-20 12:27
 
 PS C:\xampp\htdocs\development\PMS0.3> npm test   
 > pms@0.3.0 test
@@ -15355,7 +15355,7 @@ Two asides from your output, both non-blocking:
 
 This is also a concrete symptom of the pending NestJS/deps drift in `UPGRADE.md`; doing that upgrade will keep these type surprises from reappearing.
 
-### 🧑 Arthur · 2026-07-20 12:40
+### 🧑 Vernon · 2026-07-20 12:40
 
 done. time to deploy
 
@@ -15434,7 +15434,7 @@ Want me to walk through it with you step by step as you run each command (paste 
 
 ## 2026-07-21
 
-### 🧑 Arthur · 2026-07-21 06:51
+### 🧑 Vernon · 2026-07-21 06:51
 
 Stub all payment gateways and implement only iKhokha for the first deploy
 
@@ -15584,7 +15584,7 @@ Two honest flags, same as before:
 
 Want me to add a webhook signature verification step for the iKhokha callback once you've confirmed their inbound signing format, or wire a `/pay/success|failed|cancelled` return page in the web app for the redirect to land on?
 
-### 🧑 Arthur · 2026-07-21 07:05
+### 🧑 Vernon · 2026-07-21 07:05
 
 where do i get this info? - 
 
@@ -15676,7 +15676,7 @@ Two things still worth doing before real payments flow:
 
 Want me to (a) build the three `/pay/*` landing pages, and (b) cross-check the iKhokha request payload + callback signature against their official examples and tighten the provider to match? Both are quick and would get you to a clean first live transaction.
 
-### 🧑 Arthur · 2026-07-21 07:27
+### 🧑 Vernon · 2026-07-21 07:27
 
 yes
 
@@ -15887,7 +15887,7 @@ Two notes: the sandbox was flaky (bash kept failing to spawn), so I wrote the pr
 
 Want me to add signature verification on the inbound iKhokha callback once you've captured a real one, so the webhook can't be spoofed?
 
-### 🧑 Arthur · 2026-07-21 07:45
+### 🧑 Vernon · 2026-07-21 07:45
 
 yes
 
@@ -15952,7 +15952,7 @@ Same caveats as before: the sandbox couldn't run Jest this session (it typecheck
 
 That closes the loop on iKhokha: signed outbound requests, branded return pages, and now verifiable inbound callbacks. Anything else before you tag the release?
 
-### 🧑 Arthur · 2026-07-21 08:24
+### 🧑 Vernon · 2026-07-21 08:24
 
 where do I update the dns settings?
 
@@ -15978,7 +15978,7 @@ DNS is **not** managed on Contabo — it's set wherever your domain's nameserver
 
 If you tell me the **domain name**, I can look up its current nameservers and tell you exactly which provider is hosting your DNS (so you know precisely where to log in). What's the domain?
 
-### 🧑 Arthur · 2026-07-21 08:28
+### 🧑 Vernon · 2026-07-21 08:28
 
 dantalan.co.za
 
@@ -16042,7 +16042,7 @@ Want me to set `dantalan.co.za` (i.e. `app.dantalan.co.za` / `api.dantalan.co.za
 
 Sources: [who.is — ns1.tld-ns.net](https://who.is/nameserver/ns1.tld-ns.net), [who.is — ns2.tld-ns.com](https://who.is/nameserver/ns2.tld-ns.com)
 
-### 🧑 Arthur · 2026-07-21 08:38
+### 🧑 Vernon · 2026-07-21 08:38
 
 give me step by step instructions on how to ssh into the VPS and deploy
 
@@ -16185,7 +16185,7 @@ Two honesty notes:
 
 This is the same content as `docs/CONTABO-DEPLOY.md`, just sequenced for right now. Want me to write these exact steps into a one‑shot `deploy/go-live.sh` (steps 10–11) so there's less to type, or commit the `dantalan.co.za` config changes with a message for you?
 
-### 🧑 Arthur · 2026-07-21 09:11
+### 🧑 Vernon · 2026-07-21 09:11
 
 deploy@vmi3453343:~$ ls
 PMS03
@@ -16244,7 +16244,7 @@ Two things to know:
 
 Paste me the output of `git log --oneline -1` (VPS) or `git status` (PC) if the pull doesn't bring the folder in and I'll sort it.
 
-### 🧑 Arthur · 2026-07-21 09:16
+### 🧑 Vernon · 2026-07-21 09:16
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 git pull
@@ -16300,7 +16300,7 @@ grep '"@nestjs/core"' package.json
 ```
 Expect `^10.x`. If it somehow says `^11`, stop and tell me before running `docker compose … up`.
 
-### 🧑 Arthur · 2026-07-21 09:53
+### 🧑 Vernon · 2026-07-21 09:53
 
 help me with .env file
 
@@ -16417,7 +16417,7 @@ That SendGrid API key is a secret too — same rule as the iKhokha one: it goes 
 
 Once you've got the key + a verified sender in `.env.prod`, save it (`Ctrl+O`, Enter, `Ctrl+X`) and you're ready for step 10 — `docker compose … up -d --build`. Want to keep going from there?
 
-### 🧑 Arthur · 2026-07-21 10:44
+### 🧑 Vernon · 2026-07-21 10:44
 
 I don't have postgres or redis credentials
 
@@ -16462,7 +16462,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Want me to stay with you through the build — paste me the output and I'll read it for errors?
 
-### 🧑 Arthur · 2026-07-21 10:49
+### 🧑 Vernon · 2026-07-21 10:49
 
 ready for step 10
 
@@ -16493,7 +16493,7 @@ Don't run migrations yet — do that in step 11 once the API container is up.
 
 Paste me the output of the `up` command (or the `logs` if anything looks off) and I'll read it.
 
-### 🧑 Arthur · 2026-07-21 10:53
+### 🧑 Vernon · 2026-07-21 10:53
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --build
 [+] up 31/31
@@ -16619,7 +16619,7 @@ git push
 
 Paste the `ps` / `logs` output once the build finishes and I'll confirm you're green for step 11.
 
-### 🧑 Arthur · 2026-07-21 10:58
+### 🧑 Vernon · 2026-07-21 10:58
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod ps
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod logs --tail=40 api caddy
@@ -16740,7 +16740,7 @@ One thing to know before you can actually log in: the database is empty, so ther
 
 Paste the output of the two migration commands and I'll confirm, then we'll set up your first login.
 
-### 🧑 Arthur · 2026-07-21 10:59
+### 🧑 Vernon · 2026-07-21 10:59
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres psql -U pms -d pms < scripts/setup-app-role.sql
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run
@@ -16876,7 +16876,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api n
 
 Once migrations are in, the DB is empty (no users/vendors), so the last step is bootstrapping your real agency + first admin login. Want the SQL/script for that next?
 
-### 🧑 Arthur · 2026-07-21 11:08
+### 🧑 Vernon · 2026-07-21 11:08
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 rm -f web-admin/public/.gitkeep    # remove the manual placeholder so the pull isn't blocked
@@ -16987,7 +16987,7 @@ curl https://api.dantalan.co.za/api/health/ready
 
 Then we bootstrap your first agency + admin login so you can actually sign in. Paste the migration output and I'll confirm you're good.
 
-### 🧑 Arthur · 2026-07-21 11:12
+### 🧑 Vernon · 2026-07-21 11:12
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 git checkout main
@@ -17138,7 +17138,7 @@ If instead `\dt` says **"Did not find any relations"** or the count is 0, then m
 
 Paste those three outputs. Once tables are confirmed, the DB is empty of data, so the final piece is **bootstrapping your first agency (vendor) + your admin login** — I'll hand you a small SQL snippet to create your real account so you can sign in at app.dantalan.co.za.
 
-### 🧑 Arthur · 2026-07-21 11:14
+### 🧑 Vernon · 2026-07-21 11:14
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres psql -U pms -d pms -c "\dt" | head -40
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres psql -U pms -d pms -c "SELECT count(*) AS applied_migrations FROM migrations;"
@@ -17211,7 +17211,7 @@ Only a few tables show explicit RLS, but some migrations apply it via loops (tem
 `⚙ mcp__workspace__bash` — {"command": "cd /sessions/brave-zealous-goldberg/mnt/PMS0.3 && sed -n '20,75p' src/common/database/migrations/1720000000000-Init.ts", "timeout_ms": 40000}
 > ↳ result: // ---- Identity ---- await q.query(` CREATE TABLE "vendors" ( "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(), "name" varchar NOT NULL, "type" text NOT NULL DE…
 
-### 🧑 Arthur · 2026-07-21 11:19
+### 🧑 Vernon · 2026-07-21 11:19
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -17419,7 +17419,7 @@ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
   psql -U pms -d pms \
   -v agency='Dantalan Properties' \
-  -v admin_name='Arthur Jones' \
+  -v admin_name='Vernon Jones' \
   -v admin_email='ahjones101@gmail.com' <<'SQL'
 WITH v AS (
   INSERT INTO vendors (name, type, status, default_currency, has_valid_ffc, has_trust_account)
@@ -17503,7 +17503,7 @@ How to read the results:
 
 Paste the three outputs and I'll tell you the exact fix.
 
-### 🧑 Arthur · 2026-07-21 11:32
+### 🧑 Vernon · 2026-07-21 11:32
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 # 1. Is the key actually inside the running api container?
@@ -17541,7 +17541,7 @@ One thing to line up before you log in: you requested the code for **`vernon@zaa
 
 Tell me which email you want as the owner and confirm you've run the bootstrap — I'll make sure the membership matches. Then the new code should arrive from `pms@dantalan.co.za`.
 
-### 🧑 Arthur · 2026-07-21 11:33
+### 🧑 Vernon · 2026-07-21 11:33
 
 this is the boostrap I used - cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
@@ -17579,7 +17579,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d api
 
 Give it ~10s, request a fresh code at app.dantalan.co.za, and it should land from `pms@dantalan.co.za`. If it still doesn't arrive, re-run the step-3 log grep and paste it — but 403 was purely the unverified from-address, so this should do it.
 
-### 🧑 Arthur · 2026-07-21 12:13
+### 🧑 Vernon · 2026-07-21 12:13
 
 It works. How do other vendors/tentants/service providers get their OTP
 
@@ -17619,7 +17619,7 @@ Two practical notes:
 
 One thing worth flagging for later: every OTP email currently sends from `pms@dantalan.co.za` regardless of which agency the user belongs to. Fine while Dantalan is the only vendor, but for true white‑label you'd eventually want a per‑vendor sender address/domain. Want me to note that as a backlog item, or set up Twilio for SMS login next?
 
-### 🧑 Arthur · 2026-07-21 12:16
+### 🧑 Vernon · 2026-07-21 12:16
 
 I want to change the admin email from vernon@zaaka.io to talandan26@gmail.com
 
@@ -17704,7 +17704,7 @@ Then the important part: **sign out and sign back in.** Your current token was m
 
 Paste the output table if anything looks off (e.g. two users, or the role still missing).
 
-### 🧑 Arthur · 2026-07-21 14:10
+### 🧑 Vernon · 2026-07-21 14:10
 
 deploy@vmi3453343:~$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
@@ -17775,7 +17775,7 @@ Then **sign out and back in**, and Add property should work (you'll be scoped to
 
 Paste the census. If it confirms the Rivonia demo vendor and its data, I'll give you a clean, scoped purge that deletes **only** the seed vendor and everything under it — leaving your Dantalan vendor untouched. We should get production to contain nothing but your real agency.
 
-### 🧑 Arthur · 2026-07-21 14:13
+### 🧑 Vernon · 2026-07-21 14:13
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
@@ -17867,7 +17867,7 @@ Once that's clean, sign out and back in (if you haven't since the membership fix
 
 Separately — worth investigating how the seed reached production so it can't happen again. Paste the confirmation and I'll help you trace it (likely a stray `npm run seed` or a compose/CI step) and lock it down.
 
-### 🧑 Arthur · 2026-07-21 14:15
+### 🧑 Vernon · 2026-07-21 14:15
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
@@ -17987,7 +17987,7 @@ Production now holds exactly one vendor (Dantalan Properties) and one user (you,
 
 For the future, when you want to onboard a *second* real agency you have two options: reuse the SQL bootstrap per agency, or I can build you a proper **super-admin onboarding flow** (an authenticated endpoint + a small screen to create a vendor and invite its owner) so you're not touching SQL. Want me to build that, or set up Twilio SMS login next?
 
-### 🧑 Arthur · 2026-07-21 14:19
+### 🧑 Vernon · 2026-07-21 14:19
 
 What are the URLs for the tenant and landlord apps?
 
@@ -18030,7 +18030,7 @@ Owners can already use the web back‑office's **owner portal** at app.dantalan.
 
 Want me to wire up the two apps as hosted web URLs (`tenant.` / `landlord.dantalan.co.za`)? I'd update the API base, add the Caddy routes + compose services, and give you the exact DNS records to add.
 
-### 🧑 Arthur · 2026-07-21 14:21
+### 🧑 Vernon · 2026-07-21 14:21
 
 Yes.
 
@@ -18317,7 +18317,7 @@ Two notes: DNS must resolve before Caddy can issue the certs (it'll retry automa
 
 Want me to also set up **Twilio SMS login** next, or wire the apps to pull your Dantalan branding?
 
-### 🧑 Arthur · 2026-07-21 14:42
+### 🧑 Vernon · 2026-07-21 14:42
 
 deploy@vmi3453343:~$ cd ~/PMS03
 git pull origin main
@@ -18478,7 +18478,7 @@ curl -I https://landlord.dantalan.co.za
 
 Expect `HTTP/2 200`, then open them in a browser. Paste the caddy log output if the certs don't come through — the usual cause is the DNS records not being in place yet.
 
-### 🧑 Arthur · 2026-07-21 15:41
+### 🧑 Vernon · 2026-07-21 15:41
 
 PS C:\xampp\htdocs\development\PMS0.3> curl -I https://tenant.dantalan.co.za
 HTTP/1.1 200 OK
@@ -18520,7 +18520,7 @@ Two small follow-ups worth remembering: users still need a record before they ca
 
 Want me to do **Twilio SMS login**, or wire the apps to load your **Dantalan branding** per-subdomain next?
 
-### 🧑 Arthur · 2026-07-21 15:42
+### 🧑 Vernon · 2026-07-21 15:42
 
 load my Dantalan branding per-subdomain
 
@@ -18737,7 +18737,7 @@ Then hard-refresh (Ctrl-Shift-R) app / tenant / landlord.dantalan.co.za — all 
 
 You can fine-tune colours, tagline, and upload a logo anytime in the web back-office under **Settings → Branding**; changes flow to all three apps automatically. Once you've confirmed it looks right, paste the `curl` output or a screenshot and I'll mark this done — or tell me and I'll tweak the palette.
 
-### 🧑 Arthur · 2026-07-21 16:16
+### 🧑 Vernon · 2026-07-21 16:16
 
 I get this in the console for te landlord app when i request an OTP - Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.dantalan.co.za/api/branding/dantalan.co.za. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.
 Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://api.dantalan.co.za/api/auth/otp/request. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 204.
@@ -18784,7 +18784,7 @@ Recap of what's outstanding on your side to finish the branding work: run the br
 
 ## 2026-07-22
 
-### 🧑 Arthur · 2026-07-22 08:59
+### 🧑 Vernon · 2026-07-22 08:59
 
 how do i add tenants on the app?
 
@@ -18850,7 +18850,7 @@ That's clunky for a real agency. What you almost certainly want is a proper **"A
 
 Want me to build that "Add tenant" feature? I'd add a staff endpoint plus a button on the Leases (or Properties) page so you can onboard a tenant to a unit in one step. Otherwise I can walk you through the listing-based flow end to end.
 
-### 🧑 Arthur · 2026-07-22 09:03
+### 🧑 Vernon · 2026-07-22 09:03
 
 build the Add tenant feature
 
@@ -19025,7 +19025,7 @@ Then go to **Leases → Add tenant**. The tenant logs in at **tenant.dantalan.co
 
 Two reminders so nothing's half-applied: you still have the **branding** rebuild pending (`web tenant landlord` + the branding SQL + the CORS `sed`), and this **Add-tenant** rebuild (`api web`) — you can do them together in one `up -d --build api web tenant landlord` after pulling and running the two SQL/CORS commands. Want me to write that single consolidated deploy sequence so you can run everything at once?
 
-### 🧑 Arthur · 2026-07-22 09:21
+### 🧑 Vernon · 2026-07-22 09:21
 
 Yes
 
@@ -19093,7 +19093,7 @@ The `curl` should return the Dantalan charcoal/gold JSON. Then hard-refresh (Ctr
 
 The rebuild of `tenant`/`landlord` takes a few minutes (Expo export). Once it's up, paste the `curl` output or a screenshot and I'll close out the branding task — or flag anything that looks off.
 
-### 🧑 Arthur · 2026-07-22 10:15
+### 🧑 Vernon · 2026-07-22 10:15
 
 I want the Authentication to work with both email or mobile number(sms/whatsapp)
 
@@ -19126,7 +19126,7 @@ Before I build, two decisions that change the implementation and the accounts yo
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-23 09:30
+### 🧑 Vernon · 2026-07-23 09:30
 
 continue
 
@@ -19329,7 +19329,7 @@ You want `sms:TwilioSmsProvider` (not `SmsProvider`). Then request a code with a
 
 Want me to fold this into one consolidated deploy block with the branding SQL + CORS steps you still have pending, so it's all one copy-paste?
 
-### 🧑 Arthur · 2026-07-23 09:36
+### 🧑 Vernon · 2026-07-23 09:36
 
 yes
 
@@ -19407,7 +19407,7 @@ After it's up, hard-refresh (Ctrl-Shift-R) each site:
 
 The `tenant`/`landlord` rebuilds take a few minutes (Expo export). Paste the `curl` output or a screenshot once it's up and I'll close out the branding task — or flag anything off.
 
-### 🧑 Arthur · 2026-07-23 10:39
+### 🧑 Vernon · 2026-07-23 10:39
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod logs api | grep -i "channels —"
 api-1  | [Nest] 1  - 07/23/2026, 10:37:09 AM     LOG [Notify] channels — email:SendGridEmailProvider sms:TwilioSmsProvider push:PushProvider
@@ -19445,7 +19445,7 @@ Two quick things to confirm on your side by hand-refreshing (Ctrl-Shift-R): the 
 
 If anything looks off — brand not applied, SMS not arriving — paste what you see (or the `curl https://api.dantalan.co.za/api/branding/dantalan.co.za` output) and I'll sort it. Otherwise, you're fully deployed.
 
-### 🧑 Arthur · 2026-07-23 10:59
+### 🧑 Vernon · 2026-07-23 10:59
 
 PS C:\xampp\htdocs\development\PMS0.3> curl https://api.dantalan.co.za/api/branding/dantalan.co.za
 {"name":"Dantalan Properties","slug":"dantalan","tagline":"Property management, done right.","logo":{"text":"Dantalan Properties"},"colors":{"brand":"#23272F","onBrand":"#ffffff","tint":"#F4EEDD","accent":"#C9A227","ink":"#16181D","muted":"#6B7280","line":"#E6E7EA","bg":"#F6F6F5","card":"#FFFFFF","danger":"#A23A26","dangerBg":"#F7ECE7","success":"#2F7D5A"},"font":{"family":"System","headingFamily":"System"},"contact":{"email":"pms@dantalan.co.za","website":"dantalan.co.za"}}
@@ -19465,7 +19465,7 @@ The only thing left is the visual confirmation in the browser — hard-refresh (
 
 Everything from this whole deployment run is now done. If the browser still shows the old brand after a hard refresh, it's almost certainly cached — tell me and I'll help bust it. Otherwise you're fully live. 🎉
 
-### 🧑 Arthur · 2026-07-23 11:06
+### 🧑 Vernon · 2026-07-23 11:06
 
 All good.
 
@@ -19484,7 +19484,7 @@ A couple of things worth keeping on your radar for when you're ready: upgrading 
 
 Nice work getting this all the way to production.
 
-### 🧑 Arthur · 2026-07-23 11:14
+### 🧑 Vernon · 2026-07-23 11:14
 
 Keep this as a todo. For now I want to  add a section for 'agents' to earn commission for bringing properties and or tenants to the platform. Let's brainstorm.
 
@@ -19564,7 +19564,7 @@ To point the design, four decisions matter most:
 
 How are you picturing it — who are these agents in real life (external estate agents, casual referrers, your own field reps)? That'll steer the commission model and whether they need their own portal.
 
-### 🧑 Arthur · 2026-07-23 14:34
+### 🧑 Vernon · 2026-07-23 14:34
 
 give me a list of questions i must answer before we continue?
 
@@ -19627,7 +19627,7 @@ If you just answer **4, 7, 11, 14, 18, and 24**, that's enough for me to draft a
 
 ## 2026-07-24
 
-### 🧑 Arthur · 2026-07-24 09:07
+### 🧑 Vernon · 2026-07-24 09:07
 
 Put this in todo.
 
@@ -19642,7 +19642,7 @@ Saved as todo **#128** — including the full question list and the six minimum 
 
 Whenever you're ready to move on it, just answer those six and I'll draft a concrete spec and start building. Anything else in the meantime?
 
-### 🧑 Arthur · 2026-07-24 09:08
+### 🧑 Vernon · 2026-07-24 09:08
 
 I have published a few lsitings, how do I share the listing links.
 
@@ -19650,7 +19650,7 @@ I have published a few lsitings, how do I share the listing links.
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-24 09:09
+### 🧑 Vernon · 2026-07-24 09:09
 
 I have published a few lsitings, I want to be able to share the listing links.
 
@@ -19685,7 +19685,7 @@ Before I build, three quick choices:
 
 Answer those and I'll build it. Or if you just want the fastest path today, I can do per-listing pages on app.dantalan.co.za with a name/email/phone apply form and a Copy-link button — say the word.
 
-### 🧑 Arthur · 2026-07-24 09:14
+### 🧑 Vernon · 2026-07-24 09:14
 
 1. Also rentals browse index. 2. dedicated subdomain - rentals.dantalan.co.za 3. All requisite information.
 
@@ -20031,7 +20031,7 @@ That should return your published listings as JSON. Then open **https://rentals.
 
 Once DNS resolves, Caddy will auto-issue the cert for the new subdomain. Paste the `curl` output or a screenshot if anything's off.
 
-### 🧑 Arthur · 2026-07-24 09:34
+### 🧑 Vernon · 2026-07-24 09:34
 
 PS C:\xampp\htdocs\development\PMS0.3> curl "https://api.dantalan.co.za/api/listings/public?vendor=dantalan.co.za"
 {"statusCode":404,"error":"NOT_FOUND","message":"Cannot GET /api/listings/public?vendor=dantalan.co.za","requestId":"0b5a8169-b565-4889-a980-dfa622a6ea91","path":"/api/listings/public?vendor=dantalan.co.za","timestamp":"2026-07-24T09:33:59.145Z"}
@@ -20069,7 +20069,7 @@ Expected: the curl returns `[...]` (your published listings) or `[]`, and the ps
 
 If `git log` does **not** show the new commit, then the push from your dev machine didn't land — run the `git add … && git commit && git push origin main` step again and re-pull. Paste what `git log --oneline -1` shows and I'll pinpoint it.
 
-### 🧑 Arthur · 2026-07-24 09:43
+### 🧑 Vernon · 2026-07-24 09:43
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
   psql -U pms -d pms -c "SELECT proname FROM pg_proc WHERE proname LIKE 'public_listing%';"
@@ -20110,7 +20110,7 @@ It should return a JSON array (`[...]` of your published listings, or `[]` if no
 
 Paste the curl output and I'll confirm we're done.
 
-### 🧑 Arthur · 2026-07-24 09:44
+### 🧑 Vernon · 2026-07-24 09:44
 
 PS C:\xampp\htdocs\development\PMS0.3> curl "https://api.dantalan.co.za/api/listings/public?vendor=dantalan.co.za"
 [{"id":"f01b78db-68fe-449a-a41c-606d7749483d","rent":8000,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-107","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"55b44716-4337-4e04-8550-9ceac086b76f","rent":8000,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-107","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"85e39d90-207c-494d-8a44-eb60bab69d30","rent":4400,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-107","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"e998070c-97cb-494f-a227-11c955ffcadd","rent":4400,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-101","bedrooms":2,"bathrooms":1,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"fbc1dfb8-daf7-404a-805c-9f77f20fb415","rent":4400,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-105","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"62235981-85eb-497a-95c0-0dd2362c9a3e","rent":3700,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-102","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"c3a11a2d-dbb5-40dc-b7a8-9482c88eca65","rent":3700,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-103","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"5d7247f5-3f54-4880-88aa-980245c677bd","rent":3700,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-106","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"e8ee2498-9888-4e4e-b468-4201b4ce0ee4","rent":2600,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-104","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"9ac830e2-bb37-448a-93f3-45f728e79f97","rent":3700,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-108","bedrooms":2,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"},{"id":"748c6881-2fa5-434d-9570-24130a996437","rent":3000,"availableFrom":"2026-08-01","description":"Listed via back-office","media":[],"unitLabel":"A-109","bedrooms":4,"bathrooms":0,"propertyName":"46 Saint James | HaaS.one","address":null,"propertyType":"co_living"}]
@@ -20127,7 +20127,7 @@ Two things I noticed in the data worth a quick heads-up:
 
 Everything from the rentals build is done and verified. Want me to add the **Pause/Close listing** controls next so you can manage those duplicates, or leave it here?
 
-### 🧑 Arthur · 2026-07-24 09:45
+### 🧑 Vernon · 2026-07-24 09:45
 
 add the Pause/Close listing controls
 
@@ -20224,7 +20224,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Once it's up, go to **Listings → Manage** and Close the duplicate listings — they'll disappear from rentals.dantalan.co.za. That's the pause/close controls done.
 
-### 🧑 Arthur · 2026-07-24 09:53
+### 🧑 Vernon · 2026-07-24 09:53
 
 rentals.dantalan.co.za should be public - no auth required.
 
@@ -20273,7 +20273,7 @@ After it's up, open **https://rentals.dantalan.co.za** directly (no `/rentals` n
 
 If it still shows a login after the rebuild, hard-refresh (the old bundle may be cached) and confirm `git log --oneline -1` on the VPS shows this commit. Paste what you see and I'll dig in.
 
-### 🧑 Arthur · 2026-07-24 13:21
+### 🧑 Vernon · 2026-07-24 13:21
 
 I want to create 2 tiers for this app. One free and one paid. Let's brainstorm.
 
@@ -20342,7 +20342,7 @@ To turn this into a spec, the decisions that matter most:
 
 Want me to save this as a todo with the question list (like the agents one), or keep going now if you answer 1–6?
 
-### 🧑 Arthur · 2026-07-24 13:37
+### 🧑 Vernon · 2026-07-24 13:37
 
 1. save this as todo
 
@@ -20357,7 +20357,7 @@ Saved as todo **#134** — the full two-tier design (Free "Starter" vs Paid "Pro
 
 Whenever you're ready, answer 1–6 and I'll turn it into a concrete spec and start building. Anything else?
 
-### 🧑 Arthur · 2026-07-24 13:49
+### 🧑 Vernon · 2026-07-24 13:49
 
 I also want to build a website/landing page for the app - about the app, user manual, breakdown the tiers, portal to agent registration etc. Very premium and minimalist.
 
@@ -20374,7 +20374,7 @@ This is a marketing site for the **platform as a product** (the SaaS), which is 
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-24 14:23
+### 🧑 Vernon · 2026-07-24 14:23
 
 continue
 
@@ -20606,7 +20606,7 @@ Expect `{"received":true}`, then open **https://www.dantalan.co.za**.
 
 Once you settle on the real product name/domain, tell me and I'll swap the brand + hostname and re-point it. Want me to tweak the copy or palette first, or ship it as-is?
 
-### 🧑 Arthur · 2026-07-24 15:52
+### 🧑 Vernon · 2026-07-24 15:52
 
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
   psql -U pms -d pms \
@@ -20644,7 +20644,7 @@ Expected: `talandan26@gmail.com` has 1 membership (`vendor_owner`), `vernon@zaak
 
 Your admin login (`talandan26@gmail.com`) is already correct and unaffected — nothing else to change. This was just tidying up the old duplicate.
 
-### 🧑 Arthur · 2026-07-24 15:59
+### 🧑 Vernon · 2026-07-24 15:59
 
 what happens after an application is approved?
 
@@ -20670,7 +20670,7 @@ So the practical next steps after approval are usually: (a) let the tenant know 
 
 Want me to close that gap — send the tenant an automatic "you're approved, here's how to log in" email/SMS on approval? It's a small addition that hooks into the notification channels you already have wired.
 
-### 🧑 Arthur · 2026-07-24 16:02
+### 🧑 Vernon · 2026-07-24 16:02
 
 do (a)  and (b)
 
@@ -20794,7 +20794,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Then approve a test application — the applicant should get the approval email, and a rent invoice should appear for the lease's start month. A couple of notes: the invoice is a **full month** (no pro-rata for mid-month starts yet), and the approval email needs SendGrid working (which yours is). Want me to add mid-month **pro-rata** for the first invoice, or is a full month fine?
 
-### 🧑 Arthur · 2026-07-24 16:13
+### 🧑 Vernon · 2026-07-24 16:13
 
 make the message in point (a) more welcoming
 
@@ -20825,7 +20825,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Want me to tweak the tone further (more formal, or add your agency name/signature), or is that the vibe?
 
-### 🧑 Arthur · 2026-07-24 16:16
+### 🧑 Vernon · 2026-07-24 16:16
 
 add the agency name/signature
 
@@ -20866,7 +20866,7 @@ Anything else on the approval flow, or move on?
 
 ## 2026-07-25
 
-### 🧑 Arthur · 2026-07-25 07:38
+### 🧑 Vernon · 2026-07-25 07:38
 
 move on
 
@@ -20883,7 +20883,7 @@ Where things stand, your open todos are:
 
 Just say the word on any of those, or point me at something new.
 
-### 🧑 Arthur · 2026-07-25 13:42
+### 🧑 Vernon · 2026-07-25 13:42
 
 Add to the todo list - Add pictures upload for listings and inspections.
 
@@ -20896,7 +20896,7 @@ Add to the todo list - Add pictures upload for listings and inspections.
 
 Added as **#138** — photo upload for both listings and inspections, with notes on reusing what's already there (the unused `listing.media` field, the storage provider's presigned-URL flow, and rendering listing photos on the public rentals site). Ready whenever you want to build it.
 
-### 🧑 Arthur · 2026-07-25 13:43
+### 🧑 Vernon · 2026-07-25 13:43
 
 do #138 now
 
@@ -21180,7 +21180,7 @@ Then: **Listings → Photos → Upload** a picture, and check it appears on **re
 
 Two things worth noting: images live on the server's `mediadata` volume, so include it in backups (you can later switch to S3/R2 — the abstraction's there); and photos are served at original size (no thumbnailing yet). Want me to add auto-thumbnails/resizing later, or is this good?
 
-### 🧑 Arthur · 2026-07-25 13:55
+### 🧑 Vernon · 2026-07-25 13:55
 
 add auto-thumbnails/resizing now
 
@@ -21350,7 +21350,7 @@ The `api` image will be a touch larger and the first build a bit slower (sharp's
 
 That completes #138 with thumbnails. Anything else, or wrap here?
 
-### 🧑 Arthur · 2026-07-25 14:29
+### 🧑 Vernon · 2026-07-25 14:29
 
 add mid-month pro-rata for the first invoice
 
@@ -21417,7 +21417,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 One note: the **Add-tenant** flow still doesn't auto-raise a first invoice (only the application-approval path does) — so pro-rata applies to tenants onboarded via the rentals funnel. Want me to give Add-tenant the same auto first-invoice + pro-rata for consistency?
 
-### 🧑 Arthur · 2026-07-25 15:05
+### 🧑 Vernon · 2026-07-25 15:05
 
 yes
 
@@ -21483,7 +21483,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 That's the pro-rata work complete across both flows. Anything else?
 
-### 🧑 Arthur · 2026-07-25 15:57
+### 🧑 Vernon · 2026-07-25 15:57
 
 what's next?
 
@@ -21506,7 +21506,7 @@ My suggestion: knock out the deploy + smoke test now, do the three go-live items
 
 Which do you want to start with — verify the deploy, the go-live items, or answering the questions for tiers/agents?
 
-### 🧑 Arthur · 2026-07-25 16:15
+### 🧑 Vernon · 2026-07-25 16:15
 
 another todo - the ability for tenants to upload proof of payment.
 
@@ -21521,7 +21521,7 @@ Added as **#142** — with notes on the pieces it touches: a tenant-accessible u
 
 Ready whenever you want to build it, or say the word on the deploy/go-live items.
 
-### 🧑 Arthur · 2026-07-25 16:59
+### 🧑 Vernon · 2026-07-25 16:59
 
 add todo - don't allow multiple listings of the same 'room' or property by the same owner or landlord
 
@@ -21541,7 +21541,7 @@ That's queued. Anything else to capture, or want to pick something to build?
 
 ## 2026-07-26
 
-### 🧑 Arthur · 2026-07-26 07:58
+### 🧑 Vernon · 2026-07-26 07:58
 
 build #143
 
@@ -21636,7 +21636,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api n
 
 After the migration runs, your Listings page should show A-107 (and any other dupes) collapsed to a single open listing each. Want to tackle the deploy/go-live items next, or another todo?
 
-### 🧑 Arthur · 2026-07-26 08:07
+### 🧑 Vernon · 2026-07-26 08:07
 
 another todo
 
@@ -21644,7 +21644,7 @@ another todo
 
 What's the todo? Tell me what to capture and I'll add it to the list.
 
-### 🧑 Arthur · 2026-07-26 08:08
+### 🧑 Vernon · 2026-07-26 08:08
 
 show me the list
 
@@ -21673,7 +21673,7 @@ Everything else (1–124, 129–141, 143) is completed — the full platform bui
 
 Want to pick one of the six pending items, or add the new todo you mentioned?
 
-### 🧑 Arthur · 2026-07-26 08:09
+### 🧑 Vernon · 2026-07-26 08:09
 
 do # 142
 
@@ -21968,7 +21968,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api n
 
 One privacy note worth flagging: uploaded files are served from public (but unguessable, random‑UUID) URLs — fine for listing photos, but **proof-of-payment images can contain bank details**. If you want those access‑controlled (only staff + the submitting tenant), that's a follow‑up — say the word and I'll add authenticated media serving for sensitive files. Otherwise, that completes #142.
 
-### 🧑 Arthur · 2026-07-26 08:36
+### 🧑 Vernon · 2026-07-26 08:36
 
 done. I am testing the app and after the application is approved I want the lease agreement to be sent to the applicant for signing.
 
@@ -22006,7 +22006,7 @@ Two decisions shape it, and one is legally sensitive, so I want your call before
 
 My recommendation: **(1a if you have a template, else 1b)** + **native e-sign now**, with a clear note that the generated template is a starting point to have reviewed. Which way do you want to go?
 
-### 🧑 Arthur · 2026-07-26 08:44
+### 🧑 Vernon · 2026-07-26 08:44
 
 Lets do your recommendation.
 
@@ -22033,7 +22033,7 @@ Going with my recommendation: since you don't have a template loaded, I'll **gen
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-26 08:46
+### 🧑 Vernon · 2026-07-26 08:46
 
 Stop.
 
@@ -22045,7 +22045,7 @@ Where things stand: everything through **#142 (proof of payment)** and **#143 (d
 
 Just say the word when you want to resume it (or anything else).
 
-### 🧑 Arthur · 2026-07-26 08:47
+### 🧑 Vernon · 2026-07-26 08:47
 
 I want to do 1(b) + native e-sign now
 
@@ -22343,7 +22343,7 @@ Then: **Settings → paste your lease template**, approve a test application, an
 
 Two notes: paste **your** lease template in Settings before going live (otherwise the built-in starter is used, which needs legal review); and this is a lightweight native e-sign (name + consent + IP/timestamp audit trail) — solid for most residential lettings, though not a certified provider like DocuSign. Want me to wire the "Lease" status into a staff screen (e.g. show signed/unsigned on the Leases page) next?
 
-### 🧑 Arthur · 2026-07-26 09:13
+### 🧑 Vernon · 2026-07-26 09:13
 
 yes
 
@@ -22435,7 +22435,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Note this folds in with the lease e-sign deploy from the previous step (same `web` rebuild, plus the `api` rebuild + migration + `SIGN_BASE` there). Want me to also surface the "awaiting signature" count somewhere prominent (e.g. the dashboard), or is the Leases column enough?
 
-### 🧑 Arthur · 2026-07-26 09:23
+### 🧑 Vernon · 2026-07-26 09:23
 
 Paste your own lease agreement (plain text or HTML). Use placeholders like `{{tenant_name}}` and they’ll be filled in automatically when a lease is generated on approval. Leave blank to use the built-in South African starter template.
 `{{agency_name}}{{agency_email}}{{agency_phone}}{{tenant_name}}{{tenant_email}}{{tenant - I need this process to be simplified. I just want to upload the lease and this must be handles automatically.`
@@ -22554,7 +22554,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api n
 
 Then: **Settings → upload your lease PDF**, approve a test application, and open the signing link in the email — you'll see the schedule + your lease + the sign box.
 
-### 🧑 Arthur · 2026-07-26 09:56
+### 🧑 Vernon · 2026-07-26 09:56
 
 I received the approval email link  - I signed in but I cannot see the lease agreement to read and sign it before making payment.
 
@@ -22630,7 +22630,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T po
 
 If that returns **no rows**, the approval ran before the feature was live. Since your existing approved tenant won't have an agreement, want me to add a **"Send lease for signing"** button on the Leases page that generates one for an existing lease (so you can test without re-approving)? It's a small addition.
 
-### 🧑 Arthur · 2026-07-26 10:03
+### 🧑 Vernon · 2026-07-26 10:03
 
 yes
 
@@ -22698,7 +22698,7 @@ Then, to test end-to-end:
 
 That closes the loop. Anything still off after deploying, paste it and I'll jump on it.
 
-### 🧑 Arthur · 2026-07-26 11:31
+### 🧑 Vernon · 2026-07-26 11:31
 
 <uploaded_files>
 <file><file_path>Lease Parsing component.md</file_path></file>
@@ -22748,7 +22748,7 @@ One nice tie-in I noted on the task: document parsing is a natural **Pro-tier** 
 
 Whenever you want to build it, the fastest first slice is: digital-PDF text extraction + a stubbed provider + the lease schema + the split-screen verify screen that prefills "Add tenant." Want me to start on that MVP now, or leave it queued?
 
-### 🧑 Arthur · 2026-07-26 11:37
+### 🧑 Vernon · 2026-07-26 11:37
 
 start on the MVP now.
 
@@ -22956,7 +22956,7 @@ Two honest caveats: the heuristic parser is rough — the LLM provider is where 
 
 ## 2026-07-27
 
-### 🧑 Arthur · 2026-07-27 07:32
+### 🧑 Vernon · 2026-07-27 07:32
 
 wire the LLM provider properly
 
@@ -23015,7 +23015,7 @@ Three things worth knowing:
 
 Want me to test it end-to-end once you've added the key and deployed, or leave it here?
 
-### 🧑 Arthur · 2026-07-27 08:46
+### 🧑 Vernon · 2026-07-27 08:46
 
 leave it here add a reminder in todo
 
@@ -23032,7 +23032,7 @@ You've hit your monthly spend limit · raise it at claude.ai/settings/usage?from
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-27 12:43
+### 🧑 Vernon · 2026-07-27 12:43
 
 leave it here add a reminder in todo
 
@@ -23040,7 +23040,7 @@ leave it here add a reminder in todo
 
 Failed to authenticate. API Error: 403 The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()
 
-### 🧑 Arthur · 2026-07-27 12:44
+### 🧑 Vernon · 2026-07-27 12:44
 
 leave it here add a reminder in todo
 
@@ -23053,7 +23053,7 @@ Failed to authenticate. API Error: 403 The socket connection was closed unexpect
 
 ## 2026-07-28
 
-### 🧑 Arthur · 2026-07-28 06:39
+### 🧑 Vernon · 2026-07-28 06:39
 
 leave it here add a reminder in todo
 
@@ -23066,7 +23066,7 @@ Failed to authenticate. API Error: 403 The socket connection was closed unexpect
 
 ## 2026-07-29
 
-### 🧑 Arthur · 2026-07-29 06:57
+### 🧑 Vernon · 2026-07-29 06:57
 
 leave it here add a reminder in todo
 
@@ -23076,7 +23076,7 @@ Already captured — that reminder is saved as **#152: "Test LLM lease parser en
 
 Nothing else running. The lease-parsing MVP + Anthropic tool-use provider are built and typechecked, ready to deploy whenever you are. Just say the word when you want to pick up anything from the list.
 
-### 🧑 Arthur · 2026-07-29 07:04
+### 🧑 Vernon · 2026-07-29 07:04
 
 what's next on the list
 
@@ -23104,7 +23104,7 @@ My suggestion for sequencing: **deploy everything that's built but not yet shipp
 
 Want to start with a consolidated deploy of everything outstanding, tackle the go-live items, or answer the questions for tiers/agents?
 
-### 🧑 Arthur · 2026-07-29 07:06
+### 🧑 Vernon · 2026-07-29 07:06
 
 lets consolidated the deploy
 
@@ -23161,7 +23161,7 @@ Optional after this: add `TWILIO_*` (SMS), `ANTHROPIC_API_KEY` + `DOCUMENT_AI_PR
 
 Run it and paste the `ps` / verify output — I'll confirm everything's green or troubleshoot whatever isn't.
 
-### 🧑 Arthur · 2026-07-29 07:11
+### 🧑 Vernon · 2026-07-29 07:11
 
 => [landlord] resolving provenance for metadata file                                                                                      0.0s
 [+] up 12/12
@@ -23212,7 +23212,7 @@ What I'm looking for:
 
 Paste those and I'll give it the all-clear. If `LeaseExtractions` is **missing** from the list, the new migration didn't make it into the build and we'll sort the git push/pull — but given the clean build, it's almost certainly all there.
 
-### 🧑 Arthur · 2026-07-29 07:12
+### 🧑 Vernon · 2026-07-29 07:12
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec -T postgres \
   psql -U pms -d pms -c "SELECT name FROM migrations ORDER BY id DESC LIMIT 8;"
@@ -23258,7 +23258,7 @@ Quick smoke test in a browser when you get a chance: app / rentals / www / tenan
 
 Remaining on the list whenever you're ready: the go-live items (**#125** upgrade SendGrid/Twilio trials, **#126–127** iKhokha live payment + callback verification), testing the LLM parser once the key's in (**#152**), and the two spec-and-build features that need your answers — **#134** tiers and **#128** agents. Nice work getting it all live.
 
-### 🧑 Arthur · 2026-07-29 07:13
+### 🧑 Vernon · 2026-07-29 07:13
 
 lets start on #128 what are the questions?
 
@@ -23286,7 +23286,7 @@ One extra worth a one-word answer: **who are these agents in real life** — ext
 
 Answer those and I'll draft the concrete data model + build plan before writing code.
 
-### 🧑 Arthur · 2026-07-29 07:18
+### 🧑 Vernon · 2026-07-29 07:18
 
 go with your recommendations
 
@@ -23541,7 +23541,7 @@ Then: **Agents → Add agent** (set their commission terms + banking), and when 
 
 Deferred to phase-2 (as agreed): referral codes/links, self-serve agent signup, an agent-facing portal, **trailing/recurring** commissions, and **automated iKhokha payouts**. Two things worth flagging before real use: agent **banking is stored plainly** for now (owners' banking is encrypted — worth doing the same here), and confirm the **PPRA/FICA** framing for paying introducer fees. Want me to note those as follow-up todos, or move on?
 
-### 🧑 Arthur · 2026-07-29 07:48
+### 🧑 Vernon · 2026-07-29 07:48
 
 show me the splash SPA page for PMS
 
@@ -23567,7 +23567,7 @@ Reminder on the two brands: **Kaya** is a **placeholder product name** (swappabl
 
 Want me to open the actual file so you can see it full-width, tweak the copy/palette, or swap in the real product name?
 
-### 🧑 Arthur · 2026-07-29 07:53
+### 🧑 Vernon · 2026-07-29 07:53
 
 add another middle tier - R250 per unit
 
@@ -23614,7 +23614,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Worth noting: this R250/unit price now anchors the **actual tiers feature (#134)** — when we build enforcement, Growth = the per-unit paid plan with those features, Starter = capped free, Enterprise = custom. Want me to update the #134 spec to lock in this pricing, or tweak the tiers/copy further?
 
-### 🧑 Arthur · 2026-07-29 07:59
+### 🧑 Vernon · 2026-07-29 07:59
 
 The R250 per unit plan is for 'owners' with more than 10 units
 
@@ -23656,7 +23656,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --bu
 
 Want me to re-render the updated pricing to eyeball the new copy, or start building the actual tier enforcement (#134) now that the pricing's locked?
 
-### 🧑 Arthur · 2026-07-29 08:02
+### 🧑 Vernon · 2026-07-29 08:02
 
 I want to host the page on dantalan.co.za
 
@@ -23709,7 +23709,7 @@ Expect `HTTP/2 200`, then open **https://dantalan.co.za** in a browser — the K
 
 One heads-up: the apex must have a plain **A record** — if your DNS provider only offers CNAME on the root, use their ALIAS/ANAME option instead (CNAME isn't allowed on the apex). Your existing subdomains and email records are unaffected. Paste the `curl` output if the cert doesn't come through and I'll help.
 
-### 🧑 Arthur · 2026-07-29 08:09
+### 🧑 Vernon · 2026-07-29 08:09
 
 PS C:\xampp\htdocs\development\PMS0.3> curl -I https://dantalan.co.za
 curl: (60) schannel: SEC_E_UNTRUSTED_ROOT (0x80090325) - The certificate chain was issued by an authority that is not trusted.
@@ -23747,7 +23747,7 @@ Two quick notes: `www.dantalan.co.za` already has a valid cert (it worked before
 
 Paste the `nslookup` result and the Caddy log lines and I'll tell you exactly what to fix.
 
-### 🧑 Arthur · 2026-07-29 08:10
+### 🧑 Vernon · 2026-07-29 08:10
 
 PS C:\WINDOWS\system32> nslookup dantalan.co.za
 Server:  homerouter.cpe
@@ -23786,7 +23786,7 @@ You want to see Caddy log "certificate obtained successfully" for `dantalan.co.z
 
 That single stray A record is the whole issue — remove it and the apex will get a valid cert automatically. Paste the new `nslookup` once you've deleted it if it's still not clean.
 
-### 🧑 Arthur · 2026-07-29 08:17
+### 🧑 Vernon · 2026-07-29 08:17
 
 deploy@vmi3453343:~/PMS03$ # VPS
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod restart caddy
@@ -23820,7 +23820,7 @@ You're looking for a log line like **`certificate obtained successfully` … `da
 
 If after a minute it's still erroring, paste the latest log lines — occasionally the first TLS-ALPN attempt needs one retry, or there's an order/challenge detail worth reading.
 
-### 🧑 Arthur · 2026-07-29 08:23
+### 🧑 Vernon · 2026-07-29 08:23
 
 deploy@vmi3453343:~/PMS03$ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod logs caddy --tail 15 | grep -iE "dantalan\.co\.za|obtained|certificate"
 curl -I https://dantalan.co.za
@@ -23861,7 +23861,7 @@ So no action needed — just let the ZeroSSL fallback complete. Two notes:
 
 Paste the log line + curl once it settles and I'll confirm you're live on the apex.
 
-### 🧑 Arthur · 2026-07-29 08:27
+### 🧑 Vernon · 2026-07-29 08:27
 
 deploy@vmi3453343:~/PMS03$ curl -I https://dantalan.co.za
 curl: (35) OpenSSL/3.0.13: error:0A000438:SSL routines::tlsv1 alert internal error
@@ -23911,7 +23911,7 @@ One small thing I noticed in your records: `www.dantalan.co.za` is a **CNAME →
 
 If the `8.8.8.8` lookup *still* shows `169.239.219.58`, then the authoritative nameservers are somehow still returning it (e.g. a "Domain Pointing"/web-forwarding feature at domains.co.za separate from this DNS table) — tell me and we'll hunt that down. But based on this screen, the zone is clean and the cert should now issue.
 
-### 🧑 Arthur · 2026-07-29 08:32
+### 🧑 Vernon · 2026-07-29 08:32
 
 Still not working but let's pause that for now. The in app messaging between landlord and tenant is not working.
 
@@ -23962,7 +23962,7 @@ To point me at the right fix, tell me:
 
 If it's #1 (you want the landlord to be able to start a conversation with a tenant), I can add that composer to the landlord app now — that's the piece that's missing. Which is it?
 
-### 🧑 Arthur · 2026-07-29 08:51
+### 🧑 Vernon · 2026-07-29 08:51
 
 Okay the messaging works but I the unit number needs to be included in the message. Also there needs to be a 'bigger' notification for messages.
 
@@ -24033,7 +24033,7 @@ The landlord has a Messages tab (I'll badge it); the tenant's bottom nav has no 
 `⚙ Edit` — {"replace_all": false, "file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\mobile-landlord\\src\\components\\GlassTabBar.tsx", "old_string": "import React from 'react';\nimport { View, Text, TouchableOpacity, StyleShee…
 > ↳ result: The file C:\xampp\htdocs\development\PMS0.3\mobile-landlord\src\components\GlassTabBar.tsx has been updated successfully. (file state is current in your context…
 
-### 🧑 Arthur · 2026-07-29 08:56
+### 🧑 Vernon · 2026-07-29 08:56
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -24286,7 +24286,7 @@ The `api` rebuild carries the SQL join for `unitLabel`; `web`, `tenant`, and `la
 
 Want me to pick the apex `dantalan.co.za` cert issue back up next, or leave it paused?
 
-### 🧑 Arthur · 2026-07-29 09:22
+### 🧑 Vernon · 2026-07-29 09:22
 
 deploy@vmi3453343:~$ cd /opt/pms && git pull
 docker compose --env-file deploy/.env.prod -f deploy/docker-compose.prod.yml up -d --build api web tenant landlord
@@ -24311,7 +24311,7 @@ docker compose --env-file deploy/.env.prod -f deploy/docker-compose.prod.yml up 
 
 If the env-file path still errors, confirm it exists first with `ls deploy/.env.prod` — the `--env-file` path is relative to your current directory, so you must be inside `~/PMS03` when you run it.
 
-### 🧑 Arthur · 2026-07-29 09:28
+### 🧑 Vernon · 2026-07-29 09:28
 
 I am not able to see my lease agreement when i login in as tenant
 
@@ -24420,7 +24420,7 @@ One quick question so I target the fix precisely:
 
 No problem — the query will reveal the origin either way. Go ahead and run it and paste the output, and I'll apply the exact fix (loosen the status filter, correct a vendor mismatch, or re-link the lease to the right user record depending on what it shows).
 
-### 🧑 Arthur · 2026-07-29 09:31
+### 🧑 Vernon · 2026-07-29 09:31
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml exec -T postgres psql -U pms -d pms -c "
@@ -24454,7 +24454,7 @@ ORDER BY u.email;"
 
 That's also the corrected form of your deploy command — always include `--env-file deploy/.env.prod -f deploy/compose.prod.yml` together.
 
-### 🧑 Arthur · 2026-07-29 09:32
+### 🧑 Vernon · 2026-07-29 09:32
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres psql -U pms -d pms -c "
@@ -24562,7 +24562,7 @@ If rows come back, the tenant will now see the agreement with a view/sign button
 
 If it's empty, the agreements were never generated for those leases (they were created before the e-sign feature, or via a path that skips generation). In that case the fix is to generate one per lease — staff can hit "Send lease" from the back-office Leases page, or I can give you a one-liner to backfill via `POST /lease-agreements/for-lease/:leaseId`. Paste the output and I'll take it from there.
 
-### 🧑 Arthur · 2026-07-29 09:37
+### 🧑 Vernon · 2026-07-29 09:37
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres psql -U pms -d pms -c "
 SELECT u.email, la.ref, la.status, la.created_at
@@ -24617,7 +24617,7 @@ Going forward this is automatic — the Add-tenant flow generates the agreement 
 
 Want me to add a quick backfill so you can generate all of them at once instead of clicking each, or is per-lease from the back-office fine?
 
-### 🧑 Arthur · 2026-07-29 09:41
+### 🧑 Vernon · 2026-07-29 09:41
 
 give me the code for the --build tenant step
 
@@ -24631,7 +24631,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 That rebuilds and restarts only the tenant app with the new Docs screen. Once it's up, reload the tenant app (hard-refresh if it's the web build) and the lease agreement card will appear — showing "not available yet" until you hit **Send lease** in the back-office, then "Review & sign".
 
-### 🧑 Arthur · 2026-07-29 09:44
+### 🧑 Vernon · 2026-07-29 09:44
 
 I want to test from scratch with only one active vendor - talandan26@gmail.com - what is required
 
@@ -24738,7 +24738,7 @@ Two optional notes: old uploaded files (lease PDFs, photos) still sit on the `me
 
 Want me to also give you the media-volume clear command, or is the DB-only reset what you're after?
 
-### 🧑 Arthur · 2026-07-29 10:01
+### 🧑 Vernon · 2026-07-29 10:01
 
 automatically signout inactive users - from all apps after 5 mins.
 
@@ -24957,7 +24957,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Want the 5-minute value configurable (e.g. via env), or is the fixed timeout fine?
 
-### 🧑 Arthur · 2026-07-29 10:09
+### 🧑 Vernon · 2026-07-29 10:09
 
 yes i want it configurable - make the default 10 mins. enforce it server side too.
 
@@ -25199,7 +25199,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 One caveat worth stating plainly: this enforces idle expiry, but the token stays valid for up to its remaining lifetime if copied — it's not instant server-side revocation. True instant revocation would need a token denylist or a Redis session store, which is a larger change. Want me to add that, or is the short-lived-token model sufficient for now?
 
-### 🧑 Arthur · 2026-07-29 10:19
+### 🧑 Vernon · 2026-07-29 10:19
 
 add True instant revocation to the todo.
 
@@ -25212,7 +25212,7 @@ add True instant revocation to the todo.
 
 Added as task #162 — a Redis-backed token denylist / session-version check that rejects revoked or idle-expired tokens on the very next request across all three apps. It's on the backlog, not started.
 
-### 🧑 Arthur · 2026-07-29 10:56
+### 🧑 Vernon · 2026-07-29 10:56
 
 I want to improve the UI/UX - it needs to be much more user friendly and premium looking - look at https://dribbble.com/shasankocreations and let's brainstorm.
 
@@ -25276,7 +25276,7 @@ This same system then rolls out to every other screen — Properties gets photo-
 
 What would you like to adjust before I take it further? A few knobs: the accent color (I used a teal-green — we can match Dantalan's real brand), light-only vs. also designing the dark version, and density (this is fairly airy; we could tighten it). Tell me what to change and I'll iterate the mockup, then we can move to the token refresh and rebuild the top screens for real.
 
-### 🧑 Arthur · 2026-07-29 11:03
+### 🧑 Vernon · 2026-07-29 11:03
 
 give me a completely different more vibrant mockup
 
@@ -25306,7 +25306,7 @@ Which way do you want to go?
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-29 12:05
+### 🧑 Vernon · 2026-07-29 12:05
 
 I want the vibrant bento UI
 
@@ -25465,7 +25465,7 @@ Two notes: the commit will also sweep in changes from earlier sessions that were
 
 Want me to split this into separate commits by feature instead of one, or is the single commit fine?
 
-### 🧑 Arthur · 2026-07-29 12:37
+### 🧑 Vernon · 2026-07-29 12:37
 
 done. Let's work on the subsequent back office pages styling - install chart libraries if required.
 
@@ -25725,7 +25725,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Still on the old look and worth doing next: Properties (photo-led cards), Leases, Listings, Applications, Owners, Agents, Providers, Documents, Inspections, Settings — they already inherit the cleaner cards/background but don't yet have the bento tiles or per-page polish. Want me to keep going through those in the next batch, starting with Properties and Leases?
 
-### 🧑 Arthur · 2026-07-29 12:48
+### 🧑 Vernon · 2026-07-29 12:48
 
 Yes
 
@@ -25863,7 +25863,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Want me to keep going and add bento summary rows to the remaining pages (Applications, Owners, Agents, Listings), or pause here so you can deploy and eyeball it first?
 
-### 🧑 Arthur · 2026-07-29 12:54
+### 🧑 Vernon · 2026-07-29 12:54
 
 redirect all page to the login screens when there is no open/authorized session.
 
@@ -26014,7 +26014,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Note this pairs naturally with the still-pending task #162 (true instant server-side revocation) — once that's in, the 401 redirect will also fire the instant a session is revoked, not just when the token expires. Want to keep going on the remaining page restyles, or pick up #162 next?
 
-### 🧑 Arthur · 2026-07-29 12:59
+### 🧑 Vernon · 2026-07-29 12:59
 
 keep going on the remaining page restyles then pick up on #162
 
@@ -26315,7 +26315,7 @@ No database migration — the session registry lives entirely in Redis, which yo
 
 One quick check worth doing after deploy: hit `https://api.dantalan.co.za/api/health/ready` and confirm `redis: up`, since sessions now depend on it. Want me to add a short test that logs in, revokes, and asserts the next request 401s, or is this good to ship?
 
-### 🧑 Arthur · 2026-07-29 13:19
+### 🧑 Vernon · 2026-07-29 13:19
 
 add a short test that logs in, revokes, and asserts the next request 401s
 
@@ -26498,7 +26498,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 After it restarts, the Import lease page will load without the error, and Choose PDF will work (heuristic extractor by default — the LLM parser needs the Anthropic key from the still-open #152). Worth a quick click-through of Agents and the Leases "Send lease" action too, since they shared the same underlying issue.
 
-### 🧑 Arthur · 2026-07-29 14:40
+### 🧑 Vernon · 2026-07-29 14:40
 
 I want to have an invoice template which is populated with the pricing of the approved listing and sent to the approved applicant with the welcome message.
 
@@ -26533,7 +26533,7 @@ This is a real feature, and a few decisions change how I build it. The approve f
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-29 14:51
+### 🧑 Vernon · 2026-07-29 14:51
 
 The invoice must include 1st months rent, admin/lease fee & deposit if applicable. Add a column for deposit in the listing creation.
 
@@ -26800,7 +26800,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 After that: create a listing with a deposit and admin fee, apply to it from the public rentals page, then approve the application — the approved applicant gets the welcome email with the move-in invoice link. Want me to also surface deposit/admin fee as columns on the listings table and the public rentals detail page, or leave those as back-office-only for now?
 
-### 🧑 Arthur · 2026-07-29 15:05
+### 🧑 Vernon · 2026-07-29 15:05
 
 leave those as back-office-only for now
 
@@ -26812,7 +26812,7 @@ This feature is complete and ready to deploy with the commands from my last mess
 
 Want me to pick up anything else, or is this a good spot to pause?
 
-### 🧑 Arthur · 2026-07-29 15:16
+### 🧑 Vernon · 2026-07-29 15:16
 
 I am receiving the Rent invoice email but there is no link to the invoice.
 
@@ -26909,7 +26909,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Then approve a fresh application and the "Rent invoice for {period}" email will contain the invoice link. If it still doesn't appear, the render step is failing silently — tell me and I'll add a log line / check the API logs for "Move-in invoice for lease … failed".
 
-### 🧑 Arthur · 2026-07-29 15:32
+### 🧑 Vernon · 2026-07-29 15:32
 
 When creating a listing unit details should be pulled from the unit section. Also I want to be able to describe the room and indicate square meterage.
 
@@ -27131,7 +27131,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Then set a size on a unit in Properties, create a listing for that unit — rent and details prefill, add a description — and it shows on the public listing page with the m². Want me to also add beds/baths/size to the public rentals browse cards (the list view), or leave that for now?
 
-### 🧑 Arthur · 2026-07-29 15:43
+### 🧑 Vernon · 2026-07-29 15:43
 
 add beds/baths/size to the public rentals browse cards (the list view)
 
@@ -27174,7 +27174,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Anything else you'd like to tackle?
 
-### 🧑 Arthur · 2026-07-29 16:07
+### 🧑 Vernon · 2026-07-29 16:07
 
 Yes, align the UI for the tenant, landlord, listings
 
@@ -27286,7 +27286,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 One note: the app tab bars (the floating frosted pill nav in each app) still use a blur effect by design — I left those, since a subtle frosted nav reads well against the calm content. If you'd rather they go solid too for full consistency, say the word and I'll flatten them.
 
-### 🧑 Arthur · 2026-07-29 19:10
+### 🧑 Vernon · 2026-07-29 19:10
 
 Looks good. What's on the todo list?
 
@@ -27311,7 +27311,7 @@ Everything from the recent stretch — the redesign rollout, session/auth harden
 
 Want me to pick one of these up? #134 (subscription tiers) is the biggest piece of net-new product work; #126/#127 are the smallest and most important for actually taking money safely.
 
-### 🧑 Arthur · 2026-07-29 19:14
+### 🧑 Vernon · 2026-07-29 19:14
 
 Lets build the agent portal - agents only earn commission on software sales. The tiers are as discussed earlier. Lets brainstorm.
 
@@ -27351,7 +27351,7 @@ Design doc it is, with recurring % of MRR and both attribution paths. Let me wri
 
 ### 🤖 Claude · 2026-07-29 19:22
 
-`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\PARTNER_PORTAL_DESIGN.md", "content": "# Partner Portal & Software-Sales Commission — Design Doc\n\nStatus: draft for review · Owner: Arthur · Depends on: #134…
+`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\PARTNER_PORTAL_DESIGN.md", "content": "# Partner Portal & Software-Sales Commission — Design Doc\n\nStatus: draft for review · Owner: Vernon · Depends on: #134…
 > ↳ result: File created successfully at: C:\xampp\htdocs\development\PMS0.3\docs\PARTNER_PORTAL_DESIGN.md (file state is current in your context — no need to Read it back)
 
 ### 🤖 Claude · 2026-07-29 19:22
@@ -27386,7 +27386,7 @@ I left five open decisions at the bottom that change the numbers: whether Growth
 
 Answer those five (or just the first three) and I'll turn Phase 0 + Phase 1 into concrete tasks and start building — Phase 1's "partner onboards agency" path is the fastest route to something usable since it doesn't need the public signup flow.
 
-### 🧑 Arthur · 2026-07-29 19:35
+### 🧑 Vernon · 2026-07-29 19:35
 
 <uploaded_files>
 <file><file_path>agent-portal-pipeline (1).html</file_path></file>
@@ -27491,7 +27491,7 @@ The partner portal surfaces are updated to Overview (mockup metric cards + rank)
 
 Still needs your call on the five open decisions at the bottom (Growth billing basis, commission rate + window, self-signup approval, platform-admin setup, payouts). Answer those — the first three especially — and I'll break Phase 0 + Phase 1 into tasks and start building, beginning with the subscription/MRR foundation the commissions depend on, then the pipeline + leaderboard.
 
-### 🧑 Arthur · 2026-07-29 19:59
+### 🧑 Vernon · 2026-07-29 19:59
 
 1.  all units × R250
 2. Default commission rate (proposal 10%) and window (lifetime)
@@ -27503,7 +27503,7 @@ Still needs your call on the five open decisions at the bottom (Growth billing b
 
 API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check https://status.claude.com.
 
-### 🧑 Arthur · 2026-07-29 20:39
+### 🧑 Vernon · 2026-07-29 20:39
 
 1.  all units × R250
 2. Default commission rate (proposal 10%) and window (lifetime)
@@ -27676,7 +27676,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Next is Phase 1 (#178) — the big one: partners + `partner`/`platform_admin` roles + the `PartnerContext` guard, the sales pipeline (deals) with the kanban and activity feed, the global leaderboard function, and the partner portal itself. That's a large multi-part slice; want me to push straight into it, or pause here so you can deploy and confirm Phase 0 first?
 
-### 🧑 Arthur · 2026-07-29 20:53
+### 🧑 Vernon · 2026-07-29 20:53
 
 deployed. continue
 
@@ -27903,7 +27903,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Want me to keep going and build the partner portal web UI next, or pause here to deploy and confirm the backend?
 
-### 🧑 Arthur · 2026-07-29 21:05
+### 🧑 Vernon · 2026-07-29 21:05
 
 pause here. continue tomorrow.
 
@@ -27925,7 +27925,7 @@ Task #178 is left marked in-progress so it's easy to pick up. Have a good one �
 
 ## 2026-07-30
 
-### 🧑 Arthur · 2026-07-30 04:34
+### 🧑 Vernon · 2026-07-30 04:34
 
 let's continue
 
@@ -28079,7 +28079,7 @@ End-to-end test after deploy: log in with your admin email → you land on `/adm
 
 That leaves Phase 2 (#179 — the monthly commission accrual on referred MRR, statements, and payouts) and Phase 3 (#180 — referral self-signup + real recurring billing). Want me to continue into Phase 2, or pause here to deploy and try the portal?
 
-### 🧑 Arthur · 2026-07-30 04:45
+### 🧑 Vernon · 2026-07-30 04:45
 
 continue into phase 2
 
@@ -28357,7 +28357,7 @@ To see it end-to-end: as a partner, add an agency with >10 units (or set one to 
 
 That leaves Phase 3 (#180) — the public `/signup?ref=` self-signup (admin-approved) and real recurring billing that turns MRR into money actually collected. Want me to continue into Phase 3, or pause here?
 
-### 🧑 Arthur · 2026-07-30 06:07
+### 🧑 Vernon · 2026-07-30 06:07
 
 do Phase 3
 
@@ -28542,7 +28542,7 @@ One honest scoping note: I split Phase 3. The self-signup half is done; the **re
 
 Want me to take on #181 next, or pause here?
 
-### 🧑 Arthur · 2026-07-30 06:23
+### 🧑 Vernon · 2026-07-30 06:23
 
 do 181
 
@@ -28731,7 +28731,7 @@ Two honest limitations to flag: (1) this is invoice-and-collect, not silent auto
 
 That completes the partner programme end to end: subscriptions → partners/pipeline/leaderboard → commissions/payouts → self-signup → agency billing. Want me to wire the subscription webhook auto-reconcile next, or pause here?
 
-### 🧑 Arthur · 2026-07-30 07:00
+### 🧑 Vernon · 2026-07-30 07:00
 
 add subscription webhook auto-reconcile to the todo list
 
@@ -28744,7 +28744,7 @@ add subscription webhook auto-reconcile to the todo list
 
 Added as task #182. It captures wiring the iKhokha webhook to detect the `sub_<invoiceId>` reference set at checkout, verify the callback signature (naturally pairs with the pending #127), and auto-flip the subscription invoice to paid on success — retiring the manual mark-paid step for gateway payments, with idempotency and failure handling noted. It's on the backlog, not started.
 
-### 🧑 Arthur · 2026-07-30 07:37
+### 🧑 Vernon · 2026-07-30 07:37
 
 The automatic redirect to the login screen is not working on session timeout/ inactivity.
 
@@ -28761,7 +28761,7 @@ Let me look at the current idle-timeout component and confirm it's still mounted
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-30 07:39
+### 🧑 Vernon · 2026-07-30 07:39
 
 The automatic redirect to the login screen is not working on session timeout/ inactivity. I want a modal that notifies users they are about to be logged out.
 
@@ -28831,7 +28831,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 To test quickly without waiting 10 minutes, set a short window at build time — add `NEXT_PUBLIC_IDLE_TIMEOUT_MINUTES=1` to the web service's build/env and rebuild; you'll get a 20-second warning modal then logout. Leave it unset (or 10) for production. Want me to make that timeout a runtime env instead of build-time so you can change it without rebuilding, or is build-time fine?
 
-### 🧑 Arthur · 2026-07-30 08:21
+### 🧑 Vernon · 2026-07-30 08:21
 
 the rent amount should not be editable - Pulled from unit A-106: 2 bed · 2 bath · 100 m² · market R9 000.
 
@@ -28897,7 +28897,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 This also bundles the idle-logout fix + warning modal from the previous turn if you haven't shipped that yet. Anything else?
 
-### 🧑 Arthur · 2026-07-30 08:26
+### 🧑 Vernon · 2026-07-30 08:26
 
 the Run button in the Reports page doesn't do anything.
 
@@ -28972,7 +28972,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 If after deploying it still appears to do nothing for a period you know has data, tell me what the Period field shows and whether the error banner appears — that would point to the income/collection endpoint returning empty for that month rather than the button itself.
 
-### 🧑 Arthur · 2026-07-30 08:38
+### 🧑 Vernon · 2026-07-30 08:38
 
 wipe the app only leave the owner - vernon@zaaka.io
 
@@ -29035,7 +29035,7 @@ Two things to note:
 
 Uploaded media files (lease PDFs, photos) from the old data still sit on the `mediadata` volume — harmless orphans. Say the word if you want those cleared too.
 
-### 🧑 Arthur · 2026-07-30 08:45
+### 🧑 Vernon · 2026-07-30 08:45
 
 Prevent duplicate units being created.
 
@@ -29102,7 +29102,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 One note: the migration creates the unique index, so if the database still has existing duplicate unit labels within a property, `migration:run:prod` will error. Since you just wiped the data, it should be clean — but if it does fail, that's the cause, and I can give you a quick query to find and rename the duplicates first.
 
-### 🧑 Arthur · 2026-07-30 09:01
+### 🧑 Vernon · 2026-07-30 09:01
 
 I want user friendly emails - no long ugly URLs - just click here links. - Welcome home — you're approved at Dantalan Properties 🎉
 Inbox
@@ -29197,7 +29197,7 @@ Now the lease-agreement sign email. Let me view its `email` helper and the sign-
 `⚙ mcp__workspace__bash` — {"command": "cd /sessions/brave-zealous-goldberg/mnt/PMS0.3\ngrep -n \"private async email\\|await this.email(\\|signUrl\\|Please sign\\|import {\" src/modules/lease-agreement/lease-agreement.service.ts | head -20"}
 > ↳ result: 1:import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common'; 2:import { InjectDataSource } from '@nestjs/typ…
 
-### 🧑 Arthur · 2026-07-30 09:06
+### 🧑 Vernon · 2026-07-30 09:06
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -29563,7 +29563,7 @@ This is API-only — no migration. Deploy with:
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build api
 ```
 
-### 🧑 Arthur · 2026-07-30 09:16
+### 🧑 Vernon · 2026-07-30 09:16
 
 deploy@vmi3453343:~$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build api
 couldn't find env file: /home/deploy/deploy/.env.prod
@@ -29586,7 +29586,7 @@ find ~ -name compose.prod.yml 2>/dev/null
 
 Then `cd` into that file's parent-of-`deploy` directory and re-run. No migration is needed for this change — it's API-only.
 
-### 🧑 Arthur · 2026-07-30 09:32
+### 🧑 Vernon · 2026-07-30 09:32
 
 The flow is not correct - a prospective tenant should not be granted access to the app until the lease has been signed.
 
@@ -29851,7 +29851,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 One note on the between-state: a pending applicant who tries to log in will receive an OTP but land with no accessible data (no vendor context) — access is simply closed until they sign. If you'd prefer they instead see an explicit "please sign your lease first" message at login, I can add that as a follow-up.
 
-### 🧑 Arthur · 2026-07-30 10:47
+### 🧑 Vernon · 2026-07-30 10:47
 
 commit these changes
 
@@ -29900,7 +29900,7 @@ I set the repo's git identity to match your history (Vernon Venter / vee1ster@gm
 
 Note: I only committed this session's work. There are still other uncommitted changes in the tree that predate this session and aren't related to the email/access work — payment providers (payfast/yoco/peach/paystack/ikhokha), `payment.module.ts`, deploy scripts (`Caddyfile`, `backup.sh`, `harden.sh`), `validate-env.ts`, `auth.module.ts`, and several `web-admin` pay pages. I left those alone. Want me to commit those too, or review them first?
 
-### 🧑 Arthur · 2026-07-30 10:49
+### 🧑 Vernon · 2026-07-30 10:49
 
 give me the git commit command for all chages.
 
@@ -29914,7 +29914,7 @@ git add -A && git commit -m "your message here"
 
 `git add -A` stages all changes across the whole repo (modifications, new files, and deletions); `-m` sets the commit message. If you'd rather only include already-tracked files and skip untracked ones, use `git commit -am "your message"` instead.
 
-### 🧑 Arthur · 2026-07-30 11:11
+### 🧑 Vernon · 2026-07-30 11:11
 
 add a explicit "please sign your lease first" message at login
 
@@ -29977,7 +29977,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 One caveat: verifying the OTP consumes it, so a pending applicant burns that code to receive the message — they'd request a fresh code after signing. That's the safe tradeoff. Want me to fold this into the previous commit or make it a new one?
 
-### 🧑 Arthur · 2026-07-30 11:29
+### 🧑 Vernon · 2026-07-30 11:29
 
 I want you to revert back to the way you were responding yesterday. In that same format.
 
@@ -29994,7 +29994,7 @@ But I can definitely match what you want. Could you tell me what was different? 
 
 Tell me which of those (or something else) and I'll lock it in for the rest of our work.
 
-### 🧑 Arthur · 2026-07-30 11:31
+### 🧑 Vernon · 2026-07-30 11:31
 
 Go back in the chat history and look.
 
@@ -30048,7 +30048,7 @@ That's the drift. Going forward I'll do the work, tell you the outcome plainly, 
 
 Back to it: the login message and its migration are done and typechecking. Want it in the same commit or separate? — that's the last time I'll ask that reflexively; tell me your default (fold-in vs. separate) and I'll just apply it from now on.
 
-### 🧑 Arthur · 2026-07-30 11:36
+### 🧑 Vernon · 2026-07-30 11:36
 
 same commit
 
@@ -30101,7 +30101,7 @@ Quick check before I build it, since "splash page" could mean a couple of differ
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-30 13:19
+### 🧑 Vernon · 2026-07-30 13:19
 
 continue
 
@@ -30118,7 +30118,7 @@ Building a standalone, self-contained splash page using the logo. Let me grab th
 
 No response requested.
 
-### 🧑 Arthur · 2026-07-30 13:21
+### 🧑 Vernon · 2026-07-30 13:21
 
 The splash page is will be the current rentals/listings page with the attached logo. Minimalist and premium looking. Dan Talane Properties.
 
@@ -30252,7 +30252,7 @@ The preview above is a static mock (sample listings, placeholder photos) so you 
 
 Two things worth noting: the logo is a JPEG with a baked light background, so on the page's slightly cooler grey it may show a faint rectangle — a transparent PNG/SVG version would sit perfectly. And I dropped the old sticky `PublicHeader` on this page in favour of the hero; the listing detail pages still use it. Want me to swap in a transparent logo and/or apply the same header treatment to the detail pages?
 
-### 🧑 Arthur · 2026-07-30 13:28
+### 🧑 Vernon · 2026-07-30 13:28
 
 No that's terrible - I want something like this but aligned with property management and include the listings. https://dribbble.com/shots/25000009-ChronoTask-Landing-Page
 
@@ -30285,7 +30285,7 @@ This is a modern SaaS-style landing page adapted for property: floating pill nav
 
 Open it and tell me what to adjust — headline wording, whether you want the search bar functional, more/fewer sections. Once the direction's right I'll port it into `web-admin/app/rentals/page.tsx` wired to real listings and Dantalan's branding.
 
-### 🧑 Arthur · 2026-07-30 13:50
+### 🧑 Vernon · 2026-07-30 13:50
 
 <uploaded_files>
 <file><file_path>Premium-Minimalist-Property-Portfolio(2).html</file_path></file>
@@ -30355,7 +30355,7 @@ This mirrors the uploaded portfolio design — Cormorant serif display, cream `#
 
 If this reads right, I'll port it into `web-admin/app/rentals/page.tsx` wired to your live listings (each row using the listing's own uploaded photo, name, location, rent and specs, linking to `/l/[id]`), with Cormorant added via `next/font`. Say go and I'll build it.
 
-### 🧑 Arthur · 2026-07-30 13:58
+### 🧑 Vernon · 2026-07-30 13:58
 
 No I want the words rentals/Porfolio as in the sample - everything identical except for the changes i requested. I want all dates and years to be relevant(dynamic) to the listing. This page should be updated automatically from the active listings.
 
@@ -30600,7 +30600,7 @@ Now update the preview to match — dark logo in the footer, none in the header.
 
 Done. The header no longer has a logo, and the dark Dantalan logo now sits at the top of the dark footer where it reads cleanly. Live page typechecks; preview updated to match.
 
-### 🧑 Arthur · 2026-07-30 16:07
+### 🧑 Vernon · 2026-07-30 16:07
 
 the logo must be full size and to the right of the content in the footer
 
@@ -30655,7 +30655,7 @@ Now update the preview footer to the two-column layout with the large logo on th
 
 Done. The footer is now a two-column row — the "Let's get you moved in" heading and stats on the left, the full-size dark Dantalan logo on the right (up to 440px wide, stacking below on mobile). Live page typechecks; preview updated to match.
 
-### 🧑 Arthur · 2026-07-30 16:11
+### 🧑 Vernon · 2026-07-30 16:11
 
 this is almost perfect. Now I want the listings to be pulled from the actual listing on the system. if there are no photos use placeholders. include all the information on each unit. This is going to be hosted on dantalan.co.za
 
@@ -30804,7 +30804,7 @@ Deploy is a rebuild of the web container + Caddy reload:
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build web caddy
 ```
 
-### 🧑 Arthur · 2026-07-30 16:27
+### 🧑 Vernon · 2026-07-30 16:27
 
 no changes added to commit (use "git add" and/or "git commit -a")
 PS C:\xampp\htdocs\development\PMS0.3> git add . 
@@ -30837,7 +30837,7 @@ While you're there, you can also clear the two stale backups I had to leave earl
 Remove-Item C:\xampp\htdocs\development\PMS0.3\.git\index.lock.stale, C:\xampp\htdocs\development\PMS0.3\.git\HEAD.lock.stale -Force -ErrorAction SilentlyContinue
 ```
 
-### 🧑 Arthur · 2026-07-30 16:28
+### 🧑 Vernon · 2026-07-30 16:28
 
 now the VPS deploy commands
 
@@ -30873,7 +30873,7 @@ No migration is needed for this change — it's web + proxy only. (If you haven'
 
 Verify after: `https://dantalan.co.za` should redirect to `/rentals` and show the live listings.
 
-### 🧑 Arthur · 2026-07-30 16:49
+### 🧑 Vernon · 2026-07-30 16:49
 
 https://dantalan.co.za is still showing kaya content
 
@@ -30926,7 +30926,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 Then hard-refresh `https://dantalan.co.za` (Ctrl+F5). If it still shows old content, tell me whether the site sits behind Cloudflare — that would need a cache purge, and the redirect could be cached there too.
 
-### 🧑 Arthur · 2026-07-30 17:26
+### 🧑 Vernon · 2026-07-30 17:26
 
 Still the same. The site is not behind Cloudflare. It did take about 24hours kaya content to reflect even though I don't
 
@@ -30962,7 +30962,7 @@ Expect a `301/302/308` redirect to `/rentals`. If you see that, the server is fi
 
 Tell me the IP `nslookup` returns and what that `curl` prints, and I'll know exactly which side to fix.
 
-### 🧑 Arthur · 2026-07-30 17:29
+### 🧑 Vernon · 2026-07-30 17:29
 
 PS C:\WINDOWS\system32> nslookup dantalan.co.za
 Server:  homerouter.cpe
@@ -31004,7 +31004,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --fo
 
 Paste what those three commands print and I'll pinpoint it — but my strong guess is the commit never got pushed, so the VPS is still running the old Caddyfile.
 
-### 🧑 Arthur · 2026-07-30 17:32
+### 🧑 Vernon · 2026-07-30 17:32
 
 PS C:\xampp\htdocs\development\PMS0.3> git status
 On branch main
@@ -31060,7 +31060,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 That sequence is what actually flips the apex from the "kaya" marketing page to your rentals page.
 
-### 🧑 Arthur · 2026-07-30 17:37
+### 🧑 Vernon · 2026-07-30 17:37
 
 it's update to the new content but there are no listings showings
 
@@ -31094,7 +31094,7 @@ How to read it:
 
 Paste the output of A, B, and the two SQL queries and I'll tell you the exact fix.
 
-### 🧑 Arthur · 2026-07-30 17:38
+### 🧑 Vernon · 2026-07-30 17:38
 
 PS C:\xampp\htdocs\development\PMS0.3> curl -s "https://api.dantalan.co.za/listings/public?vendor=dantalan.co.za"; echo
 {"statusCode":404,"error":"NOT_FOUND","message":"Cannot GET /listings/public?vendor=dantalan.co.za","requestId":"3b1ad654-fd88-4b9e-a43b-e74d356c16f3","path":"/listings/public?vendor=dantalan.co.za","timestamp":"2026-07-30T17:38:15.914Z"}
@@ -31151,7 +31151,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 That tells us three things at once: whether the API returns data for the apple-domain key vs the slug, your real vendor slug + whether `custom_domain` is set to `dantalan.co.za`, and whether any listing is actually `published`. With those four outputs I can give you the one exact command to fix it.
 
-### 🧑 Arthur · 2026-07-30 17:40
+### 🧑 Vernon · 2026-07-30 17:40
 
 PS C:\xampp\htdocs\development\PMS0.3> curl -s "https://api.dantalan.co.za/api/listings/public?vendor=dantalan.co.za"; echo
 []
@@ -31184,7 +31184,7 @@ Paste that and I'll know exactly which it is. The likely outcomes and fixes:
 
 One query and we're done.
 
-### 🧑 Arthur · 2026-07-30 17:41
+### 🧑 Vernon · 2026-07-30 17:41
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms -c "SELECT v.slug, v.custom_domain, v.status AS vendor_status, l.status AS listing_status, count(*) FROM vendors v LEFT JOIN listings l ON l.vendor_id = v.id GROUP BY 1,2,3,4 ORDER BY 1;"
@@ -31209,7 +31209,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 Then reload `dantalan.co.za` and you should see the two units. Just note that's only for testing — those units are actually filled, so set them back (`status='filled'`) or use genuinely available listings for real visitors.
 
-### 🧑 Arthur · 2026-07-30 17:51
+### 🧑 Vernon · 2026-07-30 17:51
 
 you are a superstar!
 
@@ -31221,7 +31221,7 @@ It was a proper journey getting there: the design nailed to your sample, live li
 
 Whenever you publish a real listing it'll show up on `dantalan.co.za` on its own. If you want, next time I can help with a nice "no rentals available right now" empty state, or wiring the "Tenant login" and application flow straight from the page. Enjoy the launch!
 
-### 🧑 Arthur · 2026-07-30 17:53
+### 🧑 Vernon · 2026-07-30 17:53
 
 yes I want - a nice "no rentals available right now" empty state.
 
@@ -31274,7 +31274,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 ## 2026-07-31
 
-### 🧑 Arthur · 2026-07-31 03:38
+### 🧑 Vernon · 2026-07-31 03:38
 
 I want to create a separate project - [www.locare.co.za](https://www.locare.co.za) which is the 'white-label' version of this project. lets brainstorm on how this will work and how the repos and VPS must be setup.
 
@@ -31341,13 +31341,13 @@ Two smaller decisions I'd want to nail before writing it up: (a) where an agency
 
 Want me to write this up as a `LOCARE_PLATFORM_DESIGN.md` (like we did for the partner portal) with the locked decisions, the Caddy/on-demand-TLS config, the `brandKey`/branding changes, and the phased task list — so we've got a spec before touching code?
 
-### 🧑 Arthur · 2026-07-31 03:49
+### 🧑 Vernon · 2026-07-31 03:49
 
 yes
 
 ### 🤖 Claude · 2026-07-31 03:50
 
-`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_PLATFORM_DESIGN.md", "content": "# Locare — White-Label Platform Design\n\nStatus: **Draft for build.** Owner: Arthur / Vernon. Last updated: 2026-07-30…
+`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_PLATFORM_DESIGN.md", "content": "# Locare — White-Label Platform Design\n\nStatus: **Draft for build.** Owner: Vernon. Last updated: 2026-07-30…
 > ↳ result: File created successfully at: C:\xampp\htdocs\development\PMS0.3\docs\LOCARE_PLATFORM_DESIGN.md (file state is current in your context — no need to Read it back…
 
 ### 🤖 Claude · 2026-07-31 03:51
@@ -31365,7 +31365,7 @@ It also flags three open questions I'd want your call on before Phase 2: wildcar
 
 Want to answer those three now so I can lock them into the doc, or start building Phase 0 (platform-brand layer + `brandKey` generalisation), which is decision-independent?
 
-### 🧑 Arthur · 2026-07-31 04:00
+### 🧑 Vernon · 2026-07-31 04:00
 
 explain each question to me.
 
@@ -31402,7 +31402,7 @@ This one's a genuine product/strategy call rather than a technical one: is Locar
 
 Want me to record your answers into the design doc, or talk through any of these further before deciding?
 
-### 🧑 Arthur · 2026-07-31 04:07
+### 🧑 Vernon · 2026-07-31 04:07
 
 First answer is DNS-01
 
@@ -31423,7 +31423,7 @@ Still open:
 
 Which do you want to settle next?
 
-### 🧑 Arthur · 2026-07-31 04:09
+### 🧑 Vernon · 2026-07-31 04:09
 
 HostAfrica is the DNS provider
 
@@ -31470,7 +31470,7 @@ Sources:
 - [caddy-dns/acmedns](https://github.com/caddy-dns/acmedns)
 - [How to use DNS provider modules in Caddy 2](https://caddy.community/t/how-to-use-dns-provider-modules-in-caddy-2/8148)
 
-### 🧑 Arthur · 2026-07-31 04:13
+### 🧑 Vernon · 2026-07-31 04:13
 
 For Q2 - if a agency did want their own mobile app how complex would it be to build?
 
@@ -31492,7 +31492,7 @@ So my recommendation for the doc: **default everyone to the single shared Locare
 
 Want me to record Q2 as "shared apps by default; per-agency native as a paid Enterprise add-on; PWA as the cheap middle option" in the design doc?
 
-### 🧑 Arthur · 2026-07-31 04:16
+### 🧑 Vernon · 2026-07-31 04:16
 
 yes
 
@@ -31507,7 +31507,7 @@ Recorded. Q2 is locked in the doc: shared apps by default, PWA as the cheap per-
 
 That leaves just **Q3 — the Locare apex (`locare.co.za`):** pure marketing + agency signup, or *also* an aggregate "all agencies" rentals marketplace that renters browse and that funnels leads to your agencies (with a per-agency opt-in). It's the one real product-strategy call left — want to settle it, or think on it?
 
-### 🧑 Arthur · 2026-07-31 04:19
+### 🧑 Vernon · 2026-07-31 04:19
 
 Initially pure marketing  + agency signup but I want the option to pivot in future.
 
@@ -31564,7 +31564,7 @@ It opens as a static file so you can eyeball it. Two deploy notes when you're re
 
 Want me to swap the nav "lo·care" text wordmark for the actual logo image (like we did in the rentals footer) if you upload an SVG/PNG version?
 
-### 🧑 Arthur · 2026-07-31 05:47
+### 🧑 Vernon · 2026-07-31 05:47
 
 change the font to be more like the logo
 
@@ -31615,7 +31615,7 @@ Done — the page is on Poppins for the wordmark and headings (the rounded geome
 
 Preview's above. When you deploy the Locare marketing container, that's a rebuild of the `marketing` image; and remember the two routing prerequisites for it to be fully live — an `api.locare.co.za` route + CORS entry for the lead form, and the `locare.co.za` apex Caddy block pointing at the marketing container (Locare Phase 3).
 
-### 🧑 Arthur · 2026-07-31 06:14
+### 🧑 Vernon · 2026-07-31 06:14
 
 use better icons - bigger more expressive
 
@@ -31646,7 +31646,7 @@ Now replace the nine feature blocks with SVG icons:
 
 Done — the nine feature icons are now proper line-art SVGs (house, card, shield-check, dashboard, phone, globe, signed document, gear, bar chart), sized up in larger 58px rounded tiles with 30px icons in the Locare blue. Much more expressive than the old glyphs. Preview's above.
 
-### 🧑 Arthur · 2026-07-31 06:23
+### 🧑 Vernon · 2026-07-31 06:23
 
 For logo: `Gotham Rounded Bold` or `Circular Std Bold` - set tracking to -2% and use #2D6A8F for the `l`
 For your SaaS: I would actually replace it with Aeonik Bold or General Sans Medium - same geometric premium feel, but more modern / extreme premium than Gotham.
@@ -31702,7 +31702,7 @@ Done. The type is now set the way you specified:
 
 Preview's above (it'll show General Sans since the paid fonts aren't hosted yet). One reminder for deploy: General Sans loads from `api.fontshare.com`, so if you add a strict Content-Security-Policy to the marketing site later, allow that origin for fonts.
 
-### 🧑 Arthur · 2026-07-31 06:27
+### 🧑 Vernon · 2026-07-31 06:27
 
 On Fontshare.com that `locare` mark is a perfect match for these 2 - both free:
 1. General Sans — your exact match
@@ -31776,7 +31776,7 @@ Loaded in a single Fontshare request, and I removed the old paid-font scaffoldin
 
 One deploy reminder: fonts load from `api.fontshare.com`, so if you ever put a strict Content-Security-Policy on the marketing site, allow that origin under `font-src`/`style-src`.
 
-### 🧑 Arthur · 2026-07-31 06:29
+### 🧑 Vernon · 2026-07-31 06:29
 
 Bring your agency to Locare - the locare should match the logo
 
@@ -31907,7 +31907,7 @@ One tidy-up I couldn't do from here: a leftover `marketing/_check.png` (my verif
 Remove-Item C:\xampp\htdocs\development\PMS0.3\marketing\_check.png -Force
 ```
 
-### 🧑 Arthur · 2026-07-31 07:10
+### 🧑 Vernon · 2026-07-31 07:10
 
 <uploaded_files>
 <file><file_path>locare_thick_l_v2.svg</file_path></file>
@@ -31989,7 +31989,7 @@ Both SVGs are in `marketing/brand/`. Two cleanup notes for the repo (the Windows
 Remove-Item C:\xampp\htdocs\development\PMS0.3\marketing\_check.png, C:\xampp\htdocs\development\PMS0.3\marketing\brand\locare-logo.png -Force
 ```
 
-### 🧑 Arthur · 2026-07-31 07:14
+### 🧑 Vernon · 2026-07-31 07:14
 
 make it bigger it the header and in the 'Bring your agency to locare' section.
 
@@ -32016,7 +32016,7 @@ Bigger in both spots — nav logo up to 40px, and the "Bring your agency to *loc
 
 Done — the logo is larger in the header (40px) and noticeably bigger in the "Bring your agency to *locare*" band (scaled to the heading). If either feels too large or small once you see it live, tell me a target and I'll nudge the exact size.
 
-### 🧑 Arthur · 2026-07-31 07:30
+### 🧑 Vernon · 2026-07-31 07:30
 
 i want to deploy this
 
@@ -32094,7 +32094,7 @@ Alternatively, if you'd rather not add the `api` record right now, say so and I'
 
 One unrelated heads-up I noticed: you have an `MX 0 locare.co.za` plus an SPF TXT — that's your email setup and is fine; nothing to change there for this deploy.
 
-### 🧑 Arthur · 2026-07-31 10:54
+### 🧑 Vernon · 2026-07-31 10:54
 
 i want to make talandan26@gmail.com the default vendor email not vernon@zaaka.io - give me the code.
 
@@ -32152,7 +32152,7 @@ Two notes:
 
 Which did you mean — the login email, the contact email, or both?
 
-### 🧑 Arthur · 2026-07-31 10:57
+### 🧑 Vernon · 2026-07-31 10:57
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms -c "UPDATE users SET email='talandan26@gmail.com' WHERE email='vernon@zaaka.io';"
@@ -32200,7 +32200,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 You should see `talandan26@gmail.com` as `vendor_owner` / `active`. The public **contact** email is separate — run the `vendors.config` update I gave earlier if you also want that changed.
 
-### 🧑 Arthur · 2026-07-31 10:59
+### 🧑 Vernon · 2026-07-31 10:59
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms <<'SQL'
@@ -32272,7 +32272,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T api npm run migration:run:prod
 ```
 
-### 🧑 Arthur · 2026-07-31 11:00
+### 🧑 Vernon · 2026-07-31 11:00
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms <<'SQL'
@@ -32322,7 +32322,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T po
 
 Otherwise you're done here.
 
-### 🧑 Arthur · 2026-07-31 12:19
+### 🧑 Vernon · 2026-07-31 12:19
 
 I'm getting this error when i try to approve applications. - column Membership.status does not exist
 
@@ -32350,7 +32350,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T api npm run migration:run:prod
 ```
 
-### 🧑 Arthur · 2026-07-31 12:21
+### 🧑 Vernon · 2026-07-31 12:21
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms -c "\d memberships" | grep status
@@ -32365,7 +32365,7 @@ With this live, the full flow is active on production: approved applicants get a
 
 If approve still throws anything, paste the error and I'll trace it — but that column was the blocker.
 
-### 🧑 Arthur · 2026-07-31 12:28
+### 🧑 Vernon · 2026-07-31 12:28
 
 It works.
 
@@ -32381,7 +32381,7 @@ Still open whenever you want them, no rush:
 
 Nothing needed right now — just flag me when you want to pick either up.
 
-### 🧑 Arthur · 2026-07-31 12:58
+### 🧑 Vernon · 2026-07-31 12:58
 
 Add a age requirement of 18 for applications
 
@@ -32503,7 +32503,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 (after committing/pushing and pulling on the VPS). Want me to also add the same 18+ gate to the staff "Add tenant" flow, or is the public application the only place you need it?
 
-### 🧑 Arthur · 2026-07-31 13:13
+### 🧑 Vernon · 2026-07-31 13:13
 
 let's brainstorm a chatbot on the Locare marketing page to answer FAQs
 
@@ -32539,7 +32539,7 @@ You picked **moderately-aggressive lead capture** and **design-doc-first** — t
 
 ### 🤖 Claude · 2026-07-31 13:22
 
-`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_CHATBOT_DESIGN.md", "content": "# Locare Marketing Chatbot — Design\n\nStatus: **Draft for review.** Owner: Arthur. Last updated: 2026-07-31.\n\nAn FAQ …
+`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_CHATBOT_DESIGN.md", "content": "# Locare Marketing Chatbot — Design\n\nStatus: **Draft for review.** Owner: Vernon. Last updated: 2026-07-31.\n\nAn FAQ …
 > ↳ result: File created successfully at: C:\xampp\htdocs\development\PMS0.3\docs\LOCARE_CHATBOT_DESIGN.md (file state is current in your context — no need to Read it back)
 
 ### 🤖 Claude · 2026-07-31 13:22
@@ -32558,7 +32558,7 @@ The spec is in `docs/LOCARE_CHATBOT_DESIGN.md`. It locks your two answers and la
 
 One thing to confirm (§9): the **brains** decision didn't register in your answers. I documented the recommended **hybrid** (scripted chips + Claude fallback); the alternatives are scripted-only (free, ships today, rigid) or Claude-for-everything (most natural, higher cost). Tell me which and I'll finalise the doc — then, whenever you're ready, Phase 1 (the scripted widget) can be built immediately since it has no API dependency.
 
-### 🧑 Arthur · 2026-07-31 13:24
+### 🧑 Vernon · 2026-07-31 13:24
 
 Yes the brains must be hybrid
 
@@ -32580,7 +32580,7 @@ The spec's complete and decision-clean. **Phase 1 (the scripted widget) has no A
 
 Want me to start on Phase 1?
 
-### 🧑 Arthur · 2026-07-31 13:26
+### 🧑 Vernon · 2026-07-31 13:26
 
 Yes
 
@@ -32626,7 +32626,7 @@ One deploy note: the lead card posts to `LOCARE_CONFIG.apiBase` (`https://api.lo
 
 Want me to also add a matching **FAQ section** on the page itself (same knowledge, good for SEO and for visitors who don't open the chat), or move on?
 
-### 🧑 Arthur · 2026-07-31 13:35
+### 🧑 Vernon · 2026-07-31 13:35
 
 give me the deploy code and then add a matching FAQ section
 
@@ -32695,7 +32695,7 @@ git pull && docker compose --env-file deploy/.env.prod -f deploy/compose.prod.ym
 
 The chatbot's knowledge and the on-page FAQ now mirror each other, so keep them in sync when content changes — when we build Phase 2, I'll make the `chatbot-knowledge.md` the single source both draw from. Want me to wire that shared knowledge file now, or leave it until the API/Anthropic key is ready?
 
-### 🧑 Arthur · 2026-07-31 13:40
+### 🧑 Vernon · 2026-07-31 13:40
 
 locare.co.za is showing - Secure Connection Failed
 The page you are trying to view cannot be shown because the authenticity of the received data could not be verified.
@@ -32734,7 +32734,7 @@ Two common issuance blockers to check while you're there:
 
 Paste the output of steps 1 and 2 and I'll tell you the exact fix.
 
-### 🧑 Arthur · 2026-07-31 13:43
+### 🧑 Vernon · 2026-07-31 13:43
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec caddy \
   sh -c 'grep -nE "locare|on_demand|:443" /etc/caddy/Caddyfile'
@@ -32789,7 +32789,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tai
 
 You want to see `certificate obtained successfully` for `locare.co.za`. If `git pull` *still* says "Already up to date" after the push, the push didn't land — tell me what `git log` / `git status` showed on Windows and we'll sort the push out (it's been the lock again before).
 
-### 🧑 Arthur · 2026-07-31 13:45
+### 🧑 Vernon · 2026-07-31 13:45
 
 deploy@vmi3453343:~/PMS03$ git pull    # should now pull the new commit(s), NOT "Already up to date"
 grep -nE "locare" deploy/Caddyfile   # confirm the block is present
@@ -32862,7 +32862,7 @@ Two things I noticed in your output, separate from the SSL fix:
 
 So: check the cert log now for the SSL fix; then do the Windows push to get the chatbot/FAQ/age-gate onto the server.
 
-### 🧑 Arthur · 2026-07-31 13:47
+### 🧑 Vernon · 2026-07-31 13:47
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tail=80 caddy \
   | grep -iE "locare|obtain|certificate|challenge|error"
@@ -32927,7 +32927,7 @@ You want `certificate obtained successfully` for `locare.co.za`. If it instead s
 
 One reminder on why this kept biting you: every change only reaches the server after a **push from Windows** *and* a `git pull` on the VPS. The `git pull` saying "Already up to date" is your signal that the push didn't happen.
 
-### 🧑 Arthur · 2026-07-31 13:54
+### 🧑 Vernon · 2026-07-31 13:54
 
 success!! the website is showing but the svg logo is not showing - its showing the fallback
 
@@ -32972,7 +32972,7 @@ curl -sI https://locare.co.za/brand/locare-logo.svg | head -n 3
 ```
 A `200` with `content-type: image/svg+xml` means it's good; a `404` means the copy didn't take (tell me and we'll look).
 
-### 🧑 Arthur · 2026-07-31 14:02
+### 🧑 Vernon · 2026-07-31 14:02
 
 It works!!!! You are a genius!.
 
@@ -33050,7 +33050,7 @@ git pull && docker compose --env-file deploy/.env.prod -f deploy/compose.prod.ym
 
 Then hard-refresh `locare.co.za` and scroll to the hero card. If you want it flashier — e.g. the cards also fading/sliding up in sequence, or the bars pulsing once when full — say the word and I'll layer that on.
 
-### 🧑 Arthur · 2026-07-31 14:26
+### 🧑 Vernon · 2026-07-31 14:26
 
 I want to put a back-office app on app.locare.co.za
 
@@ -33093,7 +33093,7 @@ Two things to know, both expected and both resolved by the Locare Phase 0 work i
 
 Want me to knock out Phase 0 (the platform-brand layer + `brandKey` handling) so `app.locare.co.za` and the marketing site show proper Locare branding instead of the default?
 
-### 🧑 Arthur · 2026-07-31 14:38
+### 🧑 Vernon · 2026-07-31 14:38
 
 yes
 
@@ -33214,7 +33214,7 @@ Give it a few minutes to propagate, then `nslookup app.locare.co.za` should retu
 
 This is purely the missing DNS record — nothing wrong on the server side. Once `nslookup` shows the VPS IP, you're good.
 
-### 🧑 Arthur · 2026-07-31 15:06
+### 🧑 Vernon · 2026-07-31 15:06
 
 PS C:\WINDOWS\system32> nslookup app.locare.co.za
 Server:  homerouter.cpe
@@ -33251,7 +33251,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --fo
 
 Try the reload first — DNS was the only thing missing, so it may already be up.
 
-### 🧑 Arthur · 2026-07-31 15:10
+### 🧑 Vernon · 2026-07-31 15:10
 
 It's up!!!! BOSSS! I want the locare logo on the branding
 
@@ -33317,7 +33317,7 @@ git pull && docker compose --env-file deploy/.env.prod -f deploy/compose.prod.ym
 
 Hard-refresh `app.locare.co.za` after it's up and you'll see the full Locare wordmark. If the dark `ocare` looks too heavy on the sidebar or you'd prefer the white variant in any spot, tell me and I'll swap it.
 
-### 🧑 Arthur · 2026-07-31 15:27
+### 🧑 Vernon · 2026-07-31 15:27
 
 add vernon@zaaka.io so I can login and test the locare back office
 
@@ -33377,7 +33377,7 @@ After the API restarts, request a fresh code (the old one may be consumed) and s
 
 Paste the `printenv` output if it's not obvious and I'll take it from there.
 
-### 🧑 Arthur · 2026-07-31 16:17
+### 🧑 Vernon · 2026-07-31 16:17
 
 deploy@vmi3453343:~/PMS03$ printenv
 SHELL=/bin/bash
@@ -33434,7 +33434,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec api p
 
 That second command must print `vernon@zaaka.io`. Once it does, request a fresh OTP at `app.locare.co.za` and sign in — the platform-admin check runs before the membership/lease-signing check, so the "sign your lease first" message won't appear.
 
-### 🧑 Arthur · 2026-07-31 16:21
+### 🧑 Vernon · 2026-07-31 16:21
 
 deploy@vmi3453343:~/PMS03$ # 1. Is it in the env file?
 grep -n PLATFORM_ADMIN_EMAILS deploy/.env.prod
@@ -33458,7 +33458,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec api p
 
 Once it prints the address, request a fresh code at `app.locare.co.za` and sign in — you'll land in the platform-admin area with no lease-signing gate.
 
-### 🧑 Arthur · 2026-07-31 16:22
+### 🧑 Vernon · 2026-07-31 16:22
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --force-recreate api
 [+] up 3/3
@@ -33523,7 +33523,7 @@ A couple of small housekeeping notes when you get a moment (no rush):
 
 Nice work getting it live. Want me to update `LOCARE_PLATFORM_DESIGN.md` to mark Phase 0 done and log what's live, so the doc reflects reality for next time?
 
-### 🧑 Arthur · 2026-07-31 16:28
+### 🧑 Vernon · 2026-07-31 16:28
 
 Should I not be seeing the same back office as app.dantalan.co.za with locare branding?
 
@@ -33544,7 +33544,7 @@ In short: platform admin = the small operator console (what you saw); agency log
 
 One design note worth flagging: an agency user logging in at `app.locare.co.za` will see *Locare* branding rather than their own — which is fine for you testing/supporting, but in normal use each agency would work from their own subdomain/custom domain (like `app.dantalan.co.za`) to get their own brand. If you eventually want platform admins to be able to *drop into* a specific agency's back office (support/impersonation) from the Locare console, that's a separate feature I can spec — just say the word.
 
-### 🧑 Arthur · 2026-07-31 16:42
+### 🧑 Vernon · 2026-07-31 16:42
 
 spec it and add to the todo
 
@@ -33596,7 +33596,7 @@ The design leans on what's already there: because the RLS interceptor scopes eve
 
 Want me to start on #188 now, or leave it queued for later?
 
-### 🧑 Arthur · 2026-07-31 16:49
+### 🧑 Vernon · 2026-07-31 16:49
 
 I'm getting a forbidden resource and failed to fetch errors when i login with dantalan98@gmail.com on app.locare.co.za
 
@@ -33629,7 +33629,7 @@ That should contain `https://app.locare.co.za`. If it doesn't, add it to `deploy
 
 Paste the query result and the `CORS_ORIGINS` value and I'll tell you exactly which it is. My strong guess: `dantalan98` has no agency membership — use `talandan26@gmail.com` to see the Locare-branded agency back office.
 
-### 🧑 Arthur · 2026-07-31 16:53
+### 🧑 Vernon · 2026-07-31 16:53
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T postgres \
   psql -U pms -d pms -c "SELECT u.email, m.role, m.status, v.slug FROM users u LEFT JOIN memberships m ON m.user_id=u.id LEFT JOIN vendors v ON v.id=m.vendor_id WHERE u.email='dantalan98@gmail.com';"
@@ -33660,7 +33660,7 @@ Use `'vendor_owner'` instead of `'property_manager'` if you want full owner acce
 
 One product gap this exposes: a user with no membership gets cryptic errors instead of a friendly "this account isn't linked to an agency yet — contact your administrator" screen. Want me to add that clean empty-state to the todo so real users never hit the raw error?
 
-### 🧑 Arthur · 2026-07-31 17:03
+### 🧑 Vernon · 2026-07-31 17:03
 
 add that clean empty-state now
 
@@ -33743,7 +33743,7 @@ git pull && docker compose --env-file deploy/.env.prod -f deploy/compose.prod.ym
 
 Note this is web-only — no API or migration change. Want me to also guard the dashboard route itself (so a no-role user who manually navigates to `/` also gets redirected to `/no-access`), or is the post-login routing enough for now?
 
-### 🧑 Arthur · 2026-07-31 17:29
+### 🧑 Vernon · 2026-07-31 17:29
 
 add these tiers - | *Starter* | 1–12 | *R925/month* | Leasing, tenant onboarding, tenant app, rent invoicing, in-app messaging |
 | *Growth* | 13–364 | *R2,660/month* | + white-label, custom domain, online payments, owner portal, trust accounting, branded rentals site, docs/e-sign, reports/API |
@@ -33892,7 +33892,7 @@ Two things worth noting:
 - This changes what agencies are actually billed on the 1st (the monthly `QUEUE_SUBSCRIPTION` job now issues flat-band invoices instead of per-unit). If any agency currently has a subscription row on the old model, its next invoice will reflect the new band automatically.
 - The old task #134 "Design + build Free/Paid subscription tiers" is effectively superseded by this — want me to mark it done, and should I update `LOCARE_PLATFORM_DESIGN.md` / the pricing decision in the docs to record these numbers as the source of truth?
 
-### 🧑 Arthur · 2026-07-31 18:05
+### 🧑 Vernon · 2026-07-31 18:05
 
 pricing tier is not updating
 
@@ -33928,7 +33928,7 @@ If that returns `R2,660`, the server is updated and it's purely your browser cac
 
 Tell me what the `grep -c` and the `curl` show and I'll point you straight at the stuck link.
 
-### 🧑 Arthur · 2026-07-31 18:25
+### 🧑 Vernon · 2026-07-31 18:25
 
 the Register as a partner form must go to partners@locare.co.za
 
@@ -33990,7 +33990,7 @@ Two things to make sure the email actually lands:
 
 Want me to also add the partner inbox to the design doc's config list, or is that enough?
 
-### 🧑 Arthur · 2026-07-31 18:41
+### 🧑 Vernon · 2026-07-31 18:41
 
 I get this error when Registering as a Partner - NetworkError when attempting to fetch resource.
 
@@ -34025,7 +34025,7 @@ My bet is one of these two: the `api.locare.co.za` A-record isn't in yet, or `lo
 
 If you'd rather not add the `api` record at all, I can point the marketing forms at `api.dantalan.co.za` (which already resolves) instead — you'd still need `https://locare.co.za` in `CORS_ORIGINS`. Tell me which way you want to go, and paste the `nslookup` + `curl` + `CORS_ORIGINS` output if it's not obvious.
 
-### 🧑 Arthur · 2026-07-31 19:00
+### 🧑 Vernon · 2026-07-31 19:00
 
 await fetch("https://api.locare.co.za/api/leads", {
     "credentials": "omit",
@@ -34079,7 +34079,7 @@ curl -s -i -X OPTIONS https://api.locare.co.za/api/leads \
 
 Once that shows the allow-origin header, the partner form (and the chatbot lead card, same endpoint) will submit cleanly. If `CORS_ORIGINS` already contained `locare.co.za` and it still fails, paste the `curl` output and we'll dig into the API's CORS handling.
 
-### 🧑 Arthur · 2026-07-31 19:11
+### 🧑 Vernon · 2026-07-31 19:11
 
 The form says the email was sent but the partners@locare.co.za inbox is empty.
 
@@ -34115,7 +34115,7 @@ Most likely it's a combination: the code wasn't rebuilt (so it used the old `LEA
 
 One aside worth knowing: OTP sign-in emails are reaching you, so SendGrid itself and your `SENDGRID_FROM` sender are working — which points the finger at the recipient mailbox or the code-not-rebuilt, not SendGrid.
 
-### 🧑 Arthur · 2026-07-31 19:13
+### 🧑 Vernon · 2026-07-31 19:13
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tail=150 api | grep -iE "lead|notify|sendgrid"
 api-1  | [Nest] 1  - 07/31/2026, 7:04:51 PM     LOG [RoutesResolver] LeadsController {/api/leads}: +0ms
@@ -34181,7 +34181,7 @@ Submit again. If Gmail gets it → the code + SendGrid are correct and the issue
 
 My leading guess now: the `--build` never ran, so the partner email quietly went to your `LEADS_NOTIFY_EMAIL` address. Check that inbox, then do the rebuild and the Gmail test to confirm.
 
-### 🧑 Arthur · 2026-07-31 19:22
+### 🧑 Vernon · 2026-07-31 19:22
 
 partner registration emails are not working yet. add to the todo
 
@@ -34201,7 +34201,7 @@ That leaves the impersonation feature (#188–#192) and this email fix (#193) qu
 
 ## 2026-08-01
 
-### 🧑 Arthur · 2026-08-01 05:51
+### 🧑 Vernon · 2026-08-01 05:51
 
 I want to switch to social media(google) login - is this a good move. give me pros and cons
 
@@ -34231,13 +34231,13 @@ Short answer: adding Google login is a solid win for the agency/admin side, but 
 
 That gives you the conversion/UX upside without excluding phone-first tenants or complicating your white-label/custom-domain story. If you want, I can spec exactly that — Google OAuth via a central `auth.locare.co.za`, account-linking rules, and keeping OTP as fallback — and add it to the todo.
 
-### 🧑 Arthur · 2026-08-01 05:55
+### 🧑 Vernon · 2026-08-01 05:55
 
 spec it and and to the todo list
 
 ### 🤖 Claude · 2026-08-01 05:56
 
-`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_GOOGLE_LOGIN_DESIGN.md", "content": "# Locare — Google (Social) Login\n\nStatus: **Draft for build.** Owner: Arthur. Last updated: 2026-07-31.\n\nAdd \"…
+`⚙ Write` — {"file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\docs\\LOCARE_GOOGLE_LOGIN_DESIGN.md", "content": "# Locare — Google (Social) Login\n\nStatus: **Draft for build.** Owner: Vernon. Last updated: 2026-07-31.\n\nAdd \"…
 > ↳ result: File created successfully at: C:\xampp\htdocs\development\PMS0.3\docs\LOCARE_GOOGLE_LOGIN_DESIGN.md (file state is current in your context — no need to Read it …
 
 ### 🤖 Claude · 2026-08-01 05:57
@@ -34277,7 +34277,7 @@ The locked stance from our discussion is baked in: **additive, not a replacement
 
 That's three things now parked in the backlog: partner-email fix (#193), impersonation (#188–#192), and Google login (#194–#197). Want me to start building any of them, or leave them queued?
 
-### 🧑 Arthur · 2026-08-01 05:59
+### 🧑 Vernon · 2026-08-01 05:59
 
 build the google login
 
@@ -34535,7 +34535,7 @@ To turn it on (safe to deploy first — the button stays hidden until configured
 
 Want me to finish #197 now — add the consent/privacy line under the button and write the account-linking tests — or leave it until you've set up the Google Cloud client?
 
-### 🧑 Arthur · 2026-08-01 06:44
+### 🧑 Vernon · 2026-08-01 06:44
 
 where do i get these details - GOOGLE_OAUTH_ENABLED=true
    GOOGLE_CLIENT_ID=...
@@ -34593,7 +34593,7 @@ Once you add the redirect URI and hit **Create**, Google shows your **Client ID*
 
 So: add that one redirect URI → Create → copy the two secrets. That's the last piece.
 
-### 🧑 Arthur · 2026-08-01 07:30
+### 🧑 Vernon · 2026-08-01 07:30
 
 I think i just accidentally deleted my .env.prod file.
 
@@ -34642,7 +34642,7 @@ Why the running containers are enough: `POSTGRES_PASSWORD` must match what Postg
 
 Paste the `cat` / `diff` output if you want me to sanity-check it before you carry on.
 
-### 🧑 Arthur · 2026-08-01 08:16
+### 🧑 Vernon · 2026-08-01 08:16
 
 done.
 
@@ -34670,7 +34670,7 @@ That runs the `users.google_sub` migration and brings up the "Continue with Goog
 
 Want me to wrap up task #197 now (the consent/privacy line under the button + the account-linking tests), or hold off until you've confirmed the live Google sign-in works?
 
-### 🧑 Arthur · 2026-08-01 08:44
+### 🧑 Vernon · 2026-08-01 08:44
 
 wrap up task #197 now (the consent/privacy line under the button + the account-linking tests)
 
@@ -34785,7 +34785,7 @@ Want me to start on the partner-email fix (#193) or the impersonation feature ne
 
 ## 2026-08-03
 
-### 🧑 Arthur · 2026-08-03 16:20
+### 🧑 Vernon · 2026-08-03 16:20
 
 what is the impersonation feature
 
@@ -34798,7 +34798,7 @@ what is the impersonation feature
 
 No response requested.
 
-### 🧑 Arthur · 2026-08-04 08:34
+### 🧑 Vernon · 2026-08-04 08:34
 
 what is the impersonation feature
 
@@ -34821,7 +34821,7 @@ Think of it as the "log in as this customer to help them" button that most SaaS 
 
 It's split into five tasks: backend core (#188), audit trail (#189), the web "enter" flow (#190), the banner/exit (#191), and the audit view + verification (#192). Want me to build it now, or was this just to refresh what it is?
 
-### 🧑 Arthur · 2026-08-04 08:38
+### 🧑 Vernon · 2026-08-04 08:38
 
 build it now.
 
@@ -34997,7 +34997,7 @@ The sandbox VM is down, so I can't run the typecheck right now — I've reviewed
 `⚙ TaskUpdate` — {"taskId": "188", "status": "completed"}
 > ↳ result: Updated task #188 status
 
-### 🧑 Arthur · 2026-08-04 08:50
+### 🧑 Vernon · 2026-08-04 08:50
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -35158,7 +35158,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Want me to retry the typecheck/commit once the sandbox recovers, or move on to the partner-email fix (#193)?
 
-### 🧑 Arthur · 2026-08-04 08:52
+### 🧑 Vernon · 2026-08-04 08:52
 
 PS C:\xampp\htdocs\development\PMS0.3> cd PMS0.3 && npx tsc -p tsconfig.build.json --noEmit
 Set-Location: Cannot find path 'C:\xampp\htdocs\development\PMS0.3\PMS0.3' because it does not exist.
@@ -35202,7 +35202,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec -T ap
 
 Paste me the `web-admin` typecheck output and I'll confirm #192 or fix anything it flags.
 
-### 🧑 Arthur · 2026-08-04 09:03
+### 🧑 Vernon · 2026-08-04 09:03
 
 PS C:\xampp\htdocs\development\PMS0.3> cd web-admin
 PS C:\xampp\htdocs\development\PMS0.3\web-admin> npx tsc --noEmit
@@ -35259,7 +35259,7 @@ The migration adds `impersonation_events` and the `platform_agencies()` / `imper
 
 Want me to move on to the partner registration email fix (#193) next?
 
-### 🧑 Arthur · 2026-08-04 09:04
+### 🧑 Vernon · 2026-08-04 09:04
 
 Yes
 
@@ -35358,7 +35358,7 @@ If it's the third (most probable), the durable fix is domain authentication in S
 
 Paste me the log line from the test submission and I'll tell you exactly which fix applies.
 
-### 🧑 Arthur · 2026-08-04 09:22
+### 🧑 Vernon · 2026-08-04 09:22
 
 Do i have to use Sendgrid for this?
 
@@ -35518,7 +35518,7 @@ Your SPF is otherwise fine and already authorizes HostAfrica's relay (`+mx`, `in
 
 Two things to confirm with them so I can finish #193: the exact **SMTP hostname** to use for `SMTP_HOST` (once `mail.locare.co.za` resolves to their server, that's the value), and that `MX`/`mail` are repointed. The `api` and `app` A records → VPS are correct; leave those.
 
-### 🧑 Arthur · 2026-08-04 10:49
+### 🧑 Vernon · 2026-08-04 10:49
 
 Give me the exact steps to do this myself
 
@@ -35578,7 +35578,7 @@ Then redeploy `api` and run the test partner registration.
 
 The single most important change is **Step 3** — until MX points to `mail.locare.co.za` (on HostAfrica's IP) instead of the apex, mail keeps going to your VPS. If cPanel won't show a Shared IP on the `169.239.x.x` range, tell me what it shows and I'll adjust.
 
-### 🧑 Arthur · 2026-08-04 10:51
+### 🧑 Vernon · 2026-08-04 10:51
 
 <uploaded_files>
 <file><file_path>profile-partners@locare.co.za(1).mobileconfig</file_path></file>
@@ -35623,7 +35623,7 @@ SMTP_FROM=partners@locare.co.za
 
 So the only piece still missing is the **Shared IP** for the `mail` A record. Grab it from cPanel's General Information panel and you can complete Steps 2–3. Want me to double-check the record values once you've got that IP?
 
-### 🧑 Arthur · 2026-08-04 11:18
+### 🧑 Vernon · 2026-08-04 11:18
 
 the changes will propagate in 1 -3 hours. lets move on.
 
@@ -35845,7 +35845,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Paste me the tsc + jest output and I'll close out #182.
 
-### 🧑 Arthur · 2026-08-04 11:42
+### 🧑 Vernon · 2026-08-04 11:42
 
 PS C:\xampp\htdocs\development\PMS0.3> npx tsc -p tsconfig.build.json --noEmit
 >> npx jest subscription-reconcile
@@ -35903,7 +35903,7 @@ Subscription payments through any gateway will now settle themselves — no more
 
 That clears the whole impersonation + email + reconcile batch. Remaining open items are mostly external-dependency waits: the DNS propagation for partner email (#193), live iKhokha verification (#126/#127), the Anthropic-key lease parser test (#149/#152), and provider trial upgrades (#125). Want to pick one of those up, or stop here?
 
-### 🧑 Arthur · 2026-08-04 11:43
+### 🧑 Vernon · 2026-08-04 11:43
 
 How do I access the partner portal
 
@@ -35937,7 +35937,7 @@ The other way partners/agencies enter the system is the **referral self-signup**
 
 Want me to walk through creating a test partner so you can log in and see it?
 
-### 🧑 Arthur · 2026-08-04 11:45
+### 🧑 Vernon · 2026-08-04 11:45
 
 setup vee1ster@gmail.com as a partner
 
@@ -35970,7 +35970,7 @@ Two notes: make sure `vee1ster@gmail.com` is **not** in `PLATFORM_ADMIN_EMAILS`,
 
 If you'd rather I give you a `curl` one-liner to create it via the API instead of clicking through, say the word and I'll write it with the right payload.
 
-### 🧑 Arthur · 2026-08-04 11:50
+### 🧑 Vernon · 2026-08-04 11:50
 
 I want the partners section to route to partners@locare.co.za
 
@@ -35993,7 +35993,7 @@ The question tool glitched — let me just ask directly. "Route the partners sec
 
 Which one do you mean? My guess is #1, but I'd rather confirm before building.
 
-### 🧑 Arthur · 2026-08-04 11:57
+### 🧑 Vernon · 2026-08-04 11:57
 
 continue
 
@@ -36015,7 +36015,7 @@ I'll go with #1 — partner sign-up notifications to partners@locare.co.za. Let 
 
 Stopped.
 
-### 🧑 Arthur · 2026-08-04 12:04
+### 🧑 Vernon · 2026-08-04 12:04
 
 I want to be able to login as a partner - give me the steps.
 
@@ -36041,7 +36041,7 @@ At `app.locare.co.za`, logged in as a platform admin: open **Partners** → **Ad
 
 So the reliable path right now is **Google login** with that Gmail. Want me to confirm Google OAuth is actually enabled/configured in your prod env so that route works?
 
-### 🧑 Arthur · 2026-08-04 12:14
+### 🧑 Vernon · 2026-08-04 12:14
 
 I think Twilio & SendGrid are not cost effective at this point I want to create a custom user creation path when a tenant is approved. Let's brainstorm.
 
@@ -36073,7 +36073,7 @@ Three things shape the build, so tell me:
 
 Where do you land on those, and I'll turn it into a concrete spec?
 
-### 🧑 Arthur · 2026-08-04 12:21
+### 🧑 Vernon · 2026-08-04 12:21
 
 1. both and whatsapp must be the primary channel  - 2. keep passwordless 3.Full automated.
 
@@ -36144,7 +36144,7 @@ One decision before I build: WhatsApp Cloud API **direct from Meta** (cheapest, 
 
 Want me to start building #198–#201 now, or write the full design doc first?
 
-### 🧑 Arthur · 2026-08-04 12:26
+### 🧑 Vernon · 2026-08-04 12:26
 
 write the design doc along all associated required costs
 
@@ -36219,7 +36219,7 @@ Sources:
 - [WhatsApp API Pricing 2026: Per-Message Rates by Country (ChatMaxima)](https://chatmaxima.com/whatsapp-api-pricing/)
 - [Bulk SMS South Africa Comparison 2026 (SMSMessenger)](https://smsmessenger.co.za/bulk-sms-comparison/)
 
-### 🧑 Arthur · 2026-08-04 12:34
+### 🧑 Vernon · 2026-08-04 12:34
 
 yes
 
@@ -36573,7 +36573,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Paste the tsc + jest output and I'll confirm. Remaining in this batch: **#202 remember-this-device** (the cost-saver so returning tenants don't OTP every login) — want that next, or after you've done the Meta setup?
 
-### 🧑 Arthur · 2026-08-04 12:46
+### 🧑 Vernon · 2026-08-04 12:46
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build api
@@ -36664,7 +36664,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tai
 
 You should see `whatsapp:off` (since `WHATSAPP_TOKEN` isn't set yet) and your email provider — that's the correct interim state until the Meta templates are approved.
 
-### 🧑 Arthur · 2026-08-04 12:50
+### 🧑 Vernon · 2026-08-04 12:50
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build api
@@ -36765,7 +36765,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tai
 
 The deploy itself worked — the new code (cascade, E.164, WhatsApp provider, automated welcome) is now live and running email-only, exactly as intended. Paste whatever the channels line shows and I'll confirm, then we can move on to the Meta setup or #202 whenever you're ready.
 
-### 🧑 Arthur · 2026-08-04 14:59
+### 🧑 Vernon · 2026-08-04 14:59
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs api | grep -iE "channels|whatsapp|Notify"
 api-1  | [Nest] 1  - 08/04/2026, 12:50:08 PM     LOG [Notify] channels — email:SmtpEmailProvider sms:TwilioSmsProvider push:PushProvider whatsapp:off
@@ -36788,7 +36788,7 @@ One thing worth noting: `sms:TwilioSmsProvider` means Twilio credentials are sti
 
 Want me to build #202 now, or leave it until WhatsApp is actually switched on?
 
-### 🧑 Arthur · 2026-08-04 15:03
+### 🧑 Vernon · 2026-08-04 15:03
 
 add Whatsapp Business account to todo list and start on #202
 
@@ -37067,7 +37067,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Paste the typecheck output and I'll confirm #202 closed. After that, the WhatsApp cost-optimisation thread is essentially done pending your Meta setup (#204) and the mobile wiring (#205).
 
-### 🧑 Arthur · 2026-08-04 15:12
+### 🧑 Vernon · 2026-08-04 15:12
 
 PS C:\xampp\htdocs\development\PMS0.3> npx tsc -p tsconfig.build.json --noEmit
 >> cd web-admin && npx tsc --noEmit && cd ..
@@ -37118,7 +37118,7 @@ That wraps the WhatsApp cost-optimisation work. Where things stand:
 
 Want me to pick up #205 now, or leave it until the Meta setup is done and WhatsApp is actually live?
 
-### 🧑 Arthur · 2026-08-04 15:13
+### 🧑 Vernon · 2026-08-04 15:13
 
 Do #205
 
@@ -37326,7 +37326,7 @@ Note the mobile apps deploy separately from the API (Expo build/publish, not the
 
 That closes the whole cost-optimisation initiative on the code side. Everything is done and deployed except the two things that are genuinely yours: the **Meta WhatsApp Business setup** (#204) to switch WhatsApp on, and **DNS propagation** finishing the email path (#193). Paste the two typecheck results and I'll confirm #205, or let me know if you'd like to move to something else.
 
-### 🧑 Arthur · 2026-08-04 15:25
+### 🧑 Vernon · 2026-08-04 15:25
 
 PS C:\xampp\htdocs\development\PMS0.3> cd mobile-tenant && npx tsc --noEmit && cd ..
 >> cd mobile-landlord && npx tsc --noEmit && cd ..
@@ -37361,7 +37361,7 @@ cd C:\xampp\htdocs\development\PMS0.3
 git add -A && git commit -m "feat(mobile): remember-this-device passwordless re-auth in tenant + landlord apps (#205)" && git push
 ```
 
-### 🧑 Arthur · 2026-08-04 15:28
+### 🧑 Vernon · 2026-08-04 15:28
 
 done. do I need to pull and deploy
 
@@ -37380,7 +37380,7 @@ If anyone uses **native installs** (actual iOS/Android builds, not the web versi
 
 So: no `api`/`web` redeploy required, just `tenant` + `landlord` if you're running their web containers.
 
-### 🧑 Arthur · 2026-08-04 15:30
+### 🧑 Vernon · 2026-08-04 15:30
 
 don.e what's next?
 
@@ -37402,7 +37402,7 @@ A couple of the old ones are probably stale: **#125** (SendGrid/Twilio trial upg
 
 Otherwise, the most useful thing I can build right now without waiting on anything is **#127 (iKhokha callback signature verification)** — it hardens live payments. Want me to take that, tidy up the stale tasks, or is there something new on your mind?
 
-### 🧑 Arthur · 2026-08-04 15:31
+### 🧑 Vernon · 2026-08-04 15:31
 
 do #127
 
@@ -37525,7 +37525,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 This one naturally pairs with **#126** (first live iKhokha payment) — the same real callback that verifies a live payment also confirms the signature scheme. Want me to tidy the stale tasks (#125, maybe #134) next, or leave it here?
 
-### 🧑 Arthur · 2026-08-04 15:40
+### 🧑 Vernon · 2026-08-04 15:40
 
 tidy the stale tasks
 
@@ -37555,7 +37555,7 @@ What's left pending is all legitimately open, and all blocked on you or on going
 
 The only one of those I can meaningfully build without you is the **AI lease parser** (#149) — the code exists but I could harden/finish it so it's ready the moment you add the key. Otherwise the backlog is in a clean state and the rest is genuinely yours. Want me to take the lease parser, or leave it here?
 
-### 🧑 Arthur · 2026-08-04 15:42
+### 🧑 Vernon · 2026-08-04 15:42
 
 harden/finish #149
 
@@ -37698,7 +37698,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 It runs on the **heuristic** extractor until you set `DOCUMENT_AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`. That flip is the only thing standing between here and #152 (real end-to-end test). Paste the tsc + jest output and I'll confirm.
 
-### 🧑 Arthur · 2026-08-04 15:58
+### 🧑 Vernon · 2026-08-04 15:58
 
 I logged into app.locare.co.za with my google login - vee1ster@gmail.com. I get a forbidden resource 'error'
 
@@ -37729,7 +37729,7 @@ If after re-login it still forbids, tell me **which URL** it lands on when the e
 
 One real UX gap this exposes: an account with no matching role should land on a friendly "no access" screen, not a raw "Forbidden resource." Want me to fix that so mis-provisioned logins fail gracefully?
 
-### 🧑 Arthur · 2026-08-04 16:05
+### 🧑 Vernon · 2026-08-04 16:05
 
 I want to make vee1ster@gmail.com a registered partner - I can't log into the partner section see the dashboard/leaderboard .etc.
 
@@ -37784,7 +37784,7 @@ Now the critical step: the role is baked into the token **at login**, so vee1ste
 
 If you already created a "Vee" partner through the UI earlier, you may now see a second one named "Vee" with ref code `VEE` — harmless, and you can delete the empty one later. Paste the verification row output (or any error) and I'll confirm before you re-login.
 
-### 🧑 Arthur · 2026-08-04 16:10
+### 🧑 Vernon · 2026-08-04 16:10
 
 Iv'e logged in as vee1ster@gmail.com - getting a No partner context message.
 
@@ -37887,7 +37887,7 @@ Then have vee1ster **sign out and log in again** (to mint a fresh token — the 
 
 This is a genuine auth fix worth keeping, so once you confirm it works I'd suggest committing it as-is (already done above). Want me to also add a regression test around `refresh` so this can't silently break again?
 
-### 🧑 Arthur · 2026-08-04 16:42
+### 🧑 Vernon · 2026-08-04 16:42
 
 add a regression test around `refresh`
 
@@ -37917,7 +37917,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Then vee1ster signs out and back in, and the partner portal should hold through the activity refresh. Paste the jest output and I'll confirm it's locked in.
 
-### 🧑 Arthur · 2026-08-04 16:50
+### 🧑 Vernon · 2026-08-04 16:50
 
 PS C:\xampp\htdocs\development\PMS0.3> npx tsc -p tsconfig.build.json --noEmit
 >> git add -A && git commit -m "fix(auth): preserve partnerId + impersonation act claim on token refresh" && git push
@@ -37977,7 +37977,7 @@ After the fresh login the partner session will hold through the background activ
 
 Give it a test with vee1ster once it's deployed and let me know it holds. That clears the partner-login thread — the backlog is otherwise down to the things waiting on you (Meta setup, DNS, live iKhokha payment, Anthropic key).
 
-### 🧑 Arthur · 2026-08-04 17:51
+### 🧑 Vernon · 2026-08-04 17:51
 
 Give me detailed instructions to complete the remaining backlog.
 
@@ -38069,7 +38069,7 @@ You want to see the row where **has_google = t** also showing a **partner_id** a
 
 Paste me that diagnostic output either way — if it shows two rows (one Google, one not), that confirms the casing split and this fix moves the membership onto the right one; if it shows one clean linked row and login still lands on `/no-access`, something else is up and the output will tell me what.
 
-### 🧑 Arthur · 2026-08-05 14:14
+### 🧑 Vernon · 2026-08-05 14:14
 
 I want to be able to manually approve new 'partners'
 
@@ -38159,7 +38159,7 @@ Two open questions in the doc worth your call before I build:
 
 Want me to start building **Phase 1 (#206 migration + entities, then #207/#208 backend)**? That's the substantive part and it's all buildable now — the public form and admin UI (#210/#211) come after. Or adjust the two open questions first.
 
-### 🧑 Arthur · 2026-08-05 14:25
+### 🧑 Vernon · 2026-08-05 14:25
 
 1 . admin sets on approve. 2. I take your proposal. Build it.
 
@@ -38379,7 +38379,7 @@ Still to come (next turn): the **public application form** (#210) and the **admi
 
 Paste the tsc output and I'll confirm it's clean, then I'll build the two web pages. Want me to continue straight into the web UI?
 
-### 🧑 Arthur · 2026-08-05 14:36
+### 🧑 Vernon · 2026-08-05 14:36
 
 PS C:\xampp\htdocs\development\PMS0.3> npx tsc -p tsconfig.build.json --noEmit
 >> git add -A && git commit -m "feat(partners): KYC/KYB vetting applications — public submit/upload + admin review/approve (#206-209)" && git push
@@ -38562,7 +38562,7 @@ Two follow-ups worth noting: the marketing site's "Register as a partner" button
 
 Paste the three verify outputs and I'll confirm the whole feature is green.
 
-### 🧑 Arthur · 2026-08-05 14:43
+### 🧑 Vernon · 2026-08-05 14:43
 
 PS C:\xampp\htdocs\development\PMS0.3> npx tsc -p tsconfig.build.json --noEmit
 >> cd web-admin && npx tsc --noEmit && cd ..
@@ -38656,7 +38656,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Paste the web-admin tsc + jest output and I'll confirm the whole feature is green.
 
-### 🧑 Arthur · 2026-08-05 14:47
+### 🧑 Vernon · 2026-08-05 14:47
 
 PS C:\xampp\htdocs\development\PMS0.3\web-admin> cd ..
 PS C:\xampp\htdocs\development\PMS0.3> cd C:\xampp\htdocs\development\PMS0.3
@@ -38696,7 +38696,7 @@ Once that's up, the full flow is live:
 
 That closes the vetting request. Two optional follow-ups still on the table whenever you want them: linking the marketing "Register as a partner" button to `/partner-apply`, and the 90-day document-retention purge job. Otherwise the backlog is back to the external go-live items (Meta, DNS, live iKhokha payment, Anthropic key) in `docs/LOCARE_GO_LIVE_CHECKLIST.md`.
 
-### 🧑 Arthur · 2026-08-05 14:53
+### 🧑 Vernon · 2026-08-05 14:53
 
 do the Two optional follow-ups
 
@@ -38931,7 +38931,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 The offset is a fixed value tuned for the two-line "Earn with every agency you bring" heading at desktop width — it'll be spot-on at typical widths and within a few pixels as the heading font scales. If you'd rather the whole right block sit a touch higher or lower after seeing it live, tell me the direction and I'll nudge the `132px`.
 
-### 🧑 Arthur · 2026-08-05 15:39
+### 🧑 Vernon · 2026-08-05 15:39
 
 its good now.
 
@@ -38943,7 +38943,7 @@ Where things stand: everything code-side is built, tested, and deployed. The onl
 
 Just ping me when you hit any of those (especially an `IK-SIGN mismatch` log line, which is the one thing that might need a code tweak), or whenever the next thing comes up.
 
-### 🧑 Arthur · 2026-08-05 17:39
+### 🧑 Vernon · 2026-08-05 17:39
 
 Im still not sure on the login flow of the app. explain it to me
 
@@ -38980,7 +38980,7 @@ So the mental model is: **enter email/phone (or Google) → get verified → ser
 
 Anything specific you want me to go deeper on — the role resolution, the OTP delivery, how a tenant gets provisioned, or the token/session mechanics?
 
-### 🧑 Arthur · 2026-08-05 18:03
+### 🧑 Vernon · 2026-08-05 18:03
 
 As it stands who can login to the app
 
@@ -39024,7 +39024,7 @@ That prints the admin allowlist plus every partner and agency membership with it
 
 ## 2026-08-06
 
-### 🧑 Arthur · 2026-08-06 06:48
+### 🧑 Vernon · 2026-08-06 06:48
 
 How do I authorize google accounts?
 
@@ -39063,7 +39063,7 @@ So: **to authorize a Google account, give its email a role in the app (admin/par
 
 Want me to walk through publishing the OAuth consent screen to Production, or add a specific email as a platform admin?
 
-### 🧑 Arthur · 2026-08-06 06:53
+### 🧑 Vernon · 2026-08-06 06:53
 
 walk through publishing the OAuth consent screen to Production
 
@@ -39105,7 +39105,7 @@ Sources:
 - [Manage OAuth App Branding — Google Cloud Help](https://support.google.com/cloud/answer/15549049?hl=en)
 - [Configure the OAuth consent screen — Google for Developers](https://developers.google.com/workspace/guides/configure-oauth-consent)
 
-### 🧑 Arthur · 2026-08-06 07:02
+### 🧑 Vernon · 2026-08-06 07:02
 
 Add privacy policy etc. to the app
 
@@ -39202,7 +39202,7 @@ Two notes: the web-admin login screen already shows a "privacy policy" link poin
 
 Want me to also add Privacy/Terms links into the tenant and landlord app footers, or is the website coverage enough for now?
 
-### 🧑 Arthur · 2026-08-06 07:18
+### 🧑 Vernon · 2026-08-06 07:18
 
 Verify domain ownership via DNS record
 locare.co.za
@@ -39241,7 +39241,7 @@ You should see **two** TXT entries — your existing `v=spf1…` and the new `go
 
 One note: HostAfrica displayed your SPF record wrapped in quotes in the panel earlier, so if it auto-adds quotes, that's fine — just make sure the value between them is exactly the `google-site-verification=…` string with nothing extra.
 
-### 🧑 Arthur · 2026-08-06 07:21
+### 🧑 Vernon · 2026-08-06 07:21
 
 add Privacy/Terms links into the tenant and landlord app footers
 
@@ -39299,7 +39299,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 That's Privacy/Terms wired everywhere they're user-facing: the marketing site footer, the web-admin login, and now both mobile app footers.
 
-### 🧑 Arthur · 2026-08-06 07:34
+### 🧑 Vernon · 2026-08-06 07:34
 
 Branding verification issues
  Issues found from the previous verification attempt:
@@ -39379,7 +39379,7 @@ After the marketing site redeploys and you've set the consent-screen app name + 
 
 One tip: after deploying, open `https://locare.co.za` in a private window and confirm the "Locare is a white-label property-management platform…" line is visible immediately on load (not fading in) — that's what the crawler needs to see.
 
-### 🧑 Arthur · 2026-08-06 07:48
+### 🧑 Vernon · 2026-08-06 07:48
 
 add to todo - the site load speed must be improved.(optimized)
 
@@ -39394,7 +39394,7 @@ Added as **#213** — scoped to cover the public marketing site and the web-admi
 
 Want me to pick it up now, or leave it queued? If now, I'd start with a quick audit of the marketing site (it's the public-facing one and the fastest win) and report the biggest bottlenecks before making changes.
 
-### 🧑 Arthur · 2026-08-06 07:49
+### 🧑 Vernon · 2026-08-06 07:49
 
 pick it up now.
 
@@ -39462,7 +39462,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --bu
 
 Want me to leave #213 in progress for the web-admin pass, or is the marketing speed-up enough for now?
 
-### 🧑 Arthur · 2026-08-06 08:02
+### 🧑 Vernon · 2026-08-06 08:02
 
 PS C:\WINDOWS\system32> npx lighthouse https://locare.co.za
 Need to install the following packages:
@@ -39780,7 +39780,7 @@ npx lighthouse https://locare.co.za --quiet --chrome-flags="--headless" --only-c
 
 Once I see the actual LCP/TBT/CLS and the flagged items, I'll make targeted fixes rather than guessing.
 
-### 🧑 Arthur · 2026-08-06 08:06
+### 🧑 Vernon · 2026-08-06 08:06
 
 <uploaded_files>
 <file><file_path>locare.co.za_2026-08-06_10-01-38.report.html</file_path></file>
@@ -39889,7 +39889,7 @@ Two notes:
 
 Paste the new numbers after redeploy and I'll confirm the win.
 
-### 🧑 Arthur · 2026-08-06 08:13
+### 🧑 Vernon · 2026-08-06 08:13
 
 <uploaded_files>
 <file><file_path>locare.co.za_2026-08-06_10-12-17.html</file_path></file>
@@ -39957,7 +39957,7 @@ npx lighthouse https://locare.co.za --view
 
 You should see the network list drop to just the HTML + two same-origin SVGs (and favicon), `observedLastVisualChange` fall to ~2–3s, and the Speed Index / Performance score jump. Paste the new run and I'll confirm — if by some chance it's *still* 33s with zero fontshare requests, that points to a Lighthouse-13/local-Chrome quirk (its new WebMCP gatherer was taking 26s in your logs) rather than the site, and I'll help you rule that out.
 
-### 🧑 Arthur · 2026-08-06 08:20
+### 🧑 Vernon · 2026-08-06 08:20
 
 <uploaded_files>
 <file><file_path>locare.co.za_2026-08-06_10-18-41.html</file_path></file>
@@ -40008,7 +40008,7 @@ That completes the **marketing** half of #213. The remaining half is the **web-a
 1. **Take the web-admin pass** (I'll need the sandbox back, or you can run `npx lighthouse https://app.locare.co.za --view` on a logged-in-then-public route and a `next build` bundle report and paste them), or
 2. **Close #213** as done for the public site and leave web-admin for later?
 
-### 🧑 Arthur · 2026-08-06 08:27
+### 🧑 Vernon · 2026-08-06 08:27
 
 Still having these issues... Branding verification issues
  Issues found from the previous verification attempt:
@@ -40125,7 +40125,7 @@ The key takeaway that needed no code: the homepage "Sign in" lands on the dashbo
 
 What would you like to do?
 
-### 🧑 Arthur · 2026-08-06 14:40
+### 🧑 Vernon · 2026-08-06 14:40
 
 continue
 
@@ -40191,7 +40191,7 @@ The root cause was a classic React select gotcha: the dropdown *rendered* "SA ID
 
 Paste the typecheck output and I'll confirm before you deploy.
 
-### 🧑 Arthur · 2026-08-06 15:33
+### 🧑 Vernon · 2026-08-06 15:33
 
 I'm still not receiving any emails on partners@locare.co.za  - partner application emails are not coming through.
 
@@ -40241,7 +40241,7 @@ That one line tells us which of three things is happening:
 
 So the sequence is: deploy → submit an application → read that log line → and send yourself a Gmail test. Paste me the log line and whether the Gmail test arrived, and I'll pinpoint exactly where it's breaking.
 
-### 🧑 Arthur · 2026-08-06 15:46
+### 🧑 Vernon · 2026-08-06 15:46
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --build api web
@@ -40345,7 +40345,7 @@ That prints the `channels — email:… sms:… whatsapp:…` line so we can see
 
 Paste (a) the log line after submitting, (b) the `channels` line, and (c) whether the Gmail test arrived — and I'll tell you exactly where it's stuck.
 
-### 🧑 Arthur · 2026-08-06 15:49
+### 🧑 Vernon · 2026-08-06 15:49
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tail=60 api | grep -iE "email sent|email .* failed|no email channel|channels —"
 api-1  | [Nest] 1  - 08/06/2026, 3:49:09 PM   ERROR [PartnerApplications] email to partners@locare.co.za failed: Hostname/IP does not match certificate's altnames: Host: mail.locare.co.za. is not in the cert's altnames: DNS:da30.host-ww.net
@@ -40379,7 +40379,7 @@ You should now see `email sent → partners@locare.co.za via SmtpEmailProvider (
 
 If you'd rather keep the friendly `mail.locare.co.za` name (in case HostAfrica ever moves you off `da30`), tell me and I'll add an `SMTP_SERVERNAME` option to the provider so TLS verifies against the cert host while still connecting to the alias — but the `da30.host-ww.net` change above is the standard HostAfrica setup and gets you working right now. Paste the log line after you retry.
 
-### 🧑 Arthur · 2026-08-06 15:55
+### 🧑 Vernon · 2026-08-06 15:55
 
 same error - deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tail=40 api | grep -iE "email sent|email .* failed"
 api-1  | [Nest] 1  - 08/06/2026, 3:54:44 PM   ERROR [PartnerApplications] email to partners@locare.co.za failed: Hostname/IP does not match certificate's altnames: Host: mail.locare.co.za. is not in the cert's altnames: DNS:da30.host-ww.net
@@ -40462,7 +40462,7 @@ That connects to your alias but verifies TLS against the cert's real name — no
 
 Either path fixes it. My bet is Step 1 shows the env never changed — start there.
 
-### 🧑 Arthur · 2026-08-06 15:57
+### 🧑 Vernon · 2026-08-06 15:57
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml exec api printenv SMTP_HOST
 mail.locare.co.za
@@ -40472,7 +40472,7 @@ deploy@vmi3453343:~/PMS03$
 
 No response requested.
 
-### 🧑 Arthur · 2026-08-06 16:04
+### 🧑 Vernon · 2026-08-06 16:04
 
 deploy@vmi3453343:~/PMS03$ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml logs --tail=40 api | grep -iE "email sent|email .* failed"
 api-1  | [Nest] 1  - 08/06/2026, 4:02:55 PM     LOG [PartnerApplications] email sent → partners@locare.co.za via SmtpEmailProvider (<ccda9b81-6e68-51dc-9dbb-91b217016264@locare.co.za>)
@@ -40489,7 +40489,7 @@ Last check: **look in the `partners@locare.co.za` inbox** (and the spam/junk fol
 
 Confirm you see it in the inbox and I'll close out #193. Nice — that was a proper chain to untangle: submissions failing on validation, then the SMTP cert-name mismatch. Both fixed.
 
-### 🧑 Arthur · 2026-08-06 16:05
+### 🧑 Vernon · 2026-08-06 16:05
 
 I see it in the inbox.
 
@@ -40517,7 +40517,7 @@ The whole delivery chain was: submissions failing on the ID-type validation → 
 
 That clears a major go-live blocker. Remaining open items are down to: WhatsApp Meta setup (#204, optional now that email works), first live iKhokha payment (#126), the Anthropic key for lease parsing (#152), and the web-admin bundle half of #213. Want to pick any of those up, or take a break here?
 
-### 🧑 Arthur · 2026-08-06 16:18
+### 🧑 Vernon · 2026-08-06 16:18
 
 Do #213
 
@@ -40633,7 +40633,7 @@ Separately, the reason `app.locare.co.za` lands on the **dashboard** rather than
 
 My money's on browser cache — try the incognito window first and tell me what you see. If it's still wrong there, the `--no-cache` rebuild will settle it, and if *that* somehow doesn't, then there's a real bug and I'll add logging to trace what `isPlatformHost()` returns in your deployed build.
 
-### 🧑 Arthur · 2026-08-06 17:07
+### 🧑 Vernon · 2026-08-06 17:07
 
 add logging to trace what isPlatformHost() returns
 
@@ -40681,7 +40681,7 @@ Paste that line to me. It pinpoints it immediately:
 
 Either way, that single console line ends the guessing. Once we've confirmed the cause and it's showing Locare, I'll strip the debug log back out.
 
-### 🧑 Arthur · 2026-08-06 17:13
+### 🧑 Vernon · 2026-08-06 17:13
 
 The F12 console is blank
 
@@ -40710,7 +40710,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml up -d --fo
 
 Tell me: (a) does `ps web` show it recently restarted, and (b) does the `[brand]` line appear in an incognito window? If the container is freshly rebuilt and incognito *still* shows no log, then something upstream is serving stale HTML (e.g., Caddy or a CDN in front), and we'll chase that instead.
 
-### 🧑 Arthur · 2026-08-06 17:23
+### 🧑 Vernon · 2026-08-06 17:23
 
 (a) recently restarted (b)no
 
@@ -40735,7 +40735,7 @@ docker compose --env-file deploy/.env.prod -f deploy/compose.prod.yml ps
 
 But start with `git log` + `grep` on the VPS — I strongly suspect the debug commit is sitting un-pushed on your Windows box (or the earlier web-admin commits are too, which would also explain why the brand fix never actually shipped). Paste the output of those two commands and we'll know in one step.
 
-### 🧑 Arthur · 2026-08-06 17:25
+### 🧑 Vernon · 2026-08-06 17:25
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 git log --oneline -3
@@ -40772,7 +40772,7 @@ That greps the **compiled output inside the live container**. Two outcomes:
 
 Run the first grep and paste the result — that tells us definitively whether we're fixing a stale container (rebuild/recreate) or stale routing/caching (Caddy). My guess is the container is running an older image than the one you just built.
 
-### 🧑 Arthur · 2026-08-06 17:28
+### 🧑 Vernon · 2026-08-06 17:28
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 git log --oneline -3
@@ -40846,7 +40846,7 @@ And to make sure a stale document can never bite a real user, I can add a `Cache
 
 Do the phone test first and tell me what it shows — I'm confident it'll be Locare, which means everything's actually working and this was a browser-cache goose chase.
 
-### 🧑 Arthur · 2026-08-06 17:52
+### 🧑 Vernon · 2026-08-06 17:52
 
 <uploaded_files>
 <file><file_path>f29a4913-8aa8-43a7-aef2-58365a642027.tmp</file_path></file>
@@ -40930,7 +40930,7 @@ Let me apply the same to the Dantalan app host for consistency:
 `⚙ Edit` — {"replace_all": false, "file_path": "C:\\xampp\\htdocs\\development\\PMS0.3\\deploy\\Caddyfile", "old_string": "# Web back-office (Next.js)\napp.dantalan.co.za {\n\tencode zstd gzip\n\treverse_proxy web:3001\n}", "new_st…
 > ↳ result: The file C:\xampp\htdocs\development\PMS0.3\deploy\Caddyfile has been updated successfully. (file state is current in your context — no need to Read it back)
 
-### 🧑 Arthur · 2026-08-06 18:00
+### 🧑 Vernon · 2026-08-06 18:00
 
 This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
@@ -41092,7 +41092,7 @@ After that one clear, `no-cache` keeps every device current automatically going 
 
 When you reload app.locare.co.za post-clear, F12 console should now print the `[brand]` line with `isPlatformHost: true` — that confirms the new bundle loaded and Locare branding is resolving. Paste it here and I'll remove the temporary debug log.
 
-### 🧑 Arthur · 2026-08-06 18:09
+### 🧑 Vernon · 2026-08-06 18:09
 
 deploy@vmi3453343:~/PMS03$ git pull
 remote: Enumerating objects: 7, done.
@@ -41146,7 +41146,7 @@ docker compose -f deploy/compose.prod.yml exec caddy caddy reload --config /etc/
 
 Once the header's confirmed, hard-clear your phone + desktop cache once, reload app.locare.co.za, and paste the `[brand]` console line.
 
-### 🧑 Arthur · 2026-08-06 18:10
+### 🧑 Vernon · 2026-08-06 18:10
 
 deploy@vmi3453343:~/PMS03$ docker exec $(docker ps -qf name=caddy) caddy reload --config /etc/caddy/Caddyfile
 {"level":"info","ts":1786039818.0753794,"msg":"using config from file","file":"/etc/caddy/Caddyfile"}
@@ -41177,7 +41177,7 @@ Expect `cache-control: no-cache`. (Optional cosmetic cleanup for that warning: `
 
 Then on your phone and desktop, hard-clear cache once and reload app.locare.co.za. Open F12 → Console and paste the `[brand]` line. Once it shows `isPlatformHost: true` and the header renders "Locare", I'll strip the temporary debug log.
 
-### 🧑 Arthur · 2026-08-06 18:11
+### 🧑 Vernon · 2026-08-06 18:11
 
 deploy@vmi3453343:~/PMS03$ curl -sI https://app.locare.co.za/login | grep -i cache-control
 cache-control: s-maxage=31536000, stale-while-revalidate
@@ -41209,7 +41209,7 @@ curl -sI https://app.locare.co.za/login | grep -i cache-control
 
 Now it should read `cache-control: no-cache`. Once it does, hard-clear your phone + desktop cache once, reload the site, and paste the `[brand]` console line.
 
-### 🧑 Arthur · 2026-08-06 18:13
+### 🧑 Vernon · 2026-08-06 18:13
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker exec $(docker ps -qf name=caddy) caddy reload --config /etc/caddy/Caddyfile
@@ -41282,7 +41282,7 @@ curl -sI https://app.locare.co.za/login | grep -i cache-control
 
 That should now read `cache-control: no-cache`. Once it does, hard-clear your phone + desktop cache once, reload the site, and paste the `[brand]` console line — then I'll remove the debug log.
 
-### 🧑 Arthur · 2026-08-06 18:15
+### 🧑 Vernon · 2026-08-06 18:15
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker exec $(docker ps -qf name=caddy) caddy reload --config /etc/caddy/Caddyfile
@@ -41332,7 +41332,7 @@ echo "=== direct to caddy (bypass CDN) ==="; curl -sIk --resolve app.locare.co.z
 
 Paste both blocks. What I'm looking for: whether there's a `server: cloudflare` / `cf-cache-status` line (a CDN overriding the header), and whether the direct-to-Caddy hit shows `no-cache` (which would prove Caddy is doing its job and a CDN is the culprit). That tells us exactly where the header is getting rewritten.
 
-### 🧑 Arthur · 2026-08-06 18:18
+### 🧑 Vernon · 2026-08-06 18:18
 
 deploy@vmi3453343:~/PMS03$ echo "=== public ==="; curl -sI https://app.locare.co.za/login
 echo "=== direct to caddy (bypass CDN) ==="; curl -sIk --resolve app.locare.co.za:443:127.0.0.1 https://app.locare.co.za/login
@@ -41424,7 +41424,7 @@ This time it should read `cache-control: no-cache` — `header_down` rewrites th
 
 Once the header confirms, hard-clear your phone + desktop cache once and reload — that's what finally lets the browser pull the new bundle and show "Locare."
 
-### 🧑 Arthur · 2026-08-06 18:21
+### 🧑 Vernon · 2026-08-06 18:21
 
 PS C:\xampp\htdocs\development\PMS0.3> del .git\index.lock 2>nul
 >> git add deploy/Caddyfile
@@ -41453,7 +41453,7 @@ git push origin main
 
 If it still complains about a lock, close any open editor/Git GUI on the repo and rerun. Once pushed, pull + reload on the VPS and re-check the header.
 
-### 🧑 Arthur · 2026-08-06 18:22
+### 🧑 Vernon · 2026-08-06 18:22
 
 deploy@vmi3453343:~/PMS03$ git pull
 docker exec $(docker ps -qf name=caddy) caddy reload --config /etc/caddy/Caddyfile
@@ -41488,7 +41488,7 @@ Still `s-maxage`, and crucially only *one* Cache-Control value — so the second
 
 That printed the script (the sandbox can't reach your VPS). Run those four commands **on the VPS** and paste the output. They'll tell us: (1) whether the container's mounted Caddyfile actually contains `header_down`, (2) whether it made it into Caddy's live config, and (3) whether a full container restart makes the header flip to `no-cache`.
 
-### 🧑 Arthur · 2026-08-06 18:25
+### 🧑 Vernon · 2026-08-06 18:25
 
 which 4 commands?
 
@@ -41506,7 +41506,7 @@ curl -sI https://app.locare.co.za/login | grep -i cache-control
 
 Paste the output. That checks whether the container's Caddyfile has `header_down`, whether it's in the live config, then does a full restart and re-checks the header.
 
-### 🧑 Arthur · 2026-08-06 18:26
+### 🧑 Vernon · 2026-08-06 18:26
 
 deploy@vmi3453343:~/PMS03$ docker exec $(docker ps -qf name=caddy) grep -n "header_down\|app.locare" /etc/caddy/Caddyfile
 docker exec $(docker ps -qf name=caddy) sh -c 'wget -qO- http://localhost:2019/config/ | grep -o "no-cache" | head'
@@ -41558,7 +41558,7 @@ The cleanest way to confirm (and rule out cache entirely) is an **Incognito/Priv
 
 You should see a clean Locare card with no sidebar and no "Property Manager" anywhere. Paste the `[brand]` console line — if it reads `isPlatformHost: true`, the fix is fully confirmed and your normal window just needs its cache fully emptied once (the partial clear left old shell chunks behind).
 
-### 🧑 Arthur · 2026-08-06 18:40
+### 🧑 Vernon · 2026-08-06 18:40
 
 still see the sidebar - do you need access to the sandbox to fix this?
 
@@ -41602,7 +41602,7 @@ docker compose -f compose.prod.yml build --no-cache web && docker compose -f com
 
 Paste the `[brand]` console line once it's up and I'll strip the debug log.
 
-### 🧑 Arthur · 2026-08-06 18:43
+### 🧑 Vernon · 2026-08-06 18:43
 
 deploy@vmi3453343:~$ cd PMS03/
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03 && git pull
@@ -41662,7 +41662,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 Running from `~/PMS03` with `-f deploy/compose.prod.yml` keeps the project name `deploy`, so it recreates the existing `deploy-web-1` in place. Once it's up, load `https://app.locare.co.za/login` in Incognito — the sidebar should be gone. Paste the `[brand]` console line and I'll strip the debug log.
 
-### 🧑 Arthur · 2026-08-06 18:48
+### 🧑 Vernon · 2026-08-06 18:48
 
 fix this issue now.
 
@@ -41765,7 +41765,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 The rebuild is required — this is a server-render change, so it must be baked into a new image. After it's up, `app.locare.co.za` will serve Locare branding in the HTML itself, on first paint, for every visitor regardless of cache.
 
-### 🧑 Arthur · 2026-08-06 18:52
+### 🧑 Vernon · 2026-08-06 18:52
 
 PS C:\xampp\htdocs\development\PMS0.3> git add web-admin/lib/brand-shared.ts web-admin/lib/branding.ts web-admin/app/layout.tsx web-admin/components/brand-provider.tsx web-admin/components/shell.tsx
 >> git commit -m "fix(web): resolve brand from Host header server-side; stop prerendering wrong brand"
@@ -41810,7 +41810,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod build web
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --force-recreate web
 ```
 
-### 🧑 Arthur · 2026-08-06 18:59
+### 🧑 Vernon · 2026-08-06 18:59
 
 fixed.
 
@@ -41825,7 +41825,7 @@ Two things still open from earlier if you want to pick either up: #204 (Meta Wha
 
 ## 2026-08-07
 
-### 🧑 Arthur · 2026-08-07 07:53
+### 🧑 Vernon · 2026-08-07 07:53
 
 Branding verification issues
  Issues found from the previous verification attempt:
@@ -41911,7 +41911,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 Before you resubmit, confirm in the Google Cloud console that **App name** is exactly `Locare` (not "Locare Back-office" or a project name) and **Application home page** is `https://locare.co.za` — the name must match the H1 on that page verbatim. Then resubmit; each rejection is scored against a fresh crawl, so the earlier failures don't carry over.
 
-### 🧑 Arthur · 2026-08-07 09:04
+### 🧑 Vernon · 2026-08-07 09:04
 
 let's pause this. I want to split the partner registration process into 2 parts. Applicants must initially just submit contact information - and then be sent an email with a link to complete KYC. The current way seems to be deterring potential partners
 
@@ -42372,7 +42372,7 @@ New env knobs, both optional: `PARTNER_APP_LINK_DAYS` (14) and `PARTNER_APP_REMI
 
 To ship it — commit and push from Windows, then on the VPS rebuild `api` and `web` and run migrations. Worth testing with a real address first: submit stage 1, confirm the email arrives, and walk the link through to submit.
 
-### 🧑 Arthur · 2026-08-07 09:28
+### 🧑 Vernon · 2026-08-07 09:28
 
 give me the commit(push) commands and the pull(deploy) commands
 
@@ -42414,7 +42414,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod logs --tai
 
 You should see the migration applied and `Recurring partner-application retention purge + reminder jobs ensured` on boot. Then submit a real address at `https://app.locare.co.za/partner-apply` and check the email arrives with a `/partner-apply/continue?id=…&token=…` link.
 
-### 🧑 Arthur · 2026-08-07 09:44
+### 🧑 Vernon · 2026-08-07 09:44
 
 It works. I received the email but I don't see any partner applications pending approval.
 
@@ -42466,7 +42466,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 Then sign out on your phone and sign in again — the role is baked into the JWT at login, so an existing session keeps the old (no-access) claims until you get a fresh token.
 
-### 🧑 Arthur · 2026-08-07 09:54
+### 🧑 Vernon · 2026-08-07 09:54
 
 deploy@vmi3453343:~/PMS03/deploy$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api printenv PLATFORM_ADMIN_EMAILS
@@ -42525,7 +42525,7 @@ What the answer tells us:
 
 My suspicion is the second — you received the email, opened it, and walked the form through. The empty Started list is consistent with that, since completing stage 2 moves the record out of `started`.
 
-### 🧑 Arthur · 2026-08-07 10:04
+### 🧑 Vernon · 2026-08-07 10:04
 
 deploy@vmi3453343:~/PMS03$ grep POSTGRES deploy/.env.prod
 POSTGRES_PASSWORD=«redacted»
@@ -42545,7 +42545,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec postg
   psql -U pms -d pms -c "SELECT status, contact_name, full_name, contact_email, created_at, jsonb_array_length(documents) AS docs FROM partner_applications ORDER BY created_at DESC LIMIT 5;"
 ```
 
-### 🧑 Arthur · 2026-08-07 10:05
+### 🧑 Vernon · 2026-08-07 10:05
 
 deploy@vmi3453343:~/PMS03$ cd ~/PMS03
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec postgres \
@@ -42568,7 +42568,7 @@ The card showed "Vernon" because the display prefers `full_name`, and you typed 
 
 One small gap worth noting: that older `talandan26@gmail.com` row is stuck in `draft` (4 docs, never submitted) from the old flow, and there's no chip for `draft` — it only appears under **All**. Want me to fold `draft` into the Started chip so incomplete applications from either flow surface in one place?
 
-### 🧑 Arthur · 2026-08-07 11:11
+### 🧑 Vernon · 2026-08-07 11:11
 
 yes.
 
@@ -42645,7 +42645,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 No migration this time. Worth trying *Resend link* on the talandan application once it's up — that's the recovery path for the stalled ones, and it hasn't been exercised live yet.
 
-### 🧑 Arthur · 2026-08-07 11:45
+### 🧑 Vernon · 2026-08-07 11:45
 
 change the layout of the pricing tiers. put the custom tier in a different place -  kind of offset. let's brainstorm.
 
@@ -42776,7 +42776,7 @@ One small thing I'd tidy: the feature row wraps into a ragged two lines ("Multi-
 
 Want me to add that, or leave it as is?
 
-### 🧑 Arthur · 2026-08-07 12:01
+### 🧑 Vernon · 2026-08-07 12:01
 
 leave it as is.
 
@@ -42791,7 +42791,7 @@ Where we landed today: the branding fix (server-side host resolution), the two-s
 
 ## 2026-08-11
 
-### 🧑 Arthur · 2026-08-11 08:08
+### 🧑 Vernon · 2026-08-11 08:08
 
 <uploaded_files>
 <file><file_path>Vernon Venter - Resume.pdf</file_path></file>
@@ -42911,7 +42911,7 @@ It came out at 3 pages rather than 4 — tighter leading and a cleaner table, no
 
 Two things to check: I set the Locare dates as "2026 – Present" and described you as sole architect — correct those if either's off. Font is Helvetica since Open Sans couldn't be fetched offline; if you want the original typeface exactly, the source file is `.docx`-able or you can drop the text into your existing template.
 
-### 🧑 Arthur · 2026-08-11 14:34
+### 🧑 Vernon · 2026-08-11 14:34
 
 what's still missing from locare?
 
@@ -42956,7 +42956,7 @@ If I were picking the order: legal text (30 minutes), then backups + monitoring 
 
 Want me to fill in the legal placeholders? I'd need your registered entity name, company reg number and registered address.
 
-### 🧑 Arthur · 2026-08-11 14:49
+### 🧑 Vernon · 2026-08-11 14:49
 
 remove that from the privacy policy and terms for now. I'm stilling getting those details.
 
@@ -43014,7 +43014,7 @@ docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --fo
 
 Worth being straight with you though: POPIA requires the responsible party to be identifiable, and section 51 expects an Information Officer with contact details for the registered entity. What's live now is defensible for a pre-launch site, but it needs the real company name, registration number and registered address before you take a paying customer. Ping me when the registration comes through — it's a five-minute edit. I'd also keep the "reviewed by a qualified attorney" note at the bottom of both pages until someone actually has.
 
-### 🧑 Arthur · 2026-08-11 14:54
+### 🧑 Vernon · 2026-08-11 14:54
 
 perferct
 
@@ -43024,7 +43024,7 @@ Nice work today — branding fixed at the root, partner signup split into someth
 
 Give me a shout when the company registration lands and I'll drop the details into both legal pages.
 
-### 🧑 Arthur · 2026-08-11 14:58
+### 🧑 Vernon · 2026-08-11 14:58
 
 connect to my slack -  add set up tasks in my calendar and todos - reminders etc.
 
@@ -43061,7 +43061,7 @@ Also worth knowing: I can set recurring reminders natively without any connector
 
 Tell me which todo app and I'll draft the full set the moment Slack and Calendar are live.
 
-### 🧑 Arthur · 2026-08-11 15:32
+### 🧑 Vernon · 2026-08-11 15:32
 
 Slack
 
@@ -43085,7 +43085,7 @@ So the realistic split is: Slack for visibility and nudges, Google Calendar for 
 
 Which way do you want to go — Slack canvas plus calendar and skip the todo app, or add Todoist too? And once Slack's connected, tell me which channel (or just DM) the reminders should land in.
 
-### 🧑 Arthur · 2026-08-11 15:34
+### 🧑 Vernon · 2026-08-11 15:34
 
 do the split
 
@@ -43100,7 +43100,7 @@ Neither connector is live yet — no Slack or Calendar tools on my side, so I ca
 
 ### 🤖 Claude · 2026-08-11 15:35
 
-`⚙ mcp__scheduled-tasks__create_scheduled_task` — {"taskId": "locare-monday-review", "description": "Weekly Locare operations and launch-readiness review", "cronExpression": "0 8 * * 1", "prompt": "Weekly Locare review for Arthur (Vernon Venter). Locare is a multi-tenan…
+`⚙ mcp__scheduled-tasks__create_scheduled_task` — {"taskId": "locare-monday-review", "description": "Weekly Locare operations and launch-readiness review", "cronExpression": "0 8 * * 1", "prompt": "Weekly Locare review for Vernon (Vernon Venter). Locare is a multi-tenan…
 > ↳ result: Scheduled task "locare-monday-review" created. **Task file:** C:\Users\verno\Claude\Scheduled\locare-monday-review\SKILL.md **Schedule:** At 08:04 AM, only on M…
 
 ### 🤖 Claude · 2026-08-11 15:36
@@ -43121,7 +43121,7 @@ Both are self-contained, so they'll work without this conversation's context. Th
 
 For Calendar, I'd block these when you connect it: a 2-hour session for backups + monitoring (the highest-leverage gap), 1 hour for the Meta WhatsApp Business application, and 30 minutes for the Google verification resubmission. Say the word on preferred days and I'll place them.
 
-### 🧑 Arthur · 2026-08-11 16:03
+### 🧑 Vernon · 2026-08-11 16:03
 
 what are the required whatsapp credentials i need to put into .env.prod
 
@@ -43193,7 +43193,7 @@ You want `whatsapp:WhatsAppCloudProvider` rather than `whatsapp:off`. Then reque
 
 Full setup walkthrough is in `docs/LOCARE_WHATSAPP_ONBOARDING_DESIGN.md` §8 if you want the Meta-side detail.
 
-### 🧑 Arthur · 2026-08-11 16:12
+### 🧑 Vernon · 2026-08-11 16:12
 
 where do i get these?
 WHATSAPP_OTP_TEMPLATE=locare_otp      # approved authentication template name
@@ -43236,7 +43236,7 @@ Approval is free and usually takes minutes to a few hours; Authentication templa
 
 One sequencing note: leave `WHATSAPP_TOKEN` blank until both templates show **Approved**. The cascade runs email-only in the meantime and nothing breaks — whereas setting the token with unapproved templates means every OTP fails its first hop before falling back.
 
-### 🧑 Arthur · 2026-08-11 16:23
+### 🧑 Vernon · 2026-08-11 16:23
 
 Does this match the email OTP template?
 
@@ -43273,7 +43273,7 @@ One consequence of the fixed format: if you later change `OTP_TTL_SECONDS`, the 
 
 Want me to correct the design doc and add that warning comment?
 
-### 🧑 Arthur · 2026-08-11 17:27
+### 🧑 Vernon · 2026-08-11 17:27
 
 yes
 
@@ -43335,7 +43335,7 @@ Docs and examples only — no rebuild needed. Note your live `deploy/.env.prod` 
 
 ## 2026-08-12
 
-### 🧑 Arthur · 2026-08-12 05:46
+### 🧑 Vernon · 2026-08-12 05:46
 
 I want to build a sales agent to promote the app and provide leads. let's brainstorm
 
@@ -43746,7 +43746,7 @@ Two things worth doing while you're in here:
 
 Nothing else to do on this. The next move is the content agent's first run on Tuesday.
 
-### 🧑 Arthur · 2026-08-12 06:41
+### 🧑 Vernon · 2026-08-12 06:41
 
 do it.
 
@@ -43778,7 +43778,7 @@ I'd pick the deposit-interest one as your second — it targets the clearest pai
 
 Note Google caps manual indexing requests at roughly ten a day, so don't bother submitting all seven pages — the sitemap covers the rest.
 
-### 🧑 Arthur · 2026-08-12 11:35
+### 🧑 Vernon · 2026-08-12 11:35
 
 I want a short marketing video - showcasing Locare. Lets brainstorm.
 
@@ -43827,7 +43827,7 @@ If you're willing to do the capture work once, **"one script, three cuts"** is s
 
 Which way do you want to go?
 
-### 🧑 Arthur · 2026-08-12 11:46
+### 🧑 Vernon · 2026-08-12 11:46
 
 let's do "one script, three cuts"
 
@@ -43899,7 +43899,7 @@ Three things in there worth reading before you film:
 
 Once you've got a rough cut, send me a frame or two and I'll give notes on pacing and caption legibility.
 
-### 🧑 Arthur · 2026-08-12 11:59
+### 🧑 Vernon · 2026-08-12 11:59
 
 I want to fully automate this?
 
@@ -43939,7 +43939,7 @@ The catch: it runs where the app runs — your Windows machine against a local D
 `⚙ AskUserQuestion` — {"questions": [{"question": "How far should I build the pipeline?", "header": "Scope", "multiSelect": false, "options": [{"label": "Full pipeline (Recommended)", "description": "Seed script, Playwright recorder with synt…
 > ↳ result (error): The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). STOP wha…
 
-### 🧑 Arthur · 2026-08-12 12:26
+### 🧑 Vernon · 2026-08-12 12:26
 
 continue
 
@@ -43947,7 +43947,7 @@ continue
 
 No response requested.
 
-### 🧑 Arthur · 2026-08-12 12:26
+### 🧑 Vernon · 2026-08-12 12:26
 
 continue
 
@@ -44045,7 +44045,7 @@ Two things worth knowing: **never point this at production** (it films whatever'
 
 `docs/video/raw/` and `out/` are gitignored so the binaries stay out of the repo.
 
-### 🧑 Arthur · 2026-08-12 12:52
+### 🧑 Vernon · 2026-08-12 12:52
 
 PS C:\xampp\htdocs\development\PMS0.3> npm run seed
 >> node scripts/video/record.mjs
@@ -44194,7 +44194,7 @@ One prompt per run, then it's hands-off. Set `$env:OTP` beforehand to skip even 
 
 Expect the first run to report a few missing selectors — `text=Leases`, `text=Owners` and so on are guesses from your nav. It warns and carries on rather than dying, so you'll get clips either way; fix whatever it names in `beats.config.mjs` and go again.
 
-### 🧑 Arthur · 2026-08-12 12:59
+### 🧑 Vernon · 2026-08-12 12:59
 
 AggregateError:
     at internalConnectMultiple (node:net:1134:18)
@@ -44288,7 +44288,7 @@ cd C:\xampp\htdocs\development\PMS0.3
 
 I've also fixed the script so this can't waste your time again. It now checks `docker info` before doing anything and stops with *"Docker isn't running — start Docker Desktop"* rather than pressing on to launch an API against a database that doesn't exist. It also waits for `pg_isready` before continuing, since Postgres accepts TCP connections a second or two before it can actually answer queries — which would otherwise make the migration or seed fail intermittently on a cold start.
 
-### 🧑 Arthur · 2026-08-12 13:13
+### 🧑 Vernon · 2026-08-12 13:13
 
 PS C:\xampp\htdocs\development\PMS0.3> .\scripts\start-all.ps1 -Setup
 PMS 0.3 launcher
@@ -45196,7 +45196,7 @@ It'll pause and ask for the OTP — read it from the **PMS API** window, the lin
 
 Expect selector warnings on this first pass. Paste whatever it reports and I'll correct `beats.config.mjs` against your actual nav.
 
-### 🧑 Arthur · 2026-08-12 13:17
+### 🧑 Vernon · 2026-08-12 13:17
 
 Metro waiting on exp://192.168.8.253:8081
 › Scan the QR code above with Expo Go (Android) or the Camera app (iOS)
@@ -45243,7 +45243,7 @@ node scripts/video/record.mjs
 
 If Expo turns out to be a hassle, it's not a blocker — beat 4 is the only one that needs it. Set `TENANT_URL` to anything reachable, or delete that beat from `beats.config.mjs` and record the phone footage separately later. The other six beats are all back-office on port 3001.
 
-### 🧑 Arthur · 2026-08-12 14:08
+### 🧑 Vernon · 2026-08-12 14:08
 
 there must be some kind of config i can create to make this process fully automatic
 
@@ -45353,7 +45353,7 @@ Only prerequisite it can't handle: Docker Desktop must already be running.
 
 ## 2026-08-13
 
-### 🧑 Arthur · 2026-08-13 08:28
+### 🧑 Vernon · 2026-08-13 08:28
 
 I want to export these projects to another claude account - what are the steps and implications?
 
@@ -45431,7 +45431,7 @@ Simplest case then — no rotation needed. Let me gather the facts for an accura
 
 **What isn't affected at all:** VPS access, GitHub, DNS, Google Cloud, the gateway accounts. None of that knows or cares which Claude account you use.
 
-### 🧑 Arthur · 2026-08-13 08:33
+### 🧑 Vernon · 2026-08-13 08:33
 
 I want the conversation and the task list
 

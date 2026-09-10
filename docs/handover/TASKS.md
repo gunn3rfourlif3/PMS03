@@ -273,7 +273,7 @@ tasks that were deleted as stale rather than completed.
 - [x] #201 Automated tenant-welcome on approval
 - [x] #202 Remember-this-device trusted session
 - [x] #203 WhatsApp/Meta setup + templates docs
-- [ ] **#204 Set up Meta WhatsApp Business account** ← outstanding, needs Arthur
+- [ ] **#204 Set up Meta WhatsApp Business account** ← outstanding, needs Vernon
 - [x] #205 Wire remember-device into tenant + landlord apps
 
 ## Partner KYC/KYB vetting (#206–#212)
@@ -308,7 +308,7 @@ tasks that were deleted as stale rather than completed.
 |---|---|---|
 | 126 | Verify first live iKhokha payment end-to-end | A real transaction; then flip `IKHOKHA_VERIFY_CALLBACK` monitor → enforce |
 | 152 | Test LLM lease parser end-to-end | `ANTHROPIC_API_KEY` not set |
-| 204 | Set up Meta WhatsApp Business account | Arthur — Meta business verification + template approval |
+| 204 | Set up Meta WhatsApp Business account | Vernon — Meta business verification + template approval |
 
 Not tracked as numbered tasks but outstanding (see `CLAUDE.md`): registered
 entity details on the legal pages, Google OAuth brand verification, error

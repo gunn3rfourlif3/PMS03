@@ -1,6 +1,6 @@
 # Locare — guide companion videos
 
-Status: design, not built. Written 2026-08-27. Owner: Arthur.
+Status: design, not built. Written 2026-08-27. Owner: Vernon.
 
 Every published guide gets a 3–4 minute narrated companion video, embedded on
 its own page and posted to YouTube. Reuses `scripts/video/`.

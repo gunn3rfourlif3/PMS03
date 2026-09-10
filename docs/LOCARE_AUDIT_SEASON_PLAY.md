@@ -1,6 +1,6 @@
 # Locare — the audit-aftermath play
 
-Written 2026-08-27. Owner: Arthur.
+Written 2026-08-27. Owner: Vernon.
 
 The first deliberate outbound sales motion. Aimed at a specific, dated moment
 rather than at "letting agencies" in general.
@@ -121,7 +121,7 @@ which is also what makes it a defensible thing to send.
 >
 > Worth twenty minutes?
 >
-> Arthur Jones
+> Vernon Venter
 > Locare (Pty) Ltd · locare.co.za
 >
 > *Sent to {agency}'s published business address. Reply "no thanks" and I will
@@ -149,7 +149,7 @@ reputation in a market this small.
 > your auditor asks. If you already have that, you genuinely do not need me and
 > I would say so.
 >
-> Arthur
+> Vernon
 > Locare (Pty) Ltd · reply "no thanks" to be removed.
 
 ## What to do with a reply
@@ -198,5 +198,5 @@ VAT number is a sales blocker, not an admin task.
 - [ ] First Dantalan subscription invoice cleared, so the reference customer is
       a paying one
 - [ ] `LEADS_NOTIFY_EMAIL` set, so a reply through the site actually reaches you
-- [ ] Sending mailbox is `arthur@locare.co.za` or similar — a real person, not
+- [ ] Sending mailbox is `vernon@locare.co.za` or similar — a real person, not
       `info@`

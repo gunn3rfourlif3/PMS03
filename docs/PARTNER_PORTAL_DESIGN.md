@@ -1,6 +1,6 @@
 # Partner Portal & Software-Sales Commission — Design Doc
 
-Status: draft for review · Owner: Arthur · Depends on: #134 (subscription tiers)
+Status: draft for review · Owner: Vernon · Depends on: #134 (subscription tiers)
 
 ## 1. Summary
 

@@ -1,6 +1,6 @@
 # Locare — agency onboarding runbook
 
-Written 2026-09-05. Owner: Arthur. Status: **procedure is accurate; three steps
+Written 2026-09-05. Owner: Vernon. Status: **procedure is accurate; three steps
 cannot yet be handed over** — see `LOCARE_AGENCY_ONBOARDING_REQUIREMENTS.md`.
 
 The narrative version of this is curriculum Module 7, written for a partner
@@ -14,8 +14,8 @@ this explains *what to do*, and assumes the reader has never done it.
 
 | Role | Who that is today | Needs |
 |---|---|---|
-| **Operator** | Arthur; later a Reseller or a hire | Back-office login, platform-admin rights, the intake form |
-| **Platform admin** | Arthur only | SSH to the VPS. Steps 2.2, 2.3 and 4.2 require it |
+| **Operator** | Vernon; later a Reseller or a hire | Back-office login, platform-admin rights, the intake form |
+| **Platform admin** | Vernon only | SSH to the VPS. Steps 2.2, 2.3 and 4.2 require it |
 | **Principal** | The agency's owner or decision-maker | Signs, chooses the domain, approves the data |
 | **DNS controller** | Whoever holds the agency's registrar login | Often *not* the principal. Find them on day one |
 
@@ -59,7 +59,7 @@ Stage 1 or later starts until every row is answered.
 | 0.1 | **Registered legal entity + registration number** | Goes on their invoices; it is the contracting party, not the trading name |
 | 0.2 | **Signatory** — who can commit the agency | Avoids a demo-to-nowhere with someone who cannot buy |
 | 0.3 | **VAT position** and VAT number if registered | They are invoiced ex-VAT plus 15% |
-| 0.4 | **Unit count** (active leases, not properties) | Sets the tier. The 200th unit moves R6,014 → R12,600 and they must hear it from you now. Under 70 units there is no published price — escalate for a negotiated one rather than quoting |
+| 0.4 | **Unit count** (active leases, not properties) | Sets the tier. The 200th unit moves R6,014 → R12,600 and they must hear it from you now. Under 70 units they are on Custom at R85.91/unit, minimum 30 units — quotable, but never published |
 | 0.5 | **Domain** for their branded site | Decides Stage 2 entirely |
 | 0.6 | **Who controls that domain's DNS** — name, email, phone | The most common source of delay |
 | 0.7 | **Collection intention** — debit order, EFT + proof of payment, or card | Debit orders need *their own* bureau facility, with its own vetting timeline run by the bureau, not by Locare |
@@ -108,20 +108,24 @@ it runs, and both are cheaper to fix now than after an invoice has gone out.
 **If the intake unit count (0.4) puts them on Growth or Scale**, correct the tier
 now — before the first invoice, not after.
 
-**If they are under 70 units, a `price_override` is mandatory.** This is the step
-that is easiest to skip and most expensive to skip. The published ladder starts
-at 70 units; below that there is no list price. But `tierForUnits()` answers
-`starter` for anything from one unit upward, so an agency of eleven units is
-priced at the full Starter fee unless someone says otherwise. Worse,
-`SubscriptionsService.refresh()` rewrites `mrr` from the ladder on *every* read
-of the plan — so the list price lands on their row the first time anyone opens
-the billing page, with no action from you.
+**If they are under 70 units they are on the Custom tier**, priced per unit at
+**R85.91** — Starter's fee divided by its entry point, so the two meet exactly at
+70 units. The rate is computed automatically; you do not set it. It is not
+published on the website, but you and your partners may quote it.
 
-Billing refuses to issue an invoice in that state (it logs `NOT BILLING vendor …`
-at error level and counts it as `blocked` on the job result), so the failure mode
-is an agency that bills nothing rather than one that is overcharged. That is the
-safer direction, but it is still a customer you are not invoicing. Set the
-override at provisioning, not when you notice the missing revenue.
+**A minimum of 30 billable units applies.** An agency with fewer pays as if it
+had 30 (R2,577/month). Billing **refuses to invoice** such an agency until a
+price is agreed in a `price_override` — it logs `NOT BILLING vendor …` at error
+level and counts the run as `blocked`. So the failure mode is an agency that
+bills nothing, not one that is overcharged; but it is still a customer you are
+not invoicing, so agree the price at provisioning rather than when you notice the
+missing revenue.
+
+**A setup fee of R9,500 applies to every new agency**, once off, waived for the
+first ten customers in exchange for a reference. It is not in the system: raise
+it by hand and record it wherever you are tracking cash.
+
+To agree a price below the minimum:
 
 ```sql
 UPDATE vendor_subscriptions s
@@ -143,9 +147,13 @@ Three notes on that statement:
   it, because the alternative is that the agency discovers the new price from an
   invoice. Nothing in the system will warn either of you.
 
-The override does not stop `mrr` tracking the ladder, and it should not: the
-tier and its list price stay honest in the back-office and in the commission
-basis, while `effectivePrice()` bills what was actually agreed.
+**Say the billing basis out loud at intake.** Locare bills units under
+management, vacancies included. At a flat band nobody notices; per unit, a
+40-unit agency with 8 vacancies will notice. Agreeing it at 0.4 costs a sentence;
+discovering it on an invoice costs a relationship.
+
+Full reasoning, and every decision behind these numbers, is in
+`LOCARE_PRICING_DECISIONS.md`.
 
 ### 1.3 Verify
 
@@ -161,7 +169,7 @@ JOIN users u ON u.id = m.user_id WHERE m.vendor_id = '<vendor-id>';
 ```
 
 **Gate:** vendor `active`, one `vendor_owner` membership, tier matches intake,
-and — for any agency under 70 units — `price_override` set with a reason and an
+and — for any agency under 30 units — `price_override` set with a reason and an
 end date.
 
 ---
@@ -444,6 +452,7 @@ ledger. Suspend it, and get a decision from Locare.
 - [ ] One payment reconciled end to end
 - [ ] One owner statement agreed correct by the principal
 - [ ] First rent run watched and correct
-- [ ] Price agreed in writing, and an override recorded if they are under 70 units
+- [ ] Price agreed in writing, and an override recorded if they are under 30 units
+- [ ] Setup fee raised, or explicitly waived and recorded as waived
 - [ ] First Locare subscription invoice issued and paid — for the agreed amount
 - [ ] Second-rent-run check-in diarised
