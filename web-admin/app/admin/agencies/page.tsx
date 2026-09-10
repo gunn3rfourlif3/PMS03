@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, auth } from '@/lib/api';
 import { GlassCard, Button, Badge, PageHeader, EmptyState } from '@/components/ui';
 
@@ -51,6 +52,9 @@ export default function AdminAgenciesPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Badge tone={a.status === 'active' ? 'success' : 'muted'}>{a.status}</Badge>
+                <Link href={`/admin/onboarding/${a.vendorId}`} className="text-sm text-muted underline-offset-2 hover:underline">
+                  Onboarding
+                </Link>
                 <Button variant="ghost" onClick={() => open(a)} loading={busy === a.vendorId} disabled={a.status !== 'active'}>
                   Open back office →
                 </Button>

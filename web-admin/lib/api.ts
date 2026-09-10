@@ -151,6 +151,20 @@ export const api = {
   impersonationEvents: (): Promise<Array<{ id: string; adminEmail: string; agency: string; reason?: string; startedAt: string; endedAt?: string }>> =>
     req('/admin/impersonation-events'),
 
+  // Platform-admin onboarding console
+  onboardingPortfolio: (): Promise<any[]> => req('/admin/onboarding'),
+  onboardingDetail: (vendorId: string): Promise<any> => req(`/admin/onboarding/${vendorId}`),
+  onboardingSeed: (vendorId: string): Promise<{ created: number; existing: number }> =>
+    req(`/admin/onboarding/${vendorId}/seed`, { method: 'POST' }),
+  onboardingUpdateItem: (
+    vendorId: string,
+    itemKey: string,
+    patch: { status?: string; waitingOn?: string; notes?: string | null },
+  ): Promise<any> =>
+    req(`/admin/onboarding/${vendorId}/items/${encodeURIComponent(itemKey)}`, {
+      method: 'PATCH', body: JSON.stringify(patch),
+    }),
+
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),
   collection: (period: string) => req(`/reporting/collection/${period}`),
