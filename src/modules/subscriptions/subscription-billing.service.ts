@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { PAYMENT_PROVIDER } from '@providers/payment/payment-provider.interface';
 import type { PaymentProvider } from '@providers/payment/payment-provider.interface';
 import { SubscriptionInvoice } from './subscription-invoice.entity';
+import { payToReference } from '@common/config/pay-to';
 import { effectivePrice } from './subscription-calc';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
@@ -72,12 +73,17 @@ export class SubscriptionBillingService {
   }
 
   // ── Agency-facing ──
-  listForVendor(vendorId: string): Promise<unknown[]> {
-    return this.ds.query(
-      `SELECT id, period, tier, unit_count AS "unitCount", amount, status,
-              due_date AS "dueDate", paid_at AS "paidAt"
-       FROM subscription_invoices WHERE vendor_id = $1 ORDER BY period DESC`, [vendorId],
+  async listForVendor(vendorId: string): Promise<unknown[]> {
+    const rows = await this.ds.query(
+      `SELECT si.id, si.period, si.tier, si.unit_count AS "unitCount", si.amount, si.status,
+              si.due_date AS "dueDate", si.paid_at AS "paidAt", v.slug AS "agencySlug"
+       FROM subscription_invoices si
+       JOIN vendors v ON v.id = si.vendor_id
+       WHERE si.vendor_id = $1 ORDER BY si.period DESC`, [vendorId],
     );
+    // EFT reconciliation is a human reading a bank statement, so every invoice
+    // carries the reference the agency must quote.
+    return rows.map((r: any) => ({ ...r, payReference: payToReference(r.agencySlug, r.period) }));
   }
 
   /** Create a gateway checkout for one of the agency's own invoices. */

@@ -86,12 +86,36 @@ export default function BillingPage() {
         </GlassCard>
       )}
 
+      {plan?.payTo && rows.some((i) => i.status !== 'paid' && i.status !== 'void') && (
+        <GlassCard className="mb-4">
+          <div className="font-heading text-base font-bold text-ink">Paying by EFT</div>
+          <p className="mt-1 text-sm text-muted">
+            Card and instant EFT are handled by the Pay button below. To pay by ordinary bank
+            transfer, use these details and <span className="font-medium text-ink">quote the
+            reference for the invoice you are paying</span> — it is how we match your payment.
+          </p>
+          <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            <div><dt className="text-muted">Bank</dt><dd className="font-medium text-ink">{plan.payTo.bank}</dd></div>
+            <div><dt className="text-muted">Account name</dt><dd className="font-medium text-ink">{plan.payTo.accountName}</dd></div>
+            <div><dt className="text-muted">Account number</dt><dd className="font-medium text-ink tabular-nums">{plan.payTo.accountNumber}</dd></div>
+            <div><dt className="text-muted">Branch code</dt><dd className="font-medium text-ink tabular-nums">{plan.payTo.branchCode}</dd></div>
+            {plan.payTo.swift && (
+              <div><dt className="text-muted">SWIFT</dt><dd className="font-medium text-ink">{plan.payTo.swift}</dd></div>
+            )}
+          </dl>
+          <p className="mt-3 text-xs text-muted">
+            An EFT is reconciled by hand, so allow a working day after payment before the invoice
+            shows as paid.
+          </p>
+        </GlassCard>
+      )}
+
       <GlassCard className="!p-0 overflow-hidden">
         <div className="px-5 pt-5 font-heading text-base font-bold text-ink">Invoices</div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Period</th><th className="px-5 py-3 font-semibold">Plan</th><th className="px-5 py-3 font-semibold">Units</th><th className="px-5 py-3 font-semibold">Amount</th><th className="px-5 py-3 font-semibold">Due</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3"></th>
+              <th className="px-5 py-3 font-semibold">Period</th><th className="px-5 py-3 font-semibold">Plan</th><th className="px-5 py-3 font-semibold">Units</th><th className="px-5 py-3 font-semibold">Amount</th><th className="px-5 py-3 font-semibold">Due</th><th className="px-5 py-3 font-semibold">EFT reference</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {rows.map((i) => (
@@ -101,11 +125,12 @@ export default function BillingPage() {
                   <td className="px-5 py-3">{i.unitCount}</td>
                   <td className="px-5 py-3 font-semibold text-ink">{money(i.amount)}</td>
                   <td className="px-5 py-3 text-muted">{i.dueDate ?? '—'}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-ink">{i.payReference ?? '—'}</td>
                   <td className="px-5 py-3"><Badge tone={tone(i.status)}>{i.status}</Badge></td>
                   <td className="px-5 py-3">{i.status === 'issued' && <Button variant="ghost" loading={busy === i.id} onClick={() => pay(i.id)}><CreditCard size={14} /> Pay</Button>}</td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={7}><EmptyState>No subscription invoices yet.</EmptyState></td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8}><EmptyState>No subscription invoices yet.</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>

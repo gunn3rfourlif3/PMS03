@@ -120,6 +120,12 @@ services:
       STARTER_MIN_UNITS: ${STARTER_MIN_UNITS:-70}
       STARTER_MAX_UNITS: ${STARTER_MAX_UNITS:-199}
       GROWTH_MAX_UNITS: ${GROWTH_MAX_UNITS:-499}
+      # Banking details for EFT payment of subscription invoices. Unset = panel hidden.
+      PAYTO_BANK: ${PAYTO_BANK:-}
+      PAYTO_ACCOUNT_NAME: ${PAYTO_ACCOUNT_NAME:-}
+      PAYTO_ACCOUNT_NUMBER: ${PAYTO_ACCOUNT_NUMBER:-}
+      PAYTO_BRANCH_CODE: ${PAYTO_BRANCH_CODE:-}
+      PAYTO_SWIFT: ${PAYTO_SWIFT:-}
       LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
       # Acknowledgement sent back to the form submitter (see .env.prod.example).
       LEADS_ACK: ${LEADS_ACK:-}
