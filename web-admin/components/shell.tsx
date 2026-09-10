@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket } from 'lucide-react';
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
@@ -47,6 +47,9 @@ const PARTNER_NAV = [
 ];
 
 const ADMIN_NAV = [
+  // First, deliberately: bringing an agency live is the work in front of you.
+  // Everything below it is administration of agencies already running.
+  { href: '/admin/onboarding', label: 'Onboarding', icon: Rocket },
   { href: '/admin/agencies', label: 'Agencies', icon: Building2 },
   { href: '/admin/partners', label: 'Partners', icon: Handshake },
   { href: '/admin/partner-applications', label: 'Applications', icon: ClipboardCheck },
