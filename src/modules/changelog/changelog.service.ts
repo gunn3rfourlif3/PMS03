@@ -1,10 +1,15 @@
 import { BadRequestException, Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { renderEmail, EmailSection } from '@common/email/email';
-import { CHANGELOG, CATEGORY_LABEL, ChangelogEntry, entryById, unsentEntries } from './changelog-entries';
+import { renderEmail, EmailItem } from '@common/email/email';
+import { CHANGELOG, CATEGORY_COLOR, CATEGORY_LABEL, ChangelogEntry, entryById, unsentEntries } from './changelog-entries';
 import { countBySource, dedupeRecipients, fromEnvList, Recipient } from './changelog-recipients';
 import { CHANNEL_PROVIDERS, Channel, ChannelProvider } from '@providers/notification/notification-provider.interface';
+
+/** Spelled out reads better in a heading: "Three updates for you". */
+const WORDS: Record<number, string> = {
+  2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five', 6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine', 10: 'Ten',
+};
 
 const LOCARE_EMAIL_LOGO =
   process.env.LOCARE_EMAIL_LOGO_URL || 'https://locare.co.za/brand/locare-logo-email-white.png';
@@ -145,22 +150,28 @@ export class ChangelogService {
       ? `Locare update — ${entries[0].title}`
       : `Locare update — ${entries.length} changes that affect how you sell`;
 
-    const sections: EmailSection[] = entries.map((e) => ({
-      title: `${CATEGORY_LABEL[e.category]} · ${e.title}`,
-      paragraphs: [e.body],
-      ...(e.action ? { callout: { label: 'What to do', value: e.action } } : {}),
+    // A numbered digest, not prose sections: these are independent things, and
+    // the count up front tells someone how much there is before they commit.
+    const items: EmailItem[] = entries.map((e) => ({
+      label: CATEGORY_LABEL[e.category],
+      labelColor: CATEGORY_COLOR[e.category],
+      title: e.title,
+      body: e.body,
+      // `action`, not `callout`: callout sets its value at 26px because it is for
+      // one number, and a sentence through it reads as a shout.
+      ...(e.action ? { action: { label: 'What to do', text: e.action } } : {}),
     }));
 
-    const intro = entries.length === 1
-      ? 'One change worth knowing about before your next call.'
-      : `${entries.length} changes worth knowing about before your next call.`;
+    const count = entries.length === 1 ? 'One update' : `${WORDS[entries.length] ?? entries.length} updates`;
+    const intro = 'Everything here changes what you say on a call, or what you get paid.';
 
     const text = [
       'LOCARE UPDATE',
       '',
       intro,
       '',
-      ...entries.flatMap((e) => [
+      ...entries.flatMap((e, i) => [
+        `${i + 1}.`,
         `${CATEGORY_LABEL[e.category].toUpperCase()} — ${e.title}`,
         e.body,
         ...(e.action ? [`What to do: ${e.action}`] : []),
@@ -173,10 +184,10 @@ export class ChangelogService {
       logoUrl: LOCARE_EMAIL_LOGO,
       headerStyle: 'ink',
       eyebrow: 'Partner update',
-      heading: 'What changed',
+      heading: `${count} for you`,
       preheader: entries[0].title,
       paragraphs: [intro],
-      sections,
+      items,
       footerNote: 'Questions, or something here that does not match what you are seeing? Just reply.',
     });
 

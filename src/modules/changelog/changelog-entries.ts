@@ -33,6 +33,18 @@ export interface ChangelogEntry {
   action?: string;
 }
 
+/**
+ * A colour per category, so someone scanning on a phone can see which updates
+ * touch their money before reading a word. Blue is the brand, green is money,
+ * amber is the product, violet is how we work.
+ */
+export const CATEGORY_COLOR: Record<ChangelogCategory, string> = {
+  pricing: '#2D6A8F',
+  product: '#E4943A',
+  process: '#8A6FB0',
+  commission: '#1D9E75',
+};
+
 export const CATEGORY_LABEL: Record<ChangelogCategory, string> = {
   pricing: 'Pricing',
   product: 'Product',

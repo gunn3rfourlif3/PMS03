@@ -44,8 +44,22 @@ const FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica
 const INK = '#14161B';
 const BODY = '#414751';
 const MUTED = '#8A8F98';
-const LINE = '#E8E8E4';
-const PAPER = '#F2F3F1';
+const LINE = '#E6EAEF';
+/** The page behind the card. Cool and light, so the white card lifts off it. */
+const PAPER = '#F1F5F9';
+/**
+ * Header bar. A deep Locare blue rather than near-black: the ink bar was
+ * technically fine and read as a utility notification. Same contrast, warmer
+ * feeling, and it actually looks like the brand.
+ */
+const HEADER_DARK = '#17455C';
+/**
+ * The warm counterweight. Blue alone is competent and cold; one warm accent on
+ * the rules and the eyebrow is most of the difference between an email that
+ * looks like a receipt and one somebody enjoys opening. Used sparingly — it is
+ * seasoning, not a second brand colour.
+ */
+const WARM = '#E4943A';
 
 export interface EmailButton { label: string; url: string; }
 
@@ -77,6 +91,34 @@ export interface EmailSection {
   paragraphs?: string[];
   table?: EmailTable;
   callout?: { label?: string; value: string; note?: string };
+  /**
+   * "Here is the one thing to do about this." A warm strip, set at reading size.
+   *
+   * Distinct from `callout`, which sets its value at 26px because it exists to
+   * show ONE NUMBER. Putting a sentence through it produces a headline that
+   * shouts — which is how the first partner update read.
+   */
+  action?: { label?: string; text: string };
+}
+
+/**
+ * One entry in a numbered digest — a product update, a list of changes.
+ *
+ * Deliberately separate from `EmailSection`. Sections are the prose layout every
+ * other email uses; this is a LIST of independent things, and it reads as one:
+ * a numbered rail, a coloured label, and a sentence-case title at a size a
+ * person can actually read. The small-caps section headings work for "here is
+ * the next part of this letter" and fall apart for "here are six things".
+ */
+export interface EmailItem {
+  /** Short category, e.g. "Pricing". Rendered in `labelColor`. */
+  label?: string;
+  /** Category colour. Colour is doing work here: a partner scanning on a phone
+   *  can see which updates touch their money without reading a word. */
+  labelColor?: string;
+  title: string;
+  body: string;
+  action?: { label?: string; text: string };
 }
 
 export interface EmailOptions {
@@ -85,6 +127,8 @@ export interface EmailOptions {
   preheader?: string;
   paragraphs?: string[];
   sections?: EmailSection[];
+  /** A numbered digest. Rendered after `sections`, before the media block. */
+  items?: EmailItem[];
   buttons?: EmailButton[];
   /** Rendered between the copy and the buttons. Omitted if not mail-safe. */
   media?: EmailMedia;
@@ -121,14 +165,22 @@ export interface EmailOptions {
 }
 
 export function renderEmail(o: EmailOptions): string {
-  const brand = o.brandColor || '#0F6E56';
-  const accent = '#2D6A8F';
+  // Locare's own blue. The previous default was a green that appears nowhere in
+  // the brand — every Locare email was rendering in the wrong colour, which is
+  // the sort of thing only shows up when you put the email next to the site.
+  const brand = o.brandColor || '#2D6A8F';
+  const accent = WARM;
   const brandDark = shade(brand, 0.42);
   const brandTint = tint(brand, 0.9);
   const brandEdge = tint(brand, 0.72);
   const wordmark = o.agencyName || 'Locare';
   const darkHeader = o.headerStyle ? o.headerStyle === 'ink' : !o.logoUrl;
-  const headerBg = darkHeader ? INK : '#ffffff';
+  const headerBg = darkHeader ? HEADER_DARK : '#ffffff';
+  // background-color first, background-image second: Outlook ignores gradients
+  // and keeps the solid, everything else gets the depth.
+  const headerStyleCss = darkHeader
+    ? `background-color:${HEADER_DARK};background-image:linear-gradient(135deg, ${shade(brand, 0.55)} 0%, ${HEADER_DARK} 55%, ${shade(brand, 0.3)} 100%)`
+    : `background-color:#ffffff`;
   const headerInk = darkHeader ? '#ffffff' : INK;
   const headerMuted = darkHeader ? 'rgba(255,255,255,.55)' : MUTED;
 
@@ -182,6 +234,15 @@ export function renderEmail(o: EmailOptions): string {
       </td></tr></table>`;
   };
 
+  const renderAction = (a?: EmailSection['action']) => {
+    if (!a) return '';
+    return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:2px 0 20px;border-collapse:separate">
+      <tr><td style="background:${tint(WARM, 0.88)};border-left:4px solid ${WARM};border-radius:0 12px 12px 0;padding:14px 18px">
+        ${a.label ? `<div style="font-family:${FONT};font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:${shade(WARM, 0.45)};font-weight:700;margin-bottom:4px">${esc(a.label)}</div>` : ''}
+        <div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${INK};font-weight:600">${esc(a.text)}</div>
+      </td></tr></table>`;
+  };
+
   const sections = (o.sections ?? [])
     .map((s) => [
       s.title
@@ -193,7 +254,30 @@ export function renderEmail(o: EmailOptions): string {
       (s.paragraphs ?? []).map(p).join(''),
       renderTable(s.table),
       renderCallout(s.callout),
+      renderAction(s.action),
     ].join(''))
+    .join('');
+
+  const items = (o.items ?? [])
+    .map((it, i) => {
+      const tone = it.labelColor || brand;
+      const last = i === (o.items?.length ?? 0) - 1;
+      return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse">
+        <tr>
+          <td width="46" valign="top" style="padding:22px 0">
+            <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+              <td width="30" height="30" align="center" valign="middle" style="width:30px;height:30px;background:${tone};border-radius:15px;font-family:${FONT};font-size:13px;font-weight:700;color:#ffffff;line-height:30px">${i + 1}</td>
+            </tr></table>
+          </td>
+          <td valign="top" style="padding:22px 0;${last ? '' : `border-bottom:1px solid ${LINE}`}">
+            ${it.label ? `<div style="font-family:${FONT};font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${tone}">${esc(it.label)}</div>` : ''}
+            <div style="margin:5px 0 0;font-family:${FONT};font-size:18.5px;line-height:1.3;font-weight:700;color:${INK};letter-spacing:-.015em">${esc(it.title)}</div>
+            <div style="margin:8px 0 0;font-family:${FONT};font-size:15px;line-height:1.62;color:${BODY}">${esc(it.body)}</div>
+            ${renderAction(it.action)}
+          </td>
+        </tr>
+      </table>`;
+    })
     .join('');
 
   // Fixed width as an attribute as well as CSS: Outlook ignores max-width on
@@ -215,7 +299,7 @@ export function renderEmail(o: EmailOptions): string {
   // where a styled <a> alone collapses to a plain link.
   const buttons = (o.buttons ?? [])
     .map((b) => `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0"><tr>
-      <td align="center" style="background:${brand};border-radius:10px">
+      <td align="center" style="background-color:${brand};background-image:linear-gradient(135deg, ${brand} 0%, ${shade(brand, 0.25)} 100%);border-radius:12px">
         <a href="${esc(b.url)}" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:15.5px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:.01em">${esc(b.label)}</a>
       </td></tr></table>`)
     .join('');
@@ -235,19 +319,20 @@ ${preheader}
 
   <table role="presentation" cellpadding="0" cellspacing="0" width="600" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${LINE}">
 
-    <tr><td style="background:${headerBg};padding:20px 32px">
+    <tr><td style="${headerStyleCss};padding:22px 32px">
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
         <td>${brandLockup}</td>
-        ${o.eyebrow ? `<td align="right" style="font-family:${FONT};font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:${headerMuted};font-weight:600">${esc(o.eyebrow)}</td>` : ''}
+        ${o.eyebrow ? `<td align="right" style="font-family:${FONT};font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:${darkHeader ? WARM : MUTED};font-weight:700">${esc(o.eyebrow)}</td>` : ''}
       </tr></table>
     </td></tr>
 
-    <tr><td style="height:3px;background:${brand};font-size:0;line-height:0">&nbsp;</td></tr>
+    <tr><td style="height:4px;background-color:${brand};background-image:linear-gradient(90deg, ${brand} 0%, ${brand} 62%, ${WARM} 100%);font-size:0;line-height:0">&nbsp;</td></tr>
 
     <tr><td style="padding:34px 32px 30px">
       <h1 style="margin:0 0 16px;font-family:${FONT};font-size:27px;line-height:1.2;font-weight:700;color:${INK};letter-spacing:-.025em">${esc(o.heading)}</h1>
       ${paras}
       ${sections}
+      ${items}
       ${media}
       ${buttons}
       ${o.footerNote ? `<p style="margin:20px 0 0;font-size:14.5px;line-height:1.6;color:${BODY}">${esc(o.footerNote)}</p>` : ''}

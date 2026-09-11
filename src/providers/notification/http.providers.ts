@@ -11,7 +11,20 @@ import { ChannelProvider, Channel, DeliveryRequest, DeliveryResult } from './not
 export class SmtpEmailProvider implements ChannelProvider {
   readonly channel: Channel = 'email';
   private readonly logger = new Logger('Notify:email:smtp');
-  private readonly from = process.env.SMTP_FROM ?? process.env.SENDGRID_FROM ?? 'no-reply@locare.co.za';
+  /**
+   * Default sender, with a display name.
+   *
+   * SMTP_FROM is a bare address, so every email arrived showing only
+   * "partners@locare.co.za" — and a client with no display name to work from
+   * invents an avatar out of the address, which is where the mystery green
+   * monogram came from. SMTP_FROM_NAME is kept separate rather than folded into
+   * SMTP_FROM because other code reads that variable expecting a bare address.
+   */
+  private readonly from = (() => {
+    const addr = process.env.SMTP_FROM ?? process.env.SENDGRID_FROM ?? 'no-reply@locare.co.za';
+    const name = (process.env.SMTP_FROM_NAME ?? '').trim();
+    return name && !addr.includes('<') ? `${name} <${addr}>` : addr;
+  })();
   private readonly port = Number(process.env.SMTP_PORT ?? 587);
   private readonly transport = nodemailer.createTransport({
     host: process.env.SMTP_HOST,

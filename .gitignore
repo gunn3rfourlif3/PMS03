@@ -46,3 +46,6 @@ docs/handover/*.jsonl
 docs/handover/*.jsonl.gz
 
 Claude outputs/
+
+# local scratch — design previews, throwaway output. Never committed.
+.scratch/
