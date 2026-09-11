@@ -42,10 +42,16 @@ BEGIN
   END IF;
 END $$;
 
--- ── Everything is pending to start with, so re-running gives the same result.
+-- ── Everything back to pending first, so re-running gives the same result.
+--
+-- updated_at is backdated, NOT set to now(). `daysStalled` takes the max across
+-- an agency's items, so stamping all 43 with the current time would drown out
+-- the few rows this file backdates and every demo agency would read as "moved
+-- today". In real use untouched items keep their seed timestamp, which is what
+-- makes the stall visible; this reproduces that rather than fighting it.
 UPDATE agency_onboarding_items i
    SET status = 'pending', completed_at = NULL, completed_by = NULL,
-       updated_at = now()
+       updated_at = now() - interval '30 days'
   FROM vendors v
  WHERE v.id = i.vendor_id AND v.slug LIKE 'demo-%';
 
