@@ -107,22 +107,27 @@ export function daysStalled(items: ProgressItem[], now: Date = new Date()): numb
   return Math.max(0, Math.floor((now.getTime() - Math.max(...stamps)) / 86_400_000));
 }
 
-export type StageState = 'complete' | 'current' | 'locked';
+export type StageState = 'complete' | 'current' | 'ahead';
 
 /**
- * Stage gating. The runbook has gates; this enforces them.
+ * Where a stage sits relative to the work in hand. ADVISORY, NOT A GATE.
  *
- * A stage is `locked` while any earlier stage still has work. That is most of
- * the idiot-proofing: the console opens exactly one stage, so the operator sees
- * one thing to do rather than fifty-two. It is a UI affordance, not a security
- * boundary — an operator who genuinely must work out of order can still mark an
- * earlier item skipped, which is honest and leaves a record.
+ * `ahead` means an earlier stage still has work in it — worth saying, because
+ * the runbook's order exists for reasons (migrating data before the hosts are
+ * live wastes the migration). But it does not stop anyone opening the stage or
+ * completing an item in it.
+ *
+ * It used to lock. That was wrong for the people who will actually use this:
+ * onboarding stalls on third parties constantly — a DNS controller who has not
+ * replied in nine days — and a console that refuses to let a Reseller get on
+ * with anything else while they wait is a console they stop opening. The real
+ * order is enforced by reality, not by a disabled button.
  */
 export function stageState(items: ProgressItem[], stage: number): StageState {
   const mine = items.filter((i) => i.stage === stage);
   if (mine.length && mine.every((i) => isComplete(i.status))) return 'complete';
   const current = currentStage(items);
-  return current === stage ? 'current' : 'locked';
+  return current === stage ? 'current' : 'ahead';
 }
 
 /** Per-stage rollup for the detail screen's stage cards. */

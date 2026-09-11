@@ -187,14 +187,16 @@ with everything already true marked done by its own check.
    (verifiable) or a **Mark done** button that opens a modal requiring a name
    (attestation).
 4. Failed checks render the reason inline, in `danger`, with the check output.
-5. A gate cannot be passed while any item in the stage is `pending` or `failed`.
-   The next stage stays collapsed and greyed, with the reason stated: *"Stage 3
-   opens when the six hosts resolve."*
+5. Stages ahead of the current one are marked, **not locked**. Opening one says
+   why the order matters and then gets out of the way. Locking was tried and
+   removed: onboardings stall on third parties constantly, and a console that
+   refuses to let a Reseller do anything else while a DNS controller ignores
+   them is a console they stop opening.
 
 **Two rules that carry most of the usability:**
 
-- **Never more than one obvious next action on screen.** Everything else is
-  collapsed, greyed, or below the fold.
+- **Never more than one obvious next action on screen.** The current stage opens
+  by default and everything else is collapsed — an affordance, not a restriction.
 - **Every blocked state says who unblocks it and how.** Not "blocked" but
   *"waiting on the agency's DNS controller — records sent 4 days ago"*, with a
   resend button.

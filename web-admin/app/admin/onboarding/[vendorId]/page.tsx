@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Check, Lock, ChevronDown, ChevronRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, Progress, EmptyState, ConfirmModal } from '@/components/ui';
 
@@ -15,7 +15,7 @@ type Item = {
 };
 type Stage = {
   stage: number; name: string; purpose: string;
-  state: 'complete' | 'current' | 'locked';
+  state: 'complete' | 'current' | 'ahead';
   done: number; total: number; remainingHours: number; items: Item[];
 };
 type Detail = {
@@ -131,9 +131,9 @@ export default function OnboardingDetailPage() {
       <div className="space-y-3">
         {d.stages.map((s) => {
           const expanded = open === s.stage;
-          const locked = s.state === 'locked';
+          const ahead = s.state === 'ahead';
           return (
-            <GlassCard key={s.stage} className={locked ? 'opacity-60' : undefined}>
+            <GlassCard key={s.stage}>
               <button
                 type="button"
                 onClick={() => setOpen(expanded ? null : s.stage)}
@@ -144,7 +144,7 @@ export default function OnboardingDetailPage() {
                     background: s.state === 'complete' ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 12%, transparent)',
                     color: s.state === 'complete' ? 'var(--onbrand)' : 'var(--ink)',
                   }}>
-                  {s.state === 'complete' ? <Check size={15} /> : locked ? <Lock size={13} /> : s.stage}
+                  {s.state === 'complete' ? <Check size={15} /> : s.stage}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-heading text-base font-bold text-ink">{s.name}</span>
@@ -154,14 +154,19 @@ export default function OnboardingDetailPage() {
                 <span className="flex-none text-muted">{expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</span>
               </button>
 
-              {locked && expanded && (
+              {/* Advice, not a gate. Onboardings stall on third parties constantly;
+                  a console that refuses to let you do anything else while you wait
+                  is one you stop opening. Say the order matters, then get out of
+                  the way. */}
+              {ahead && expanded && d.stage !== null && (
                 <p className="mt-3 text-sm text-muted">
-                  This stage opens when stage {d.stage} is finished. You can still work out of order —
-                  mark anything that does not apply as “Not applicable” and it stops holding the gate.
+                  Stage {d.stage} isn&rsquo;t finished yet. The runbook&rsquo;s order exists for a reason —
+                  migrating data before the hosts are live wastes the migration — but if you can
+                  usefully get on with this now, do.
                 </p>
               )}
 
-              {expanded && !locked && (
+              {expanded && (
                 <ul className="mt-3 space-y-2">
                   {s.items.map((it) => (
                     <li key={it.itemKey} className="rounded-2xl border border-line px-4 py-3">

@@ -115,10 +115,12 @@ describe('current stage and gating', () => {
     expect(currentStage(items)).toBe(2);
   });
 
-  it('opens exactly one stage', () => {
+  it('marks where the work is without locking anything', () => {
+    // `ahead` is advice, not a gate: an onboarding blocked on a third party must
+    // not stop the operator getting on with something else.
     expect(stageState(items, 1)).toBe('complete');
     expect(stageState(items, 2)).toBe('current');
-    expect(stageState(items, 3)).toBe('locked');
+    expect(stageState(items, 3)).toBe('ahead');
   });
 
   it('reports complete when nothing is left', () => {
