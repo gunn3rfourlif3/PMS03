@@ -121,6 +121,21 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 - The marketing site's Lighthouse score (97, Speed Index 4.7s) came from removing
   a web-font CDN. Don't reintroduce blocking fonts or an autoplay hero video.
 - `text=` Playwright selectors survive restyling; CSS class chains don't.
+- **A new table is invisible to the app until a migration grants it.** The app
+  connects as `pms_app`, not the owner, so a table with no
+  `GRANT … TO pms_app` fails at runtime with "permission denied for table" —
+  never at build or typecheck. Copy the guarded grant from
+  `1720000036000-Impersonation.ts`.
+- **Anything platform-wide must read through a `SECURITY DEFINER` function.**
+  Platform-admin screens run outside any tenant context, so a direct
+  `SELECT … FROM vendors` returns zero rows under RLS and the API reports "not
+  found" rather than "forbidden" — which reads like missing data, not missing
+  access. See `platform_agencies()`, `platform_agency()`.
+- **Quote camelCase column names in `RETURNS TABLE`.** Unquoted identifiers fold
+  to lowercase, so `RETURNS TABLE(vendor_id uuid, …)` hands the caller
+  `vendor_id` while the TypeScript signature happily claims `vendorId`.
+  TypeScript cannot see through a raw query; every caller silently read
+  `undefined`, and impersonation was broken for weeks before anyone noticed.
 
 ## Conventions
 
@@ -129,6 +144,8 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 - Money as integers in cents where it touches the ledger.
 - Phone numbers normalised to E.164 (`src/common/phone/e164.ts`).
 - New tenant-scoped table → migration with RLS policy, in the same file.
+- New platform-scoped table → migration with the `pms_app` grant, in the same
+  file, plus a `SECURITY DEFINER` reader for anything that crosses agencies.
 - Design docs in `docs/` are written before big features. Read the matching one
   before changing partner KYC, WhatsApp onboarding, impersonation or the chatbot.
 

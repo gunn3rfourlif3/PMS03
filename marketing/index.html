@@ -65,7 +65,7 @@
       "mainEntity": [
         { "@type": "Question", "name": "What is Locare?", "acceptedAnswer": { "@type": "Answer", "text": "Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant and landlord apps — all under your own brand and domain." } },
         { "@type": "Question", "name": "Who is it for?", "acceptedAnswer": { "@type": "Answer", "text": "Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios." } },
-        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Flat monthly pricing by portfolio size: Starter (70–199 units) R6,916/month, Growth (200–499 units) R14,490/month, and Scale (500+ units) R25,415/month, all including VAT at 15%. Ex-VAT those are R6,014, R12,600 and R22,100. Scale adds DebiCheck integration, used with the agency's own debit-order bureau facility. Portfolios under 70 units are priced individually, and larger or multi-country needs are quoted as a Custom plan." } },
+        { "@type": "Question", "name": "How much does it cost?", "acceptedAnswer": { "@type": "Answer", "text": "Flat monthly pricing by portfolio size: Starter (70–199 units) R6,916/month, Growth (200–499 units) R14,490/month, and Scale (500+ units) R25,415/month, all including VAT at 15%. Ex-VAT those are R6,014, R12,600 and R22,100. Scale adds DebiCheck integration, used with the agency's own debit-order bureau facility. Portfolios under 70 units are priced individually, and larger or multi-country needs are quoted as an Enterprise plan." } },
         { "@type": "Question", "name": "Can I use my own brand and domain?", "acceptedAnswer": { "@type": "Answer", "text": "Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand." } },
         { "@type": "Question", "name": "How do tenants pay rent?", "acceptedAnswer": { "@type": "Answer", "text": "Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods." } },
         { "@type": "Question", "name": "Do you have mobile apps?", "acceptedAnswer": { "@type": "Answer", "text": "Shared Locare tenant and landlord apps are included. A fully branded native app for your agency is available as an Enterprise add-on." } },
@@ -203,7 +203,7 @@ section{padding:96px 0}
 @media(max-width:860px){.steps{grid-template-columns:1fr}}
 
 /* Pricing */
-/* Three priced tiers across; "Custom" lives in its own band below (.plan-custom)
+/* Three priced tiers across; "Enterprise" lives in its own band below (.plan-custom)
    so it never competes on price with them and they each get a wider card. */
 .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px;max-width:1040px;margin-left:auto;margin-right:auto}
 .plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column}
@@ -222,7 +222,10 @@ section{padding:96px 0}
 .plan li{display:flex;gap:10px;font-size:15px;color:var(--ink-soft)}
 .plan li:before{content:"✓";color:var(--accent);font-weight:700;flex:none}
 .plan .btn{width:100%;justify-content:center}
-/* Custom / enterprise band — dark panel, set apart from the priced cards. */
+/* Enterprise band — dark panel, set apart from the priced cards.
+   Class names still say "custom" for historical reasons; the tier is Enterprise,
+   which is also what vendor_subscriptions.tier calls it. The unpublished
+   per-unit tier BELOW the ladder is the one named `custom` in the database. */
 .plan-custom{max-width:1040px;margin:20px auto 0;background:var(--ink);color:#fff;border-radius:22px;
   padding:34px 38px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;
   box-shadow:0 30px 60px -40px rgba(21,22,27,.6)}
@@ -494,7 +497,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 
     <div class="plan-custom reveal">
       <div>
-        <h3>Custom</h3>
+        <h3>Enterprise</h3>
         <p class="custom-lead">Something bigger, or something bespoke.</p>
         <p>Everything in Scale, built around how your group actually works — for portfolios that don&rsquo;t fit a band.</p>
         <ul class="custom-feats">
@@ -551,7 +554,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="faq-list reveal">
       <details class="faq-item"><summary>What is Locare?</summary><p>Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.</p></details>
       <details class="faq-item"><summary>Who is it for?</summary><p>Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios.</p></details>
-      <details class="faq-item"><summary>How much does it cost?</summary><p>Flat monthly pricing by portfolio size: <b>Starter</b> (70–199 units) R6,916/month, <b>Growth</b> (200–499 units) R14,490/month, and <b>Scale</b> (500+ units) R25,415/month. <b>All prices include VAT at 15%</b> — so Growth is R12,600 excluding VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, which you use with your own debit-order bureau facility. Managing fewer than 70 units? We price smaller portfolios individually — talk to us. Larger or multi-country needs — a Custom plan.</p></details>
+      <details class="faq-item"><summary>How much does it cost?</summary><p>Flat monthly pricing by portfolio size: <b>Starter</b> (70–199 units) R6,916/month, <b>Growth</b> (200–499 units) R14,490/month, and <b>Scale</b> (500+ units) R25,415/month. <b>All prices include VAT at 15%</b> — so Growth is R12,600 excluding VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, which you use with your own debit-order bureau facility. Managing fewer than 70 units? We price smaller portfolios individually — talk to us. Larger or multi-country needs — an Enterprise plan.</p></details>
       <details class="faq-item"><summary>Can I use my own brand and domain?</summary><p>Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.</p></details>
       <details class="faq-item"><summary>What’s included?</summary><p>Leasing &amp; tenant onboarding, online rent collection with reconciliation, deposit trust accounting &amp; owner payouts, an owner portal, branded tenant &amp; landlord apps, your own rentals site, documents &amp; e-signature, and reports with CSV/API access.</p></details>
       <details class="faq-item"><summary>How do tenants pay rent?</summary><p>Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods.</p></details>
@@ -735,7 +738,7 @@ async function submitLead(ev, type){
   var FAQS=[
     {id:'what',q:'What is Locare?',keys:['what is','what does','about locare','platform','tell me'],a:'Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.'},
     {id:'who',q:'Who is it for?',keys:['who is','who for','suitable','agency','agencies','landlord'],a:'Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios.'},
-    {id:'price',q:'Pricing',keys:['price','pricing','cost','how much','fee','expensive','month','plan'],a:'Flat monthly pricing by portfolio size: Starter (70–199 units) R6,916/month, Growth (200–499 units) R14,490/month, and Scale (500+ units) R25,415/month, all including VAT at 15%. Ex-VAT that is R12,600 for Growth. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, used with your own bureau facility. Under 70 units we price individually, and larger or multi-country needs are a Custom plan — talk to us.',cta:'pricing',intent:true},
+    {id:'price',q:'Pricing',keys:['price','pricing','cost','how much','fee','expensive','month','plan'],a:'Flat monthly pricing by portfolio size: Starter (70–199 units) R6,916/month, Growth (200–499 units) R14,490/month, and Scale (500+ units) R25,415/month, all including VAT at 15%. Ex-VAT that is R12,600 for Growth. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, used with your own bureau facility. Under 70 units we price individually, and larger or multi-country needs are an Enterprise plan — talk to us.',cta:'pricing',intent:true},
     {id:'brand',q:'Own brand & domain?',keys:['brand','white label','white-label','domain','my own'],a:'Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.'},
     {id:'incl',q:'What’s included?',keys:['included','feature','what do i get','offer','capab'],a:'Leasing &amp; tenant onboarding, online rent collection with reconciliation, deposit trust accounting &amp; owner payouts, an owner portal, branded tenant &amp; landlord apps, your own rentals site, documents &amp; e-signature, and reports with CSV/API access.'},
     {id:'pay',q:'How do tenants pay rent?',keys:['pay rent','payment','collect rent','how tenants'],a:'Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods.'},

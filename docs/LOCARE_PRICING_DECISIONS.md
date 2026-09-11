@@ -19,9 +19,15 @@ because the numbers lived in three places and only one of them was updated.
 | Starter | 70–199 | R6,014 | R6,916 | Yes |
 | Growth | 200–499 | R12,600 | R14,490 | Yes |
 | Scale | 500+ | R22,100 | R25,415 | Yes |
-| Enterprise | any | manual | — | No |
+| Enterprise | any | manual | — | Named on the site, no price |
 
 Zero units bills nothing, on any tier.
+
+**"Custom" and "Enterprise" are opposite ends.** Custom is the unpublished
+per-unit tier BELOW the ladder; Enterprise is the bespoke arrangement above it.
+The marketing site called its big-bespoke card "Custom" until 2026-09-11, which
+collided with the tier name shipped the day before — it now says Enterprise,
+matching what `vendor_subscriptions.tier` has always called it.
 
 ### Why R85.91
 

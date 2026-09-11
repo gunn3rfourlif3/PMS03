@@ -161,9 +161,9 @@ Each part of that is doing work:
 
 - **South African** — the product is built for POPIA, PPRA trust accounting,
   ZAR, `en-ZA` dates and SA banking. It is not a generic international tool.
-- **15 to 400 units** — below about 12 units a spreadsheet still works and the
-  subscription is a real cost. Above 400 you are into multi-branch, which is
-  Scale or Custom and involves Locare directly.
+- **30 to 400 units** — below the 30-unit minimum they pay for units they do not
+  have, and a spreadsheet still works. Above 400 you are into multi-branch, which
+  is Scale or Enterprise and involves Locare directly.
 - **Principal who owns the business** — they can sign. A branch manager at a
   national franchise cannot, and usually cannot change software at all.
 - **Cares about their brand** — this is the qualifier most people skip. An
@@ -1010,7 +1010,8 @@ referrals only.
 
 **Prices, ex-VAT, per month**
 Ex-VAT (the commission basis): Starter (70–199 units) R6,014 · Growth
-(200–499) R12,600 · Scale (500+) R22,100 · Custom by arrangement.
+(200–499) R12,600 · Scale (500+) R22,100 · Enterprise by arrangement.
+Under 70 units: Custom, R85.91/unit, minimum 30 units — quotable, never published.
 Incl. VAT (what the site shows and what the agency pays): R6,916 · R14,490 ·
 R25,415. Under 70 units: priced
 individually — escalate, do not quote. Scale includes DebiCheck integration
