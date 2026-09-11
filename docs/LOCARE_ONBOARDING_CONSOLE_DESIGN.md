@@ -220,9 +220,33 @@ onward stays behind a login because it touches tenants' personal information.
 ## 11. Testing
 
 The console cannot be tested against Dantalan alone — a completed onboarding
-exercises none of the mid-flight states. **The two seed agencies parked earlier
-become a prerequisite here**, one at stage 2 and one at stage 5, with a
-deliberately failing check on each.
+exercises none of the mid-flight states. Two demo agencies exist for this,
+seeded by SQL in `deploy/`:
+
+| Agency | Units | State it produces |
+|---|---:|---|
+| Northcliff Letting (demo) | 48 | Stage 2, **stalled 9 days on a third party** — the case the portfolio view exists for |
+| Sea Point Rentals (demo) | 210 | Stage 5, one item in progress, one waiting on the agency, one **failed** |
+
+```
+psql -f deploy/seed-demo-agencies.sql          # vendors, owners, subscriptions
+# press "Start onboarding" on both in the console
+psql -f deploy/seed-demo-onboarding-state.sql  # the mid-flight states
+psql -f deploy/remove-demo-agencies.sql        # teardown
+```
+
+Two safeguards worth knowing about, because they are what make it safe to run
+this against production:
+
+- **Subscriptions are `trialing`, never `active`.** `generate()` selects on
+  `status = 'active'`, so a demo agency cannot be invoiced however its unit count
+  or `mrr` moves.
+- **Owner emails use the `.invalid` TLD** (RFC 2606), which cannot resolve — if
+  anything ever tries to mail them it fails at DNS rather than reaching a person.
+
+The state file contains item KEYS only, never item definitions: the 43 items are
+seeded from the live template by the console's own button, so the fixtures cannot
+drift from the runbook.
 
 ## 12. What this measures, and why it pays twice
 
