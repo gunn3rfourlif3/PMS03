@@ -146,6 +146,10 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 - New tenant-scoped table → migration with RLS policy, in the same file.
 - New platform-scoped table → migration with the `pms_app` grant, in the same
   file, plus a `SECURITY DEFINER` reader for anything that crosses agencies.
+- A change that alters what a partner says on a call, or what they are paid,
+  gets an entry in `src/modules/changelog/changelog-entries.ts` **in the same
+  commit**. Non-technical: it is read by people who sell, not people who build.
+  Sending is a human pressing a button in Admin → Updates, never automatic.
 - Design docs in `docs/` are written before big features. Read the matching one
   before changing partner KYC, WhatsApp onboarding, impersonation or the chatbot.
 

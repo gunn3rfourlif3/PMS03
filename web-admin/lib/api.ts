@@ -151,6 +151,13 @@ export const api = {
   impersonationEvents: (): Promise<Array<{ id: string; adminEmail: string; agency: string; reason?: string; startedAt: string; endedAt?: string }>> =>
     req('/admin/impersonation-events'),
 
+  // Platform-admin changelog
+  changelogList: (): Promise<any> => req('/admin/changelog'),
+  changelogPreview: (ids: string[]): Promise<{ subject: string; html: string; text: string; recipientCount: number }> =>
+    req('/admin/changelog/preview', { method: 'POST', body: JSON.stringify({ ids }) }),
+  changelogSend: (ids: string[]): Promise<{ sent: number; recipients: number; failed: number }> =>
+    req('/admin/changelog/send', { method: 'POST', body: JSON.stringify({ ids }) }),
+
   // Platform-admin onboarding console
   onboardingPortfolio: (): Promise<any[]> => req('/admin/onboarding'),
   onboardingDetail: (vendorId: string): Promise<any> => req(`/admin/onboarding/${vendorId}`),

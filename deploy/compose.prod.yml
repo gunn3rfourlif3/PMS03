@@ -121,6 +121,7 @@ services:
       STARTER_MAX_UNITS: ${STARTER_MAX_UNITS:-199}
       GROWTH_MAX_UNITS: ${GROWTH_MAX_UNITS:-499}
       MIN_BILLABLE_UNITS: ${MIN_BILLABLE_UNITS:-30}
+      CHANGELOG_EXTRA_RECIPIENTS: ${CHANGELOG_EXTRA_RECIPIENTS:-}
       CUSTOM_UNIT_RATE: ${CUSTOM_UNIT_RATE:-}
       # Banking details for EFT payment of subscription invoices. Unset = panel hidden.
       PAYTO_BANK: ${PAYTO_BANK:-}
