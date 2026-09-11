@@ -40,6 +40,15 @@ export interface Progress {
   remainingHours: number;
   itemsDone: number;
   itemsTotal: number;
+  /**
+   * Items whose check ran and came back broken.
+   *
+   * Carried separately from the percentage because "not moving" and "something
+   * is broken" are different problems and the first hides the second: an agency
+   * reading "2 days, waiting on the agency" sounds like patient chasing even
+   * when its ledger is out by fourteen thousand rand.
+   */
+  itemsFailed: number;
 }
 
 /**
@@ -59,6 +68,7 @@ export function progressOf(items: ProgressItem[]): Progress {
     remainingHours: round1(Math.max(0, totalHours - doneHours)),
     itemsDone: items.filter((i) => isComplete(i.status)).length,
     itemsTotal: items.length,
+    itemsFailed: items.filter((i) => i.status === 'failed').length,
   };
 }
 

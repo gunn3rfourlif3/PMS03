@@ -21,7 +21,7 @@ type Stage = {
 type Detail = {
   vendor: { vendorId: string; name: string; slug: string; status: string; customDomain?: string | null };
   templateVersion: string; seeded: boolean;
-  progress: { percent: number; remainingHours: number; itemsDone: number; itemsTotal: number };
+  progress: { percent: number; remainingHours: number; itemsDone: number; itemsTotal: number; itemsFailed: number };
   stage: number | null; stageName: string;
   waitingOn: 'locare' | 'agency' | 'third_party' | null;
   daysStalled: number; stages: Stage[];
@@ -120,6 +120,9 @@ export default function OnboardingDetailPage() {
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
           <span>{d.progress.percent}% · {d.progress.itemsDone} of {d.progress.itemsTotal} items</span>
           {!complete && d.waitingOn && <Badge tone={d.waitingOn === 'locare' ? 'brand' : 'muted'}>Waiting on {WAITING_LABEL[d.waitingOn]}</Badge>}
+          {d.progress.itemsFailed > 0 && (
+            <Badge tone="danger">{d.progress.itemsFailed} check{d.progress.itemsFailed === 1 ? '' : 's'} failing</Badge>
+          )}
           {!complete && d.daysStalled >= 3 && <Badge tone={d.daysStalled >= 7 ? 'danger' : 'brand'}>Nothing has moved in {d.daysStalled} days</Badge>}
           <span className="ml-auto">{d.templateVersion}</span>
         </div>

@@ -36,6 +36,15 @@ describe('onboarding template', () => {
     expect(stage5 / TEMPLATE_TOTAL_HOURS).toBeGreaterThan(0.25);
   });
 
+  it('starts intake waiting on us, not on the agency', () => {
+    // A brand-new onboarding is waiting on someone HERE to go and ask. Defaulting
+    // these to the agency made every fresh agency look slow about questions
+    // nobody had put to them, and left "waiting on us" reading zero.
+    const intake = TEMPLATE.filter((t) => t.stage === 0);
+    expect(intake.every((t) => t.waitingOn === 'locare')).toBe(true);
+    expect(waitingOn(fromTemplate(TEMPLATE))).toBe('locare');
+  });
+
   it('leaves the first and last stages entirely to humans', () => {
     // Intake and handover are conversations. No query can tell you they happened,
     // and pretending otherwise would put a green tick on an unverified claim.
@@ -59,6 +68,14 @@ describe('progress', () => {
     ];
     expect(progressOf(items).itemsDone).toBe(4);
     expect(progressOf(items).percent).toBe(20);
+  });
+
+  it('counts failed items separately from the percentage', () => {
+    // "Not moving for 2 days" and "a check is broken" are different problems,
+    // and the first hides the second unless it is carried on its own.
+    const items = [item({ status: 'done' }), item({ status: 'failed' }), item({ status: 'pending' })];
+    expect(progressOf(items).itemsFailed).toBe(1);
+    expect(progressOf([item({ status: 'pending' })]).itemsFailed).toBe(0);
   });
 
   it('counts skipped as complete but failed as outstanding', () => {

@@ -6,7 +6,7 @@ import { GlassCard, PageHeader, Badge, Progress, EmptyState, BentoTile } from '@
 
 type Row = {
   vendorId: string; name: string; slug: string; status: string;
-  progress: { percent: number; remainingHours: number; itemsDone: number; itemsTotal: number };
+  progress: { percent: number; remainingHours: number; itemsDone: number; itemsTotal: number; itemsFailed: number };
   stage: number | null; stageName: string;
   waitingOn: 'locare' | 'agency' | 'third_party' | null;
   daysStalled: number; complete: boolean;
@@ -36,16 +36,18 @@ export default function OnboardingPortfolioPage() {
   const live = (rows ?? []).filter((r) => !r.complete);
   const stalled = live.filter((r) => r.daysStalled >= 7).length;
   const onUs = live.filter((r) => r.waitingOn === 'locare').length;
+  const broken = live.filter((r) => r.progress.itemsFailed > 0).length;
 
   return (
     <div>
       <PageHeader title="Onboarding" subtitle="Every agency being brought live, longest stalled first" />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
-      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-3">
+      <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <BentoTile tone="blue" value={String(live.length)} label="In flight" />
         <BentoTile tone="teal" value={String(onUs)} label="Waiting on us" />
         <BentoTile tone={stalled ? 'amber' : 'teal'} value={String(stalled)} label="Stalled a week or more" />
+        <BentoTile tone={broken ? 'amber' : 'teal'} value={String(broken)} label="With a failed check" />
       </div>
 
       <GlassCard>
@@ -81,6 +83,15 @@ export default function OnboardingPortfolioPage() {
                       {r.complete
                         ? <Badge tone="success">Complete</Badge>
                         : <span className="text-ink">{r.stage} · {r.stageName}</span>}
+                      {/* A failed check is not a stall. Shown here rather than in
+                          the "not moving" column so the two never blur together. */}
+                      {r.progress.itemsFailed > 0 && (
+                        <div className="mt-1">
+                          <Badge tone="danger">
+                            {r.progress.itemsFailed} failed
+                          </Badge>
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <Progress value={r.progress.percent} />

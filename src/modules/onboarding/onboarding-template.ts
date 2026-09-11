@@ -57,18 +57,25 @@ export const STAGES: TemplateStage[] = [
 export const TEMPLATE: TemplateItem[] = [
   // ── 0 · Intake — all attestation. The first stage of an onboarding is a
   // conversation, and no query can tell you it happened.
-  { key: '0.1-entity', stage: 0, title: 'Legal entity and registration number confirmed', detail: 'The contracting party, not the trading name. It goes on their invoices.', weightHours: 0.3, verifiable: false, waitingOn: 'agency' },
-  { key: '0.2-signatory', stage: 0, title: 'Signatory identified', detail: 'Someone who can actually commit the agency.', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.3-vat', stage: 0, title: 'VAT position and number captured', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.4-units', stage: 0, title: 'Unit count confirmed (active leases)', detail: 'Sets the tier and the price. Under 70 units is Custom; under 30 needs an agreed override.', weightHours: 0.3, verifiable: false, waitingOn: 'agency' },
-  { key: '0.5-domain', stage: 0, title: 'Domain for their branded site agreed', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.6-dns-contact', stage: 0, title: 'DNS controller named, with email and phone', detail: 'The most common source of delay in the whole process.', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.7-collection', stage: 0, title: 'Collection method decided', detail: 'Debit order needs their own bureau facility, with the bureau’s own timeline.', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.8-trust', stage: 0, title: 'Trust account details and who reconciles it today', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
+  //
+  // These wait on LOCARE, not on the agency, even though the agency supplies the
+  // answers. A brand-new onboarding is waiting on someone here to go and ask;
+  // until that happens the ball is ours. Defaulting them to `agency` made every
+  // fresh onboarding read as though the agency were being slow about a question
+  // nobody had put to them. The operator flips an item to `agency` once it has
+  // actually been asked — which is real information, and the point of the field.
+  { key: '0.1-entity', stage: 0, title: 'Legal entity and registration number confirmed', detail: 'The contracting party, not the trading name. It goes on their invoices.', weightHours: 0.3, verifiable: false, waitingOn: 'locare' },
+  { key: '0.2-signatory', stage: 0, title: 'Signatory identified', detail: 'Someone who can actually commit the agency.', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.3-vat', stage: 0, title: 'VAT position and number captured', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.4-units', stage: 0, title: 'Unit count confirmed (active leases)', detail: 'Sets the tier and the price. Under 70 units is Custom; under 30 needs an agreed override.', weightHours: 0.3, verifiable: false, waitingOn: 'locare' },
+  { key: '0.5-domain', stage: 0, title: 'Domain for their branded site agreed', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.6-dns-contact', stage: 0, title: 'DNS controller named, with email and phone', detail: 'The most common source of delay in the whole process.', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.7-collection', stage: 0, title: 'Collection method decided', detail: 'Debit order needs their own bureau facility, with the bureau’s own timeline.', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.8-trust', stage: 0, title: 'Trust account details and who reconciles it today', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
   { key: '0.9-golive', stage: 0, title: 'Go-live date and first billing date diarised', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
-  { key: '0.10-data-source', stage: 0, title: 'Data source established', detail: 'Spreadsheet, incumbent export, or paper. Sizes stage 5 honestly.', weightHours: 0.3, verifiable: false, waitingOn: 'agency' },
-  { key: '0.11-data-contact', stage: 0, title: 'Named data contact at the agency', detail: 'Someone who answers "is this escalation date right?" within a day.', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
-  { key: '0.12-popia', stage: 0, title: 'POPIA processing instruction confirmed in writing', weightHours: 0.2, verifiable: false, waitingOn: 'agency' },
+  { key: '0.10-data-source', stage: 0, title: 'Data source established', detail: 'Spreadsheet, incumbent export, or paper. Sizes stage 5 honestly.', weightHours: 0.3, verifiable: false, waitingOn: 'locare' },
+  { key: '0.11-data-contact', stage: 0, title: 'Named data contact at the agency', detail: 'Someone who answers "is this escalation date right?" within a day.', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
+  { key: '0.12-popia', stage: 0, title: 'POPIA processing instruction confirmed in writing', weightHours: 0.2, verifiable: false, waitingOn: 'locare' },
 
   // ── 1 · Provision
   { key: '1.1-provision', stage: 1, title: 'Agency, owner user and membership created', weightHours: 0.2, verifiable: true, waitingOn: 'locare' },
