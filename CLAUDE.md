@@ -155,11 +155,27 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 
 ## Automation already running
 
-Three scheduled tasks (`C:\Users\verno\Claude\Scheduled\`), each self-contained:
+Account-level scheduled tasks, each self-contained and bound to Vernon's
+computer — they read the repo and the browser, so a run fails if the machine is
+asleep or the desktop app is closed. A failed run SUSPENDS the task rather than
+retrying, which is how inbox triage silently stopped for two days in September.
+Check `list_triggers` when something seems not to have happened.
 
-- `locare-monday-review` — Mon 08:00, ops check + open launch items
-- `locare-partner-queue-sweep` — Mon/Thu 09:00, stalled partner applications
-- `locare-weekly-guide` — Tue 07:00, drafts an SEO guide for review (never publishes)
+- **Locare inbox triage** — 07:23/10:23/13:23/16:23/19:23 SAST, runs the
+  `locare-inbox-triage` skill, drafts replies, never sends
+- **Locare weekly guide** — Tue 07:00 SAST, writes the next guide from
+  `docs/LOCARE_GUIDE_BACKLOG.md` into `marketing/guides/`, updates the index and
+  sitemap, and stops. Never deploys.
+
+Two earlier tasks, `locare-monday-review` and `locare-partner-queue-sweep`, are
+documented nowhere else and do not appear in the account task list. Treat them as
+gone unless the desktop app shows otherwise.
+
+Agency data import (`/admin/imports`) reads .xlsx and .csv, maps the agency's
+columns onto Locare's fields, and holds the uploaded file in `import_batches`
+only until the batch is committed or discarded. Those files carry tenants'
+contact details and owners' banking — `ImportsService.purgeSources()` destroys
+anything older than 7 days and is not optional.
 
 In-app BullMQ jobs: recurring billing, dunning, POPIA retention purge (03:30
 daily), partner-application reminders (hourly, sends once per applicant).
