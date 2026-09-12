@@ -81,6 +81,23 @@ export class AdminImportsController {
     return this.svc.setMapping(vendorId, batchId, body?.mapping ?? {});
   }
 
+  /** Check the file. Writes nothing — safe to run as often as needed. */
+  @Post(':vendorId/batch/:batchId/check')
+  check(
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+  ) {
+    return this.svc.dryRun(vendorId, batchId);
+  }
+
+  @Get(':vendorId/batch/:batchId/report')
+  report(
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+  ) {
+    return this.svc.report(vendorId, batchId);
+  }
+
   @Post(':vendorId/batch/:batchId/discard')
   discard(
     @Param('vendorId', ParseUUIDPipe) vendorId: string,

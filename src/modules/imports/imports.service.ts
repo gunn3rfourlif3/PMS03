@@ -6,6 +6,10 @@ import { ImportBatch } from './import-batch.entity';
 import { ENTITIES, ImportEntity, entitySpec, suggestMapping } from './import-fields';
 import { readImportFile, SheetData } from './import-reader';
 import { templateCsv, templateXlsx } from './import-template';
+import { parseRows } from './import-rows';
+import { resolveRows } from './import-resolve';
+import { TenantRunner } from '@common/tenancy/tenant-runner.service';
+import { TenantContextService } from '@common/tenancy/tenant-context.service';
 
 /** How long an uploaded file may sit before the retention sweep destroys it. */
 export const SOURCE_RETENTION_DAYS = Number(process.env.IMPORT_RETENTION_DAYS ?? 7);
@@ -20,7 +24,11 @@ export const SOURCE_RETENTION_DAYS = Number(process.env.IMPORT_RETENTION_DAYS ??
 @Injectable()
 export class ImportsService {
   private readonly log = new Logger('Imports');
-  constructor(@InjectDataSource() private readonly ds: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly ds: DataSource,
+    private readonly tenantRunner: TenantRunner,
+    private readonly tenantContext: TenantContextService,
+  ) {}
 
   private repo() { return this.ds.getRepository(ImportBatch); }
 
@@ -148,6 +156,65 @@ export class ImportsService {
     const sheets = await readImportFile(batch.filename, batch.source!);
     const chosen = sheets.find((s) => s.name === batch.sheetName) ?? sheets[0];
     return this.describe(batch, sheets, chosen);
+  }
+
+  /**
+   * What this file WOULD do. Writes nothing.
+   *
+   * The point of the whole feature: silent errors become a list with row
+   * numbers against them. Runs in the agency's tenant context so every lookup
+   * is RLS-scoped — an importer that could see another agency's units would be
+   * a worse bug than any it fixes.
+   */
+  async dryRun(vendorId: string, batchId: string): Promise<unknown> {
+    const batch = await this.load(vendorId, batchId, true);
+    this.assertOpen(batch);
+    const spec = entitySpec(batch.entity);
+
+    const missing = spec.fields.filter((f) => f.required && !Object.values(batch.mapping).includes(f.key));
+    if (missing.length) {
+      throw new BadRequestException(
+        `Map a column to ${missing.map((f) => `"${f.label}"`).join(', ')} before running a check.`,
+      );
+    }
+
+    const sheets = await readImportFile(batch.filename, batch.source!);
+    const sheet = sheets.find((s) => s.name === batch.sheetName) ?? sheets[0];
+    const parsed = parseRows(spec, batch.mapping, sheet.rows);
+
+    // `tenantContext.getManager()`, NOT `ds.manager`: runInVendorContext sets
+    // app.current_vendor_id with set_config(..., true), which is local to ITS
+    // transaction. A query on the default manager runs outside that transaction,
+    // so RLS sees no vendor and every lookup comes back empty — every row would
+    // then report "no such property" against an agency that has hundreds.
+    const report = await this.tenantRunner.runInVendorContext(vendorId, async () =>
+      resolveRows(this.tenantContext.getManager(), spec, parsed.rows));
+
+    const full = {
+      ...report,
+      label: spec.label,
+      skippedBlank: parsed.skippedBlank,
+      postsToLedger: spec.postsToLedger,
+      ranAt: new Date().toISOString(),
+      sourceDigest: batch.sourceDigest,
+    };
+
+    batch.report = full as unknown as Record<string, unknown>;
+    batch.status = 'dry_run';
+    batch.rowCount = parsed.rows.length;
+    await this.repo().save(batch);
+
+    this.log.log(
+      `Dry run ${batch.id} (${batch.entity}): ${report.creates} create, ${report.updates} update, ${report.blocked} blocked`,
+    );
+    return full;
+  }
+
+  /** The stored dry-run report, for a screen refresh or a second pair of eyes. */
+  async report(vendorId: string, batchId: string): Promise<unknown> {
+    const batch = await this.load(vendorId, batchId);
+    if (!batch.report) throw new BadRequestException('No check has been run on this import yet.');
+    return batch.report;
   }
 
   async list(vendorId: string): Promise<unknown[]> {
