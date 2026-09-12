@@ -28,6 +28,16 @@ const PUBLIC_SUFFIXES = new Set([
   'co.uk', 'org.uk', 'com.au', 'co.nz', 'co.ke', 'co.bw', 'co.zw',
 ]);
 
+/**
+ * True for a domain nobody can register — `co.za`, `org.uk`.
+ *
+ * `parseHost` uses the list to avoid mistaking `app.co.za` for a label in front
+ * of a suffix; this exposes the same knowledge so a custom domain of `co.za`
+ * can be refused rather than stored as data that will never match a handshake.
+ */
+export const isPublicSuffix = (domain: string): boolean =>
+  PUBLIC_SUFFIXES.has((domain ?? '').trim().toLowerCase());
+
 /** Conservative: letters, digits, hyphens, dots. No underscores, no trailing hyphen. */
 const HOSTNAME = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 

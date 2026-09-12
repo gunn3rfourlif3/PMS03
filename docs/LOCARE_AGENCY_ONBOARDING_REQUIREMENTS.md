@@ -90,17 +90,31 @@ UI, with no partner attribution recorded.
 
 ---
 
-### R-4 · `custom_domain` has no UI · **Blocker (small)**
+### R-4 · `custom_domain` has no UI · **DONE** (Sep 2026)
 
-The column exists and public branding and the rentals site resolve by it, but
-nothing writes it except SQL.
+Was: the column existed and public branding and the rentals site resolved by it,
+but nothing wrote it except SQL.
 
-**What to build:** a field on the agency's admin page, validated (a bare domain,
-not a URL), ideally checking the A record resolves to the VPS before saving —
-which would also catch the most common DNS mistake at the moment it is made.
+**Built:** a **Custom domain** panel at the top of the agency's onboarding page.
+It normalises whatever is pasted — scheme, `www.`/`app.` label, port, path,
+trailing dot, case — down to the bare registrable domain, and refuses a public
+suffix (`co.za`), a Locare-owned domain, and a domain already claimed by another
+active agency, naming the holder. Saving clears the host cache so the new domain
+is served on the next request rather than after the ten-second deny TTL.
 
-**Acceptance:** operator sets it in the UI; branding resolves on the new host
-without a deploy. Naturally pairs with R-1.
+Writes go through `platform_set_custom_domain()` (SECURITY DEFINER, migration
+`1720000050000`), because the back office has no tenant context and `vendors` is
+under RLS. The uniqueness check is in the function, not the UI, so two operators
+racing cannot both win.
+
+The pre-save A-record check is deliberately **not** built: on-demand TLS (R-1)
+already refuses to issue for a domain that does not resolve here, and the
+`tls-check` probe in runbook 2.3 diagnoses it in one command. Adding a DNS
+lookup to the save path would make it fail while propagation is still in flight,
+which is the normal case.
+
+**Acceptance met:** operator sets it in the UI; branding resolves on the new host
+without a deploy.
 
 ---
 
@@ -201,6 +215,9 @@ The middle row is the one that decides whether this is a channel or a queue.
 every SSH-gated step. They are what turn the runbook from something Vernon
 executes into something Vernon delegates. R-1 is the biggest single piece;
 R-3, R-4 and R-6 are small once it lands.
+
+*Status: R-1 and R-4 are done — on-demand TLS and the domain panel. R-3 (create
+an agency in the UI) is the remaining one of this group; R-2 and R-6 follow.*
 
 **Second — cut the week (R-5).** Start with the CSV templates, which cost almost
 nothing and help immediately, then the dry-run importer. This is the largest

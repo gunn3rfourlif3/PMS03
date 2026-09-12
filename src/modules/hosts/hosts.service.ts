@@ -118,6 +118,19 @@ export class HostsService {
     }
   }
 
+  /**
+   * Drop the cache.
+   *
+   * Called when a custom domain changes. Without it a domain just set stays
+   * refused for up to the deny TTL, and the first browse after setting it fails
+   * — which is exactly the moment someone is watching. Clearing everything
+   * rather than one key is deliberate: one domain change can affect several
+   * host entries, and the cache refills in milliseconds.
+   */
+  forget(): void {
+    this.cache.clear();
+  }
+
   private remember(host: string, allowed: boolean): void {
     // Bounded so a flood of distinct hostnames cannot grow this without limit.
     if (this.cache.size > 5000) this.cache.clear();

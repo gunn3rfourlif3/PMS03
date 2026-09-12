@@ -205,15 +205,32 @@ nslookup app.<agencydomain>.co.za
 
 ### 2.2 Set the custom domain — *back office, no SSH*
 
-This is the whole of bringing a domain live. Set `vendors.custom_domain` to the
-agency's **bare** domain — `kimaz.co.za`, not `app.kimaz.co.za`:
+This is the whole of bringing a domain live.
+
+Open **Admin -> Onboarding -> <the agency>** and use the **Custom domain** panel
+at the top of the page. Type the domain and press Save. Paste whatever the
+agency sent you — `https://www.kimaz.co.za/`, `app.kimaz.co.za`, `KIMAZ.CO.ZA`
+all normalise to the bare `kimaz.co.za`, which is what gets stored. The panel
+then lists the six hostnames that will serve and the IP they must point at, so
+it doubles as the checklist for 2.1.
+
+It refuses, with a reason, a domain that is a public suffix (`co.za`), one that
+belongs to Locare, and one already claimed by another agency — that last one
+names the agency holding it.
+
+To remove a domain, clear the field and save.
+
+Nothing else is needed: no Caddyfile edit, no restart, no CORS change, no SSH.
+
+If the back office is down, the equivalent is:
 
 ```sql
-UPDATE vendors SET custom_domain = '<their-domain>' WHERE slug = '<slug>';
+UPDATE vendors SET custom_domain = '<their-bare-domain>' WHERE slug = '<slug>';
 ```
 
-Still SQL today, because there is no UI for it (gap R-4). But nothing else is
-needed: no Caddyfile edit, no restart, no CORS change, no SSH.
+Note that the cache holds a refusal for ten seconds, so a domain set by SQL
+while someone was already browsing to it may need a moment. Saving through the
+UI clears that cache immediately.
 
 Caddy issues the certificate during the first HTTPS handshake, having asked the
 API whether this domain belongs to an active agency. Certificates are refused

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, Progress, EmptyState, ConfirmModal } from '@/components/ui';
+import DomainEditor from '@/components/domain-editor';
 
 type Item = {
   itemKey: string; stage: number; title: string; detail?: string | null;
@@ -126,6 +127,12 @@ export default function OnboardingDetailPage() {
           {!complete && d.daysStalled >= 3 && <Badge tone={d.daysStalled >= 7 ? 'danger' : 'brand'}>Nothing has moved in {d.daysStalled} days</Badge>}
           <span className="ml-auto">{d.templateVersion}</span>
         </div>
+      </GlassCard>
+
+      {/* Stage 2's last manual step. It lives here rather than on the agencies
+          page because this is where an operator is standing when they need it. */}
+      <GlassCard className="mb-4">
+        <DomainEditor vendorId={vendorId} />
       </GlassCard>
 
       <div className="space-y-3">

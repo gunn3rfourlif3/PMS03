@@ -151,6 +151,11 @@ export const api = {
   impersonationEvents: (): Promise<Array<{ id: string; adminEmail: string; agency: string; reason?: string; startedAt: string; endedAt?: string }>> =>
     req('/admin/impersonation-events'),
 
+  // Platform-admin: agency custom domain (R-4)
+  agencyDomain: (vendorId: string): Promise<any> => req(`/admin/agencies/${vendorId}/domain`),
+  setAgencyDomain: (vendorId: string, domain: string | null): Promise<any> =>
+    req(`/admin/agencies/${vendorId}/domain`, { method: 'PUT', body: JSON.stringify({ domain }) }),
+
   // Platform-admin changelog
   changelogList: (): Promise<any> => req('/admin/changelog'),
   changelogPreview: (ids: string[]): Promise<{ subject: string; html: string; text: string; recipientCount: number }> =>
