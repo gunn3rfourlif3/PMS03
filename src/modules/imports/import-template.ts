@@ -1,5 +1,5 @@
 import * as ExcelJS from 'exceljs';
-import { EntitySpec } from './import-fields';
+import { EntitySpec, TYPE_LABEL, naturalKeyLabels } from './import-fields';
 
 /**
  * The downloadable template for an entity.
@@ -48,6 +48,9 @@ export async function templateXlsx(spec: EntitySpec): Promise<Buffer> {
     if (f.type === 'text' || f.type === 'phone') col.numFmt = '@';
     if (f.type === 'date') col.numFmt = 'yyyy-mm-dd';
     if (f.type === 'money') col.numFmt = '#,##0.00';
+    // A percentage is not an amount: no thousands separator, and no currency
+    // habits that invite someone to type 0.07 for seven percent.
+    if (f.type === 'percent') col.numFmt = '0.00';
   });
   ws.views = [{ state: 'frozen', ySplit: 1 }];
 
@@ -63,7 +66,7 @@ export async function templateXlsx(spec: EntitySpec): Promise<Buffer> {
   for (const f of spec.fields) {
     help.addRow([
       f.label,
-      f.choices ? f.choices.join(' / ') : f.type,
+      f.choices ? f.choices.join(' / ') : TYPE_LABEL[f.type],
       f.required ? 'Yes' : 'No',
       f.note ?? '',
     ]);
@@ -71,7 +74,7 @@ export async function templateXlsx(spec: EntitySpec): Promise<Buffer> {
 
   help.addRow([]);
   help.addRow(['Leave a cell blank rather than typing 0, "n/a" or "unknown" — blank is understood as "no answer", and a zero is read as a real amount.']);
-  help.addRow([`Rows are matched on ${spec.naturalKey.join(' + ')}, so correcting the file and uploading it again updates those rows instead of creating duplicates.`]);
+  help.addRow([`Rows are matched on ${naturalKeyLabels(spec)}, so correcting the file and uploading it again updates those rows instead of creating duplicates.`]);
   if (spec.postsToLedger) {
     help.addRow(['THIS FILE MOVES MONEY. Importing it writes entries to the accounting ledger, which cannot be edited afterwards — only reversed. The figures are shown for sign-off before anything is posted.']);
     help.getRow(help.rowCount).font = { bold: true };

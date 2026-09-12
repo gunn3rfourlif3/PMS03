@@ -8,7 +8,7 @@
  * shown and can be changed before anything is read.
  */
 
-export type FieldType = 'text' | 'money' | 'date' | 'phone' | 'email' | 'integer' | 'boolean' | 'choice';
+export type FieldType = 'text' | 'money' | 'percent' | 'date' | 'phone' | 'email' | 'integer' | 'boolean' | 'choice';
 
 export interface ImportField {
   key: string;
@@ -53,7 +53,7 @@ export const ENTITIES: EntitySpec[] = [
       { key: 'name', label: 'Owner name', type: 'text', required: true, example: 'M & J Property Trust', aliases: ['owner', 'ownername', 'landlord', 'landlordname', 'client', 'clientname'] },
       { key: 'email', label: 'Email', type: 'email', required: false, example: 'accounts@mjtrust.co.za', aliases: ['emailaddress', 'owneremail', 'landlordemail', 'contactemail'] },
       { key: 'phone', label: 'Phone', type: 'phone', required: false, example: '0821234567', aliases: ['cell', 'cellphone', 'mobile', 'telephone', 'tel', 'contactnumber', 'ownerphone'] },
-      { key: 'managementFeePct', label: 'Management fee %', type: 'money', required: false, example: '8.5', aliases: ['managementfee', 'commission', 'commissionpct', 'commissionpercentage', 'fee'], note: 'As a percentage, so 8.5 - not 0.085.' },
+      { key: 'managementFeePct', label: 'Management fee %', type: 'percent', required: false, example: '8.5', aliases: ['managementfee', 'commission', 'commissionpct', 'commissionpercentage', 'fee'], note: 'As a percentage, so 8.5 - not 0.085.' },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const ENTITIES: EntitySpec[] = [
       { key: 'endDate', label: 'End date', type: 'date', required: false, example: '2027-02-28', aliases: ['end', 'expiry', 'expirydate', 'leaseend', 'to', 'dateto', 'termination'] },
       { key: 'rentAmount', label: 'Rent', type: 'money', required: true, example: '9500', aliases: ['rent', 'rental', 'monthlyrent', 'rentpm', 'amount'] },
       { key: 'type', label: 'Lease type', type: 'choice', required: false, example: 'fixed', choices: LEASE_TYPES, aliases: ['leasetype', 'term', 'termtype'] },
-      { key: 'escalationPct', label: 'Escalation %', type: 'money', required: false, example: '7', aliases: ['escalation', 'escalationpercentage', 'increase', 'annualincrease', 'increasepct'], note: 'As a percentage, so 7 - not 0.07.' },
+      { key: 'escalationPct', label: 'Escalation %', type: 'percent', required: false, example: '7', aliases: ['escalation', 'escalationpercentage', 'increase', 'annualincrease', 'increasepct'], note: 'As a percentage, so 7 - not 0.07.' },
       { key: 'escalationMonth', label: 'Escalation month', type: 'integer', required: false, example: '3', aliases: ['escalationmonth', 'increasemonth', 'reviewmonth'], note: 'Month number the increase applies, 1-12.' },
     ],
   },
@@ -187,3 +187,30 @@ export function suggestMapping(headers: string[], spec: EntitySpec): Record<numb
   });
   return out;
 }
+
+/**
+ * The human label for a field key.
+ *
+ * Anything an agency reads must use these. The first template shipped saying
+ * rows were matched on "propertyName + unitLabel + startDate", which is the
+ * internal name of the column and means nothing to the person filling it in.
+ */
+export const fieldLabel = (spec: EntitySpec, key: string): string =>
+  spec.fields.find((f) => f.key === key)?.label ?? key;
+
+/** The natural key in words: "Property name + Unit number + Start date". */
+export const naturalKeyLabels = (spec: EntitySpec): string =>
+  spec.naturalKey.map((k) => fieldLabel(spec, k)).join(' + ');
+
+/** What to call a type in a document a non-technical person reads. */
+export const TYPE_LABEL: Record<FieldType, string> = {
+  text: 'text',
+  money: 'amount',
+  percent: 'percentage',
+  date: 'date',
+  phone: 'phone number',
+  email: 'email',
+  integer: 'whole number',
+  boolean: 'yes / no',
+  choice: 'one of',
+};

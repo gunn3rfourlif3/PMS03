@@ -39,7 +39,7 @@ export interface ParsedSheet {
 
 const coerce = (field: ImportField, raw: unknown) => {
   switch (field.type) {
-    case 'money': return parseMoney(raw);
+    case 'money': case 'percent': return parseMoney(raw);
     case 'date': return parseDate(raw);
     case 'phone': return parsePhone(raw);
     case 'email': return parseEmail(raw);

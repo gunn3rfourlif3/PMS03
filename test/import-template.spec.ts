@@ -62,3 +62,30 @@ describe('templates', () => {
     expect(JSON.stringify(help.rows)).not.toContain('MOVES MONEY');
   });
 });
+
+describe('the instructions sheet speaks to a person, not a developer', () => {
+  it('never prints an internal field name', async () => {
+    // The first template shipped saying rows were matched on
+    // "propertyName + unitLabel + startDate", which means nothing to whoever
+    // is filling the file in.
+    for (const spec of ENTITIES) {
+      const sheets = await readImportFile('t.xlsx', await templateXlsx(spec));
+      const help = JSON.stringify(sheets.find((s) => s.name === 'How to fill this in')!.rows);
+      // Only camelCase keys — a one-word key like `name` is also an ordinary
+      // English word and appears legitimately inside "Owner name".
+      for (const f of spec.fields.filter((x) => /[a-z][A-Z]/.test(x.key))) {
+        expect(help).not.toContain(f.key);
+      }
+      expect(help).toContain(spec.fields.find((f) => f.key === spec.naturalKey[0])!.label);
+    }
+  });
+
+  it('calls a percentage a percentage, not an amount', async () => {
+    const sheets = await readImportFile('l.xlsx', await templateXlsx(entitySpec('leases')));
+    const rows = sheets.find((s) => s.name === 'How to fill this in')!.rows;
+    const esc = rows.find((r) => r[0] === 'Escalation %')!;
+    expect(esc[1]).toBe('percentage');
+    const rent = rows.find((r) => r[0] === 'Rent')!;
+    expect(rent[1]).toBe('amount');
+  });
+});
