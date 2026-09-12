@@ -113,7 +113,17 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 
 ## Gotchas already paid for
 
-- `caddy reload` no-ops here. Restart the container instead.
+- **The Caddyfile is bind-mounted as a single FILE, so it pins an inode.**
+  `git pull` does not edit in place — it writes a new file and renames it over
+  the old one, creating a new inode the running container never sees. The
+  container can therefore serve a Caddyfile that no longer exists on disk, and
+  `caddy reload` genuinely reloads an unchanged file. That is the real reason
+  behind the old "reload no-ops here" note. Applying a Caddyfile change means
+  `up -d --force-recreate caddy`, never a reload or a restart. Verify with:
+  `diff <(docker compose ... exec -T caddy cat /etc/caddy/Caddyfile) deploy/Caddyfile`
+- Validate a Caddyfile change in a THROWAWAY container first, so the running one
+  is untouched until it is known good:
+  `docker run --rm -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile`
 - Next.js sets its own `Cache-Control`; a plain Caddy `header` directive loses to
   it. `reverse_proxy { header_down … }` wins.
 - Platform-admin rights come **only** from `PLATFORM_ADMIN_EMAILS`, not the DB.

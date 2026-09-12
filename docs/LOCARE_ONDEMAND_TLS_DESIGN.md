@@ -197,11 +197,12 @@ week — ample). The real risk is a mass re-issue, not normal operation.
 2. **Dynamic CORS.** ✅ **Built 2026-09-05** — `HostsService.isAllowedOrigin()`,
    wired in `main.ts`. Existing origins keep working because the env list is
    still consulted first.
-3. **Caddy global + catch-all block.** ✅ **Written 2026-09-05** in
-   `deploy/Caddyfile` — global `on_demand_tls` plus an `http://` redirect and an
-   `https://` catch-all appended after every explicit block. **Not yet applied:**
-   validate in the container, then restart Caddy. Existing hosts are untouched
-   by construction.
+3. **Caddy global + catch-all block.** ✅ **Applied 2026-09-12.** Global
+   `on_demand_tls` plus an `http://` redirect and an `https://` catch-all after
+   every explicit block. Validated in a throwaway container, applied with
+   `up -d --force-recreate caddy` (see §8c — a restart would not have worked),
+   and all sixteen existing hosts verified serving afterwards, BuddhaPets
+   included.
 4. **Prove it end to end** with a real throwaway domain: set `custom_domain`,
    point DNS, browse `app.<domain>` and watch the certificate issue in the Caddy
    logs. Do this before an agency is watching.
@@ -269,6 +270,37 @@ Two smaller lessons kept from the same hour:
 - Adaptation stops at the first error, so a config that fails early has had its
   later blocks parsed by nothing. A clean validate after fixing one error is not
   evidence the rest was ever checked.
+
+## 8c. Why the file never reached the container (2026-09-12)
+
+Applying step 3 turned up the reason the previous attempts looked inert.
+
+`deploy/compose.prod.yml` mounts `./Caddyfile:/etc/caddy/Caddyfile:ro` — a
+**single-file** bind mount, which binds the inode rather than the path. `git
+pull` does not edit a file in place; it writes a new one and renames it over the
+old. The new file has a new inode, and the running container goes on reading the
+old one.
+
+So the container had been serving a Caddyfile that no longer existed on disk. A
+`diff` between `docker compose exec caddy cat /etc/caddy/Caddyfile` and the repo
+file showed sixty lines of difference while `git status` was clean and `git
+pull` reported "Already up to date".
+
+This also explains the long-standing note that **`caddy reload` no-ops on this
+box**. It was never reload misbehaving: Caddy was reloading an unchanged file.
+The workaround everyone settled on — restarting the container — did not help
+either, because a restart reuses the same mount.
+
+**A Caddyfile change is applied with `up -d --force-recreate caddy`.** Nothing
+less re-resolves the mount. And validate in a throwaway container first, which
+gets a fresh inode and therefore reads the file you actually edited:
+
+```bash
+docker run --rm -v "$PWD/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine \
+  caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+```
+
+The same trap applies to any single-file bind mount on this box.
 
 ## 9. What this does not solve
 
