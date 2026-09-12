@@ -16,3 +16,6 @@ export const JOB_GENERATE_SUB_INVOICES = 'generate-subscription-invoices';
 export const QUEUE_PARTNER_APPS = 'partner-apps';
 export const JOB_PURGE_REJECTED_APPS = 'purge-rejected-applications';
 export const JOB_REMIND_UNFINISHED_APPS = 'remind-unfinished-applications';
+
+export const QUEUE_IMPORTS = 'imports';
+export const JOB_PURGE_IMPORT_SOURCES = 'purge-import-sources';

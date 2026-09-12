@@ -156,7 +156,9 @@ From step 1 these files contain other people's personal information — tenant
 names, contact details, ID numbers, and owners' banking details.
 
 - The uploaded file is held only until the batch is committed or discarded, and
-  **deleted after 7 days** by the existing retention job.
+  **deleted after 7 days** by `ImportsScheduler` (03:45 UTC daily, BUILT
+  2026-09-12). `IMPORT_RETENTION_DAYS` shortens the window; nothing lengthens
+  it without a reason written down here.
 - The dry-run report stores values that failed validation, so it is scrubbed on
   the same schedule.
 - Banking details in an owner import go through `encryptedJson` like every other

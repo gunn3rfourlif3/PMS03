@@ -177,8 +177,9 @@ only until the batch is committed or discarded. Those files carry tenants'
 contact details and owners' banking — `ImportsService.purgeSources()` destroys
 anything older than 7 days and is not optional.
 
-In-app BullMQ jobs: recurring billing, dunning, POPIA retention purge (03:30
-daily), partner-application reminders (hourly, sends once per applicant).
+In-app BullMQ jobs: recurring billing, dunning, POPIA retention purges (rejected
+partner applications 03:30, uploaded import files 03:45, both daily),
+partner-application reminders (hourly, sends once per applicant).
 
 `npm run video` runs the whole marketing-video pipeline — stack up, Playwright
 records the product, ffmpeg assembles three cuts. See `scripts/video/README.md`.
