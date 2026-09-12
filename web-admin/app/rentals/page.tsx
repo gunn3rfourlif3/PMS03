@@ -7,11 +7,17 @@ import { useBrand } from '@/components/brand-provider';
 import { formatAddress, formatDate } from '@/components/public-chrome';
 
 /* ------------------------------------------------------------------ *
- * Dan Talan Properties — Rentals index.
+ * Rentals index — served on EVERY agency's own domain, white-label.
  * Faithful reproduction of the "Premium Minimalist Property Portfolio"
  * design (Cormorant Garamond + Inter, cream / ink / taupe). Everything
  * is driven by the live active listings, and every year/date is derived
  * from them so the page stays current on its own.
+ *
+ * Nothing here may name or picture a specific agency. It was built against
+ * Dantalan and carried their logo and contact details as fallbacks, which
+ * meant every other agency's public site showed Dantalan's brand. Anything
+ * tenant-specific comes from `useBrand()`, and absent values are omitted
+ * rather than defaulted.
  * ------------------------------------------------------------------ */
 
 const PAPER = '#F9F7F2';
@@ -101,7 +107,11 @@ export default function RentalsPage() {
   }, []);
 
   const now = new Date().getFullYear();
-  const brandName = b.name || 'Dan Talan Properties';
+  // Never another tenant's name: this page is served on an agency's own domain,
+  // so a hardcoded fallback here puts a competitor's brand on their site.
+  const brandName = b.name || 'Rentals';
+  // Wide marks only — markUrl is the square favicon and looks wrong at 440px.
+  const footerLogo = b.logo?.wordmarkUrl || b.logo?.imageUrl || '';
 
   const years = useMemo(() => (items || []).map((x) => Number(x.year)).filter(Boolean), [items]);
   const minY = years.length ? Math.min(...years) : now;
@@ -347,12 +357,22 @@ export default function RentalsPage() {
                 ))}
               </div>
             </div>
-            <img src="/brand/dantalan-logo-dark.jpeg" alt={brandName} style={{ flex: '0 0 auto', width: 'min(440px, 42vw)', height: 'auto' }} className="dt-foot-logo" />
+            {/* The agency's OWN mark, never a fallback to another tenant's. An
+                agency with no logo uploaded gets its name set in the page's own
+                serif — which looks deliberate, and cannot leak a competitor. */}
+            {footerLogo ? (
+              <img src={footerLogo} alt={brandName} style={{ flex: '0 0 auto', width: 'min(440px, 42vw)', height: 'auto' }} className="dt-foot-logo" />
+            ) : (
+              <div className="dt-foot-logo" style={{ flex: '0 0 auto', width: 'min(440px, 42vw)', ...serif, fontSize: 'clamp(32px,5vw,56px)', lineHeight: 1.05, color: PAPER }}>
+                {brandName}
+              </div>
+            )}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, marginTop: 56, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,.16)', ...cap, color: 'rgba(255,255,255,.6)' }}>
             <span>© {now} {brandName} — All spaces documented with consent.</span>
-            <span>{b.contact?.email || 'hello@dantalan.co.za'}</span>
-            <span>{b.contact?.phone || '+27 11 000 0000'}</span>
+            {/* Omitted when unset. A placeholder here is somebody's real inbox. */}
+            {b.contact?.email && <span>{b.contact.email}</span>}
+            {b.contact?.phone && <span>{b.contact.phone}</span>}
             {/* Attribution: every agency's listings site links back to the platform.
                 Deliberately quiet — it must never compete with the agency's brand. */}
             <span>
