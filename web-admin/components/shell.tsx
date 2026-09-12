@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet } from 'lucide-react';
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
@@ -56,6 +56,7 @@ const ADMIN_NAV = [
   { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
   { href: '/admin/payouts', label: 'Payout run', icon: Banknote },
   { href: '/admin/billing', label: 'Billing', icon: CreditCard },
+  { href: '/admin/imports', label: 'Import templates', icon: FileSpreadsheet },
   { href: '/admin/changelog', label: 'Updates', icon: Megaphone },
 ];
 

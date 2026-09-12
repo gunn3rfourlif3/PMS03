@@ -1,8 +1,7 @@
 import {
-  Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res, UploadedFile, UseGuards, UseInterceptors, BadRequestException,
+  Body, Controller, Get, Param, ParseUUIDPipe, Post, UploadedFile, UseGuards, UseInterceptors, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { Response } from 'express';
 import { ImportsService } from './imports.service';
 import { MAX_IMPORT_BYTES } from './import-reader';
 import { ENTITIES, ImportEntity } from './import-fields';
@@ -31,20 +30,9 @@ export class AdminImportsController {
   /** What can be imported, with the fields — drives the whole UI. */
   @Get('catalogue') catalogue() { return this.svc.catalogue(); }
 
-  /** The blank template. `?format=csv` for agencies who cannot open xlsx. */
-  @Get('template/:entity')
-  async template(
-    @Param('entity') entity: string,
-    @Query('format') format: string,
-    @Res() res: Response,
-  ): Promise<void> {
-    const { body, filename, mime } = await this.svc.template(
-      asEntity(entity), format === 'csv' ? 'csv' : 'xlsx',
-    );
-    res.setHeader('Content-Type', mime);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(body);
-  }
+  // The blank templates moved to PublicImportsController: they contain no
+  // agency data, and an agency should be able to open a link to one without a
+  // Locare login.
 
   @Get(':vendorId') list(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
     return this.svc.list(vendorId);
