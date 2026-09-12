@@ -9,8 +9,12 @@ export interface Branding {
   name: string;
   slug: string;
   tagline?: string;
-  /** `markUrl` is a SQUARE mark for the tab/app icon; imageUrl/wordmarkUrl are wide. */
-  logo: { text: string; imageUrl?: string; wordmarkUrl?: string; markUrl?: string };
+  /**
+   * `markUrl` is a SQUARE mark for the tab/app icon; imageUrl/wordmarkUrl are
+   * wide. `inverseUrl` is the wide mark drawn for a DARK background — the
+   * public rentals footer — and falls back to imageUrl when unset.
+   */
+  logo: { text: string; imageUrl?: string; inverseUrl?: string; wordmarkUrl?: string; markUrl?: string };
   colors: {
     brand: string; onBrand: string; tint: string; accent: string;
     ink: string; muted: string; line: string; bg: string; card: string;

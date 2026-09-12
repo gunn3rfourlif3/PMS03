@@ -40,6 +40,14 @@ export interface Branding {
     /** Wide logo for headers and email. Any aspect ratio. */
     imageUrl?: string;
     /**
+     * The same wide logo drawn for a DARK background. The public rentals
+     * footer is ink, and a logo with baked-in dark type disappears on it.
+     * Separate from `imageUrl` because that one is used on light surfaces —
+     * the sidebar, the login card, the email header — so one field cannot
+     * serve both. Falls back to `imageUrl` when unset.
+     */
+    inverseUrl?: string;
+    /**
      * SQUARE mark, for the browser tab and app icons. Deliberately separate
      * from `imageUrl`: a wide logo squashed into 16px is illegible, so the
      * favicon prefers a generated lettered tile over guessing that a header

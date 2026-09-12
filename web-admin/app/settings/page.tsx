@@ -82,6 +82,7 @@ export default function SettingsPage() {
             <Field label="Display name"><input className="input" value={b.logo?.text ?? ''} onChange={(e) => setLogo('text', e.target.value)} /></Field>
             <Field label="Tagline"><input className="input" value={b.tagline ?? ''} onChange={(e) => setB({ ...b, tagline: e.target.value })} /></Field>
             <Field label="Logo image URL (optional — falls back to a lettered tile)"><input className="input" value={b.logo?.imageUrl ?? ''} onChange={(e) => setLogo('imageUrl', e.target.value)} placeholder="https://.../logo.png" /></Field>
+            <Field label="Logo for dark backgrounds (optional — used on your public rentals footer; falls back to the logo above)"><input className="input" value={b.logo?.inverseUrl ?? ''} onChange={(e) => setLogo('inverseUrl', e.target.value)} placeholder="https://.../logo-dark.png" /></Field>
             <Field label="Square mark URL (optional — browser tab icon; must be square, e.g. 512×512)"><input className="input" value={b.logo?.markUrl ?? ''} onChange={(e) => setLogo('markUrl', e.target.value)} placeholder="https://.../mark.svg" /></Field>
           </div>
         </GlassCard>

@@ -110,8 +110,10 @@ export default function RentalsPage() {
   // Never another tenant's name: this page is served on an agency's own domain,
   // so a hardcoded fallback here puts a competitor's brand on their site.
   const brandName = b.name || 'Rentals';
-  // Wide marks only — markUrl is the square favicon and looks wrong at 440px.
-  const footerLogo = b.logo?.wordmarkUrl || b.logo?.imageUrl || '';
+  // This footer is ink, so prefer the agency's dark-background mark; imageUrl
+  // is the light-surface one and may have dark type baked in. Wide marks only —
+  // markUrl is the square favicon and looks wrong at 440px.
+  const footerLogo = b.logo?.inverseUrl || b.logo?.wordmarkUrl || b.logo?.imageUrl || '';
 
   const years = useMemo(() => (items || []).map((x) => Number(x.year)).filter(Boolean), [items]);
   const minY = years.length ? Math.min(...years) : now;
