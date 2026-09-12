@@ -112,6 +112,9 @@ services:
       STITCH_WEBHOOK_SECRET: ${STITCH_WEBHOOK_SECRET:-}
       # TLS allowlist for Caddy's on-demand issuance.
       PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:-locare.co.za}
+      # Shown in the back office as the address every agency's DNS records point
+      # at. Moving box = change this, not seven places in the UI and the docs.
+      PLATFORM_IP: ${PLATFORM_IP:-169.58.46.223}
       TLS_EXTRA_HOSTS: ${TLS_EXTRA_HOSTS:-}
       # Subscription price ladder — the code's defaults match these, so an
       # unset value bills the published price rather than zero.

@@ -1,4 +1,6 @@
 import { normaliseCustomDomain } from '../src/modules/hosts/custom-domain';
+import { hostsFor } from '../src/modules/hosts/admin-domains.controller';
+import { parseHost } from '../src/modules/hosts/host-name';
 
 const PD = 'locare.co.za';
 const ok = (r: any) => { if (!r.ok) throw new Error(r.error); return r.domain as string; };
@@ -52,5 +54,38 @@ describe('custom domain', () => {
   it('keeps a domain that is not under a known public suffix', () => {
     expect(ok(normaliseCustomDomain('app.example.com', PD))).toBe('example.com');
     expect(ok(normaliseCustomDomain('lettings.co.bw', PD))).toBe('lettings.co.bw');
+  });
+});
+
+describe('the DNS records handed to the operator', () => {
+  const hosts = hostsFor('kimaz.co.za');
+
+  it('lists the apex and every app label, www included', () => {
+    expect(hosts).toEqual([
+      'kimaz.co.za',
+      'www.kimaz.co.za',
+      'app.kimaz.co.za',
+      'api.kimaz.co.za',
+      'tenant.kimaz.co.za',
+      'landlord.kimaz.co.za',
+      'rentals.kimaz.co.za',
+    ]);
+  });
+
+  /**
+   * The failure this guards against is silent and slow: a host the panel does
+   * not list is a record nobody creates, which shows up days later as one
+   * surface that will not load. www was missing exactly this way.
+   */
+  it('lists nothing the TLS allowlist would then refuse', () => {
+    for (const h of hosts) {
+      expect(parseHost(h, PD).base).toBe('kimaz.co.za');
+    }
+  });
+
+  it('has no hosts at all without a domain', () => {
+    expect(hostsFor(null)).toEqual([]);
+    expect(hostsFor('')).toEqual([]);
+    expect(hostsFor(undefined)).toEqual([]);
   });
 });

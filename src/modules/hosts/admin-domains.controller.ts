@@ -30,12 +30,21 @@ export class AdminDomainsController {
     return (process.env.PLATFORM_DOMAIN ?? 'locare.co.za').trim().toLowerCase();
   }
 
+  /**
+   * The address every one of an agency's records points at. Read from the
+   * environment so a move to another box is one variable, not a hunt through
+   * the UI, the runbook and the Caddyfile.
+   */
+  private get platformIp(): string {
+    return (process.env.PLATFORM_IP ?? '169.58.46.223').trim();
+  }
+
   /** What the agency's domain is now, and the hosts it will answer on. */
   @Get(':vendorId/domain')
   async get(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
     const [vendor] = await this.ds.query(`SELECT * FROM platform_agency($1)`, [vendorId]);
     if (!vendor) throw new NotFoundException('Agency not found');
-    return { ...vendor, hosts: hostsFor(vendor.customDomain) };
+    return { ...vendor, hosts: hostsFor(vendor.customDomain), ip: this.platformIp };
   }
 
   /**
@@ -53,7 +62,7 @@ export class AdminDomainsController {
       const [cleared] = await this.ds.query(`SELECT * FROM platform_set_custom_domain($1, NULL)`, [vendorId]);
       if (!cleared) throw new NotFoundException('Agency not found');
       this.hosts.forget();
-      return { ...cleared, hosts: [], cleared: true };
+      return { ...cleared, hosts: [], ip: this.platformIp, cleared: true };
     }
 
     const parsed = normaliseCustomDomain(raw, this.platformDomain);
@@ -67,7 +76,12 @@ export class AdminDomainsController {
       // Without this, a domain just set stays refused for up to ten seconds and
       // the first browse fails — which is precisely when someone is watching.
       this.hosts.forget();
-      return { ...updated, hosts: hostsFor(parsed.domain), normalised: parsed.changed };
+      return {
+        ...updated,
+        hosts: hostsFor(parsed.domain),
+        ip: this.platformIp,
+        normalised: parsed.changed,
+      };
     } catch (e: any) {
       const msg = String(e?.message ?? '');
       if (msg.includes('DOMAIN_TAKEN')) {
@@ -79,6 +93,14 @@ export class AdminDomainsController {
   }
 }
 
-/** The six hosts an agency answers on once its domain is live. */
-const hostsFor = (domain?: string | null): string[] =>
-  !domain ? [] : ['app', 'api', 'tenant', 'landlord', 'rentals'].map((l) => `${l}.${domain}`).concat(domain);
+/**
+ * Every host an agency answers on once its domain is live, apex first because
+ * that is the order a registrar's panel lists them in.
+ *
+ * These are exactly the labels `APP_LABELS` in `host-name.ts` will strip, plus
+ * the apex — so anything listed here is a host the TLS allowlist will vouch
+ * for. Leaving one out is not cosmetic: it is a record nobody creates, which
+ * surfaces days later as one surface that will not load.
+ */
+export const hostsFor = (domain?: string | null): string[] =>
+  !domain ? [] : [domain, ...['www', 'app', 'api', 'tenant', 'landlord', 'rentals'].map((l) => `${l}.${domain}`)];

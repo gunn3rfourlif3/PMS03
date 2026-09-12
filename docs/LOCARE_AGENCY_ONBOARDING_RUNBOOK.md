@@ -176,43 +176,17 @@ end date.
 
 ## Stage 2 — Domain and hosts
 
-### 2.1 Give the DNS controller the records (their registrar)
+### 2.1 Set the custom domain — *back office, no SSH*
 
-Five hosts plus the apex, all pointing at the VPS:
-
-```
-A   @          169.58.46.223
-A   www        169.58.46.223
-A   app        169.58.46.223
-A   api        169.58.46.223
-A   tenant     169.58.46.223
-A   landlord   169.58.46.223
-A   rentals    169.58.46.223
-```
-
-TTL 300 while cutting over. Add `AAAA → 2a02:c207:2345:3343::1` for each if they
-want IPv6.
-
-**Do not touch their MX records.** If the agency currently receives mail on that
-domain, an apex A record is fine, but a mistaken MX change takes their email
-down and that is the worst possible first week.
-
-Verify propagation before continuing:
-
-```bash
-nslookup app.<agencydomain>.co.za
-```
-
-### 2.2 Set the custom domain — *back office, no SSH*
-
-This is the whole of bringing a domain live.
+Do this **first**, before the DNS conversation, for two reasons: the panel is
+what generates the record list you are about to send, and a domain that is set
+before anyone browses is a certificate that issues on the first attempt instead
+of failing and triggering a Let's Encrypt backoff.
 
 Open **Admin -> Onboarding -> <the agency>** and use the **Custom domain** panel
 at the top of the page. Type the domain and press Save. Paste whatever the
 agency sent you — `https://www.kimaz.co.za/`, `app.kimaz.co.za`, `KIMAZ.CO.ZA`
-all normalise to the bare `kimaz.co.za`, which is what gets stored. The panel
-then lists the six hostnames that will serve and the IP they must point at, so
-it doubles as the checklist for 2.1.
+all normalise to the bare `kimaz.co.za`, which is what gets stored.
 
 It refuses, with a reason, a domain that is a public suffix (`co.za`), one that
 belongs to Locare, and one already claimed by another agency — that last one
@@ -221,6 +195,8 @@ names the agency holding it.
 To remove a domain, clear the field and save.
 
 Nothing else is needed: no Caddyfile edit, no restart, no CORS change, no SSH.
+CORS is answered from the same allowlist, so agency origins are permitted
+automatically.
 
 If the back office is down, the equivalent is:
 
@@ -232,14 +208,54 @@ Note that the cache holds a refusal for ten seconds, so a domain set by SQL
 while someone was already browsing to it may need a moment. Saving through the
 UI clears that cache immediately.
 
-Caddy issues the certificate during the first HTTPS handshake, having asked the
-API whether this domain belongs to an active agency. Certificates are refused
-for a domain that is not on an active vendor, so the order matters — set the
-domain BEFORE anyone browses to it, or the first attempt fails and Let's Encrypt
-backs off.
+### 2.2 Give the DNS controller the records (their registrar)
 
-CORS is answered from the same allowlist, so agency origins are permitted
-automatically.
+Once the domain is saved, the panel lists **seven A records** — the apex plus
+six labels — and a **Copy all** button that puts them on your clipboard ready to
+paste into an email or a ticket. Use it rather than retyping; every record you
+hand over by hand is a chance to drop one, and a dropped record surfaces days
+later as a single surface that will not load.
+
+The panel has a **Labels / Full hostnames** toggle because registrars disagree
+about which they want. domains.co.za wants the full hostname
+(`tenant.kimaz.co.za`); most cPanel-based panels want the bare label
+(`tenant`). Getting it wrong usually creates
+`tenant.kimaz.co.za.kimaz.co.za` without complaining.
+
+For reference, the seven records are:
+
+```
+A   @          169.58.46.223
+A   www        169.58.46.223
+A   app        169.58.46.223
+A   api        169.58.46.223
+A   tenant     169.58.46.223
+A   landlord   169.58.46.223
+A   rentals    169.58.46.223
+```
+
+Every one of them is an **A** record. A CNAME cannot hold an IP address; some
+panels accept one anyway and the host then resolves to nothing.
+
+TTL 300 while cutting over. Add `AAAA -> 2a02:c207:2345:3343::1` for each if they
+want IPv6.
+
+**Do not touch their MX records.** If the agency currently receives mail on that
+domain, an apex A record is fine, but a mistaken MX change takes their email
+down and that is the worst possible first week.
+
+Verify propagation before continuing — check **all seven**, not just `app`:
+
+```bash
+for h in @ www app api tenant landlord rentals; do
+  n=$([ "$h" = "@" ] && echo "<agencydomain>" || echo "$h.<agencydomain>")
+  printf '%-34s %s\n' "$n" "$(dig +short "$n" | tr '\n' ' ')"
+done
+```
+
+Anything that comes back empty, or with an address that is not the VPS, is a
+record that was never created or is still parked at the registrar. That is the
+single most common reason an onboarding stalls in this stage.
 
 ### 2.3 Confirm the domain is vouched for — *optional, one command*
 
