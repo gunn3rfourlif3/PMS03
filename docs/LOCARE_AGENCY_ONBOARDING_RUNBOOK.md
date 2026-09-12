@@ -203,36 +203,50 @@ Verify propagation before continuing:
 nslookup app.<agencydomain>.co.za
 ```
 
-### 2.2 Add the Caddy site blocks — *platform admin, SSH*
+### 2.2 Set the custom domain — *back office, no SSH*
 
-Follow the `dantalan.co.za` blocks in `deploy/Caddyfile` exactly; there is one
-per host. Caddy issues TLS itself over HTTP-01 once DNS resolves, so do this
-**after** 2.1 has propagated or the certificate request fails and backs off.
+This is the whole of bringing a domain live. Set `vendors.custom_domain` to the
+agency's **bare** domain — `kimaz.co.za`, not `app.kimaz.co.za`:
 
-Config is mounted, so no rebuild — but `caddy reload` silently no-ops on this
-box. Restart the container:
-
-```bash
-docker restart $(docker ps -qf name=caddy)
+```sql
+UPDATE vendors SET custom_domain = '<their-domain>' WHERE slug = '<slug>';
 ```
 
-### 2.3 Add the origins to CORS — *platform admin, SSH*
+Still SQL today, because there is no UI for it (gap R-4). But nothing else is
+needed: no Caddyfile edit, no restart, no CORS change, no SSH.
 
-Every agency front-end origin must be in `CORS_ORIGINS` in `deploy/.env.prod`,
-or the browser blocks every API call and the app looks broken while the logs
-look clean.
+Caddy issues the certificate during the first HTTPS handshake, having asked the
+API whether this domain belongs to an active agency. Certificates are refused
+for a domain that is not on an active vendor, so the order matters — set the
+domain BEFORE anyone browses to it, or the first attempt fails and Let's Encrypt
+backs off.
+
+CORS is answered from the same allowlist, so agency origins are permitted
+automatically.
+
+### 2.3 Confirm the domain is vouched for — *optional, one command*
+
+If a certificate does not appear, this is the first thing to check. It answers
+200 to issue and 404 to refuse, and nothing else:
 
 ```bash
-docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --force-recreate api
+docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api \
+  node -e "fetch('http://localhost:3000/api/public/tls-check?domain=app.<their-domain>').then(r=>console.log(r.status))"
 ```
 
-`--force-recreate` is not optional: env is fixed at container creation and a
-plain restart will not pick it up.
+404 means the vendor is missing, suspended, or `custom_domain` is wrong. Note
+there is no `curl` in the API image — use `node -e` as above.
 
-### 2.4 Point the tenant at the domain
+Denials are cached for ten seconds and approvals for sixty, so wait a moment
+after changing anything before re-testing.
 
-Set `vendors.custom_domain` to the agency's bare domain so public branding and
-the rentals site resolve by host. There is no UI for this — SQL today (gap R-4).
+### 2.4 Nothing to do here
+
+Adding Caddy site blocks and CORS origins by hand used to be steps 2.2 and 2.3.
+They were removed on 2026-09-12 when on-demand TLS was proven end to end
+(`LOCARE_ONDEMAND_TLS_DESIGN.md` §7 step 4). The per-host blocks that already
+exist for Dantalan are harmless and stay — an exact hostname always wins over
+the catch-all.
 
 ### 2.5 Verify
 

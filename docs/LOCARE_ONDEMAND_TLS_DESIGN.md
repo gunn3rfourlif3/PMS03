@@ -203,11 +203,22 @@ week — ample). The real risk is a mass re-issue, not normal operation.
    `up -d --force-recreate caddy` (see §8c — a restart would not have worked),
    and all sixteen existing hosts verified serving afterwards, BuddhaPets
    included.
-4. **Prove it end to end** with a real throwaway domain: set `custom_domain`,
-   point DNS, browse `app.<domain>` and watch the certificate issue in the Caddy
-   logs. Do this before an agency is watching.
-5. Only then remove the per-host blocks for Dantalan, if you want to — there is
-   no need, and leaving them is one less thing changing at once.
+4. **Prove it end to end.** ✅ **Done 2026-09-12** with `app.kimaz.co.za`, a
+   domain the platform had never seen. The ask endpoint answered **404 before**
+   `custom_domain` was set and **200 after** — the security property, demonstrated
+   rather than assumed. First handshake issued a certificate and returned 200 in
+   7.4 seconds.
+
+   **The challenge was `tls-alpn-01`, not HTTP-01.** §4.2 wondered whether the
+   `http://` redirect block would interfere with issuance; it cannot, because
+   issuance never touches port 80. That open question is closed.
+
+   Runbook stage 2 lost both of its SSH-gated steps as a result: bringing a
+   domain live is now one `UPDATE vendors SET custom_domain`.
+5. Removing the per-host Dantalan blocks remains **optional and not done**.
+   There is no need: an exact hostname always beats the catch-all, so they cost
+   nothing but a few lines. Leaving them is one less thing changing at once, and
+   they are a useful reference for what a hand-written block looks like.
 
 **Rollback** at any point: delete the catch-all block and restart Caddy. Every
 explicit block is untouched, so the platform returns to exactly today's

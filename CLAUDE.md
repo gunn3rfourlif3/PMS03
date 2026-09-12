@@ -127,6 +127,13 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 - Next.js sets its own `Cache-Control`; a plain Caddy `header` directive loses to
   it. `reverse_proxy { header_down … }` wins.
 - Platform-admin rights come **only** from `PLATFORM_ADMIN_EMAILS`, not the DB.
+- **There is no `curl` in the API image.** Use `node -e "fetch(...)"` — node has
+  global fetch. Any operator instruction that assumes curl inside a container is
+  wrong before it is read.
+- Bringing an agency domain live is `UPDATE vendors SET custom_domain` and
+  nothing else. On-demand TLS issues the certificate on first handshake and CORS
+  reads the same allowlist; no Caddyfile edit, no restart, no SSH. Proven
+  2026-09-12 on app.kimaz.co.za.
 - Roles are baked into the JWT at login — a role change needs a fresh sign-in.
 - The marketing site's Lighthouse score (97, Speed Index 4.7s) came from removing
   a web-font CDN. Don't reintroduce blocking fonts or an autoplay hero video.
