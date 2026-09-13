@@ -94,11 +94,20 @@ atomically.
   `pending`; a platform admin approves it under **Admin → Signups**.
 - **Partner-created** — the partner uses **Partner → Agencies → Add agency**.
   Creates it active immediately, attributed to that partner.
-- **Direct (no partner)** — **there is no UI path.** Today this is a SQL call on
-  the VPS by the platform admin. This is gap R-3 in the requirements doc.
+- **Direct (no partner)** — **Admin -> Agencies -> New agency**. Creates it
+  active, with no partner attribution recorded, and seeds the onboarding
+  checklist so it appears in the console immediately. Nothing is emailed to the
+  owner: the first message an agency gets from Locare is one you send on
+  purpose, in stage 4.
 
 Attribution is permanent: the first recorded referral wins, and a later partner
-cannot take it over. Get it right at creation.
+cannot take it over. Get it right at creation. The direct route writes no
+partner at all, which is the point — a direct sale that looks referred pays
+commission for as long as the agency lives.
+
+**The form asks for units, not a tier.** Type the portfolio size and it shows
+the tier and the monthly price as you go. Below 30 units it refuses to save
+until you have recorded the agreed price, a reason and an end date — see 1.2.
 
 ### 1.2 Set the price
 

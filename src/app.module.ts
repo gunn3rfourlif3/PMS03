@@ -44,6 +44,7 @@ import { DebiCheckModule } from './modules/debicheck/debicheck.module';
 import { KycModule } from './providers/kyc/kyc.module';
 import { PartnerApplicationsModule } from './modules/partner-applications/partner-applications.module';
 import { OnboardingModule } from '@modules/onboarding/onboarding.module';
+import { AgenciesModule } from '@modules/agencies/agencies.module';
 import { ChangelogModule } from '@modules/changelog/changelog.module';
 import { ImportsModule } from '@modules/imports/imports.module';
 import { HostsModule } from './modules/hosts/hosts.module';
@@ -102,6 +103,7 @@ import { EsignModule } from './providers/esign/esign.module';
     KycModule,
     PartnerApplicationsModule,
     OnboardingModule,
+    AgenciesModule,
     ChangelogModule,
     ImportsModule,
     HostsModule,

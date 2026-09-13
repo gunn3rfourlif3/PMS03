@@ -72,21 +72,36 @@ the change is audited and takes effect at the operator's next sign-in.
 
 ---
 
-### R-3 · A direct-sold agency cannot be created in the UI · **Blocker**
+### R-3 · A direct-sold agency cannot be created in the UI · **DONE** (Sep 2026)
 
-`/admin/agencies` lists and impersonates, nothing more. Agency creation exists
-only via a partner's referral link or a partner's portal. An agency Vernon sells
-directly must be created by calling `provision_agency()` in SQL on the VPS.
+Was: `/admin/agencies` listed and impersonated, nothing more. Creation existed
+only via a partner's referral link or a partner's portal, so a direct sale meant
+calling `provision_agency()` in SQL on the VPS.
 
-**Blocks:** Stage 1.1 for exactly the customers the audit-season play is aimed
-at — every one of which is direct-sold.
+**Built:** Admin → Agencies → **New agency**, writing through
+`platform_create_agency()` (SECURITY DEFINER, migration `1720000051000`) — a
+sibling of `provision_agency()` that takes no partner, writes no deal or
+activity row, and takes the tier and price from the caller rather than
+defaulting to `starter`. The slug uniqueness check is inside the function, so
+two operators racing cannot both win, and the error names the agency already
+holding the address.
 
-**What to build:** Admin → Agencies → **New agency**, calling the same
-`provision_agency()` path with a null partner, and setting the tier at creation
-rather than defaulting to `starter`.
+**The form asks for units, not a tier.** The operator knows the portfolio size;
+which band it falls in is arithmetic the pricing engine already owns. Tier and
+MRR are derived and shown live as they type, with a manual tier available for
+odd cases and recorded as an override when it disagrees with the units.
 
-**Acceptance:** an operator creates a direct agency, on the right tier, in the
-UI, with no partner attribution recorded.
+**Below 30 units it will not save** without a price, a reason and an end date.
+The billing guard (§ pricing decisions) refuses these portfolios anyway; the
+difference is that it refuses them weeks later, at invoice time, in front of
+whoever runs billing rather than whoever made the sale. Open-ended discounts are
+refused outright — that is how a floor stops being a floor.
+
+Creation also seeds the 43-item onboarding checklist, so an agency that exists
+is an agency visible in the console. It deliberately sends the owner nothing.
+
+**Acceptance met:** an operator creates a direct agency, on the right tier, in
+the UI, with no partner attribution recorded.
 
 ---
 
@@ -216,8 +231,8 @@ every SSH-gated step. They are what turn the runbook from something Vernon
 executes into something Vernon delegates. R-1 is the biggest single piece;
 R-3, R-4 and R-6 are small once it lands.
 
-*Status: R-1 and R-4 are done — on-demand TLS and the domain panel. R-3 (create
-an agency in the UI) is the remaining one of this group; R-2 and R-6 follow.*
+*Status: R-1, R-3 and R-4 are done — on-demand TLS, direct agency creation and
+the domain panel. R-2 (platform-admin without a deploy) and R-6 remain.*
 
 **Second — cut the week (R-5).** Start with the CSV templates, which cost almost
 nothing and help immediately, then the dry-run importer. This is the largest

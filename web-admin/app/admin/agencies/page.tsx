@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, auth } from '@/lib/api';
+import { Plus } from 'lucide-react';
 import { GlassCard, Button, Badge, PageHeader, EmptyState } from '@/components/ui';
+import NewAgencyForm from '@/components/new-agency-form';
 
 type Agency = { vendorId: string; name: string; slug: string; status: string };
 type Event = { id: string; adminEmail: string; agency: string; reason?: string; startedAt: string; endedAt?: string };
@@ -12,6 +14,8 @@ export default function AdminAgenciesPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [created, setCreated] = useState('');
 
   const load = () => {
     api.listAgencies().then(setAgencies).catch((e) => { setErr(e.message); setAgencies([]); });
@@ -35,6 +39,32 @@ export default function AdminAgenciesPage() {
   return (
     <div>
       <PageHeader title="Agencies" subtitle="Every agency on the platform. Open one's back office to provide support." />
+
+      {!creating && (
+        <div className="mb-4">
+          <Button onClick={() => { setCreating(true); setCreated(''); }}>
+            <Plus size={14} /> New agency
+          </Button>
+        </div>
+      )}
+
+      {creating && (
+        <NewAgencyForm
+          onCancel={() => setCreating(false)}
+          onCreated={(r) => {
+            setCreating(false);
+            setCreated(`${r.agencyName} created — ${r.onboardingItems} onboarding items seeded.`);
+            load();
+          }}
+        />
+      )}
+
+      {created && (
+        <div className="mb-4 rounded-xl px-3 py-2 text-sm text-success"
+          style={{ background: 'color-mix(in srgb, var(--success) 12%, transparent)' }}>
+          {created}
+        </div>
+      )}
 
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
