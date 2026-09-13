@@ -154,7 +154,9 @@ export const api = {
   // Platform-admin: agency custom domain (R-4)
   // Platform-admin: who can reach the back office (R-2).
   operators: (): Promise<any> => req('/admin/operators'),
-  grantOperator: (input: { email: string; name?: string; note?: string }): Promise<any> =>
+  checkOperator: (email: string): Promise<any> =>
+    req(`/admin/operators/check?email=${encodeURIComponent(email)}`),
+  grantOperator: (input: { email: string; name?: string; note?: string; acknowledge?: boolean }): Promise<any> =>
     req('/admin/operators', { method: 'POST', body: JSON.stringify(input) }),
   revokeOperator: (id: string): Promise<any> =>
     req(`/admin/operators/${id}/revoke`, { method: 'POST' }),

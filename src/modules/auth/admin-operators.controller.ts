@@ -1,6 +1,6 @@
 import {
   BadRequestException, Body, ConflictException, Controller, Get, Param,
-  ParseUUIDPipe, Post, UseGuards,
+  ParseUUIDPipe, Post, Query, UseGuards,
 } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -47,6 +47,24 @@ export class AdminOperatorsController {
     return this.ds.query('SELECT * FROM platform_admins_list()');
   }
 
+  /**
+   * What this address would lose by becoming an admin. Sign-in resolves one
+   * context in priority order and stops at the first match, so a platform admin
+   * who is also an agency owner or a partner gets the back office and nothing
+   * else. Until account switching exists, the operator has to be told.
+   */
+  private conflictsFor(email: string): Promise<Array<{ kind: string; label: string; role: string }>> {
+    return this.ds.query('SELECT * FROM platform_admin_conflicts($1)', [email]);
+  }
+
+  /** Called as the operator types, so the warning appears before they commit. */
+  @Get('check')
+  async check(@Query('email') email?: string) {
+    const plan = planGrant({ email, note: 'placeholder' });
+    if (!plan.ok) return { email: (email ?? '').trim().toLowerCase(), conflicts: [] };
+    return { email: plan.value.email, conflicts: await this.conflictsFor(plan.value.email) };
+  }
+
   @Get()
   async index(@CurrentTenant() admin: { userId: string }) {
     const [grants, me] = await Promise.all([this.list(), this.emailOf(admin.userId)]);
@@ -64,6 +82,19 @@ export class AdminOperatorsController {
   async grant(@CurrentTenant() admin: { userId: string }, @Body() body: any) {
     const plan = planGrant(body ?? {});
     if (!plan.ok) throw new BadRequestException(plan.error);
+
+    // Refused server-side, not only in the UI: this is the one grant that takes
+    // something away, and an API that allows it silently would be the same bug
+    // one layer down.
+    const conflicts = await this.conflictsFor(plan.value.email);
+    if (conflicts.length > 0 && !body?.acknowledge) {
+      throw new ConflictException(
+        `${plan.value.email} already uses Locare as ${describe(conflicts)}. `
+        + 'Making them a platform admin replaces that access — they will no longer be able to sign in to it. '
+        + 'Confirm to grant anyway.',
+      );
+    }
+
     const by = await this.emailOf(admin.userId);
     try {
       await this.ds.query('SELECT platform_admin_grant($1,$2,$3,$4) AS id', [
@@ -79,7 +110,12 @@ export class AdminOperatorsController {
     }
     // They may be signed in already as a partner or an agency user; the new
     // rights apply the next time they sign in, which the UI says.
-    return { ok: true, email: plan.value.email, grants: await this.list() };
+    return {
+      ok: true,
+      email: plan.value.email,
+      replaced: conflicts,
+      grants: await this.list(),
+    };
   }
 
   @Post(':id/revoke')
@@ -118,4 +154,13 @@ export class AdminOperatorsController {
 
     return { ok: true, email: target.email, sessionsEnded: killed, grants: await this.list() };
   }
+}
+
+/** "a tenant of Dantalan Properties and a partner (Kimaz)" — for one sentence. */
+function describe(conflicts: Array<{ kind: string; label: string; role: string }>): string {
+  const parts = conflicts.map((c) => (c.kind === 'partner'
+    ? `a partner (${c.label})`
+    : `${c.role.replace(/_/g, ' ')} at ${c.label}`));
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
 }

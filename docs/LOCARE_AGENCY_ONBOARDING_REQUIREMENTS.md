@@ -83,6 +83,20 @@ and inside `platform_admin_revoke()` under a row lock (so a race cannot get past
 both): you cannot revoke yourself — this is the screen you would need to undo it
 — and you cannot remove the last active grant.
 
+**One footgun surfaced and closed.** `issueForUser()` resolves a sign-in context
+in priority order — platform admin, then partner, then vendor membership — and
+returns at the first match with `vendorId: null`. So granting operator access to
+someone who already uses Locare as a tenant, an agency owner or a partner
+silently takes that access away. That predates R-2, but the Operators screen
+makes it easy to hit: the obvious person to grant access to is an agency owner
+helping with an onboarding. The grant form now checks the address as it is typed
+and names exactly what would be replaced, requiring an explicit acknowledgement;
+the API refuses the same grant without `acknowledge`, because a UI-only warning
+is the same bug one layer down.
+
+The real fix is account switching — one person, several contexts, chosen at
+sign-in. That is its own piece of work and is not scheduled.
+
 **Acceptance met, and exceeded on timing:** an existing admin grants and revokes
 operator access in the UI; the change is audited and takes effect immediately.
 

@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldOff, KeyRound, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ShieldCheck, ShieldOff, KeyRound, Plus, TriangleAlert } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, Button, Badge, PageHeader, EmptyState, Field } from '@/components/ui';
 
@@ -32,6 +32,9 @@ export default function AdminOperatorsPage() {
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
+  const [conflicts, setConflicts] = useState<Array<{ kind: string; label: string; role: string }>>([]);
+  const [acknowledge, setAcknowledge] = useState(false);
+  const seq = useRef(0);
 
   const load = () => {
     api.operators()
@@ -40,16 +43,33 @@ export default function AdminOperatorsPage() {
   };
   useEffect(load, []);
 
+  // Sign-in resolves ONE context, so making an existing tenant, agency user or
+  // partner an admin takes their other access away. Check as they type, so the
+  // warning lands before they commit rather than as a rejection afterwards.
+  useEffect(() => {
+    const email = f.email.trim();
+    setAcknowledge(false);
+    if (!email.includes('@')) { setConflicts([]); return; }
+    const mine = ++seq.current;
+    const t = setTimeout(() => {
+      api.checkOperator(email)
+        .then((r) => { if (mine === seq.current) setConflicts(r.conflicts ?? []); })
+        .catch(() => { if (mine === seq.current) setConflicts([]); });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [f.email]);
+
   const active = (grants ?? []).filter((g) => !g.revokedAt);
   const past = (grants ?? []).filter((g) => g.revokedAt);
 
   const grant = async () => {
     setBusy('grant'); setErr(''); setOk('');
     try {
-      const r = await api.grantOperator(f);
+      const r = await api.grantOperator({ ...f, acknowledge });
       setGrants(r.grants ?? []);
       setOk(`${r.email} can sign in as an operator. It takes effect the next time they sign in.`);
       setF({ email: '', name: '', note: '' });
+      setConflicts([]); setAcknowledge(false);
       setAdding(false);
     } catch (e: any) { setErr(e.message); }
     finally { setBusy(''); }
@@ -114,8 +134,42 @@ export default function AdminOperatorsPage() {
                 placeholder="Onboarding operator — runs stages 1 to 5" />
             </Field>
           </div>
+          {conflicts.length > 0 && (
+            <div className="mt-4 rounded-xl border border-line p-3"
+              style={{ background: 'color-mix(in srgb, var(--danger) 6%, transparent)' }}>
+              <div className="flex items-start gap-2 text-sm text-danger">
+                <TriangleAlert size={15} className="mt-0.5 shrink-0" />
+                <div>
+                  <div className="font-medium">This address already uses Locare.</div>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-4 text-ink">
+                    {conflicts.map((c, i) => (
+                      <li key={i}>
+                        {c.kind === 'partner'
+                          ? <>Partner — <span className="text-muted">{c.label}</span></>
+                          : <>{c.role.replace(/_/g, ' ')} at <span className="text-muted">{c.label}</span></>}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-ink">
+                    Sign-in gives a person one context. Making them a platform admin{' '}
+                    <span className="font-medium">replaces</span> the access above — they will not be
+                    able to sign in to it any more.
+                  </p>
+                </div>
+              </div>
+              <label className="mt-3 flex items-center gap-2 text-sm text-ink">
+                <input type="checkbox" checked={acknowledge} onChange={(e) => setAcknowledge(e.target.checked)} />
+                I understand, grant anyway
+              </label>
+            </div>
+          )}
+
           <div className="mt-4 flex items-center gap-2">
-            <Button onClick={grant} loading={busy === 'grant'} disabled={!f.email.trim() || !f.note.trim()}>
+            <Button
+              onClick={grant}
+              loading={busy === 'grant'}
+              disabled={!f.email.trim() || !f.note.trim() || (conflicts.length > 0 && !acknowledge)}
+            >
               Grant access
             </Button>
             <Button variant="ghost" onClick={() => setAdding(false)} disabled={!!busy}>Cancel</Button>
