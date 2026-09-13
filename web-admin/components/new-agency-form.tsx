@@ -32,6 +32,25 @@ const TIER_LABEL: Record<string, string> = {
   custom: 'Custom', starter: 'Starter', growth: 'Growth', scale: 'Scale',
 };
 
+const input = 'w-full rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand';
+
+/**
+ * MODULE SCOPE, deliberately. Defined inside the component this would be a new
+ * component type on every render, so React would unmount and remount every
+ * input instead of updating it — the field loses focus on the first keystroke
+ * and autoFocus yanks the caret back to the first field. It is only a wrapper
+ * around a label; it must stay out here.
+ */
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">{label}</span>
+      {children}
+      {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
+    </label>
+  );
+}
+
 export default function NewAgencyForm({ onCreated, onCancel }: {
   onCreated: (r: { vendorId: string; agencyName: string; onboardingItems: number }) => void;
   onCancel: () => void;
@@ -76,16 +95,6 @@ export default function NewAgencyForm({ onCreated, onCancel }: {
     finally { setBusy(false); }
   };
 
-  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">{label}</span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
-    </label>
-  );
-
-  const input = 'w-full rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand';
-
   return (
     <GlassCard className="mb-4">
       <div className="mb-4 flex items-center gap-2 font-heading text-lg font-bold text-ink">
@@ -106,7 +115,15 @@ export default function NewAgencyForm({ onCreated, onCancel }: {
           <input className={input} value={f.ownerEmail} onChange={set('ownerEmail')} placeholder="owner@agency.co.za" spellCheck={false} />
         </Field>
         <Field label="Units under management" hint="Sets the tier and the price.">
-          <input className={input} value={f.unitCount} onChange={set('unitCount')} inputMode="numeric" placeholder="48" />
+          <input
+            className={input}
+            value={f.unitCount}
+            // Digits only. "199d" parses to NaN and the form then complains
+            // about whichever field fails first, which reads as a bug.
+            onChange={(e) => setF((p) => ({ ...p, unitCount: e.target.value.replace(/[^0-9]/g, '') }))}
+            inputMode="numeric"
+            placeholder="48"
+          />
         </Field>
         <Field label="Tier" hint={preview?.tierOverridden ? 'Overriding what the unit count implies.' : 'Derived from the units.'}>
           <select className={input} value={f.tier} onChange={set('tier')}>
