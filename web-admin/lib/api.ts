@@ -152,6 +152,13 @@ export const api = {
     req('/admin/impersonation-events'),
 
   // Platform-admin: agency custom domain (R-4)
+  // Platform-admin: who can reach the back office (R-2).
+  operators: (): Promise<any> => req('/admin/operators'),
+  grantOperator: (input: { email: string; name?: string; note?: string }): Promise<any> =>
+    req('/admin/operators', { method: 'POST', body: JSON.stringify(input) }),
+  revokeOperator: (id: string): Promise<any> =>
+    req(`/admin/operators/${id}/revoke`, { method: 'POST' }),
+
   // Platform-admin: create a direct-sold agency (R-3). `previewAgency` prices
   // without writing, so the form can show the tier and MRR as the operator types.
   previewAgency: (input: any): Promise<any> =>

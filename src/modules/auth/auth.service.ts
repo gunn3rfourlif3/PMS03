@@ -160,18 +160,41 @@ export class AuthService {
   }
 
   /**
+   * Is this address a platform admin?
+   *
+   * Two sources, deliberately. `platform_admins` is the real one — granted and
+   * revoked in the UI, audited, effective immediately. `PLATFORM_ADMIN_EMAILS`
+   * is the BOOTSTRAP: it is how the first admin exists on a fresh database, and
+   * how you get back in if the last grant is ever revoked by accident. It is
+   * checked in addition, never instead.
+   *
+   * A database that cannot answer falls back to the env var rather than locking
+   * everyone out — an outage should not also be an access-control incident.
+   */
+  private async isPlatformAdmin(email: string): Promise<boolean> {
+    if (!email) return false;
+    const bootstrap = (process.env.PLATFORM_ADMIN_EMAILS ?? '')
+      .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (bootstrap.includes(email)) return true;
+    try {
+      const [row] = await this.dataSource.query('SELECT platform_admin_is($1) AS a', [email]);
+      return !!row?.a;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Resolve a user's context and mint a revocable session token. Context priority:
-   * platform admin (env allowlist) → partner (partner_members) → vendor membership.
-   * Shared by OTP and Google sign-in. Throws if the only membership is 'pending'
-   * (approved applicant who hasn't signed their lease).
+   * platform admin (granted, or the env bootstrap) → partner (partner_members) →
+   * vendor membership. Shared by OTP and Google sign-in. Throws if the only
+   * membership is 'pending' (approved applicant who hasn't signed their lease).
    */
   async issueForUser(user: User): Promise<{ accessToken: string; idleMinutes: number }> {
     const email = (user.email ?? '').toLowerCase();
-    const adminEmails = (process.env.PLATFORM_ADMIN_EMAILS ?? '')
-      .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 
     let payload: JwtPayload;
-    if (email && adminEmails.includes(email)) {
+    if (await this.isPlatformAdmin(email)) {
       payload = { sub: user.id, vendorId: null, partnerId: null, roles: ['platform_admin'] };
     } else {
       let pm: { partner_id: string } | undefined;

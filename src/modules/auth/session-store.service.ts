@@ -32,10 +32,17 @@ export class SessionStore implements OnModuleDestroy {
   }
 
   private key(jti: string) { return this.prefix + jti; }
+  /** Reverse index: every live session id for one user. */
+  private userKey(userId: string) { return `usess:${userId}`; }
 
   /** Register a new session for `ttlSec` seconds. */
   async create(jti: string, userId: string, ttlSec: number): Promise<void> {
     await this.redis.set(this.key(jti), userId, 'EX', ttlSec);
+    // Index it so an admin revoke can reach every device this person is signed
+    // in on. Members may outlive their session key; deleting an absent key is a
+    // no-op, so a stale member costs nothing.
+    await this.redis.sadd(this.userKey(userId), jti);
+    await this.redis.expire(this.userKey(userId), ttlSec * 4);
   }
 
   /** Is this session still valid (not revoked / not idle-expired)? */
@@ -50,7 +57,26 @@ export class SessionStore implements OnModuleDestroy {
 
   /** Instantly revoke a session (logout). */
   async revoke(jti: string): Promise<void> {
+    const userId = await this.redis.get(this.key(jti));
     await this.redis.del(this.key(jti));
+    if (userId) await this.redis.srem(this.userKey(userId), jti);
+  }
+
+  /**
+   * Revoke EVERY session a user holds, on every device. Used when platform-admin
+   * access is withdrawn: leaving their current token alive would mean a revoked
+   * operator keeps admin rights until their idle window lapses, which is the
+   * whole failure R-2 exists to close.
+   *
+   * Returns how many sessions were killed, so the audit line can say.
+   */
+  async revokeAllForUser(userId: string): Promise<number> {
+    const key = this.userKey(userId);
+    const jtis = await this.redis.smembers(key);
+    if (jtis.length === 0) return 0;
+    const killed = await this.redis.del(...jtis.map((j) => this.key(j)));
+    await this.redis.del(key);
+    return killed;
   }
 
   /** Store a short-lived, single-use value (e.g. the Google one-time return code). */

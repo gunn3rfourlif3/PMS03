@@ -53,22 +53,38 @@ window all six hosts serve valid TLS, with no VPS access and no restart.
 
 ---
 
-### R-2 · Operator access is an environment variable · **Blocker**
+### R-2 · Operator access is an environment variable · **DONE** (Sep 2026)
 
-Platform-admin rights come only from `PLATFORM_ADMIN_EMAILS`, never from the
-database. Granting an operator admin access therefore requires editing
-`.env.prod` and recreating the API container — so Vernon must deploy in order to
-let someone else work.
+Was: platform-admin rights came only from `PLATFORM_ADMIN_EMAILS`, so granting
+an operator access meant editing `.env.prod` and recreating the API container.
+So did taking it away.
 
-**Blocks:** Stage 4.2, and every stage that needs Admin.
+**Built:** Admin → Operators. Grants live in `platform_admins` (migration
+`1720000052000`) and are append-only — a revoke stamps `revoked_at` rather than
+deleting the row, because "who could do this, and when" is a question only ever
+asked after something has gone wrong, and a deleted row is no answer. Every
+grant carries who granted it, when, and a required reason.
 
-**What to build:** platform-admin as a database role with an audited grant and
-revoke, keeping the env var as an emergency bootstrap for the first admin only.
-Revocation matters as much as granting: today, removing an operator's access is
-also a deploy.
+`PLATFORM_ADMIN_EMAILS` survives as a **bootstrap**: it is how the first admin
+exists on a fresh database and how you get back in if the last grant is removed
+by accident. It is checked in addition to the table, never instead of it, and
+the UI lists those addresses separately as un-revocable, because a button that
+cannot work is worse than an explanation.
 
-**Acceptance:** an existing admin grants and revokes operator access in the UI;
-the change is audited and takes effect at the operator's next sign-in.
+**Revocation is immediate, not next-sign-in.** The original acceptance criterion
+said "takes effect at the operator's next sign-in", which would have left a
+revoked operator holding admin rights for the length of their idle window — the
+precise failure this gap existed to close. `SessionStore` now keeps a reverse
+index of every session id per user, and a revoke deletes all of them, so access
+ends on their next request, on every device.
+
+Two guards, enforced both in the pure rules module (so the UI can explain them)
+and inside `platform_admin_revoke()` under a row lock (so a race cannot get past
+both): you cannot revoke yourself — this is the screen you would need to undo it
+— and you cannot remove the last active grant.
+
+**Acceptance met, and exceeded on timing:** an existing admin grants and revokes
+operator access in the UI; the change is audited and takes effect immediately.
 
 ---
 
@@ -231,8 +247,9 @@ every SSH-gated step. They are what turn the runbook from something Vernon
 executes into something Vernon delegates. R-1 is the biggest single piece;
 R-3, R-4 and R-6 are small once it lands.
 
-*Status: R-1, R-3 and R-4 are done — on-demand TLS, direct agency creation and
-the domain panel. R-2 (platform-admin without a deploy) and R-6 remain.*
+*Status: R-1, R-2, R-3 and R-4 are done — on-demand TLS, operator access,
+direct agency creation and the domain panel. Every SSH-gated step in this group
+is closed; R-6 remains.*
 
 **Second — cut the week (R-5).** Start with the CSV templates, which cost almost
 nothing and help immediately, then the dry-run importer. This is the largest
