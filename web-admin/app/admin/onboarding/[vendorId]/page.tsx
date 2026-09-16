@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, Progress, EmptyState, ConfirmModal } from '@/components/ui';
 import DomainEditor from '@/components/domain-editor';
@@ -11,7 +11,7 @@ type Item = {
   itemKey: string; stage: number; title: string; detail?: string | null;
   status: 'pending' | 'in_progress' | 'blocked' | 'done' | 'skipped' | 'failed';
   waitingOn: 'locare' | 'agency' | 'third_party';
-  verifiable: boolean; weightHours: string | number;
+  verifiable: boolean; weightHours: string | number; howToCheck?: string | null;
   completedAt?: string | null; notes?: string | null;
 };
 type Stage = {
@@ -41,6 +41,7 @@ const statusTone = (s: Item['status']): 'success' | 'brand' | 'danger' | 'muted'
 export default function OnboardingDetailPage() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const [d, setD] = useState<Detail | null>(null);
+  const [howTo, setHowTo] = useState<string | null>(null);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState('');
   const [open, setOpen] = useState<number | null>(null);
@@ -185,8 +186,29 @@ export default function OnboardingDetailPage() {
                             <Badge tone={statusTone(it.status)}>{STATUS_LABEL[it.status]}</Badge>
                             <span>waiting on {WAITING_LABEL[it.waitingOn]}</span>
                             <span>· ~{Number(it.weightHours)}h</span>
-                            {it.verifiable && <span title="An automated check will confirm this once checks ship">· checkable</span>}
+                            {it.verifiable && (it.howToCheck ? (
+                              // A disclosure, not a hover tooltip: these run to
+                              // several lines, and a tooltip is unreadable on a
+                              // phone and unreachable from a keyboard.
+                              <button
+                                type="button"
+                                onClick={() => setHowTo((k) => (k === it.itemKey ? null : it.itemKey))}
+                                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-brand hover:underline"
+                                aria-expanded={howTo === it.itemKey}
+                              >
+                                <HelpCircle size={12} />
+                                {howTo === it.itemKey ? 'Hide' : 'How to check'}
+                              </button>
+                            ) : <span>· checkable</span>)}
                           </div>
+                          {howTo === it.itemKey && it.howToCheck && (
+                            <div
+                              className="mt-2 rounded-xl border border-line px-3 py-2 text-sm text-ink"
+                              style={{ background: 'color-mix(in srgb, var(--brand) 7%, transparent)' }}
+                            >
+                              {it.howToCheck}
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-none gap-2">
                           {it.status !== 'done' && (

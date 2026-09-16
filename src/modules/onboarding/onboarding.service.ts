@@ -106,6 +106,7 @@ export class OnboardingService {
 
     const items = await this.repo().find({ where: { vendorId }, order: { stage: 'ASC', itemKey: 'ASC' } });
     const stage = currentStage(items);
+    const byKey = new Map(TEMPLATE.map((t) => [t.key, t]));
 
     return {
       vendor,
@@ -118,7 +119,18 @@ export class OnboardingService {
       daysStalled: daysStalled(items),
       stages: STAGES.map((s) => {
         const summary = stageSummaries(items).find((x) => x.stage === s.stage)!;
-        return { ...s, ...summary, items: items.filter((i) => i.stage === s.stage) };
+        return {
+          ...s,
+          ...summary,
+          // howToCheck comes from the TEMPLATE, not the stored row. Instructions
+          // improve; an agency seeded in March should get today's wording, not
+          // March's. Titles stay on the row because renaming one mid-flight
+          // would change what somebody already ticked.
+          items: items.filter((i) => i.stage === s.stage).map((i) => ({
+            ...i,
+            howToCheck: byKey.get(i.itemKey)?.howToCheck ?? null,
+          })),
+        };
       }),
     };
   }
