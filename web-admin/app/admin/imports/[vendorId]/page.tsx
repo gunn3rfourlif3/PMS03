@@ -1,10 +1,10 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Upload, CheckCircle2, AlertTriangle, XCircle, Trash2, ArrowRight, FileSpreadsheet,
-  Download, PenLine,
+  Download, PenLine, Check,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, EmptyState } from '@/components/ui';
@@ -104,7 +104,12 @@ export default function ImportWorkspace() {
           ? { signedBy: sign.signedBy.trim(), signedAt: sign.signedAt, scheduleDigest: report.scheduleDigest }
           : {}),
       });
-      setDone(`${r.label}: ${r.created} created, ${r.updated} updated${r.skipped ? `, ${r.skipped} left out` : ''}.`);
+      const after = steps.find((e) => e !== r.entity && !committed.has(e));
+      setDone(
+        `${r.label}: ${r.created} created, ${r.updated} updated${r.skipped ? `, ${r.skipped} left out` : ''}.`
+        + (after ? ` Next: ${specs.find((x) => x.entity === after)?.label ?? after}.` : ' That is every file.'),
+      );
+      if (after) setEntity(after);
       reset(); refresh();
     } catch (e: any) { setErr(e.message); } finally { setBusy(''); }
   };
@@ -119,6 +124,25 @@ export default function ImportWorkspace() {
   const mapped = new Set(Object.values(active?.mapping ?? {}));
   const missing = (spec?.fields ?? []).filter((f) => f.required && !mapped.has(f.key));
 
+  // Where the agency is in the sequence, read from what has actually been
+  // committed. The order is a dependency order, not a preference: units need
+  // properties, leases need units and tenants, money needs leases.
+  const committed = new Map<string, number>();
+  for (const b of batches ?? []) {
+    if (b.status === 'committed') committed.set(b.entity, (committed.get(b.entity) ?? 0) + (b.rowCount || 0));
+  }
+  const steps = ORDER.filter((e) => specs.some((s) => s.entity === e));
+  const nextEntity = steps.find((e) => !committed.has(e)) ?? null;
+  const allDone = nextEntity === null && steps.length > 0;
+
+  // Land on the step they are actually up to, rather than always on Owners.
+  const pickedOnce = useRef(false);
+  useEffect(() => {
+    if (batches === null || pickedOnce.current) return;
+    pickedOnce.current = true;
+    if (nextEntity) setEntity(nextEntity);
+  }, [batches, nextEntity]);
+
   return (
     <div>
       <PageHeader
@@ -132,6 +156,53 @@ export default function ImportWorkspace() {
         </Link>
       </div>
 
+      {/* Where they are. The whole workflow is a dependency order, and an
+          operator who cannot see it has to remember it. */}
+      {batches !== null && steps.length > 0 && (
+        <GlassCard className="mb-4">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <span className="text-xs font-medium uppercase tracking-wide text-muted">Order of import</span>
+            <span className="text-sm text-muted">
+              {allDone ? 'All files imported.' : `${committed.size} of ${steps.length} done`}
+            </span>
+          </div>
+          <ol className="flex flex-col gap-1">
+            {steps.map((e, i) => {
+              const sp = specs.find((x) => x.entity === e)!;
+              const isDone = committed.has(e);
+              const isNext = e === nextEntity;
+              return (
+                <li
+                  key={e}
+                  className="flex flex-wrap items-center gap-2 rounded-lg px-2 py-1.5"
+                  style={isNext ? { background: 'color-mix(in srgb, var(--brand) 10%, transparent)' } : undefined}
+                >
+                  <span
+                    className="grid h-6 w-6 flex-none place-items-center rounded-full text-xs font-bold"
+                    style={{
+                      background: isDone
+                        ? 'color-mix(in srgb, var(--success) 18%, transparent)'
+                        : isNext ? 'var(--brand)' : 'color-mix(in srgb, var(--muted) 14%, transparent)',
+                      color: isDone ? 'var(--success)' : isNext ? 'var(--onbrand)' : 'var(--muted)',
+                    }}
+                  >
+                    {isDone ? <Check size={13} /> : i + 1}
+                  </span>
+                  <span className={isDone || isNext ? 'text-ink' : 'text-muted'}>{sp.label}</span>
+                  {sp.postsToLedger && (
+                    <Badge tone="danger"><AlertTriangle size={11} /> moves money</Badge>
+                  )}
+                  {isDone && <span className="text-sm text-muted">{committed.get(e)} rows imported</span>}
+                  {isNext && !active && (
+                    <span className="ml-auto text-sm font-medium text-brand">Upload this next →</span>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </GlassCard>
+      )}
+
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
       {done && (
         <div className="mb-4 rounded-xl px-3 py-2 text-sm text-success"
@@ -143,7 +214,9 @@ export default function ImportWorkspace() {
       {/* ── 1. Upload ─────────────────────────────────────────────────── */}
       {!active && (
         <GlassCard className="mb-4">
-          <div className="mb-3 font-heading text-base font-bold text-ink">Upload a file</div>
+          <div className="mb-3 font-heading text-base font-bold text-ink">
+            {allDone ? 'Upload another file' : `Step ${steps.indexOf(nextEntity ?? steps[0]) + 1} — upload the ${(specs.find((x) => x.entity === nextEntity)?.label ?? '').toLowerCase()} file`}
+          </div>
           <div className="flex flex-wrap items-end gap-2">
             <label className="min-w-0 flex-1">
               <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">What is in it</span>
