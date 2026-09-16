@@ -1,7 +1,6 @@
 # Locare — agency data import
 
-Written 2026-09-12. Owner: Vernon. Status: **phases 1 and 2 built** (16 Sep);
-phase 3 (deposits and arrears) not started.
+Written 2026-09-12. Owner: Vernon. Status: **built** (16 Sep), all three phases.
 
 Implements **R-5** from `LOCARE_AGENCY_ONBOARDING_REQUIREMENTS.md`. Stage 5 of
 the onboarding runbook is entirely manual entry today and is the bulk of the
@@ -195,7 +194,36 @@ properties → units → tenants → leases). This is the bulk of the 7 hours.
   wrong from day one.
 
 **Phase 3 — deposits and arrears**, with the signed schedule. Last, deliberately.
-The commit path refuses them explicitly rather than falling through.
+**Built 16 Sep**, `import-money.ts` and `import-schedule.ts`. Five decisions:
+
+- **An opening balance credits EQUITY, not rental income.** That rent was earned
+  under the agency's previous system. Recognising it as income at go-live would
+  overstate the period, and both the management fee and VAT are computed off
+  income — so the error would follow the money out of the business. New standard
+  account `3000 Opening Balances (migration)`.
+- **It also raises an invoice.** Arrears and the rent roll are read from
+  `invoices`, not the ledger, so a balance posted only to the ledger would be
+  invisible on the dashboard while the tenant genuinely owed the money. The
+  invoice is dated `asAt`, so months-old arrears age from when they were struck
+  rather than landing in the 0–30 bucket, and it is marked `lateFeeApplied` so
+  Locare's dunning does not charge a late fee on debt inherited from the
+  previous agent.
+- **Only `locare_trust` deposits post.** Anything held by the landlord or a
+  previous agent is recorded and shown, never posted: booking it as trust cash
+  puts the trust bank out against the real bank balance, which is the one
+  reconciliation a letting agency cannot afford to get wrong.
+- **One ledger transaction per batch.** A single balanced journal with a line per
+  lease, so `ledger.reverse(id)` undoes an entire import in one call, and
+  `import_batches.ledger_batch_ref` records which one.
+- **The signature is tied to the figures.** The schedule carries a fingerprint of
+  the exact amounts, order-independent so re-sorting a sheet does not invalidate
+  it, but sensitive to a single cent and to the same total moving between
+  tenants. Commit refuses unless the fingerprint still matches, so a signature
+  can only ever authorise numbers that were actually in front of someone.
+
+A second opening balance for the same lease is **blocked at the check**: doubling
+a tenant's arrears in an append-only ledger is remediable only by a reversing
+entry, so it is refused rather than discovered.
 
 ## 9. Open questions
 

@@ -17,6 +17,13 @@ export const STD_ACCOUNTS: Record<
   VAT_OUTPUT: { code: '2100', name: 'VAT Output (payable)', type: 'liability' },
   OWNER_PAYABLE: { code: '2300', name: 'Owner Payable', type: 'liability' },
   PROPERTY_EXPENSE: { code: '5000', name: 'Property Expense', type: 'expense' },
+  /**
+   * The contra side of a migrated opening balance. Equity, not income: that
+   * rent was earned under the agency's previous system, and recognising it as
+   * income at go-live would overstate the period and inflate both the
+   * management fee and VAT computed off it.
+   */
+  OPENING_BALANCE_EQUITY: { code: '3000', name: 'Opening Balances (migration)', type: 'equity' },
   DEPOSIT_TRUST: {
     code: '2200',
     name: 'Tenant Deposits (trust)',

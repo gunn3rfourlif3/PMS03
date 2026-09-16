@@ -37,7 +37,9 @@ describe('email header', () => {
     expect(html).not.toContain('email-mark');
     // An agency's stored logo is drawn on a white header in their apps, so it is
     // almost certainly dark — an ink bar would swallow it.
-    expect(html).toContain('background:#ffffff;padding:20px 32px');
+    expect(html).toContain('background-color:#ffffff');
+    // …and specifically NOT the dark header treatment.
+    expect(html).not.toContain('background-color:#17455C');
   });
 
   it('honours an explicit ink header for a light logo variant', () => {
@@ -45,7 +47,10 @@ describe('email header', () => {
       logoUrl: 'https://locare.co.za/brand/locare-logo-email-white.png',
       headerStyle: 'ink', heading: 'Hi',
     });
-    expect(html).toContain('background:#14161B;padding:20px 32px');
+    // #17455C since the Sep 2026 palette change; the point is that an explicit
+    // 'ink' beats the logo-implies-light default, whatever the shade is.
+    expect(html).toContain('background-color:#17455C');
+    expect(html).toContain('padding:22px 32px');
   });
 
   it('degrades to the wordmark when no mark URL is configured', () => {
@@ -59,9 +64,12 @@ describe('email header', () => {
       agencyName: 'Dantalan', brandColor: '#6B3FA0', heading: 'Hi',
       buttons: [{ label: 'Go', url: 'https://x' }],
     });
-    expect(html).toContain('background:#6B3FA0;border-radius:10px'); // button
-    expect(html).toContain('height:3px;background:#6B3FA0'); // brand rule
+    // The button is the load-bearing case: it is the one element whose colour a
+    // recipient reads as "this is from my agency".
+    expect(html).toContain('background-color:#6B3FA0');
+    expect(html).toContain('linear-gradient(135deg, #6B3FA0');
     expect(html.toLowerCase()).not.toContain('#0f6e56'); // no Locare green left
+    expect(html.toLowerCase()).not.toContain('#2d6a8f'); // nor Locare blue
   });
 });
 

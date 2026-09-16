@@ -5,7 +5,7 @@ export type InvoiceStatus =
   | 'draft' | 'issued' | 'partly_paid' | 'paid' | 'overdue' | 'void';
 
 export interface InvoiceLineItem {
-  kind: 'rent' | 'utility' | 'levy' | 'late_fee' | 'tax';
+  kind: 'rent' | 'utility' | 'levy' | 'late_fee' | 'tax' | 'opening';
   description: string;
   amount: number;
 }

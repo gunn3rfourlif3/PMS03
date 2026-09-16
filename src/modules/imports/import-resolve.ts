@@ -116,6 +116,16 @@ export async function resolveRows(
                           JOIN memberships mm ON mm.user_id = u.id AND mm.role = 'tenant'
                          WHERE u.name IS NOT NULL`) : null;
 
+  // Leases that already carry a migrated opening balance. Posting a second one
+  // doubles a tenant's arrears in an append-only ledger, where the only remedy
+  // is a reversing entry — so it is refused at the check, not discovered later.
+  const alreadyOpened = spec.entity === 'opening_balances'
+    ? new Set<string>((await m.query(
+      `SELECT DISTINCT lease_id AS id FROM invoices
+        WHERE line_items @> '[{"kind":"opening"}]'::jsonb`,
+    )).map((r: { id: string }) => r.id))
+    : null;
+
   if (properties && properties.size === 0 && spec.entity !== 'properties') {
     blockers.push('This agency has no properties yet. Import properties, then units, before this file.');
   }
@@ -169,6 +179,12 @@ export async function resolveRows(
         issues.push(err('unitLabel', 'Unit number', `no active lease on "${v.unitLabel}" at "${v.propertyName}" — a deposit or balance needs a lease to attach to`));
       } else {
         existingId = leasesIdx.get(leaseKey);
+        if (alreadyOpened?.has(existingId!)) {
+          issues.push(err(
+            'balance', 'Amount owing',
+            'an opening balance has already been imported for this lease — importing another would double what the tenant owes',
+          ));
+        }
       }
     }
 

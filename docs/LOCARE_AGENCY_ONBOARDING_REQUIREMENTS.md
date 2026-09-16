@@ -163,7 +163,7 @@ without a deploy.
 
 ---
 
-### R-5 · There is no data import · **Mostly done** (Sep 2026)
+### R-5 · There is no data import · **DONE** (Sep 2026)
 
 Was: no CSV or bulk endpoint for owners, properties, units, tenants or leases,
 so stage 5 was entirely manual entry and the bulk of the week.
@@ -171,12 +171,12 @@ so stage 5 was entirely manual entry and the bulk of the week.
 **Built:** templates, upload, column mapping, dry run, and — as of 16 Sep — the
 commit, for the five reversible entities. See `LOCARE_DATA_IMPORT_DESIGN.md`.
 
-**Still outstanding: deposits and opening balances** (phase 3). These post to
-the append-only ledger, so they need the arrears schedule printed and signed by
-the principal before anything is posted. The commit path refuses them explicitly
-rather than falling through, so there is no way to post money by accident — but
-stage 5 is not finished until this lands, and it is the half that carries the
-real risk.
+**Deposits and opening balances landed 16 Sep**, with the signed schedule: the
+figures are exported for the principal to sign, the schedule carries a
+fingerprint of the exact amounts, and the commit refuses unless that fingerprint
+still matches — so a signature can only ever authorise the numbers that were in
+front of them. An opening balance credits equity rather than income, and raises
+an invoice as well as posting, because arrears are read from invoices.
 
 The original text follows, for the record.
 

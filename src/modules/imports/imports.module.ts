@@ -9,12 +9,14 @@ import { AdminImportsController } from './admin-imports.controller';
 import { PublicImportsController } from './public-imports.controller';
 import { ImportsScheduler } from './imports.scheduler';
 import { ImportsProcessor } from './imports.processor';
+import { AccountingModule } from '@modules/accounting/accounting.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ImportBatch]),
     TenancyModule,
     BullModule.registerQueue({ name: QUEUE_IMPORTS }),
+    AccountingModule,
   ],
   providers: [ImportsService, ImportsScheduler, ImportsProcessor],
   controllers: [AdminImportsController, PublicImportsController],

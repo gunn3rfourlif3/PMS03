@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   Upload, CheckCircle2, AlertTriangle, XCircle, Trash2, ArrowRight, FileSpreadsheet,
+  Download, PenLine,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, EmptyState } from '@/components/ui';
@@ -36,6 +37,7 @@ export default function ImportWorkspace() {
   const [busy, setBusy] = useState('');
   const [err, setErr] = useState('');
   const [done, setDone] = useState('');
+  const [sign, setSign] = useState({ signedBy: '', signedAt: '' });
 
   const spec = specs.find((s) => s.entity === (active?.entity ?? entity));
 
@@ -78,15 +80,30 @@ export default function ImportWorkspace() {
     catch (e: any) { setErr(e.message); } finally { setBusy(''); }
   };
 
+  const downloadSchedule = async () => {
+    setBusy('schedule'); setErr('');
+    try { await api.importSchedule(vendorId, active.id); }
+    catch (e: any) { setErr(e.message); } finally { setBusy(''); }
+  };
+
   const commit = async () => {
     const blocked = report?.blocked ?? 0;
     if (blocked > 0 && !window.confirm(
       `${blocked} row${blocked === 1 ? '' : 's'} cannot be imported and will be left out.\n\n`
       + 'Import the other rows anyway?',
     )) return;
+    if (report?.postsToLedger && !window.confirm(
+      'This posts to the accounting ledger, which cannot be edited afterwards — only reversed.\n\n'
+      + 'Post these figures?',
+    )) return;
     setBusy('commit'); setErr('');
     try {
-      const r = await api.importCommit(vendorId, active.id, blocked > 0);
+      const r = await api.importCommit(vendorId, active.id, {
+        skipBlocked: blocked > 0,
+        ...(report?.postsToLedger
+          ? { signedBy: sign.signedBy.trim(), signedAt: sign.signedAt, scheduleDigest: report.scheduleDigest }
+          : {}),
+      });
       setDone(`${r.label}: ${r.created} created, ${r.updated} updated${r.skipped ? `, ${r.skipped} left out` : ''}.`);
       reset(); refresh();
     } catch (e: any) { setErr(e.message); } finally { setBusy(''); }
@@ -149,8 +166,9 @@ export default function ImportWorkspace() {
             </label>
           </div>
           <p className="mt-2 text-xs text-muted">
-            Excel or CSV, in dependency order: owners, properties, units, tenants, leases.
-            Deposits and opening balances post to the ledger and are not committed from here yet.
+            Excel or CSV, in dependency order: owners, properties, units, tenants, leases, then
+            deposits and opening balances. The last two post to the accounting ledger and need a
+            schedule the principal signs before anything is posted.
           </p>
         </GlassCard>
       )}
@@ -279,18 +297,77 @@ export default function ImportWorkspace() {
             </div>
           )}
 
+          {report.postsToLedger && report.moneyTotals && (
+            <div className="mt-4 rounded-xl border border-line p-3"
+              style={{ background: 'color-mix(in srgb, var(--danger) 5%, transparent)' }}>
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium text-ink">
+                <PenLine size={15} /> Sign-off before posting
+              </div>
+
+              <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                {report.entity === 'deposits' ? (
+                  <>
+                    <Money label="Into the Locare trust account" v={report.moneyTotals.intoTrust} />
+                    <Money label="Held by landlord or previous agent" v={report.moneyTotals.heldElsewhere} muted />
+                  </>
+                ) : (
+                  <>
+                    <Money label="Owed by tenants" v={report.moneyTotals.owed} />
+                    <Money label="In credit" v={report.moneyTotals.credits} muted />
+                  </>
+                )}
+              </div>
+
+              <p className="mb-3 text-xs text-muted">
+                This posts to an append-only ledger: it can be reversed, never edited. Download the
+                schedule, have the principal sign it, then record who signed. Reference{' '}
+                <span className="font-mono text-ink">{report.scheduleDigest}</span> — if any
+                figure changes the signature no longer applies, and a fresh schedule is needed.
+              </p>
+
+              <div className="flex flex-wrap items-end gap-2">
+                <Button variant="ghost" onClick={downloadSchedule} loading={busy === 'schedule'}>
+                  <Download size={14} /> Schedule to sign
+                </Button>
+                <label>
+                  <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">Signed by</span>
+                  <input
+                    className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
+                    value={sign.signedBy} placeholder="Principal’s name"
+                    onChange={(e) => setSign((p) => ({ ...p, signedBy: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted">Date signed</span>
+                  <input
+                    type="date"
+                    className="rounded-xl border border-line bg-card px-3 py-2 text-sm text-ink"
+                    value={sign.signedAt}
+                    onChange={(e) => setSign((p) => ({ ...p, signedAt: e.target.value }))}
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Button
               onClick={commit}
               loading={busy === 'commit'}
-              disabled={report.blockers?.length > 0 || (report.creates + report.updates) === 0}
+              disabled={
+                report.blockers?.length > 0
+                || (report.creates + report.updates) === 0
+                || (report.postsToLedger && (!sign.signedBy.trim() || !sign.signedAt))
+              }
             >
-              <ArrowRight size={15} /> Import {report.creates + report.updates} row
-              {report.creates + report.updates === 1 ? '' : 's'}
+              <ArrowRight size={15} />{' '}
+              {report.postsToLedger
+                ? `Post ${report.creates + report.updates} row${report.creates + report.updates === 1 ? '' : 's'}`
+                : `Import ${report.creates + report.updates} row${report.creates + report.updates === 1 ? '' : 's'}`}
             </Button>
             <span className="text-xs text-muted">
               {report.postsToLedger
-                ? 'This file posts to the ledger and cannot be committed here yet.'
+                ? 'Reversible only by a reversing entry, which stays on the record.'
                 : 'Rows land in the agency’s live portfolio. Re-uploading a corrected file updates rather than duplicates.'}
             </span>
           </div>
@@ -337,6 +414,20 @@ export default function ImportWorkspace() {
           </GlassCard>
         )}
     </div>
+  );
+}
+
+function Money({ label, v, muted }: { label: string; v: number; muted?: boolean }) {
+  return (
+    <span className="flex items-baseline gap-2">
+      <span className="text-muted">{label}</span>
+      <span
+        className="font-heading text-lg font-bold tabular-nums"
+        style={{ color: muted ? 'var(--muted)' : 'var(--ink)' }}
+      >
+        R{Number(v || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+    </span>
   );
 }
 

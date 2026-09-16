@@ -100,6 +100,34 @@ async function reqForm(path: string, form: FormData): Promise<any> {
 
 function fileForm(file: File): FormData { const f = new FormData(); f.append('file', file); return f; }
 
+/**
+ * Download an authenticated file. A plain <a href> cannot carry the bearer
+ * token, so fetch it, then hand the browser a blob under the filename the
+ * server chose.
+ */
+export async function downloadAuthed(path: string, fallbackName: string): Promise<void> {
+  const token = auth.get();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (handleUnauthorized(res.status, !!token)) throw new Error('Your session has expired. Please sign in again.');
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(body.message || `Download failed (${res.status})`);
+  }
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const named = /filename="([^"]+)"/.exec(disposition)?.[1];
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = named || fallbackName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Revoke on the next tick: revoking synchronously can beat the download.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 /** Derive the thumbnail URL for a stored image (server writes <id>_thumb.<ext>). */
 export function thumbUrl(url: string): string {
   return url ? url.replace(/\.([a-zA-Z0-9]+)(\?.*)?$/, '_thumb.$1$2') : url;
@@ -168,10 +196,15 @@ export const api = {
     req(`/admin/imports/${vendorId}/batch/${batchId}/check`, { method: 'POST' }),
   importReport: (vendorId: string, batchId: string): Promise<any> =>
     req(`/admin/imports/${vendorId}/batch/${batchId}/report`),
-  importCommit: (vendorId: string, batchId: string, skipBlocked = false): Promise<any> =>
+  importCommit: (
+    vendorId: string, batchId: string,
+    body: { skipBlocked?: boolean; signedBy?: string; signedAt?: string; scheduleDigest?: string } = {},
+  ): Promise<any> =>
     req(`/admin/imports/${vendorId}/batch/${batchId}/commit`, {
-      method: 'POST', body: JSON.stringify({ skipBlocked }),
+      method: 'POST', body: JSON.stringify(body),
     }),
+  importSchedule: (vendorId: string, batchId: string): Promise<void> =>
+    downloadAuthed(`/admin/imports/${vendorId}/batch/${batchId}/schedule`, 'schedule.xlsx'),
   importDiscard: (vendorId: string, batchId: string): Promise<any> =>
     req(`/admin/imports/${vendorId}/batch/${batchId}/discard`, { method: 'POST' }),
   importCatalogue: (): Promise<any> => req('/admin/imports/catalogue'),

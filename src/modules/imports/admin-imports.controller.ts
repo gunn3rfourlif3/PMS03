@@ -1,7 +1,8 @@
 import {
-  Body, Controller, Get, Param, ParseUUIDPipe, Post, UploadedFile, UseGuards, UseInterceptors, BadRequestException,
+  Body, Controller, Get, Param, ParseUUIDPipe, Post, Res, UploadedFile, UseGuards, UseInterceptors, BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { ImportsService } from './imports.service';
 import { MAX_IMPORT_BYTES } from './import-reader';
 import { ENTITIES, ImportEntity } from './import-fields';
@@ -88,9 +89,30 @@ export class AdminImportsController {
     @CurrentTenant() principal: { userId: string },
     @Param('vendorId', ParseUUIDPipe) vendorId: string,
     @Param('batchId', ParseUUIDPipe) batchId: string,
-    @Body() body: { skipBlocked?: boolean },
+    @Body() body: { skipBlocked?: boolean; signedBy?: string; signedAt?: string; scheduleDigest?: string },
   ) {
-    return this.svc.commit(vendorId, batchId, principal.userId, { skipBlocked: !!body?.skipBlocked });
+    return this.svc.commit(vendorId, batchId, principal.userId, {
+      skipBlocked: !!body?.skipBlocked,
+      signedBy: body?.signedBy,
+      signedAt: body?.signedAt,
+      scheduleDigest: body?.scheduleDigest,
+    });
+  }
+
+  /**
+   * The schedule of figures for the principal to sign. Only for the two files
+   * that post to the ledger — everything else is correctable with an edit.
+   */
+  @Get(':vendorId/batch/:batchId/schedule')
+  async schedule(
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+    @Res() res: Response,
+  ) {
+    const { body, filename, mime } = await this.svc.schedule(vendorId, batchId);
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(body);
   }
 
   @Get(':vendorId/batch/:batchId/report')

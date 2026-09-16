@@ -9,6 +9,14 @@ import { templateCsv, templateXlsx } from './import-template';
 import { parseRows } from './import-rows';
 import { resolveRows, DryRunReport } from './import-resolve';
 import { commitRows } from './import-commit';
+import {
+  MoneyAccounts, MoneyPlan, planDeposits, planOpeningBalances,
+} from './import-money';
+import { scheduleXlsx } from './import-schedule';
+import { LedgerService } from '@modules/accounting/ledger.service';
+import { AccountingService } from '@modules/accounting/accounting.service';
+import { Invoice } from '@modules/billing/invoice.entity';
+import { Deposit } from '@modules/billing/deposit.entity';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 
@@ -29,6 +37,8 @@ export class ImportsService {
     @InjectDataSource() private readonly ds: DataSource,
     private readonly tenantRunner: TenantRunner,
     private readonly tenantContext: TenantContextService,
+    private readonly ledger: LedgerService,
+    private readonly accounting: AccountingService,
   ) {}
 
   private repo() { return this.ds.getRepository(ImportBatch); }
@@ -188,11 +198,17 @@ export class ImportsService {
     // transaction. A query on the default manager runs outside that transaction,
     // so RLS sees no vendor and every lookup comes back empty — every row would
     // then report "no such property" against an agency that has hundreds.
-    const report = await this.tenantRunner.runInVendorContext(vendorId, async () =>
-      resolveRows(this.tenantContext.getManager(), spec, parsed.rows));
+    const { report, money } = await this.tenantRunner.runInVendorContext(vendorId, async () => {
+      const r = await resolveRows(this.tenantContext.getManager(), spec, parsed.rows);
+      // For a money file, work out the exact postings now: the screen shows the
+      // totals, and the fingerprint is what the signed schedule is tied to.
+      return { report: r, money: spec.postsToLedger ? await this.planFor(spec, r) : null };
+    });
 
     const full = {
       ...report,
+      scheduleDigest: money?.digest ?? null,
+      moneyTotals: money?.totals ?? null,
       label: spec.label,
       skippedBlank: parsed.skippedBlank,
       postsToLedger: spec.postsToLedger,
@@ -224,7 +240,7 @@ export class ImportsService {
     vendorId: string,
     batchId: string,
     userId: string | null,
-    opts: { skipBlocked?: boolean } = {},
+    opts: { skipBlocked?: boolean; signedBy?: string; signedAt?: string; scheduleDigest?: string } = {},
   ): Promise<unknown> {
     const batch = await this.load(vendorId, batchId, true);
     this.assertOpen(batch);
@@ -233,13 +249,6 @@ export class ImportsService {
       throw new BadRequestException('Run a check on this import before committing it.');
     }
     const spec = entitySpec(batch.entity);
-
-    if (spec.postsToLedger) {
-      throw new BadRequestException(
-        `${spec.label} posts to the trust ledger, which cannot be undone by editing. `
-        + 'That import runs against a schedule the agency signs — it is not committed from here yet.',
-      );
-    }
 
     const approved = batch.report as unknown as DryRunReport & { sourceDigest?: string };
     if (approved.sourceDigest && approved.sourceDigest !== batch.sourceDigest) {
@@ -268,6 +277,14 @@ export class ImportsService {
           + `the check said ${approved.creates}, ${approved.updates}, ${approved.blocked}. `
           + 'Something changed since. Run the check again and review it.',
         );
+      }
+      if (spec.postsToLedger) {
+        // Money follows a different path: a schedule someone signed, and a
+        // fingerprint proving the figures have not moved since they signed it.
+        return {
+          report: fresh,
+          result: await this.postMoney(spec, fresh, batch, opts),
+        };
       }
       if (fresh.blocked > 0 && !opts.skipBlocked) {
         throw new BadRequestException(
@@ -302,6 +319,142 @@ export class ImportsService {
       label: spec.label,
       committedAt: batch.committedAt.toISOString(),
       total: report.rows.length,
+    };
+  }
+
+  /**
+   * The figures an agency's principal signs before anything is posted.
+   *
+   * Generated from the CURRENT check rather than the stored report, so the
+   * fingerprint on the paper is the fingerprint of what would post right now.
+   */
+  async schedule(vendorId: string, batchId: string): Promise<{ body: Buffer; filename: string; mime: string }> {
+    const batch = await this.load(vendorId, batchId, true);
+    const spec = entitySpec(batch.entity);
+    if (!spec.postsToLedger) {
+      throw new BadRequestException(`${spec.label} does not post to the ledger, so it needs no schedule.`);
+    }
+
+    const sheets = await readImportFile(batch.filename, batch.source!);
+    const sheet = sheets.find((s) => s.name === batch.sheetName) ?? sheets[0];
+    const parsed = parseRows(spec, batch.mapping, sheet.rows);
+
+    const { rows, plan, agency } = await this.tenantRunner.runInVendorContext(vendorId, async () => {
+      const m = this.tenantContext.getManager();
+      const fresh = await resolveRows(m, spec, parsed.rows);
+      const [v] = await m.query('SELECT name FROM vendors WHERE id = $1', [vendorId]);
+      return {
+        rows: fresh.rows,
+        plan: await this.planFor(spec, fresh),
+        agency: String(v?.name ?? 'Agency'),
+      };
+    });
+
+    return {
+      body: await scheduleXlsx(spec, rows, plan, agency),
+      filename: `${agency.replace(/[^\w]+/g, '-').toLowerCase()}-${spec.entity}-schedule.xlsx`,
+      mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+  }
+
+  /** Resolve the standard accounts and build the postings for a money file. */
+  private async planFor(spec: ReturnType<typeof entitySpec>, report: DryRunReport): Promise<MoneyPlan> {
+    const [ar, equity, trustBank, depositTrust] = await Promise.all([
+      this.accounting.resolveAccount('ACCOUNTS_RECEIVABLE'),
+      this.accounting.resolveAccount('OPENING_BALANCE_EQUITY'),
+      this.accounting.resolveAccount('TRUST_BANK'),
+      this.accounting.resolveAccount('DEPOSIT_TRUST'),
+    ]);
+    const accounts: MoneyAccounts = {
+      accountsReceivable: ar.id,
+      openingBalanceEquity: equity.id,
+      trustBank: trustBank.id,
+      depositTrust: depositTrust.id,
+    };
+    return spec.entity === 'deposits'
+      ? planDeposits(report.rows, accounts)
+      : planOpeningBalances(report.rows, accounts);
+  }
+
+  /**
+   * Post a money file. Runs inside the same vendor transaction as the rest of
+   * the commit, so the ledger, the invoices and the deposit records either all
+   * land or none do.
+   */
+  private async postMoney(
+    spec: ReturnType<typeof entitySpec>,
+    report: DryRunReport,
+    batch: ImportBatch,
+    opts: { skipBlocked?: boolean; signedBy?: string; signedAt?: string; scheduleDigest?: string },
+  ): Promise<{ created: number; updated: number; skipped: number; skippedRows: number[]; ledgerTxnId?: string }> {
+    const plan = await this.planFor(spec, report);
+
+    if (!opts.signedBy?.trim() || !opts.signedAt?.trim()) {
+      throw new BadRequestException(
+        'Money is only posted against a signed schedule. Download it, have the principal sign it, '
+        + 'then record who signed and when.',
+      );
+    }
+    if (!opts.scheduleDigest || opts.scheduleDigest !== plan.digest) {
+      throw new BadRequestException(
+        `These figures no longer match the schedule that was signed (${opts.scheduleDigest ?? 'none'} vs ${plan.digest}). `
+        + 'Download a fresh schedule and have it signed again.',
+      );
+    }
+    if (report.blocked > 0 && !opts.skipBlocked) {
+      throw new BadRequestException(
+        `${report.blocked} row(s) cannot be imported. Fix them, or confirm to post the rest.`,
+      );
+    }
+
+    const m = this.tenantContext.getManager();
+    let ledgerTxnId: string | undefined;
+    if (plan.lines.length) {
+      // One transaction for the whole batch: it is a single balanced journal,
+      // and `ledger.reverse(id)` undoes the entire import in one call.
+      ledgerTxnId = await this.ledger.post({ lines: plan.lines });
+    }
+
+    // Arrears and the rent roll are computed from INVOICES, not the ledger — so
+    // an opening balance that posted only to the ledger would be invisible on
+    // the dashboard while the tenant genuinely owed the money.
+    const invoices = m.getRepository(Invoice);
+    for (const inv of plan.invoices) {
+      await invoices.save(invoices.create({
+        vendorId: batch.vendorId,
+        leaseId: inv.leaseId,
+        period: inv.period,
+        dueDate: inv.dueDate,
+        status: 'issued',
+        total: inv.total,
+        lineItems: [{ kind: 'opening', description: inv.description, amount: inv.total }],
+        ledgerTxnId,
+        // These arrears accrued under the previous agent. Charging Locare's
+        // late fee on inherited debt would be the agency's first act as the
+        // new manager, and it would be wrong.
+        lateFeeApplied: true,
+      }));
+    }
+
+    const deposits = m.getRepository(Deposit);
+    for (const d of plan.deposits) {
+      await deposits.save(deposits.create({
+        vendorId: batch.vendorId,
+        leaseId: d.leaseId,
+        amount: d.amount,
+        interestAccrued: d.interest,
+        heldIn: d.postsToTrust ? 'trust:locare' : `external:${d.heldIn}`,
+        status: 'held',
+      }));
+    }
+
+    batch.ledgerBatchRef = ledgerTxnId ?? null;
+    return {
+      created: plan.invoices.length + plan.deposits.length,
+      updated: 0,
+      skipped: report.blocked,
+      skippedRows: report.rows.filter((r) => r.action === 'blocked').map((r) => r.rowNumber),
+      ledgerTxnId,
     };
   }
 
