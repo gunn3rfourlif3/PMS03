@@ -225,6 +225,18 @@ records the product, ffmpeg assembles three cuts. See `scripts/video/README.md`.
 - `ANTHROPIC_API_KEY` unset, so the LLM lease parser is untested.
 - Mobile apps are Expo web exports, not published to the app stores.
 
+- **DMARC is at `p=reject` and email is the login.** An OTP that fails alignment
+  is rejected outright, not quarantined — a silent, total sign-in failure for
+  that recipient. Two open ends: **SendGrid is not in the SPF record**, and the
+  provider code falls back to it when `SMTP_HOST` is unset; and nobody has
+  confirmed `dmarc-reports@locare.co.za` is a real, monitored mailbox. Running
+  reject without reading the `rua` reports is flying blind on the one channel
+  that gates access to the product. Also `~all` in SPF is inconsistent with
+  `p=reject` — `-all` matches the intent.
+- **BIMI is published but dormant.** `marketing/brand/README.md` explains why:
+  it needs a Verified Mark Certificate, which needs a registered trademark.
+  Revisit if a trademark is ever filed; not worth the cost pre-revenue.
+
 ### To brainstorm
 
 - **Tenant / landlord rating, and where TPN fits.** Two-sided: agencies rate
