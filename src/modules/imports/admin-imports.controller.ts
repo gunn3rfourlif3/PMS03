@@ -78,6 +78,21 @@ export class AdminImportsController {
     return this.svc.dryRun(vendorId, batchId);
   }
 
+  /**
+   * Write it. Irreversible in the sense that matters: the rows land in the
+   * agency's live portfolio. `skipBlocked` is the operator confirming they have
+   * seen the rows that cannot be imported and want the rest anyway.
+   */
+  @Post(':vendorId/batch/:batchId/commit')
+  commit(
+    @CurrentTenant() principal: { userId: string },
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+    @Body() body: { skipBlocked?: boolean },
+  ) {
+    return this.svc.commit(vendorId, batchId, principal.userId, { skipBlocked: !!body?.skipBlocked });
+  }
+
   @Get(':vendorId/batch/:batchId/report')
   report(
     @Param('vendorId', ParseUUIDPipe) vendorId: string,

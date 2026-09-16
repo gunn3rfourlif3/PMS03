@@ -19,6 +19,9 @@ export interface ResolvedRow extends ParsedRow {
   action: RowAction;
   /** Existing record this row matched, when it is an update. */
   existingId?: string;
+  /** Resolved tenant, for a lease. Set during resolution so the commit does not
+   *  have to look it up again and cannot disagree with what was reported. */
+  tenantId?: string;
   /** What the row means in plain words, for the report. */
   summary: string;
 }
@@ -91,6 +94,28 @@ export async function resolveRows(
                           JOIN properties p ON p.id = u.property_id
                          WHERE l.deleted_at IS NULL AND l.status <> 'ended'`) : null;
 
+  // A lease's natural key includes its start date, so the same unit can carry a
+  // history of leases. Without this index a re-uploaded leases file created a
+  // second copy of every lease instead of updating them.
+  const leaseByKey = spec.entity === 'leases'
+    ? await indexBy(m, `SELECT l.id,
+                               p.name || ' · ' || u.label || ' · ' || to_char(l.start_date, 'YYYY-MM-DD') AS k
+                          FROM leases l
+                          JOIN units u ON u.id = l.unit_id
+                          JOIN properties p ON p.id = u.property_id
+                         WHERE l.deleted_at IS NULL`) : null;
+
+  // Tenants of THIS agency, for attaching a lease. Indexed by email and by
+  // name: agencies' sheets carry one or the other, rarely both.
+  const tenantByEmail = spec.entity === 'leases'
+    ? await indexBy(m, `SELECT u.id, u.email AS k FROM users u
+                          JOIN memberships mm ON mm.user_id = u.id AND mm.role = 'tenant'
+                         WHERE u.email IS NOT NULL`) : null;
+  const tenantByName = spec.entity === 'leases'
+    ? await indexBy(m, `SELECT u.id, u.name AS k FROM users u
+                          JOIN memberships mm ON mm.user_id = u.id AND mm.role = 'tenant'
+                         WHERE u.name IS NOT NULL`) : null;
+
   if (properties && properties.size === 0 && spec.entity !== 'properties') {
     blockers.push('This agency has no properties yet. Import properties, then units, before this file.');
   }
@@ -102,6 +127,7 @@ export async function resolveRows(
     const issues = [...row.issues];
     const v = row.values;
     let existingId: string | undefined;
+    let tenantId: string | undefined;
     let summary = '';
 
     // Parent references must resolve, or the row cannot be written.
@@ -117,6 +143,26 @@ export async function resolveRows(
         issues.push(err('unitLabel', 'Unit number', `no unit "${v.unitLabel}" at "${v.propertyName}" — import the units file first`));
       }
     }
+    // A lease needs a tenant. Checked here rather than discovered at commit,
+    // where the alternative is a lease attached to nobody — which bills nobody
+    // and is invisible until the first rent run comes up short.
+    if (spec.entity === 'leases') {
+      const byEmail = v.tenantEmail ? tenantByEmail?.get(lower(v.tenantEmail)) : undefined;
+      const byName = !byEmail && v.tenantName ? tenantByName?.get(lower(v.tenantName)) : undefined;
+      if (!v.tenantEmail && !v.tenantName) {
+        issues.push(err('tenantEmail', 'Tenant email', 'a lease needs a tenant — give an email or a name'));
+      } else if (!byEmail && !byName) {
+        const what = v.tenantEmail ? `"${v.tenantEmail}"` : `"${v.tenantName}"`;
+        issues.push(err(
+          v.tenantEmail ? 'tenantEmail' : 'tenantName',
+          v.tenantEmail ? 'Tenant email' : 'Tenant name',
+          `no tenant ${what} at this agency — import the tenants file first`,
+        ));
+      } else {
+        tenantId = byEmail ?? byName;
+      }
+    }
+
     if (['deposits', 'opening_balances'].includes(spec.entity) && leasesIdx && v.propertyName && v.unitLabel) {
       const leaseKey = `${lower(v.propertyName)} · ${lower(v.unitLabel)}`;
       if (!leasesIdx.has(leaseKey)) {
@@ -132,6 +178,7 @@ export async function resolveRows(
       else if (spec.entity === 'properties') existingId = properties?.get(row.key);
       else if (spec.entity === 'units') existingId = units?.get(row.key);
       else if (spec.entity === 'tenants') existingId = tenantsIdx?.get(row.key);
+      else if (spec.entity === 'leases') existingId = leaseByKey?.get(row.key);
     }
 
     const hasError = issues.some((i) => i.level === 'error');
@@ -140,7 +187,7 @@ export async function resolveRows(
         : existingId ? 'update' : 'create';
 
     summary = describe(spec.entity, v, action);
-    resolved.push({ ...row, issues, action, existingId, summary });
+    resolved.push({ ...row, issues, action, existingId, tenantId, summary });
   }
 
   return {

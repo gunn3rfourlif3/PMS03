@@ -152,6 +152,30 @@ export const api = {
     req('/admin/impersonation-events'),
 
   // Platform-admin: agency custom domain (R-4)
+  // Platform-admin: agency data import (R-5). Upload -> map -> check -> commit.
+  importsList: (vendorId: string): Promise<any[]> => req(`/admin/imports/${vendorId}`),
+  importUpload: (vendorId: string, entity: string, file: File): Promise<any> =>
+    reqForm(`/admin/imports/${vendorId}/${entity}`, fileForm(file)),
+  importChooseSheet: (vendorId: string, batchId: string, sheetName: string): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/sheet`, {
+      method: 'POST', body: JSON.stringify({ sheetName }),
+    }),
+  importSetMapping: (vendorId: string, batchId: string, mapping: Record<string, string>): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/mapping`, {
+      method: 'POST', body: JSON.stringify({ mapping }),
+    }),
+  importCheck: (vendorId: string, batchId: string): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/check`, { method: 'POST' }),
+  importReport: (vendorId: string, batchId: string): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/report`),
+  importCommit: (vendorId: string, batchId: string, skipBlocked = false): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/commit`, {
+      method: 'POST', body: JSON.stringify({ skipBlocked }),
+    }),
+  importDiscard: (vendorId: string, batchId: string): Promise<any> =>
+    req(`/admin/imports/${vendorId}/batch/${batchId}/discard`, { method: 'POST' }),
+  importCatalogue: (): Promise<any> => req('/admin/imports/catalogue'),
+
   // Platform-admin: who can reach the back office (R-2).
   operators: (): Promise<any> => req('/admin/operators'),
   checkOperator: (email: string): Promise<any> =>

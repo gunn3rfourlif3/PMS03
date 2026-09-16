@@ -1,6 +1,7 @@
 # Locare — agency data import
 
-Written 2026-09-12. Owner: Vernon. Status: design, not built.
+Written 2026-09-12. Owner: Vernon. Status: **phases 1 and 2 built** (16 Sep);
+phase 3 (deposits and arrears) not started.
 
 Implements **R-5** from `LOCARE_AGENCY_ONBOARDING_REQUIREMENTS.md`. Stage 5 of
 the onboarding runbook is entirely manual entry today and is the bulk of the
@@ -175,8 +176,26 @@ why R-5 puts them first.
 
 **Phase 2 — dry run and commit for the reversible entities** (owners →
 properties → units → tenants → leases). This is the bulk of the 7 hours.
+**Built 16 Sep**, `import-commit.ts`. Three things settled while building it:
+
+- **A commit re-runs the check and compares the counts** against the report the
+  operator approved. The file cannot change — its bytes are held in the row —
+  but the database can, via another import, a manual edit or a second operator.
+  A plan that no longer reads the same is refused, not merged.
+- **Two gaps in the dry run turned up.** A lease was never matched against an
+  existing one, so a re-upload created a second copy of every lease; and the
+  tenant on a lease was never resolved, so a row could report "create" and then
+  write a lease attached to nobody, which bills nobody and stays invisible until
+  the first rent run comes up short. Both are now resolved at check time, and
+  the resolved tenant id is carried to the commit so the two cannot disagree.
+- **An imported lease lands `active`, not `draft`** — it describes a tenancy
+  that already exists, and a draft bills nobody. One already past its end date
+  lands `ended`, so a historical file cannot start invoicing people who left.
+  An active lease also flips its unit to `occupied`, or the vacancy figures are
+  wrong from day one.
 
 **Phase 3 — deposits and arrears**, with the signed schedule. Last, deliberately.
+The commit path refuses them explicitly rather than falling through.
 
 ## 9. Open questions
 
@@ -184,6 +203,10 @@ properties → units → tenants → leases). This is the bulk of the 7 hours.
   console's Phase 4 tokenised view would be the natural home if so.
 - XLSX as well as CSV? Agencies send .xlsx far more often than .csv, and asking
   a principal to "save as CSV" is a step that goes wrong.
-- Does a failed commit roll back the whole file, or apply the good rows? Whole
-  file is safer and easier to reason about; partial is kinder on a 500-row file
-  with two bad rows.
+- ~~Does a failed commit roll back the whole file, or apply the good rows?~~
+  **Settled 16 Sep: both, deliberately.** A row the check *blocked* is skipped
+  and named, so two bad rows in five hundred do not cost a re-upload — but the
+  operator has to confirm they have seen them. A row that *fails while writing*
+  rolls the whole file back, because `runInVendorContext` is one transaction and
+  a half-written portfolio is worse than a rejected one: nobody can tell by
+  looking which half arrived.

@@ -85,6 +85,9 @@ export default function AdminAgenciesPage() {
                 <Link href={`/admin/onboarding/${a.vendorId}`} className="text-sm text-muted underline-offset-2 hover:underline">
                   Onboarding
                 </Link>
+                <Link href={`/admin/imports/${a.vendorId}`} className="text-sm text-muted underline-offset-2 hover:underline">
+                  Import data
+                </Link>
                 <Button variant="ghost" onClick={() => open(a)} loading={busy === a.vendorId} disabled={a.status !== 'active'}>
                   Open back office →
                 </Button>

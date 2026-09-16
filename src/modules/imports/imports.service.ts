@@ -7,7 +7,8 @@ import { ENTITIES, ImportEntity, entitySpec, suggestMapping } from './import-fie
 import { readImportFile, SheetData } from './import-reader';
 import { templateCsv, templateXlsx } from './import-template';
 import { parseRows } from './import-rows';
-import { resolveRows } from './import-resolve';
+import { resolveRows, DryRunReport } from './import-resolve';
+import { commitRows } from './import-commit';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 
@@ -208,6 +209,100 @@ export class ImportsService {
       `Dry run ${batch.id} (${batch.entity}): ${report.creates} create, ${report.updates} update, ${report.blocked} blocked`,
     );
     return full;
+  }
+
+  /**
+   * Write it.
+   *
+   * The dry run is re-run first and compared to the report the operator
+   * approved. The file cannot have changed — its bytes are held in the row —
+   * but the DATABASE can: another import, a manual edit, a second operator on
+   * the same agency. Committing a stale plan is how an import that was checked
+   * clean creates duplicates, so a changed plan is refused rather than merged.
+   */
+  async commit(
+    vendorId: string,
+    batchId: string,
+    userId: string | null,
+    opts: { skipBlocked?: boolean } = {},
+  ): Promise<unknown> {
+    const batch = await this.load(vendorId, batchId, true);
+    this.assertOpen(batch);
+
+    if (batch.status !== 'dry_run' || !batch.report) {
+      throw new BadRequestException('Run a check on this import before committing it.');
+    }
+    const spec = entitySpec(batch.entity);
+
+    if (spec.postsToLedger) {
+      throw new BadRequestException(
+        `${spec.label} posts to the trust ledger, which cannot be undone by editing. `
+        + 'That import runs against a schedule the agency signs — it is not committed from here yet.',
+      );
+    }
+
+    const approved = batch.report as unknown as DryRunReport & { sourceDigest?: string };
+    if (approved.sourceDigest && approved.sourceDigest !== batch.sourceDigest) {
+      throw new BadRequestException('That check was run against a different file. Run a fresh check.');
+    }
+
+    const sheets = await readImportFile(batch.filename, batch.source!);
+    const sheet = sheets.find((s) => s.name === batch.sheetName) ?? sheets[0];
+    const parsed = parseRows(spec, batch.mapping, sheet.rows);
+
+    const { report, result } = await this.tenantRunner.runInVendorContext(vendorId, async () => {
+      const m = this.tenantContext.getManager();
+      const fresh = await resolveRows(m, spec, parsed.rows);
+
+      if (fresh.blockers.length) {
+        throw new BadRequestException(fresh.blockers[0]);
+      }
+      // Counts, not row-by-row: an operator approved "142 new, 3 updated", and
+      // that sentence is what must still be true.
+      const drifted = fresh.creates !== approved.creates
+        || fresh.updates !== approved.updates
+        || fresh.blocked !== approved.blocked;
+      if (drifted) {
+        throw new BadRequestException(
+          `This file now reads ${fresh.creates} new, ${fresh.updates} updated, ${fresh.blocked} blocked — `
+          + `the check said ${approved.creates}, ${approved.updates}, ${approved.blocked}. `
+          + 'Something changed since. Run the check again and review it.',
+        );
+      }
+      if (fresh.blocked > 0 && !opts.skipBlocked) {
+        throw new BadRequestException(
+          `${fresh.blocked} row${fresh.blocked === 1 ? '' : 's'} cannot be imported. `
+          + 'Fix them and re-upload, or confirm to import the rest and leave those out.',
+        );
+      }
+
+      return { report: fresh, result: await commitRows(m, spec, fresh.rows, vendorId) };
+    });
+
+    batch.status = 'committed';
+    batch.committedBy = userId ?? null;
+    batch.committedAt = new Date();
+    batch.rowCount = parsed.rows.length;
+    batch.report = {
+      ...(batch.report as Record<string, unknown>),
+      committed: { ...result, at: batch.committedAt.toISOString() },
+    };
+    // The uploaded bytes are an agency's tenants' personal information and
+    // their job is done. The nightly purge is the backstop, not the plan.
+    batch.source = null;
+    await this.repo().save(batch);
+
+    this.log.log(
+      `Committed ${batch.id} (${batch.entity}): ${result.created} created, ${result.updated} updated, ${result.skipped} skipped`,
+    );
+
+    return {
+      ...result,
+      entity: batch.entity,
+      label: spec.label,
+      committedAt: batch.committedAt.toISOString(),
+      total: report.rows.length,
+    };
   }
 
   /** The stored dry-run report, for a screen refresh or a second pair of eyes. */
