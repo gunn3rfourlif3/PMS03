@@ -52,9 +52,18 @@ export default function OnboardingDetailPage() {
     try {
       const r = (await api.onboardingDetail(vendorId)) as Detail;
       setD(r);
-      // Open the stage that needs work. The operator should see one thing to do,
-      // not fifty-two — everything else stays collapsed until it is their turn.
-      setOpen((cur) => (cur === null ? r.stage : cur));
+      // Follow the work. The operator should see one thing to do, not fifty-two.
+      //
+      // This used to open the current stage only on the FIRST load, so finishing
+      // a stage left it sitting open while the stage that now needed work stayed
+      // shut — the console knew where you were and showed you where you had been.
+      // Now a stage that has gone complete hands over to the current one, while a
+      // stage someone deliberately opened and has not finished is left alone.
+      setOpen((cur) => {
+        if (cur === null) return r.stage;
+        const openStage = r.stages.find((x) => x.stage === cur);
+        return openStage && openStage.state === 'complete' && cur !== r.stage ? r.stage : cur;
+      });
     } catch (e: any) { setErr(e.message); }
   }, [vendorId]);
 
@@ -140,8 +149,21 @@ export default function OnboardingDetailPage() {
         {d.stages.map((s) => {
           const expanded = open === s.stage;
           const ahead = s.state === 'ahead';
+          const isCurrent = s.stage === d.stage;
+          const isComplete = s.state === 'complete';
           return (
-            <GlassCard key={s.stage}>
+            <GlassCard
+              key={s.stage}
+              style={isCurrent
+                // An explicit shadow rather than Tailwind's ring utility, which
+                // depends on a variable that is not guaranteed to be set here
+                // and would silently draw nothing.
+                ? { boxShadow: '0 0 0 2px var(--brand)' }
+                // A finished stage recedes. It stays reachable — you may need to
+                // reopen an item — but it stops competing for attention with the
+                // one thing that actually needs doing.
+                : isComplete ? { opacity: 0.72 } : undefined}
+            >
               <button
                 type="button"
                 onClick={() => setOpen(expanded ? null : s.stage)}
@@ -149,14 +171,21 @@ export default function OnboardingDetailPage() {
               >
                 <span className="grid h-7 w-7 flex-none place-items-center rounded-full text-xs font-bold"
                   style={{
-                    background: s.state === 'complete' ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 12%, transparent)',
-                    color: s.state === 'complete' ? 'var(--onbrand)' : 'var(--ink)',
+                    background: isComplete ? 'var(--success)'
+                      : isCurrent ? 'var(--brand)' : 'color-mix(in srgb, var(--brand) 12%, transparent)',
+                    color: isComplete || isCurrent ? 'var(--onbrand)' : 'var(--muted)',
                   }}>
-                  {s.state === 'complete' ? <Check size={15} /> : s.stage}
+                  {isComplete ? <Check size={15} /> : s.stage}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-heading text-base font-bold text-ink">{s.name}</span>
-                  <span className="block text-xs text-muted">{s.purpose}</span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className={`font-heading text-base font-bold ${isCurrent || isComplete ? 'text-ink' : 'text-muted'}`}>
+                      {s.name}
+                    </span>
+                    {isCurrent && <Badge tone="brand">You are here</Badge>}
+                  </span>
+                  {/* A finished stage does not need its purpose explained. */}
+                  {!isComplete && <span className="block text-xs text-muted">{s.purpose}</span>}
                 </span>
                 <span className="flex-none text-xs text-muted">{s.done}/{s.total}</span>
                 <span className="flex-none text-muted">{expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</span>
