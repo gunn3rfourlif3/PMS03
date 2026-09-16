@@ -228,6 +228,30 @@ to promise anything. **Do not sign a Reseller before this is written.** It is
 drafting work, not engineering work, and it should be based on observed support
 volume from the first two or three onboardings rather than invented numbers.
 
+### R-12 · One person, one context — no account switching
+
+`issueForUser()` resolves a single sign-in context in priority order — platform
+admin, then partner, then vendor membership — and returns at the first match.
+A person is therefore exactly one thing, and a higher-priority role silently
+displaces a lower one. Granting platform-admin to an agency owner takes their
+agency away; adding someone to a partner takes their tenancy away, today with no
+warning at all.
+
+R-2 closed the loudest case: the Operators screen names what a grant would
+replace and requires an acknowledgement. The partner path has no such warning,
+and nothing anywhere offers the person a way back.
+
+**Why it will matter.** The plausible dual-role profile is an agency principal
+who also introduces deals — precisely the Introducer the partner programme is
+aimed at. The first time one signs up, their own agency login stops working, and
+the failure looks like a bug rather than a policy.
+
+**What to build:** memberships resolved as a list rather than a winner, a
+context picker at sign-in when there is more than one, and the active context
+carried in the session token. Not small, and not urgent while there is one live
+agency and no dual-role partner — but it should be decided before the partner
+programme recruits, not after.
+
 ### R-11 · POPIA position when someone else does the migration
 
 At Stage 5 an operator handles the agency's tenants' personal information. Where

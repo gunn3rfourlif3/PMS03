@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<!--
+  Internal. Shown to agency owners for feedback on unbuilt features.
+  NOT part of the public site: marketing/Dockerfile copies named files only,
+  and nothing here is listed, so this is not served on locare.co.za.
+  Canonical shareable copy is the Claude artifact; edit there and re-export,
+  or edit here and re-publish, but do not let the two drift.
+-->
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>What Locare Builds Next</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --paper:   #F4F7FA;
+    --card:    #FFFFFF;
+    --ink:     #10202B;
+    --body:    #3D5260;
+    --muted:   #6B8494;
+    --brand:   #2D6A8F;
+    --deep:    #17455C;
+    --warm:    #E4943A;
+    --warmbg:  #FDF4E9;
+    --line:    #DCE5EC;
+    --rule:    #C3D3DE;
+    --display: "Sora", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+    --text:    "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:  #0E1A22;
+      --card:   #16252F;
+      --ink:    #E9F1F6;
+      --body:   #B2C6D2;
+      --muted:  #8098A7;
+      --brand:  #7BB4D8;
+      --deep:   #9CC8E4;
+      --warm:   #F0AC5F;
+      --warmbg: #2A2216;
+      --line:   #243743;
+      --rule:   #2F4654;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:  #0E1A22;
+    --card:   #16252F;
+    --ink:    #E9F1F6;
+    --body:   #B2C6D2;
+    --muted:  #8098A7;
+    --brand:  #7BB4D8;
+    --deep:   #9CC8E4;
+    --warm:   #F0AC5F;
+    --warmbg: #2A2216;
+    --line:   #243743;
+    --rule:   #2F4654;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--body);
+    font-family: var(--text);
+    font-size: 16.5px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 45rem;
+    margin: 0 auto;
+    padding-inline: 22px;
+    padding-block: 56px 72px;
+  }
+
+  h1, h2, h3 { font-family: var(--display); color: var(--ink); text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(30px, 5.4vw, 44px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(21px, 3.4vw, 26px); font-weight: 600; line-height: 1.22; letter-spacing: -0.01em; }
+  h3 { font-size: 14px; font-weight: 600; }
+  p { margin: 0; }
+  strong { color: var(--ink); font-weight: 600; }
+
+  .eyebrow {
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--brand);
+  }
+
+  /* ---- masthead ---- */
+  header { display: flex; flex-direction: column; gap: 16px; }
+  .lockup { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .mark {
+    font-family: var(--display); font-weight: 700; font-size: 20px;
+    color: var(--ink); letter-spacing: -0.02em;
+  }
+  .mark span { color: var(--brand); }
+  .standfirst { font-size: 18px; line-height: 1.55; color: var(--body); }
+  .standfirst em { color: var(--ink); font-style: italic; }
+
+  hr {
+    border: 0; border-top: 1px solid var(--rule);
+    margin-block: 40px;
+  }
+
+  /* ---- ideas ---- */
+  .ideas { display: flex; flex-direction: column; gap: 34px; }
+  .idea {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 26px 24px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .idea > header { gap: 8px; }
+  .tag {
+    display: inline-block; align-self: flex-start;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--brand);
+  }
+  .block { display: flex; flex-direction: column; gap: 7px; }
+  .block h3 {
+    color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.09em; font-size: 11.5px;
+  }
+  .block p + p { margin-top: 8px; }
+
+  /* the arithmetic figure */
+  .figure {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--rule); border: 1px solid var(--rule); border-radius: 3px;
+    overflow: hidden;
+  }
+  .figure div { background: var(--card); padding: 14px 16px; display: flex; flex-direction: column; gap: 3px; }
+  .figure .lbl { font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; }
+  .figure .val {
+    font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .figure .val.alarm { color: var(--warm); }
+  @media (max-width: 460px) { .figure { grid-template-columns: 1fr; } }
+
+  /* the questions — the actual point of the document */
+  .ask {
+    background: var(--warmbg);
+    border-left: 3px solid var(--warm);
+    padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 9px;
+    border-radius: 0 3px 3px 0;
+  }
+  .ask h3 { color: var(--warm); text-transform: uppercase; letter-spacing: 0.09em; font-size: 11.5px; }
+  .ask ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+  .ask li { color: var(--ink); }
+
+  /* ---- closing ---- */
+  .closing { display: flex; flex-direction: column; gap: 18px; }
+  .closing ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .closing li { color: var(--ink); }
+  .closing li span { color: var(--body); }
+  .last {
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 3px solid var(--brand);
+    padding: 18px 20px; border-radius: 0 4px 4px 0;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+
+  footer {
+    margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--rule);
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 14px; color: var(--muted);
+  }
+  footer a { color: var(--brand); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="lockup">
+      <span class="mark">l<span>o</span>care</span>
+      <span class="eyebrow">For review — not yet built</span>
+    </div>
+    <h1>What Locare builds next</h1>
+    <p class="standfirst">
+      Four things we're considering. Before writing any of them we'd rather hear from
+      someone who actually runs a rental book — <em>which of these is real, and which
+      is us guessing.</em>
+    </p>
+  </header>
+
+  <hr>
+
+  <div class="ideas">
+
+    <!-- 1 -->
+    <article class="idea">
+      <header>
+        <span class="tag">Arrears</span>
+        <h2>The tenant who is always a little short</h2>
+      </header>
+
+      <div class="block">
+        <h3>What happens now</h3>
+        <p>
+          A tenant owes R8,000 and pays R7,500. Every month. They're never
+          <em>really</em> in arrears, so nobody escalates. Eight months later they owe
+          R4,000 — and because each payment clears the oldest invoice, your age
+          analysis has said "about a month behind" the entire time.
+        </p>
+        <div class="figure">
+          <div>
+            <span class="lbl">What the age analysis shows</span>
+            <span class="val">30 days</span>
+          </div>
+          <div>
+            <span class="lbl">What they actually owe</span>
+            <span class="val alarm">R4,000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>What we'd build</h3>
+        <p>
+          Locare watches the balance and the pattern rather than the age, and opens a
+          case when it crosses a line <strong>you set</strong> — half a month's rent,
+          short three months in six, two failed debit orders. It tells you why in one
+          sentence: <em>"R4,312, 0.54× the rent, short in 8 of the last 8 months."</em>
+        </p>
+        <p>
+          It also counts your notice periods in <strong>business days, with public
+          holidays</strong>, and puts any case whose deadline has passed at the top of
+          the list — because a breach notice nobody acted on is a process you have to
+          start again.
+        </p>
+        <p>
+          And if there's a maintenance job that's been open on that unit since before
+          the short payments started, it says so <strong>before</strong> you send a
+          letter of demand.
+        </p>
+      </div>
+
+      <div class="ask">
+        <h3>What we want to know</h3>
+        <ul>
+          <li>Do you have tenants like this right now? How many, roughly?</li>
+          <li>How do you currently track that a notice period has run out?</li>
+          <li>Has a missed deadline ever cost you months on an eviction?</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 2 -->
+    <article class="idea">
+      <header>
+        <span class="tag">Inspections</span>
+        <h2>Eight inspections, one sensible route</h2>
+      </header>
+
+      <div class="block">
+        <h3>What happens now</h3>
+        <p>
+          Inspections get booked as tenants answer their phones, so a Tuesday can run
+          Randburg → Kempton Park → Randburg again. The driving is invisible: it never
+          appears as a cost, it just eats the day.
+        </p>
+      </div>
+
+      <div class="block">
+        <h3>What we'd build</h3>
+        <p>
+          Locare groups everything due in a period by area and proposes a day's work in
+          a sensible order — <em>"Tuesday: these six, roughly 34 km"</em> — then hands
+          it to the agent's phone and opens it in Google Maps. We're not building a
+          navigation app; we're building the plan that should exist before anyone gets
+          in the car.
+        </p>
+      </div>
+
+      <div class="ask">
+        <h3>What we want to know</h3>
+        <ul>
+          <li>How do you plan a day of inspections at the moment — diary, spreadsheet, memory?</li>
+          <li>Would you let the system choose the order, or does the tenant's availability always win?</li>
+          <li>Is the same true of contractor call-outs, or is that different?</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 3 -->
+    <article class="idea">
+      <header>
+        <span class="tag">Load-shedding</span>
+        <h2>Which of your properties are dark this afternoon</h2>
+      </header>
+
+      <div class="block">
+        <h3>What happens now</h3>
+        <p>
+          An agent arrives for a 14:00 inspection in a complex on Stage 4, and the gate
+          motor, the pressure pump and the lights are all off. Or a tenant reports "no
+          water" that is really a pump with no power.
+        </p>
+      </div>
+
+      <div class="block">
+        <h3>What we'd build</h3>
+        <p>
+          Each property carries its own schedule, so you can see at a glance what's off
+          and when before you book a visit — and answer a tenant's call without looking
+          anything up.
+        </p>
+        <p>
+          Honest caveat: this is only worth building if it changes what you actually do.
+          It may just be interesting.
+        </p>
+      </div>
+
+      <div class="ask">
+        <h3>What we want to know</h3>
+        <ul>
+          <li>Has load-shedding actually wasted a trip for you, or is it noise?</li>
+          <li>Do tenants call you about it, and does that cost you time worth money?</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 4 -->
+    <article class="idea">
+      <header>
+        <span class="tag">Landlords</span>
+        <h2>Something to show a landlord you're pitching</h2>
+      </header>
+
+      <div class="block">
+        <h3>What happens now</h3>
+        <p>
+          Landlords ask the same three questions — is my rent in, what came off it, what
+          is happening with my tenant — and each one costs somebody a phone call or a
+          hand-built statement.
+        </p>
+      </div>
+
+      <div class="block">
+        <h3>What we'd build</h3>
+        <p>
+          A clean view your landlords sign into: rent received, what was deducted and
+          why, maintenance and what it cost, lease status and when it expires. In your
+          agency's name and colours, not ours.
+        </p>
+        <p>
+          The real point is the <strong>next</strong> mandate. When you're sitting
+          across from a landlord who has four units with someone else, this is the thing
+          you open on your laptop.
+        </p>
+      </div>
+
+      <div class="ask">
+        <h3>What we want to know</h3>
+        <ul>
+          <li>What do landlords ask you for most often?</li>
+          <li>When you've lost a mandate, what was the reason you were given?</li>
+          <li>Would you actually show this in a pitch, or is it a nice-to-have after signing?</li>
+        </ul>
+      </div>
+    </article>
+
+  </div>
+
+  <hr>
+
+  <section class="closing">
+    <span class="eyebrow">Three questions, if you have ten minutes</span>
+    <ol>
+      <li>
+        <strong>Which one would you want first?</strong>
+        <span>And roughly what would it be worth per month to you?</span>
+      </li>
+      <li>
+        <strong>Which would you not use?</strong>
+        <span>Saying so saves us weeks, and we'd rather hear it now.</span>
+      </li>
+    </ol>
+    <div class="last">
+      <p><strong>3. What eats the most time in your week that isn't on this page at all?</strong></p>
+      <p>This is the one we most want answered. Everything above came from watching one
+        agency; the thing we've missed is probably obvious to you and invisible to us.</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>None of this is built yet and we're not promising dates. This page exists to find
+      out what's worth building before we build the wrong thing.</p>
+    <p>Locare (Pty) Ltd · <a href="mailto:hello@locare.co.za">hello@locare.co.za</a></p>
+  </footer>
+
+</div>
+
+</body>
+</html>

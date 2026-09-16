@@ -225,6 +225,25 @@ records the product, ffmpeg assembles three cuts. See `scripts/video/README.md`.
 - `ANTHROPIC_API_KEY` unset, so the LLM lease parser is untested.
 - Mobile apps are Expo web exports, not published to the app stores.
 
+### To brainstorm
+
+- **Tenant / landlord rating, and where TPN fits.** Two-sided: agencies rate
+  tenants, and tenants rate landlords and agencies. Start from
+  `docs/LOCARE_TENANCY_RECORD_DESIGN.md`, which already works through portable
+  payment history and the multi-agency record — this is the same question with
+  a score on top, and the hard parts are the ones that doc already names.
+
+  The open ends worth thinking about: whether Locare **consumes** TPN (buy a
+  check at application) or **contributes** to it, or builds its own record and
+  competes; whether a rating is derived from ledger behaviour (which Locare can
+  prove) or typed by an agent (which is opinion and defamable); how a tenant
+  disputes a rating, since POPIA gives them a right to correction; and whether
+  rating *landlords* is the differentiator — nobody serves that side, and it is
+  the half that would make tenants care about a Locare account.
+
+  See also the TPN listing decision in `LOCARE_ARREARS_CASES_DESIGN.md` §15,
+  which is the narrower, nearer-term version of the same relationship.
+
 ## Working with Vernon
 
 Concise and direct. He runs his own git and docker commands. He'll push back on
