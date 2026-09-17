@@ -154,6 +154,46 @@ muted on a phone rather than full screen on a monitor.
 itself to the ledger is the one thing no spreadsheet competitor can show — let
 it breathe.
 
+## The onboarding training video
+
+A second beat set, for **partners and operators** rather than the market:
+bringing an agency live, from the New agency form to a checked import.
+
+```powershell
+npm run video                      # both sets
+$env:ONLY="onboarding"; npm run video   # just this one
+$env:ONLY="marketing";  npm run video   # just the sales reels
+```
+
+Output: `docs/video/out/locare-onboarding-120s.mp4`.
+
+Three things make it different from the reels above:
+
+- **It signs in as a platform admin.** The console is `@Roles('platform_admin')`,
+  so filming it as the agency owner records a row of 403s. `app: 'admin'` in a
+  beat selects `adminEmail` from `video.config.json` — `operator@demo.test`,
+  which must appear in `PLATFORM_ADMIN_EMAILS` in `.env`. Deliberately a demo
+  identity: the signed-in address is on camera.
+- **It films a mid-flight agency.** `seed-video-extras.ts` seeds *Ridgeline
+  Property (demo)* at a fixed id with stages 0–2 done and stage 3 in progress.
+  An empty checklist films as a wall of grey, and the console's whole point is
+  what the middle of a job looks like.
+- **It uploads a deliberately broken spreadsheet.** `scripts/video/fixtures/`
+  holds the sample files; the import beats use the one with three bad rows,
+  because a clean file proves nothing on camera. The dry run *is* the feature.
+
+New action types the recorder gained for it, usable in any beat:
+
+```js
+{ type: 'input[placeholder="48"]', text: '48', delay: 220 }  // typed, not pasted
+{ select: 'select', value: 'units' }                          // a <select>
+{ upload: 'input[type="file"]', file: 'scripts/video/fixtures/03-units.xlsx' }
+```
+
+`type` clicks the field first so the cursor is visibly there, then types one
+character at a time — `fill()` reads as a paste and skips the thing worth
+filming, which is a form responding as it is completed.
+
 ## Per-prospect demo videos
 
 `BRANDS` in the config drives the white-label beat. Because branding resolves

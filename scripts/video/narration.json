@@ -1,52 +1,37 @@
 {
   "_comment": "Voiceover, one line per beat. The line's SPOKEN LENGTH sets how long that beat runs in the edit (plus VO_PAD), so shortening a sentence tightens the cut — no timing numbers to chase. Written for en-ZA neural TTS: short clauses, no em-dashes (TTS reads them as pauses of random length), no abbreviations it will mispronounce.",
-
   "_style": "Plain, specific, unhurried. Address the agency owner as 'you'. Never claim customers, ratings or results the product hasn't earned.",
-
   "_pronounce_comment": "Applied to the text sent to the TTS engine only — the lines above stay readable and the burnt-in captions are unaffected. Locare is the Latin/Italian verb, loh-KAH-reh (/lo'ka.re/), not 'loh-CARE'. Every engine gets this wrong unprompted. Phoneme tags would be exact but ElevenLabs only honours them on the English-only models, and we use multilingual v2 for quality, so a phonetic respelling is the portable fix.",
-
   "_pronounce": {
     "Locare": "loh-kar-re"
   },
-
-
   "00-intro": "",
-
-  "01-dashboard": "This is loh-Kar-re. Every property, lease and payment your agency manages, in one place.",
-
+  "01-dashboard": "This is loh-car-re. Every property, lease and payment your agency manages, in one place.",
   "13-listings": "Vacancies publish to your own branded rentals site, on your own domain.",
-
   "14-applications": "Applications arrive as a pipeline you can actually work, instead of an inbox you have to dig through.",
-
   "15-documents": "Leases are generated, signed electronically, and stored against the tenancy.",
-
   "02-rent-run": "Every month, invoices raise themselves. Every unit, on schedule, with the right escalation applied.",
-
   "03-payments-unpaid": "When a tenant pays, their proof of payment lands in one queue instead of five different inboxes.",
-
   "04-tenant-phone": "Your tenant sees what they owe, on their phone, under your brand.",
-
   "16-tenant-pay": "They pay in a couple of taps, or upload proof if they paid by transfer.",
-
   "05-reconcile": "You approve it once. The payment allocates against the invoice and posts straight to a double entry ledger. That is the part a spreadsheet cannot do.",
-
   "11-tenant-messages": "Every conversation stays on the tenancy, so nothing gets lost in a personal WhatsApp thread.",
-
   "10-tenant-maintenance": "Maintenance is logged from anywhere, with photos, straight into your work order queue.",
-
   "12-landlord-tickets": "You assign it to a service provider and track it through to sign off.",
-
   "18-landlord-messages": "And you can answer a tenant without going back to your desk.",
-
   "08-landlord-home": "The whole portfolio travels with you. Rent collected, arrears, and what needs attention today.",
-
   "09-landlord-statements": "Approve an application between viewings.",
-
   "06-owner-statement": "At month end, owner statements build themselves. Rent in, commission out, expenses deducted, net payout ready.",
-
   "07-reports": "And the numbers are always there. Rent roll, arrears ageing, collection rate, and a proper income statement for any period. Audit ready, and aware of trust accounting rules.",
-
   "17-tenant-lease": "Their lease and documents stay with them, always to hand.",
-
-  "99-outro": "loh-kar-re. Property management, beautifully run."
+  "99-outro": "loh-car-re. Property management, beautifully run.",
+  "30-agencies": "This is every agency you are onboarding. Longest stalled at the top, so the one that needs you is the one you see first.",
+  "31-new-agency": "An agency you sold directly starts here. Name, owner, and the email they will sign in with. No database, no deploy, no waiting for anyone.",
+  "32-price-derived": "You type how many units they manage. The tier and the monthly price work themselves out, because you know the portfolio and the bands are arithmetic. Under thirty units it will ask you to record an agreed price, a reason, and an end-date.",
+  "33-checklist": "A guided process, in the order that works. Units before leases. Hosts before the migration. The console follows where you are, so the stage you finished closes and the next one opens.",
+  "34-how-to-check": "Every step that can be checked tells you how to check it. Not confirm that it works, but the actual command, the actual page, and what a wrong answer looks like.",
+  "35-domain": "Type their domain and the seven DNS records come out ready to send. Certificates issue the first time somebody visits. There is nothing to restart and nothing to deploy.",
+  "36-import-order": "The migration has an order, and the screen keeps it for you. Owners, properties, units, tenants, leases, and money last.",
+  "37-import-check": "Their spreadsheet, in whatever shape it arrived. The columns are matched to ours and you can change any of them. Nothing is written until you have checked it.",
+  "38-import-errors": "Bad rows come back with row numbers and a reason you can send straight back to the agency. Fix them and upload again, re-uploading a corrected file updates what is already there, it does not create a second copy."
 }

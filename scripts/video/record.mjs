@@ -30,7 +30,21 @@ import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
-import { BEATS, CARDS } from './beats.config.mjs';
+import { BEATS, ONBOARDING_BEATS, CARDS } from './beats.config.mjs';
+
+/**
+ * Which beat set to film. The marketing reels and the operator training video
+ * share a stack and a recorder but almost nothing else, so `ONLY` avoids
+ * spending four minutes filming one to get the other.
+ *
+ *   ONLY=onboarding  — the console training beats
+ *   ONLY=marketing   — the sales reels
+ *   unset            — both
+ */
+const ONLY = (process.env.ONLY || '').toLowerCase();
+const SHOOT = ONLY === 'onboarding' ? ONBOARDING_BEATS
+  : ONLY === 'marketing' ? BEATS
+    : [...BEATS, ...ONBOARDING_BEATS];
 
 /** video.config.json holds the environment; env vars win over it. */
 function loadConfig() {
@@ -54,6 +68,12 @@ const LANDLORD = process.env.LANDLORD_URL || CFG.landlordUrl || 'http://localhos
 /** Which app a beat belongs to: where it lives, who signs in, is it a phone. */
 const APPS = {
   web:      { origin: BASE,     email: EMAIL,                    mobile: false },
+  // Same origin as `web`, different person. The onboarding console is
+  // platform-admin only, and filming it signed in as the agency owner would
+  // just record a row of 403s. Keep this a demo identity: the operator's email
+  // is on screen in the shell, and a real personal address does not belong in a
+  // published video.
+  admin:    { origin: BASE,     email: CFG.adminEmail || 'operator@demo.test', mobile: false },
   tenant:   { origin: TENANT,   email: CFG.tenantEmail   || 'thabo@demo.test',       mobile: true },
   landlord: { origin: LANDLORD, email: CFG.landlordEmail || 'sipho@owner.demo.test', mobile: true },
 };
@@ -420,6 +440,9 @@ async function recordBeat(browser, beat, sessionState) {
     if (step.wait) await sleep(step.wait);
     else if (step.scroll) await smoothScroll(page, step.scroll);
     else if (step.click) clicked = (await clickAt(page, step.click, step.label)) && clicked;
+    else if (step.type) clicked = (await typeInto(page, step)) && clicked;
+    else if (step.select) clicked = (await chooseOption(page, step)) && clicked;
+    else if (step.upload) clicked = (await attachFile(page, step)) && clicked;
   }
 
   // A missed nav click would otherwise leave this beat filming the previous
@@ -466,6 +489,62 @@ async function recordBeat(browser, beat, sessionState) {
   log('recorded', beat.id);
 }
 
+/**
+ * Type into a field the way a person does — visibly, one character at a time.
+ *
+ * `fill()` would be instant, which on camera reads as a paste and skips the
+ * thing worth filming: a form responding as it is completed. The click first is
+ * what moves the synthetic cursor to the field, so the shot shows where the
+ * typing is going.
+ */
+async function typeInto(page, step) {
+  const ok = await clickAt(page, step.type, step.label || step.type);
+  if (!ok) return false;
+  const text = String(step.text ?? '');
+  const delay = step.delay ?? 55;
+  try {
+    // pressSequentially on modern Playwright; page.type on older builds. The
+    // pipeline should not break because someone bumped a dependency.
+    const loc = page.locator(step.type).first();
+    if (typeof loc.pressSequentially === 'function') await loc.pressSequentially(text, { delay });
+    else await page.type(step.type, text, { delay });
+    return true;
+  } catch (e) {
+    warn(`type into ${step.type} failed: ${e.message.split('\n')[0]}`);
+    return false;
+  }
+}
+
+/** Choose from a <select>. */
+async function chooseOption(page, step) {
+  try {
+    await clickAt(page, step.select, step.label || step.select);
+    await page.selectOption(step.select, step.value, { timeout: 5000 });
+    return true;
+  } catch (e) {
+    warn(`select ${step.select} failed: ${e.message.split('\n')[0]}`);
+    return false;
+  }
+}
+
+/**
+ * Attach a file to an <input type="file">.
+ *
+ * The importer hides its input inside a styled label, which is normal and which
+ * setInputFiles handles — a real click would open the OS file dialog, and that
+ * cannot be filmed or automated.
+ */
+async function attachFile(page, step) {
+  try {
+    const file = resolve(step.file);
+    await page.setInputFiles(step.upload, file, { timeout: 8000 });
+    return true;
+  } catch (e) {
+    warn(`upload to ${step.upload} failed: ${e.message.split('\n')[0]}`);
+    return false;
+  }
+}
+
 async function recordCards(browser) {
   const cards = resolve('docs/video/brand-cards.html');
   if (!existsSync(cards)) { warn('brand-cards.html not found, skipping cards'); return; }
@@ -496,7 +575,7 @@ async function main() {
   });
 
   // Sign in once per app that the beats actually reference.
-  const needed = [...new Set(BEATS.map((b) => b.app || 'web'))];
+  const needed = [...new Set(SHOOT.map((b) => b.app || 'web'))];
   const states = {};
   for (const key of needed) {
     const a = APPS[key];
@@ -505,7 +584,7 @@ async function main() {
 
   await recordCards(browser);
   const failed = [];
-  for (const beat of BEATS) {
+  for (const beat of SHOOT) {
     try {
       // Re-mint the session if it has gone stale. Free when it hasn't, and it
       // happens outside any recording context, so the login never appears on

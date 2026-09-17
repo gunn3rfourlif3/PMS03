@@ -277,6 +277,119 @@ BEATS.push(
   },
 );
 
+/**
+ * The onboarding console — operator and partner TRAINING, not marketing.
+ *
+ * Different audience from BEATS above, so these get their own cut list in
+ * assemble.sh rather than being spliced into the sales reels. The captions
+ * explain what the operator is doing and why; the marketing captions sell.
+ *
+ * `app: 'admin'` signs in as the platform admin. The console is platform-admin
+ * only, so filming these as the agency owner records a row of 403s.
+ *
+ * RIDGELINE is seeded by seed-video-extras.ts with a fixed id and a mid-flight
+ * checklist — stages 0-2 done, stage 3 in progress — because an empty checklist
+ * films as a wall of grey and the console's whole point is the middle of a job.
+ */
+const RIDGELINE = '00000000-0000-4000-8000-00000000d3a0';
+const FIXTURES = 'scripts/video/fixtures';
+
+export const ONBOARDING_BEATS = [
+  {
+    id: '30-agencies', app: 'admin',
+    caption: 'Every agency you are bringing live, in one list.',
+    goto: '/admin/agencies',
+    actions: [{ wait: 1600 }, { scroll: 220 }, { wait: 1200 }],
+  },
+  {
+    id: '31-new-agency', app: 'admin',
+    caption: 'A direct sale starts here — no SQL, no deploy.',
+    goto: '/admin/agencies',
+    actions: [
+      { click: 'text=New agency', label: 'New agency' },
+      { wait: 1200 },
+      { type: 'input[placeholder="Northcliff Letting"]', text: 'Ridgeline Property', label: 'Agency name' },
+      { wait: 500 },
+      { type: 'input[placeholder="Thandi Mokoena"]', text: 'Ayanda Zulu', label: 'Owner name' },
+      { type: 'input[placeholder="owner@agency.co.za"]', text: 'ayanda@ridgeline.invalid', label: 'Owner email' },
+      { wait: 600 },
+    ],
+  },
+  {
+    id: '32-price-derived', app: 'admin',
+    // The point of the beat: you type a portfolio size and the commercial
+    // consequence appears. Nobody picks a tier by hand.
+    caption: 'Type how many units. The tier and the price work themselves out.',
+    goto: '/admin/agencies',
+    actions: [
+      { click: 'text=New agency', label: 'New agency' },
+      { wait: 500 },
+      { type: 'input[placeholder="18"]', text: '18', delay: 220, label: 'Units' },
+      { wait: 1100 },
+    ],
+  },
+  {
+    id: '33-checklist', app: 'admin',
+    caption: 'A guided process, in the order that works. It follows where you are.',
+    goto: `/admin/onboarding/${RIDGELINE}`,
+    actions: [{ wait: 1800 }, { scroll: 380 }, { wait: 1600 }],
+  },
+  {
+    id: '34-how-to-check', app: 'admin',
+    caption: 'Every checkable step tells you how to check it.',
+    goto: `/admin/onboarding/${RIDGELINE}`,
+    actions: [
+      { wait: 1400 },
+      { scroll: 520 },
+      { click: 'text=How to check', label: 'How to check' },
+      { wait: 2600 },
+    ],
+  },
+  {
+    id: '35-domain', app: 'admin',
+    caption: 'Seven DNS records, ready to send. Certificates issue on the first visit.',
+    goto: `/admin/onboarding/${RIDGELINE}`,
+    actions: [{ wait: 1500 }, { scroll: 180 }, { wait: 2400 }],
+  },
+  {
+    id: '36-import-order', app: 'admin',
+    caption: 'The migration has an order. The screen keeps it.',
+    goto: `/admin/imports/${RIDGELINE}`,
+    actions: [{ wait: 1700 }, { scroll: 160 }, { wait: 1500 }],
+  },
+  {
+    id: '37-import-check', app: 'admin',
+    // Uploading the deliberately broken file: the dry run is the feature, and a
+    // clean file proves nothing on camera.
+    caption: 'Nothing is written until it has been checked.',
+    goto: `/admin/imports/${RIDGELINE}`,
+    actions: [
+      { wait: 1200 },
+      { select: 'select', value: 'units', label: 'What is in it' },
+      { wait: 600 },
+      { upload: 'input[type="file"]', file: `${FIXTURES}/08-units-with-errors.xlsx` },
+      { wait: 2600 },
+      { scroll: 260 },
+      { wait: 1400 },
+    ],
+  },
+  {
+    id: '38-import-errors', app: 'admin',
+    caption: 'Bad rows come back with row numbers and a reason.',
+    goto: `/admin/imports/${RIDGELINE}`,
+    actions: [
+      { wait: 1200 },
+      { select: 'select', value: 'units', label: 'What is in it' },
+      { upload: 'input[type="file"]', file: `${FIXTURES}/08-units-with-errors.xlsx` },
+      { wait: 2200 },
+      { click: 'text=Check the file', label: 'Check the file' },
+      { wait: 3200 },
+      { scroll: 340 },
+      { wait: 2000 },
+    ],
+  },
+];
+
 export const BRANDS = [
   { id: 'a', host: process.env.DEMO_HOST_A || 'localhost:3001' },
   { id: 'b', host: process.env.DEMO_HOST_B || '' },

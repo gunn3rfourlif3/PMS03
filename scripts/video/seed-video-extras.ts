@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import dataSource from '../../src/common/database/data-source';
+import { TEMPLATE, TEMPLATE_VERSION } from '../../src/modules/onboarding/onboarding-template';
 
 /**
  * Extra demo data the marketing video needs, on top of `npm run seed`.
@@ -29,7 +30,7 @@ async function main() {
   const staff = await one(`SELECT id, name FROM users WHERE email='owner@demo.test'`);
   if (!thabo) throw new Error('thabo@demo.test not found — reseed.');
 
-  const counts = { proofs: 0, agreements: 0, tickets: 0, messages: 0, statements: 0 };
+  const counts = { proofs: 0, agreements: 0, tickets: 0, messages: 0, statements: 0, onboarding: 0};
 
   // ── 1. Pending proofs of payment ──────────────────────────────────────────
   // /payments IS the proof-of-payment review queue, and the base seed leaves it
@@ -158,12 +159,66 @@ async function main() {
     }
   }
 
+  // The operator who films the onboarding console. Passwordless sign-in needs a
+  // user row to mint a session for; platform-admin rights come from
+  // PLATFORM_ADMIN_EMAILS in .env, which must list this address.
+  await q(
+    `INSERT INTO users (name, email, status) VALUES ('Operator','operator@demo.test','active')
+     ON CONFLICT (email) DO NOTHING`);
+
+  // ── The agency the onboarding video films ──────────────────────────────
+  //
+  // A fixed id, because the console and importer beats navigate straight to
+  // /admin/onboarding/<id> and /admin/imports/<id>. Discovering it at record
+  // time would mean threading state between beats that each run in their own
+  // browser context.
+  //
+  // Seeded MID-FLIGHT on purpose: an empty checklist films as a wall of grey,
+  // and the whole point of the console is what it looks like part-way through.
+  const RIDGELINE = '00000000-0000-4000-8000-00000000d3a0';
+  const existing = await one(`SELECT id FROM vendors WHERE id=$1`, [RIDGELINE]);
+  if (!existing) {
+    await q(
+      `INSERT INTO vendors (id,name,slug,type,default_currency,status)
+       VALUES ($1,'Ridgeline Property (demo)','ridgeline-demo','agency','ZAR','active')`,
+      [RIDGELINE]);
+    await q(
+      `INSERT INTO vendor_subscriptions (vendor_id,tier,status,unit_count,mrr)
+       VALUES ($1,'custom','active',48,4124)`, [RIDGELINE]);
+  }
+
+  // The 43 checklist items, from the live template rather than a copy here —
+  // a copy would drift from the runbook the moment either changed.
+  const seededItems = await one(
+    `SELECT count(*)::int AS n FROM agency_onboarding_items WHERE vendor_id=$1`, [RIDGELINE]);
+  if (!seededItems?.n) {
+    for (const t of TEMPLATE) {
+      await q(
+        `INSERT INTO agency_onboarding_items
+           (vendor_id,template_version,stage,item_key,title,detail,status,waiting_on,verifiable,weight_hours)
+         VALUES ($1,$2,$3,$4,$5,$6,'pending',$7,$8,$9)`,
+        [RIDGELINE, TEMPLATE_VERSION, t.stage, t.key, t.title, t.detail ?? null,
+          t.waitingOn, t.verifiable, t.weightHours]);
+    }
+    // Stages 0-2 done, stage 3 part-way: the console then has ticks to show,
+    // a current stage to highlight, and something still to do.
+    await q(
+      `UPDATE agency_onboarding_items
+          SET status='done', completed_by=$2, completed_at=now() - interval '2 days'
+        WHERE vendor_id=$1 AND (stage < 3 OR item_key = '3.1-assets')`,
+      [RIDGELINE, staff?.id ?? null]);
+    await q(
+      `UPDATE vendors SET custom_domain='ridgelineproperty.co.za' WHERE id=$1`, [RIDGELINE]);
+    counts.onboarding = TEMPLATE.length;
+  }
+
   console.log('\nVideo demo data:');
   console.log(`  pending proofs of payment   ${counts.proofs}`);
   console.log(`  signed lease agreements     ${counts.agreements}`);
   console.log(`  maintenance tickets         ${counts.tickets}`);
   console.log(`  messages in thread          ${counts.messages}`);
   console.log(`  owner statements + payouts  ${counts.statements}`);
+  console.log(`  onboarding checklist items  ${counts.onboarding ?? 0}`);
   console.log(Object.values(counts).some(Boolean) ? '' : '  (all present already — nothing to do)');
 
   await dataSource.destroy();

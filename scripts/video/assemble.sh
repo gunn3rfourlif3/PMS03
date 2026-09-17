@@ -10,6 +10,13 @@
 #   locare-tenant-30s.mp4           tenant app, 16:9  (+ -vertical, 9:16)
 #   locare-landlord-30s.mp4         landlord app, 16:9  (+ -vertical, 9:16)
 #   locare-15s.mp4                  social cut (+ -square 1:1, -vertical 9:16)
+#   locare-onboarding-120s.mp4      operator/partner training, full console tour
+#   locare-feature-new-agency.mp4   feature cut: direct agency creation + pricing
+#   locare-feature-checklist.mp4    feature cut: guided onboarding checklist
+#   locare-feature-domain.mp4       feature cut: domain/DNS editor
+#   locare-feature-import.mp4       feature cut: import order, check, errors
+#   (the four locare-feature-* and locare-onboarding-120s cuts only build when
+#   the onboarding beats have been recorded — see ONBOARDING_BEATS)
 #
 # Narration: run scripts/video/tts.mjs first and each beat lasts exactly as long
 # as its line. Without it, the durations in the cut lists are used instead.
@@ -482,6 +489,38 @@ if [ -d "$RAW/vert-cap" ]; then
   BUILD_SRC="$RAW/vert-cap" build "locare-landlord-30s-vertical" \
     08-landlord-home:0.5:7  09-landlord-statements:0.5:6 \
     12-landlord-tickets:0.5:6  18-landlord-messages:0.5:6
+fi
+
+# ── Operator training: bringing an agency live ──────────────────────────────
+# A different audience from every cut above. Partners and operators watch this
+# to learn the console, so it runs long and dwells: the checklist and the failed
+# import are the two screens people need to actually read, not glance at.
+# Built only when its beats exist, so a marketing-only run still assembles.
+if [ -f "$RAW/33-checklist.webm" ]; then
+  build "locare-onboarding-120s" \
+    00-intro:0:3        30-agencies:0.3:6      31-new-agency:0.3:9 \
+    32-price-derived:0.3:8  33-checklist:0.3:10  34-how-to-check:0.3:9 \
+    35-domain:0.3:9     36-import-order:0.3:7  37-import-check:0.3:9 \
+    38-import-errors:0.3:11  99-outro:0:4
+fi
+
+# ── Per-feature cuts: one short video per new feature, no intro/outro card ──
+# Same audience as the training cut above, but for sending a single feature to
+# a single agency owner, or dropping into the release notes for that feature,
+# without making them sit through the whole console tour. Same source clips
+# and timings as locare-onboarding-120s — this only changes how they're grouped.
+if [ -f "$RAW/33-checklist.webm" ]; then
+  build "locare-feature-new-agency" \
+    31-new-agency:0.3:9  32-price-derived:0.3:8
+
+  build "locare-feature-checklist" \
+    30-agencies:0.3:6  33-checklist:0.3:10  34-how-to-check:0.3:9
+
+  build "locare-feature-domain" \
+    35-domain:0.3:9
+
+  build "locare-feature-import" \
+    36-import-order:0.3:7  37-import-check:0.3:9  38-import-errors:0.3:11
 fi
 
 # 15s social cut — one idea, no dwelling. This is the one you publish.
