@@ -365,7 +365,7 @@ build() {
   # up sum(durations) - (n-1) * TRANS, which is why the cut lists are written a
   # few seconds long.
   local n; n=$(wc -l < "$list")
-  if [ "$n" -le 1 ] || [ "${TRANS%.*}" = "0" ] && [ "$TRANS" = "0" ]; then
+  if [ "$n" -le 1 ] || { [ "${TRANS%.*}" = "0" ] && [ "$TRANS" = "0" ]; }; then
     ffmpeg -y -loglevel error -f concat -safe 0 -i "$list" -c copy "$OUT/$name-silent.mp4"
   else
     local args=() filter="" prev="0:v" elapsed=0 k=0

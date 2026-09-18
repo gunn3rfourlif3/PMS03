@@ -319,13 +319,41 @@ export const ONBOARDING_BEATS = [
     id: '32-price-derived', app: 'admin',
     // The point of the beat: you type a portfolio size and the commercial
     // consequence appears. Nobody picks a tier by hand.
+    //
+    // 18 is deliberately BELOW MIN_BILLABLE_UNITS (30 — subscription-calc.ts),
+    // so previewAgency() comes back with ok:false and field:'priceOverride':
+    // the green "live price" box never renders for this number, only the
+    // below-floor panel (agreed price / reason / end date). That panel is
+    // what this beat is actually demonstrating, matching the narration line.
     caption: 'Type how many units. The tier and the price work themselves out.',
     goto: '/admin/agencies',
     actions: [
       { click: 'text=New agency', label: 'New agency' },
-      { wait: 500 },
-      { type: 'input[placeholder="18"]', text: '18', delay: 220, label: 'Units' },
-      { wait: 1100 },
+      { wait: 700 },
+      // Name and email are NOT decoration. planNewAgency() validates in order
+      // — agencyName, then slug, then ownerEmail, and only then the unit
+      // count — and previewAgency() returns the FIRST failure. With those
+      // fields blank the preview comes back field:'agencyName', belowFloor is
+      // false, and the agreed-price/reason/end-date panel never renders. Typing
+      // units alone films the wrong screen, however correct the selector is.
+      // Brisk delays here: this part is setup, the units field is the subject.
+      { type: 'input[placeholder="Northcliff Letting"]', text: 'Ridgeline Property', delay: 40, label: 'Agency name' },
+      { type: 'input[placeholder="owner@agency.co.za"]', text: 'ayanda@ridgeline.invalid', delay: 28, label: 'Owner email' },
+      { wait: 400 },
+      // No separate click-to-focus step: typeInto() (record.mjs) already clicks
+      // the target field before typing, which is what glides the synthetic
+      // cursor there on camera. A second click on the same field is redundant
+      // — and one with a selector that doesn't exist fails, and clickAt()'s
+      // false return gets AND-ed into `clicked` for every later action in the
+      // beat, which can trip the fallbackGoto path even when the typing works.
+      //
+      // The selector matches the FIELD'S PLACEHOLDER in new-agency-form.tsx
+      // ("48", hardcoded there), never the value being typed. A clip recorded
+      // against placeholder="18" films an untouched form with "48" showing as
+      // ghost text and the cursor stranded wherever the last click left it.
+      { type: 'input[placeholder="48"]', text: '18', delay: 220, label: 'Units' },
+      { wait: 900 },   // 250ms debounce + the previewAgency() round trip
+      { wait: 1100 },  // hold on the below-floor panel so it's readable
     ],
   },
   {

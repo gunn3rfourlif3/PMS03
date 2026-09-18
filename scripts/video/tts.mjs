@@ -19,10 +19,18 @@
  *   VOICE=Alice        voice name or ID (default: first available female voice)
  *   SPEED=0.95         0.7–1.2; below 1.0 reads calmer. Suits a product demo.
  *   MODEL=...          default eleven_multilingual_v2 (best quality per character)
- *   FORCE=1            re-synthesise lines that already exist
+ *   FORCE=1            re-synthesise every line, even ones that look unchanged
+ *
+ * Re-running costs nothing for lines you haven't touched: each beat's audio is
+ * fingerprinted (text after pronunciation substitution + voice + model + speed)
+ * in docs/video/vo/.manifest.json, so editing a line in narration.json is
+ * enough on its own — that one beat regenerates, everything else is skipped.
+ * FORCE=1 is only for "my ElevenLabs account settings changed but the text
+ * didn't", which the fingerprint can't see.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -188,6 +196,16 @@ if (Object.keys(SAY).length) {
 
 mkdirSync(OUT, { recursive: true });
 
+// What actually produced each beat's current audio, so a narration edit is
+// self-describing: no file to delete, no FORCE to remember. Missing or
+// corrupt manifest just means every beat looks changed once — same as a
+// fresh checkout.
+const MANIFEST = join(OUT, '.manifest.json');
+let manifest = {};
+try { manifest = JSON.parse(readFileSync(MANIFEST, 'utf8')); } catch { /* first run */ }
+const fingerprint = (text) =>
+  createHash('sha256').update(JSON.stringify({ text, voice: voice.id, model: MODEL, speed: SPEED })).digest('hex');
+
 /**
  * One request per beat, but each carries the neighbouring lines as context.
  * ElevenLabs uses them for prosody only (they aren't spoken), so the delivery
@@ -195,10 +213,26 @@ mkdirSync(OUT, { recursive: true });
  */
 async function speak(id, text, prev, next) {
   const file = join(OUT, `${id}.wav`);
-  if (!FORCE && existsSync(file) && statSync(file).size > 1000) {
-    console.log(`  = ${id} (exists)`);
+  const fp = fingerprint(text);
+  const have = existsSync(file) && statSync(file).size > 1000;
+  const known = Object.prototype.hasOwnProperty.call(manifest, id);
+
+  // A file with no manifest entry predates this tracking (or the manifest was
+  // deleted) — trust it rather than re-synthesising the whole library once,
+  // for free, the first time this runs after the upgrade. Only a beat whose
+  // recorded fingerprint actively disagrees with the current text/voice/model/
+  // speed counts as changed.
+  if (!FORCE && have && !known) {
+    console.log(`  = ${id} (exists, adopting as baseline)`);
+    manifest[id] = fp;
+    writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
     return;
   }
+  if (!FORCE && have && manifest[id] === fp) {
+    console.log(`  = ${id} (unchanged)`);
+    return;
+  }
+  if (!FORCE && have && known) console.log(`  ~ ${id} (narration or voice changed — regenerating)`);
 
   const body = {
     text,
@@ -245,6 +279,9 @@ async function speak(id, text, prev, next) {
     ]).toString().trim(),
   );
   console.log(`  + ${id}  ${secs.toFixed(1)}s  "${text.slice(0, 52)}${text.length > 52 ? '…' : ''}"`);
+
+  manifest[id] = fp;
+  writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
 }
 
 console.log(
