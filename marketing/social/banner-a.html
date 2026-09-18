@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-400.woff2') format('woff2'); font-weight:400; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-600.woff2') format('woff2'); font-weight:600; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-800.woff2') format('woff2'); font-weight:800; font-display:block; }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:2560px; height:1440px; overflow:hidden; }
+
+  /* Locare palette: brand #2D6A8F, dark #1E4A63, soft #E7EEF3 */
+  .stage {
+    position:relative; width:2560px; height:1440px;
+    background:
+      radial-gradient(1200px 620px at 50% 46%, rgba(255,255,255,.11), transparent 70%),
+      linear-gradient(118deg, #123043 0%, #1E4A63 27%, #2D6A8F 58%, #235a7b 79%, #15384d 100%);
+    font-family:'PJS', sans-serif;
+    overflow:hidden;
+  }
+  .motif { position:absolute; inset:0; width:2560px; height:1440px; }
+
+  /* Vignette keeps the TV crop from feeling like flat colour at the corners. */
+  .vignette {
+    position:absolute; inset:0;
+    background:radial-gradient(1500px 1000px at 50% 50%, transparent 46%, rgba(8,26,38,.40) 100%);
+  }
+
+  /* YouTube safe area: 1546 x 423, centred. Everything that must survive the
+     mobile crop lives in here. */
+  .safe {
+    position:absolute; left:507px; top:508px; width:1546px; height:423px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+
+  .wm { width:540px; height:180px; display:block; }
+  .tag {
+    margin-top:30px;
+    font-size:40px; font-weight:400; letter-spacing:.005em;
+    color:rgba(255,255,255,.86);
+  }
+  .rule { margin-top:26px; width:132px; height:1px; background:rgba(255,255,255,.30); }
+  .kicker {
+    margin-top:25px;
+    font-size:19px; font-weight:600; letter-spacing:.20em;
+    color:rgba(255,255,255,.58); text-transform:uppercase;
+  }
+  .kicker span { color:rgba(255,255,255,.30); margin:0 12px; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <svg class="motif" viewBox="0 0 2560 1440" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Grain: a 2560px gradient banded in 8-bit PNG looks cheap; this hides it. -->
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+    </defs>
+
+    <!-- Concentric rounded squares echo the Locare mark's tile silhouette
+         (rx/size = 112/512). Bottom-left and top-right, so the centre stays
+         clear and the full-width TV crop still has structure. -->
+    <g stroke="#ffffff" fill="none" stroke-width="2">
+      <g transform="rotate(-8 330 1090)" opacity=".07">
+        <rect x="10"   y="770" width="640"  height="640"  rx="140"/>
+        <rect x="-80"  y="680" width="820"  height="820"  rx="179"/>
+        <rect x="-170" y="590" width="1000" height="1000" rx="219"/>
+      </g>
+      <g transform="rotate(8 2230 350)" opacity=".07">
+        <rect x="1910" y="30"   width="640"  height="640"  rx="140"/>
+        <rect x="1820" y="-60"  width="820"  height="820"  rx="179"/>
+        <rect x="1730" y="-150" width="1000" height="1000" rx="219"/>
+      </g>
+    </g>
+
+    <rect width="2560" height="1440" filter="url(#grain)" opacity=".035"/>
+  </svg>
+
+  <div class="vignette"></div>
+
+  <div class="safe">
+    <img class="wm" src="wordmark-white.svg" alt="Locare">
+    <div class="tag">Property management, beautifully run.</div>
+    <div class="rule"></div>
+    <div class="kicker">Product demos<span>&middot;</span>Onboarding training<span>&middot;</span>locare.co.za</div>
+  </div>
+
+</div>
+</body>
+</html>
