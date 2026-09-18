@@ -38,8 +38,6 @@ enough to finish.
 
 ## Queue
 
-- [ ] **Lease escalation clauses that survive a dispute** — the CPI-versus-fixed
-      question, compounding, and what an unenforceable clause looks like
 - [ ] **POPIA for letting agents** — what you may hold on a tenant, for how long,
       and the operator relationship with your software provider
 - [ ] **Tenant screening within the law** — credit checks, consent, and the line
@@ -61,6 +59,7 @@ enough to finish.
 
 ## Written
 
+- [x] Lease escalation clauses that survive a dispute — 2026-09-17
 - [x] Your trust audit cost more than it should have — 2026-08-27
 - [x] Rental deposits under the Rental Housing Act
 - [x] PPRA trust account rules: what letting agents must actually do
