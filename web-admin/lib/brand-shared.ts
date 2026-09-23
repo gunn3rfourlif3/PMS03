@@ -66,7 +66,7 @@ export const DEFAULT_BRANDING: Branding = {
 export const LOCARE_BRAND: Branding = {
   name: 'Locare', slug: 'locare', tagline: 'Property management, beautifully run.',
   // wordmarkUrl: a wide logo rendered at natural size (no tile/name) in the shell.
-  logo: { text: 'Locare', wordmarkUrl: '/brand/locare-logo.svg' },
+  logo: { text: 'Locare', wordmarkUrl: '/brand/locare-logo.svg', inverseUrl: '/brand/locare-logo-white.svg' },
   colors: {
     brand: '#2D6A8F', onBrand: '#ffffff', tint: '#E7EEF3', accent: '#1E4A63',
     ink: '#121212', muted: '#6b7280', line: '#e5e7eb', bg: '#f6f7f9', card: '#ffffff',

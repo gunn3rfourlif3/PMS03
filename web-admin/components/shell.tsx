@@ -84,14 +84,17 @@ function ImpersonationBanner() {
 
 function BrandMark({ size = 34, dark = false }: { size?: number; dark?: boolean }) {
   const b = useBrand();
+  // On the dark sidebar the ink wordmark disappears, so prefer the brand's
+  // inverse mark there — the same one the public rentals footer uses.
+  const wide = dark ? (b.logo.inverseUrl || b.logo.wordmarkUrl) : b.logo.wordmarkUrl;
   // A wide wordmark stands alone (no tile, no separate name).
-  if (b.logo.wordmarkUrl) {
-    return <img src={b.logo.wordmarkUrl} alt={b.name} style={{ height: size * 0.82 }} className="w-auto" />;
+  if (wide) {
+    return <img src={wide} alt={b.name} style={{ height: size * 0.82 }} className="w-auto" />;
   }
   return (
     <div className="flex items-center gap-2.5">
       {b.logo.imageUrl ? (
-        <img src={b.logo.imageUrl} alt="" width={size} height={size} className="rounded-xl object-contain" />
+        <img src={dark ? (b.logo.inverseUrl || b.logo.imageUrl) : b.logo.imageUrl} alt="" width={size} height={size} className="rounded-xl object-contain" />
       ) : (
         <span className="grid place-items-center rounded-xl font-heading font-bold text-onbrand shadow-soft"
           style={{ width: size, height: size, background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 88%, white), var(--brand))' }}>
