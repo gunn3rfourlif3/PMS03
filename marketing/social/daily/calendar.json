@@ -1,0 +1,603 @@
+[
+  {
+    "day": 1, "id": "trust-ledger", "theme": "Trust accounting", "layout": "ledger",
+    "eyebrow": "Trust accounting",
+    "headline": ["Every cent,", "accounted for."],
+    "body": "Rent in, commission out, owner paid — every movement posted twice, and never edited. A correction is a new entry, so the trail is still there when the auditor asks.",
+    "device": {
+      "caption": ["Trust ledger · extract", "March"],
+      "columns": ["Posting", "Debit", "Credit"],
+      "rows": [["Rent received — trust bank", "12 500.00", "—"], ["Owner payable — Unit 12", "—", "12 500.00"], ["Owner payable — commission", "1 000.00", "—"], ["Commission income", "—", "1 000.00"]],
+      "total": ["Balance", "13 500.00", "13 500.00"],
+      "note": "It balances. It always balances."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Every cent, accounted for.",
+      "paras": ["Ask a rental agency principal what worries them and it is rarely the listings. It is the trust account.", "Locare posts every movement twice — rent received, commission taken, owner paid — on a ledger that cannot be edited. A correction is a new entry, never a quiet overwrite. So when someone asks how a number got there, the working is still on the screen."],
+      "close": "Property management software built for South African rental agencies.\nlocare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "Immutable double-entry ledger (ledger_entries); corrections are reversing postings."
+  },
+  {
+    "day": 2, "id": "white-label", "theme": "White-label", "layout": "panel",
+    "eyebrow": "White-label, end to end",
+    "headline": ["Your brand on it.", "Never ours."], "softFrom": 1,
+    "body": "Tenants and owners sign in at your own domain, under your logo and your colours. Locare runs underneath — the only place our name appears is on the invoice we send you.",
+    "device": {
+      "url": "rentals.youragency.co.za",
+      "brand": { "initial": "A", "name": "Your Agency", "sub": "Owner statement · March" },
+      "pill": "Paid",
+      "rows": [["Rent collected", "R 12 500.00"], ["Management fee", "– R 1 000.00"]],
+      "total": ["Net to owner", "R 11 500.00"]
+    },
+    "footnote": "Example agency branding.",
+    "copy": {
+      "hook": "Your brand on it. Never ours.",
+      "paras": ["Your tenants sign in at your domain. Your owners open a statement with your logo on it. Your colours, your name, your agency.", "Locare runs underneath — rent collection, trust accounting, owner payouts, maintenance — and stays out of sight. The only place our name appears is on the invoice we send you."],
+      "close": "White-label property management, built for South African agencies.\nlocare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#WhiteLabel", "#PropTech"],
+    "source": "Per-vendor branding resolved from the request Host header; custom domains per agency."
+  },
+  {
+    "day": 3, "id": "month-end", "theme": "Month-end", "layout": "flow",
+    "eyebrow": "From rent received to owner paid",
+    "headline": ["Month-end is a report.", "Not a reconstruction."], "softFrom": 1,
+    "body": "One tenant payment moves through the trust account, the commission and the owner statement without anyone retyping it into a spreadsheet. By the time you go looking for the number, it is there.",
+    "device": {
+      "steps": [
+        { "label": "Rent received", "sub": "Unit 12 · debit order", "value": "R 12 500.00" },
+        { "label": "Trust account", "sub": "Receipted and held", "value": "held", "muted": true },
+        { "label": "Management commission", "sub": "Posted to income", "value": "– R 1 000.00" },
+        { "label": "Owner paid", "sub": "Statement issued the same run", "value": "R 11 500.00" }
+      ]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Month-end is a report. Not a reconstruction.",
+      "paras": ["A tenant's rent arrives. It is receipted into trust, the commission posts to income, the owner's statement issues in the same run, and the payout goes out. Nobody retypes anything into a spreadsheet.", "That is the whole idea: by the time you go looking for the number, it is already there."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "Owner statement generation per period, payout from statement, expenses flowing into statements."
+  },
+  {
+    "day": 4, "id": "arrears-aging", "theme": "Arrears", "layout": "ledger",
+    "eyebrow": "Arrears",
+    "headline": ["Who owes what,", "and for how long."],
+    "body": "Not a list of unpaid invoices — an aged view that says which arrears are a week old and which have been quietly growing since November. The second kind is the one that costs you an owner.",
+    "device": {
+      "caption": ["Arrears · aged", "As at month end"],
+      "columns": ["Tenant", "0–30", "60+"],
+      "rows": [["Unit 4B", "2 300.00", "—"], ["Unit 12", "—", "8 900.00"], ["Unit 21", "1 150.00", "—"]],
+      "total": ["Outstanding", "3 450.00", "8 900.00"],
+      "note": "Oldest first, not loudest first."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Who owes what, and for how long.",
+      "paras": ["A list of unpaid invoices tells you very little. An aged view tells you which arrears started last week and which have been growing since November — and it is the second kind that eventually costs you the mandate.", "Locare ages arrears automatically off the ledger, so the report is a read, not an afternoon."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Arrears", "#RentalAgency"],
+    "source": "GET /reporting/arrears — aged arrears report."
+  },
+  {
+    "day": 5, "id": "rent-roll", "theme": "Rent roll", "layout": "panel",
+    "eyebrow": "Rent roll",
+    "headline": ["The whole portfolio,", "on one screen."], "softFrom": 1,
+    "body": "Every unit, its tenant, its rent, its status — current as of right now, not as of whenever somebody last updated the spreadsheet. Export it when the owner asks.",
+    "device": {
+      "url": "app.youragency.co.za",
+      "brand": { "initial": "A", "name": "Rent roll", "sub": "48 units · March" },
+      "pill": "Live",
+      "rows": [["Occupied", "44 units"], ["Vacant", "4 units"]],
+      "total": ["Monthly rent roll", "R 612 400.00"]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "The whole portfolio, on one screen.",
+      "paras": ["Every unit, its tenant, its rent, its status — current as of right now rather than as of whenever someone last remembered to update the spreadsheet.", "When an owner or a principal asks what the portfolio is worth this month, the answer is a screen, not a morning."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentRoll", "#PropTech"],
+    "source": "GET /reporting/rent-roll."
+  },
+  {
+    "day": 6, "id": "maintenance-chain", "theme": "Maintenance", "layout": "flow",
+    "eyebrow": "Maintenance",
+    "headline": ["A geyser bursts.", "The books already know."], "softFrom": 1,
+    "body": "The tenant logs it, you dispatch it, the contractor finishes it — and the cost lands on the ledger as a property expense without anyone opening a spreadsheet at month end.",
+    "device": {
+      "steps": [
+        { "label": "Tenant logs it", "sub": "Photo, unit, priority", "value": "open", "muted": true },
+        { "label": "Work order issued", "sub": "Assigned to a contractor", "value": "assigned", "muted": true },
+        { "label": "Completed", "sub": "Cost captured on the job", "value": "R 4 200.00" },
+        { "label": "Posted as an expense", "sub": "On the owner's statement", "value": "– R 4 200.00" }
+      ]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "A geyser bursts. The books already know.",
+      "paras": ["The tenant logs it from their phone with a photo. You raise a work order against a contractor. The contractor finishes and the cost is captured on the job itself.", "By then it has already posted to the ledger as a property expense and it is already on the owner's statement. Nobody re-keys it at month end, because there is nothing left to re-key."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Maintenance", "#PropTech"],
+    "source": "Ticket → work order → completion cost → expense posting → owner statement."
+  },
+  {
+    "day": 7, "id": "lease-parsing", "theme": "Lease parsing", "layout": "statement",
+    "eyebrow": "Lease capture",
+    "headline": ["Upload the lease.", "Check the reading."], "softFrom": 1,
+    "body": "Rather than typing twelve fields off a signed PDF, you upload it and the terms come back extracted. You confirm them before anything is saved.",
+    "device": {
+      "statement": "The extraction is a draft, not a decision.",
+      "points": ["Parties, rent, escalation, start and end dates read off the document", "Everything lands in a review screen first — you confirm before it becomes a lease", "The original PDF stays attached, so the source is always one click away"]
+    },
+    "copy": {
+      "hook": "Upload the lease. Check the reading.",
+      "paras": ["Capturing a lease usually means typing a dozen fields off a signed PDF and hoping nobody transposed the escalation.", "Locare reads the document and hands you the terms it found. You check them and confirm. Nothing is saved as a lease until a human agrees with the reading — and the original stays attached, so the source is always one click away."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#PropTech", "#RentalAgency"],
+    "source": "POST /lease-parsing (upload), GET /lease-parsing/:id, POST /lease-parsing/:id/confirm."
+  },
+  {
+    "day": 8, "id": "inspection-deposit", "theme": "Inspections", "layout": "flow",
+    "eyebrow": "Inspections",
+    "headline": ["Deposit disputes", "are won at move-in."], "softFrom": 1,
+    "body": "A structured move-in inspection with photos per item is the evidence you will want eight months later. Locare carries it through to the deduction, with the tenant's sign-off attached.",
+    "device": {
+      "steps": [
+        { "label": "Move-in inspection", "sub": "Item by item, with photos", "value": "signed", "muted": true },
+        { "label": "Tenant signs off", "sub": "Their agreement, on record", "value": "recorded", "muted": true },
+        { "label": "Move-out inspection", "sub": "Compared to move-in", "value": "2 items" },
+        { "label": "Applied to the deposit", "sub": "Deduction with its evidence", "value": "– R 1 850.00" }
+      ]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Deposit disputes are won at move-in.",
+      "paras": ["Eight months later, the argument is never about what the wall looks like now. It is about what it looked like when they moved in — and whether anyone can prove it.", "Locare records inspections item by item with photos and a tenant sign-off, then carries that straight through to the move-out comparison and the deposit deduction. The deduction arrives with its evidence already attached."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Inspections", "#RentalAgency"],
+    "source": "Inspections: items, sign-off, apply-to-deposit."
+  },
+  {
+    "day": 9, "id": "import-dryrun", "theme": "Migration", "layout": "flow",
+    "eyebrow": "Moving your data across",
+    "headline": ["See what breaks", "before it breaks."], "softFrom": 1,
+    "body": "Import runs as a dry run first. You get a report of every row that would fail and why, and nothing is written until you say so. A bad migration is discarded, not unpicked.",
+    "device": {
+      "steps": [
+        { "label": "Upload the sheet", "sub": "Your export, your column names", "value": "1 of 7", "muted": true },
+        { "label": "Map the columns", "sub": "Once per file, then remembered", "value": "mapped", "muted": true },
+        { "label": "Check", "sub": "Dry run — nothing written yet", "value": "3 errors" },
+        { "label": "Commit or discard", "sub": "Your call, with the report in hand", "value": "clean" }
+      ]
+    },
+    "copy": {
+      "hook": "See what breaks before it breaks.",
+      "paras": ["The reason agencies stay on a system they have outgrown is rarely the software. It is the thought of moving fifteen years of data into a new one.", "Locare imports in a defined order — owners, properties, units, tenants, leases, balances, arrears — and every file runs as a dry run first. You get a report of exactly which rows would fail and why. Nothing is written until you commit, and a bad batch is discarded rather than unpicked."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#DataMigration", "#PropTech"],
+    "source": "Imports: sheet → mapping → check (dry run) → commit / discard, with a per-batch report."
+  },
+  {
+    "day": 10, "id": "passwordless", "theme": "Security", "layout": "statement",
+    "eyebrow": "Access",
+    "headline": ["No passwords", "to leak."], "softFrom": 1,
+    "body": "Nobody on your team has a Locare password, because there is nothing to have. Sign-in is a one-time code, and access ends the moment you end it.",
+    "device": {
+      "statement": "The password your agent reused on three other sites cannot be the way into your trust data.",
+      "points": ["Sign-in is a one-time code to a verified address, not a password", "Codes are stored hashed — a copy of the database is not a set of keys", "Revoking someone takes effect on their next request, not at their next login"]
+    },
+    "copy": {
+      "hook": "No passwords to leak.",
+      "paras": ["Most breaches at small firms are not sophisticated. Someone reused a password, it turned up in a dump, and the attacker simply logged in.", "Locare has no passwords at all. Signing in means a one-time code sent to a verified address, and the codes themselves are stored hashed. When an agent leaves, revoking their access takes effect on their next request — not whenever they next choose to log in."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#PropTech", "#DataSecurity"],
+    "source": "Passwordless OTP auth, hashed OTP storage, Redis session store keyed on jti for instant revocation."
+  },
+  {
+    "day": 11, "id": "esignature", "theme": "Signing", "layout": "panel",
+    "eyebrow": "Signing",
+    "headline": ["Send it for signature", "from the lease itself."], "softFrom": 1,
+    "body": "The document you send is the document on file, and the signed copy comes back to the same place. No downloading, re-uploading, or wondering which version the tenant actually signed.",
+    "device": {
+      "url": "sign.youragency.co.za",
+      "brand": { "initial": "A", "name": "Lease agreement", "sub": "Unit 12 · awaiting signature" },
+      "pill": "Sent",
+      "rows": [["Tenant", "Awaiting"], ["Agency", "Signed"]],
+      "total": ["Status", "1 of 2"]
+    },
+    "copy": {
+      "hook": "Send it for signature from the lease itself.",
+      "paras": ["The version problem is the whole problem. A lease gets downloaded, emailed, signed, scanned, and filed — and three weeks later nobody is quite certain which copy is the one with the initials on page four.", "In Locare the document you send for signature is the document on file, and the executed copy returns to the same record. There is only ever one lease."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#eSignature", "#PropTech"],
+    "source": "Documents: signature request against a stored document, provider webhook returns the executed copy."
+  },
+  {
+    "day": 12, "id": "proof-of-payment", "theme": "Payments", "layout": "panel",
+    "eyebrow": "Proof of payment",
+    "headline": ["The WhatsApp screenshot,", "with a paper trail."], "softFrom": 1,
+    "body": "Tenants will send proof of payment regardless. Better that it arrives against the right invoice, waits for someone to accept it, and leaves a record of who did.",
+    "device": {
+      "url": "rentals.youragency.co.za",
+      "brand": { "initial": "A", "name": "Proof of payment", "sub": "Unit 21 · uploaded 14:20" },
+      "pill": "Pending",
+      "rows": [["Amount claimed", "R 8 400.00"], ["Against invoice", "March rent"]],
+      "total": ["Awaiting", "Review"]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "The WhatsApp screenshot, with a paper trail.",
+      "paras": ["Tenants are going to send you proof of payment whether or not your system has a place for it. The question is only whether it lands in someone's personal chat or against the right invoice.", "In Locare a tenant uploads it from their app, it queues for review, and someone accepts or rejects it — with a record of who did and when. The screenshot stops being a favour someone is doing you."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentCollection", "#PropTech"],
+    "source": "Proof-of-payment: tenant upload, manager accept/reject."
+  },
+  {
+    "day": 13, "id": "owner-portal", "theme": "Owner portal", "layout": "panel",
+    "eyebrow": "Owner portal",
+    "headline": ["Owners stop phoning", "to ask."], "softFrom": 1,
+    "body": "Their properties, their statements, their banking details — in one place they can open themselves, under your brand, at two in the morning if they want to.",
+    "device": {
+      "url": "owners.youragency.co.za",
+      "brand": { "initial": "A", "name": "Owner portal", "sub": "3 properties · March statement" },
+      "pill": "Paid",
+      "rows": [["Statements", "Available"], ["Next payout", "28 March"]],
+      "total": ["This month", "R 11 500.00"]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Owners stop phoning to ask.",
+      "paras": ["Most owner calls are not complaints. They are requests for information you already have: has the rent come in, what was deducted, when does the payout land.", "Give them a portal under your own brand with their properties, their statements and their banking on it, and the calls mostly stop. The ones that remain are the ones worth having."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Landlords", "#PropTech"],
+    "source": "Owner portal: /portal/me, summary, properties, statements, banking."
+  },
+  {
+    "day": 14, "id": "listings-funnel", "theme": "Letting", "layout": "flow",
+    "eyebrow": "Filling a vacancy",
+    "headline": ["From vacant", "to signed."], "softFrom": 1,
+    "body": "The listing, the applications, the screening and the approval live in the same system as the lease that follows — so nothing is retyped at the moment it matters most.",
+    "device": {
+      "steps": [
+        { "label": "Listing published", "sub": "On your own site, your own brand", "value": "live", "muted": true },
+        { "label": "Applications arrive", "sub": "Into one queue, not an inbox", "value": "7" },
+        { "label": "Screened", "sub": "Against your criteria", "value": "3 shortlisted" },
+        { "label": "Approved to lease", "sub": "Details carry straight through", "value": "signed" }
+      ]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "From vacant to signed.",
+      "paras": ["A vacancy passes through a listing, a pile of applications, a screening decision and a lease. In most agencies each of those lives somewhere different, and the tenant's details get typed out three times.", "In Locare they are one chain. The applicant you approve becomes the tenant on the lease without anyone retyping a thing at the exact moment an error is most expensive."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Letting", "#PropTech"],
+    "source": "Listings: publish, public browse, applications, screen, approve/reject → leasing."
+  },
+  {
+    "day": 15, "id": "debit-orders", "theme": "Collections", "layout": "statement",
+    "eyebrow": "Collections",
+    "headline": ["Collection that", "does not depend", "on memory."],
+    "body": "Rent arriving by debit order, with the mandate and its consent on record — rather than hoping every tenant remembers on the first of the month.",
+    "device": {
+      "statement": "The most expensive arrear is the one that started as forgetfulness.",
+      "points": ["Mandates recorded against the tenant, with the consent that authorised them", "Collections reconcile back to the invoice, not to a bank line someone matches by hand", "What failed and what cleared is visible before you start chasing anyone"]
+    },
+    "copy": {
+      "hook": "Collection that does not depend on memory.",
+      "paras": ["A good tenant who simply forgets is indistinguishable, on the first of the month, from one who cannot pay. Both cost you the same phone call.", "Locare supports collection by debit order with the mandate and its consent held on record, and reconciles what clears back against the invoice rather than a bank line somebody matches by hand. You chase the tenants who need chasing."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentCollection", "#PropTech"],
+    "source": "DebiCheck mandates with consent webhook; debit_mandates; payments reconciled to invoices."
+  },
+  {
+    "day": 16, "id": "collection-rate", "theme": "Reporting", "layout": "ledger",
+    "eyebrow": "Collection",
+    "headline": ["What you billed.", "What arrived."],
+    "body": "Collection rate by period, straight off the ledger. It is the number that tells you whether last month was actually a good month, and it is the one agencies most often guess at.",
+    "device": {
+      "caption": ["Collection · March", "Period to date"],
+      "columns": ["", "Billed", "Received"],
+      "rows": [["Rent", "612 400.00", "588 100.00"], ["Recoveries", "41 200.00", "39 800.00"]],
+      "total": ["Collected", "653 600.00", "627 900.00"],
+      "note": "96.1% — measured, not estimated."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "What you billed. What arrived.",
+      "paras": ["Most agencies can tell you what they invoiced. Fewer can tell you, without a morning's work, what percentage of it actually came in last month.", "Collection rate is the number that says whether a month was genuinely good, and Locare reads it straight off the ledger by period. No estimate, no spreadsheet, no argument about the method."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "GET /reporting/collection/:period, GET /reporting/income/:period."
+  },
+  {
+    "day": 17, "id": "expenses-to-statement", "theme": "Expenses", "layout": "ledger",
+    "eyebrow": "Expenses",
+    "headline": ["Every deduction,", "traceable to a job."],
+    "body": "An owner querying a deduction is a reasonable question, not an accusation. It should take a moment to answer, and it should answer itself with the work order behind it.",
+    "device": {
+      "caption": ["Owner statement · deductions", "March"],
+      "columns": ["Item", "Reference", "Amount"],
+      "rows": [["Plumbing", "WO-1042", "4 200.00"], ["Electrical compliance", "WO-1051", "1 650.00"], ["Management fee", "8%", "1 000.00"]],
+      "total": ["Deducted", "", "6 850.00"],
+      "note": "Each line opens the job behind it."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Every deduction, traceable to a job.",
+      "paras": ["When an owner queries a deduction, they are usually not accusing you of anything. They just want to know what it was for. That should take a moment, not an afternoon in a filing cabinet.", "In Locare each expense on a statement carries the work order behind it — what was done, when, by whom, and what it cost. The answer is already attached to the question."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Landlords", "#PropTech"],
+    "source": "Expenses recorded against units/work orders, listed per owner and carried into owner statements."
+  },
+  {
+    "day": 18, "id": "tenant-app", "theme": "Tenant app", "layout": "statement",
+    "eyebrow": "The tenant's side",
+    "headline": ["Fewer calls,", "because there is", "somewhere else to go."],
+    "body": "Tenants get an app for the four things they actually contact you about — and every one of them lands in your system instead of someone's phone.",
+    "device": {
+      "statement": "A tenant with nowhere to log it phones the agent whose number they happen to have.",
+      "points": ["Log a maintenance issue with photos, against the right unit", "Send proof of payment against the right invoice", "See the lease, the statements and what is owed", "Message the agency in a thread that stays with the tenancy"]
+    },
+    "copy": {
+      "hook": "Fewer calls, because there is somewhere else to go.",
+      "paras": ["A tenant with nowhere to log a problem phones whichever agent's number they happen to have. That is how an agency ends up with its operational history spread across four people's personal phones.", "Locare gives tenants an app for the things they actually contact you about — maintenance, proof of payment, their lease, messages — and all of it lands in your system rather than someone's chat history."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Tenants", "#PropTech"],
+    "source": "Expo tenant app: tickets with media, proof of payment, statements, messaging."
+  },
+  {
+    "day": 19, "id": "comms-inbox", "theme": "Communications", "layout": "panel",
+    "eyebrow": "Communications",
+    "headline": ["The conversation", "stays with the unit."], "softFrom": 1,
+    "body": "Threads tied to a tenancy rather than to whoever answered first. When an agent resigns, the history of the tenancy does not resign with them.",
+    "device": {
+      "url": "app.youragency.co.za",
+      "brand": { "initial": "A", "name": "Inbox", "sub": "Unit 12 · 3 open threads" },
+      "pill": "Open",
+      "rows": [["Maintenance — geyser", "2 replies"], ["March rent query", "Awaiting you"]],
+      "total": ["Unread", "2"]
+    },
+    "footnote": "Illustrative example.",
+    "copy": {
+      "hook": "The conversation stays with the unit.",
+      "paras": ["Property management is a communications business that most agencies run out of personal WhatsApp. It works right up until the agent who handled that building resigns, and takes eighteen months of context with them.", "In Locare conversations are threads attached to the tenancy, in a shared inbox. The history belongs to the agency, because that is who it was always about."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "Comms: conversations, threads, shared inbox, unread counts, status."
+  },
+  {
+    "day": 20, "id": "custom-domain", "theme": "Domains", "layout": "statement",
+    "eyebrow": "Your own domain",
+    "headline": ["A tenant should", "never have to", "trust a stranger."],
+    "body": "Your tenants sign in at your domain with a certificate in your name. Nobody has to be told that the unfamiliar website asking for their details is legitimate.",
+    "device": {
+      "statement": "\"Is this real?\" is a fair question when the address bar says someone else's name.",
+      "points": ["Tenant and owner portals run on your own domain", "HTTPS certificates issued and renewed for it automatically", "Your brand, your colours and your logo on every screen they see"]
+    },
+    "copy": {
+      "hook": "A tenant should never have to trust a stranger.",
+      "paras": ["Ask a tenant to enter their details on a website with a company name they have never heard of, and a careful one will hesitate. They are right to.", "Locare runs your tenant and owner portals on your own domain, with certificates issued and renewed automatically, under your brand. Nobody has to be talked into believing it is legitimate."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#WhiteLabel", "#PropTech"],
+    "source": "Custom domains per agency with automated TLS; host-based branding."
+  },
+  {
+    "day": 21, "id": "deposits", "theme": "Deposits", "layout": "ledger",
+    "eyebrow": "Deposits",
+    "headline": ["A deposit is", "not your money."],
+    "body": "It is held, tracked and accounted for separately from everything else, so what is owed back is never a question you have to work out from a bank balance.",
+    "device": {
+      "caption": ["Deposits held", "As at month end"],
+      "columns": ["Unit", "Held", "Interest"],
+      "rows": [["Unit 4B", "9 200.00", "312.40"], ["Unit 12", "12 500.00", "424.60"], ["Unit 21", "8 400.00", "285.20"]],
+      "total": ["Held on behalf", "30 100.00", "1 022.20"],
+      "note": "Tracked per tenancy, not as one balance."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "A deposit is not your money.",
+      "paras": ["It is held on someone else's behalf, and the moment it becomes indistinguishable from the operating account is the moment the agency has a problem it cannot see yet.", "Locare tracks deposits per tenancy — held, interest, deductions with the inspection behind them — so what is owed back to a tenant is a figure you can read, not one you reconstruct from a bank balance."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#TrustAccounting", "#RentalAgency"],
+    "source": "Deposits held per tenancy, ledger-backed; inspections apply deductions to a deposit."
+  },
+  {
+    "day": 22, "id": "immutability", "theme": "Audit trail", "layout": "statement",
+    "eyebrow": "The audit trail",
+    "headline": ["Nothing is", "quietly corrected."],
+    "body": "A mistake is fixed by posting the opposite entry, not by editing the original. The wrong number stays visible, next to the correction that fixed it.",
+    "device": {
+      "statement": "A system that lets you edit history is a system that cannot prove anything.",
+      "points": ["Ledger entries are never updated or deleted — the database itself refuses", "A correction is a new, balancing entry that names what it reverses", "So the question is never \"what changed?\" — it is all still on the screen"]
+    },
+    "copy": {
+      "hook": "Nothing is quietly corrected.",
+      "paras": ["Most accounting software lets you edit a posting. It feels helpful right up until the moment you need to prove that a figure was not changed after the fact — at which point the ability to edit is precisely the problem.", "In Locare a ledger entry is never updated or deleted. A mistake is corrected by posting the entry that reverses it, so the wrong number and the fix sit side by side, permanently."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#TrustAccounting", "#PropTech"],
+    "source": "Ledger is append-only with DB-level UPDATE/DELETE blocks; corrections are reversing postings."
+  },
+  {
+    "day": 23, "id": "migration-order", "theme": "Migration", "layout": "flow",
+    "eyebrow": "Migration",
+    "headline": ["The order matters.", "The screen keeps it."], "softFrom": 1,
+    "body": "Owners before properties. Units before leases. Leases before balances. Get it wrong and half your data has nowhere to attach itself — so the console simply will not let you.",
+    "device": {
+      "steps": [
+        { "label": "Owners, then properties", "sub": "Nothing to attach to, otherwise", "value": "1–2", "muted": true },
+        { "label": "Units, then tenants", "sub": "The unit has to exist first", "value": "3–4", "muted": true },
+        { "label": "Leases", "sub": "Joins a tenant to a unit", "value": "5", "muted": true },
+        { "label": "Balances and arrears", "sub": "Last, onto a real ledger", "value": "6–7" }
+      ]
+    },
+    "copy": {
+      "hook": "The order matters. The screen keeps it.",
+      "paras": ["Migrations fail in a predictable way: someone imports leases before the units exist, and half the file has nowhere to attach itself.", "Locare fixes the order — owners, properties, units, tenants, leases, balances, arrears — and the console follows where you are, closing the stage you finished and opening the next. You cannot do it in the wrong sequence because there is no way to."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#DataMigration", "#PropTech"],
+    "source": "Import catalogue with a fixed entity order; onboarding console tracks stage progress."
+  },
+  {
+    "day": 24, "id": "renewals", "theme": "Renewals", "layout": "flow",
+    "eyebrow": "Renewals",
+    "headline": ["The lease that", "lapsed quietly."],
+    "body": "An expired lease nobody noticed is a tenant in occupation on no terms at all. The system that issued the lease is the one that should be counting down to its end.",
+    "device": {
+      "steps": [
+        { "label": "Lease running", "sub": "Terms and escalation on record", "value": "active", "muted": true },
+        { "label": "End date approaching", "sub": "Visible before it matters", "value": "60 days" },
+        { "label": "Renewed", "sub": "Escalation applied to the new term", "value": "+7.5%" },
+        { "label": "Back on the books", "sub": "New terms, same tenancy history", "value": "active" }
+      ]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "The lease that lapsed quietly.",
+      "paras": ["A lease that expires without anyone noticing leaves a paying tenant in occupation on no written terms at all. It is nobody's fault and everybody's problem, and it is almost always a diary failure rather than a judgement one.", "The system that issued the lease should be the one counting down to its end. In Locare renewals carry the escalation into the new term and keep the tenancy history intact."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Leasing", "#RentalAgency"],
+    "source": "Leasing: lease terms with escalation, POST /leasing/:id/renew."
+  },
+  {
+    "day": 25, "id": "owner-statements", "theme": "Owner statements", "layout": "ledger",
+    "eyebrow": "Owner statements",
+    "headline": ["One run.", "Every owner."],
+    "body": "Statements generate for the period off the same ledger the payouts come from, so what the owner reads and what lands in their account are the same arithmetic.",
+    "device": {
+      "caption": ["Owner statement · Unit 12", "March"],
+      "columns": ["", "", "Amount"],
+      "rows": [["Rent collected", "", "12 500.00"], ["Management fee", "8%", "– 1 000.00"], ["Plumbing", "WO-1042", "– 4 200.00"]],
+      "total": ["Net to owner", "", "7 300.00"],
+      "note": "The statement and the payout are one figure."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "One run. Every owner.",
+      "paras": ["The month-end risk is not arithmetic. It is that the statement an owner reads and the amount that lands in their account were produced by two different processes, and one of them was a spreadsheet.", "In Locare the statement is generated for the period off the ledger, and the payout is made from the statement. There is one figure, and it came from one place."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Landlords", "#TrustAccounting"],
+    "source": "Owner statements generated per period; payout raised from the statement."
+  },
+  {
+    "day": 26, "id": "public-api", "theme": "Integration", "layout": "statement",
+    "eyebrow": "Integration",
+    "headline": ["Your data,", "on your terms."],
+    "body": "An API key of your own and a versioned endpoint, so the rent roll can feed your reporting, your accountant's tooling, or whatever you build next.",
+    "device": {
+      "statement": "Data you cannot get out of a system is data you do not really own.",
+      "points": ["Issue an API key yourself, and revoke it the moment you want to", "Versioned endpoints, so an integration does not break the week we ship", "Read your own rent roll programmatically — no export, no screen-scraping"]
+    },
+    "copy": {
+      "hook": "Your data, on your terms.",
+      "paras": ["Software that makes leaving difficult is not being loyal to you. It is being careful about itself.", "Locare lets you issue your own API keys, revoke them yourself, and read your data from versioned endpoints. If you want the rent roll in your own reporting or in your accountant's tooling, that is your business — literally."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#PropTech", "#API"],
+    "source": "API keys: create/list/revoke; versioned /v1 endpoints incl. rent-roll."
+  },
+  {
+    "day": 27, "id": "pii-encryption", "theme": "Data protection", "layout": "statement",
+    "eyebrow": "Data protection",
+    "headline": ["ID numbers and", "bank details are", "not ordinary fields."],
+    "body": "Owner banking, ID numbers and KYC documents are encrypted where they are stored, not merely behind a login. A copy of the database is not a copy of the details.",
+    "device": {
+      "statement": "POPIA is not a badge. It is a series of decisions about what you store and how.",
+      "points": ["Owner banking and ID numbers encrypted at rest with AES-256-GCM", "Documents held in private storage, reachable only by signed, expiring links", "Every tenant's data fenced off in the database itself, not just in application code"]
+    },
+    "copy": {
+      "hook": "ID numbers and bank details are not ordinary fields.",
+      "paras": ["Most systems protect them with a login and call it done. That is fine until someone gets a copy of the database, at which point a login protects nothing at all.", "In Locare owner banking, ID numbers and KYC documents are encrypted where they are stored, documents sit in private storage behind signed links that expire, and each agency's data is fenced off by the database itself rather than by application code that can forget."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#POPIA", "#DataSecurity"],
+    "source": "AES-256-GCM encryptedJson transformer on PII; private document storage; Postgres RLS per vendor."
+  },
+  {
+    "day": 28, "id": "landlord-app", "theme": "Landlord app", "layout": "panel",
+    "eyebrow": "For the owner",
+    "headline": ["The answer,", "before the question."], "softFrom": 1,
+    "body": "Owners can see collection on their properties, this month's statement and what is coming — from their phone, under your brand, without asking anyone.",
+    "device": {
+      "url": "Your Agency · owner app",
+      "brand": { "initial": "A", "name": "3 Oaks Drive", "sub": "Collected · March" },
+      "pill": "On time",
+      "rows": [["Rent collected", "R 12 500.00"], ["Deductions", "– R 5 200.00"]],
+      "total": ["Paid out", "R 7 300.00"]
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "The answer, before the question.",
+      "paras": ["An owner who can see that this month's rent came in on time does not phone to ask whether this month's rent came in on time.", "Locare gives owners an app under your brand showing collection on their properties, the current statement and what is coming. It is a small thing that quietly removes a large number of phone calls."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#Landlords", "#PropTech"],
+    "source": "Expo landlord app against the owner portal endpoints; branding per agency."
+  },
+  {
+    "day": 29, "id": "onboarding", "theme": "Going live", "layout": "flow",
+    "eyebrow": "Going live",
+    "headline": ["A guided process,", "in the order that works."], "softFrom": 1,
+    "body": "Onboarding an agency is not one afternoon and it is not a mystery either. The console tracks where you are, closes the stage you finished and opens the next.",
+    "device": {
+      "steps": [
+        { "label": "Your agency set up", "sub": "Brand, domain, users", "value": "done", "muted": true },
+        { "label": "Data brought across", "sub": "Checked before it is committed", "value": "done", "muted": true },
+        { "label": "Banking and collections", "sub": "Trust account, mandates", "value": "in progress" },
+        { "label": "Live", "sub": "Tenants and owners invited", "value": "next" }
+      ]
+    },
+    "copy": {
+      "hook": "A guided process, in the order that works.",
+      "paras": ["The fear with changing systems is not the software. It is the six weeks in the middle where nobody is sure what has moved and what has not.", "Locare onboards in tracked stages — agency setup, data migration, banking and collections, then go-live — and the console follows where you are, closing what you have finished and opening what is next. You always know exactly how far in you are."],
+      "close": "locare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "Agency onboarding console with tracked stages and per-item progress."
+  },
+  {
+    "day": 30, "id": "reporting-suite", "theme": "Reporting", "layout": "ledger",
+    "eyebrow": "Reporting",
+    "headline": ["Four numbers", "that run an agency."],
+    "body": "Rent roll, arrears, collection and income — four reads of the same ledger, for whatever period you ask for.",
+    "device": {
+      "caption": ["Reporting · March", "Period"],
+      "columns": ["Report", "", "Value"],
+      "rows": [["Rent roll", "44 of 48 let", "612 400.00"], ["Arrears", "aged", "12 350.00"], ["Collection", "of billed", "96.1%"], ["Income", "commission", "49 800.00"]],
+      "note": "One source. No reconciliation between reports."
+    },
+    "footnote": "Illustrative figures.",
+    "copy": {
+      "hook": "Four numbers that run an agency.",
+      "paras": ["Rent roll, arrears, collection rate and income. Most agencies have all four — in four spreadsheets, maintained by four people, that disagree with each other by month end.", "In Locare they are four reads of the same ledger for whatever period you ask for. They cannot disagree, because there is only one of them."],
+      "close": "Property management software built for South African rental agencies.\nlocare.co.za"
+    },
+    "hashtags": ["#PropertyManagement", "#RentalAgency", "#PropTech"],
+    "source": "GET /reporting/rent-roll, /arrears, /collection/:period, /income/:period."
+  }
+]
