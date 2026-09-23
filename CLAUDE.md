@@ -167,6 +167,9 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
   gets an entry in `src/modules/changelog/changelog-entries.ts` **in the same
   commit**. Non-technical: it is read by people who sell, not people who build.
   Sending is a human pressing a button in Admin → Updates, never automatic.
+- **Never add `Co-Authored-By:` or `Claude-Session:` trailers to commits**, and
+  no "Generated with Claude Code" line in pull requests. Commit messages carry
+  the change, not the tooling.
 - Design docs in `docs/` are written before big features. Read the matching one
   before changing partner KYC, WhatsApp onboarding, impersonation or the chatbot.
 
