@@ -82,7 +82,7 @@ function ImpersonationBanner() {
   );
 }
 
-function BrandMark({ size = 34 }: { size?: number }) {
+function BrandMark({ size = 34, dark = false }: { size?: number; dark?: boolean }) {
   const b = useBrand();
   // A wide wordmark stands alone (no tile, no separate name).
   if (b.logo.wordmarkUrl) {
@@ -98,7 +98,7 @@ function BrandMark({ size = 34 }: { size?: number }) {
           {b.logo.text.trim()[0]?.toUpperCase() ?? 'P'}
         </span>
       )}
-      <span className="font-heading text-[17px] font-bold text-ink">{b.logo.text}</span>
+      <span className={cn('font-heading text-[17px] font-bold', dark ? 'text-white' : 'text-ink')}>{b.logo.text}</span>
     </div>
   );
 }
@@ -112,7 +112,7 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
         return (
           <Link key={href} href={href} onClick={onNavigate}
             className={cn('group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-              active ? 'text-onbrand shadow-soft' : 'text-ink/70 hover:text-ink hover:bg-black/5')}
+              active ? 'text-onbrand shadow-soft' : 'text-white/70 hover:text-white hover:bg-white/10')}
             style={active ? { background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 90%, white), var(--brand))' } : undefined}>
             <Icon size={18} className={active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'} />
             {label}
@@ -127,7 +127,7 @@ function SignOut({ onDone }: { onDone?: () => void }) {
   const router = useRouter();
   return (
     <button onClick={async () => { await api.logout().catch(() => {}); auth.clear(); onDone?.(); router.replace('/login'); }}
-      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-black/5 hover:text-danger">
+      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-red-300">
       <LogOut size={18} /> Sign out
     </button>
   );
@@ -217,12 +217,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen lg:pl-[264px]">
       <IdleTimeout />
       {/* Desktop sidebar */}
-      <aside className="glass-strong fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
+      <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
         <div>
-          <div className="px-2 py-3"><BrandMark /></div>
+          <div className="px-2 py-3"><BrandMark dark /></div>
           <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
-        <div className="border-t border-line pt-3"><SignOut /></div>
+        <div className="border-t border-white/10 pt-3"><SignOut /></div>
       </aside>
 
       {/* Mobile top bar */}
@@ -236,15 +236,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-up" onClick={() => setOpen(false)} />
-          <div className="glass-strong absolute inset-y-0 left-0 flex w-[80%] max-w-[300px] flex-col justify-between rounded-r-3xl p-4">
+          <div className="sidebar-dark absolute inset-y-0 left-0 flex w-[80%] max-w-[300px] flex-col justify-between rounded-r-3xl p-4">
             <div>
               <div className="flex items-center justify-between px-2 py-2">
-                <BrandMark size={30} />
-                <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-black/5"><X size={18} /></button>
+                <BrandMark size={30} dark />
+                <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl text-white hover:bg-white/10"><X size={18} /></button>
               </div>
               <div className="mt-4"><NavLinks items={nav} onNavigate={() => setOpen(false)} /></div>
             </div>
-            <div className="border-t border-line pt-3"><SignOut onDone={() => setOpen(false)} /></div>
+            <div className="border-t border-white/10 pt-3"><SignOut onDone={() => setOpen(false)} /></div>
           </div>
         </div>
       )}
