@@ -45,3 +45,33 @@ Keep the file under 6 MB (YouTube's limit). Both cuts land around 3.5 MB.
   black throughout, so it hides everything and the motif vanishes.
 - This folder is deliberately NOT under `marketing/brand/`, which `marketing/Dockerfile`
   copies into the served image. Channel artwork does not need to be public.
+
+## Paid social creatives
+
+`ad-a-ledger.html`, `ad-b-whitelabel.html`, `ad-c-monthend.html` — three 4:5
+(1080 x 1350) concepts for Facebook, Instagram and LinkedIn. Post copy and how
+to run them: `ads-copy.md`.
+
+```bash
+cd marketing/social
+node shoot-ads.mjs            # all three
+node shoot-ads.mjs ad-a-ledger.html
+```
+
+- 1080 x 1350 is the tallest in-feed format Meta allows, so it takes the most
+  phone screen. There is no safe-area rule here as there is for the channel
+  banner — the whole canvas is shown.
+- `shoot-ads.mjs` warns when a layout overflows 1350px instead of silently
+  screenshotting a creative with its footer cropped off. Heed it: the headline
+  sizes are tuned to the exact strings, and rewriting a headline longer will
+  reflow it.
+- The ledger extract in cut A is real double-entry (rent receipt, then
+  commission) and the columns foot to the same number. An agency principal reads
+  that the way a designer reads kerning, so check it still balances if the
+  figures ever change.
+- Every amount across all three is the same illustrative 12 500 / 1 000 /
+  11 500, so the set reads as one campaign. No real agency, owner, tenant or
+  unit appears, and each creative says on its face that the figures are
+  examples.
+- No customer counts, testimonials or logo walls: one agency is live and there
+  are no paying customers, so there is nothing true to put there yet.

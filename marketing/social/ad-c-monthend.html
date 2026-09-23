@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-400.woff2') format('woff2'); font-weight:400; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-600.woff2') format('woff2'); font-weight:600; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-800.woff2') format('woff2'); font-weight:800; font-display:block; }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1080px; height:1350px; overflow:hidden; }
+
+  .stage {
+    position:relative; width:1080px; height:1350px; overflow:hidden;
+    font-family:'PJS', sans-serif;
+    background:
+      radial-gradient(700px 480px at 12% 90%, rgba(45,106,143,.30), transparent 68%),
+      linear-gradient(174deg, #070F16 0%, #0A1824 40%, #0C2030 74%, #08131C 100%);
+    display:flex; flex-direction:column;
+    padding:92px 84px 78px;
+  }
+  .motif { position:absolute; inset:0; width:1080px; height:1350px; }
+
+  .eyebrow {
+    font-size:17px; font-weight:600; letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(140,186,214,.88);
+  }
+  h1 {
+    margin-top:34px;
+    /* 78px, not 92: at 92 "Not a reconstruction." runs to within 6px of the
+       margin and the first line breaks after "a", orphaning "report." */
+    font-size:78px; font-weight:800; line-height:1.06; letter-spacing:-.026em;
+    color:#fff;
+  }
+  h1 em { font-style:normal; color:rgba(255,255,255,.42); }
+  .body {
+    margin-top:32px; max-width:740px;
+    font-size:26px; font-weight:400; line-height:1.56;
+    color:rgba(219,233,242,.74);
+  }
+
+  /* ── The device: one payment, followed all the way down. The rail is the
+       "unbroken line" the headline is claiming — drawn, not described. ── */
+  .flow { margin-top:64px; position:relative; padding-left:46px; }
+  .rail {
+    position:absolute; left:11px; top:14px; bottom:14px; width:2px;
+    background:linear-gradient(180deg, rgba(45,106,143,.15), #2D6A8F 22%, #3E8CB8 78%, rgba(62,140,184,.15));
+  }
+  .step {
+    position:relative; display:flex; align-items:baseline; justify-content:space-between;
+    padding:27px 0;
+    font-variant-numeric:tabular-nums;
+  }
+  .step + .step { border-top:1px solid rgba(255,255,255,.075); }
+  .step::before {
+    content:''; position:absolute; left:-41px; top:35px;
+    width:13px; height:13px; border-radius:50%;
+    background:#0A1824; border:2.5px solid #3E8CB8;
+  }
+  .step.last::before { background:#3E8CB8; box-shadow:0 0 0 7px rgba(62,140,184,.16); }
+  .lbl { font-size:27px; font-weight:600; color:#fff; letter-spacing:-.008em; }
+  .lbl span {
+    display:block; margin-top:6px;
+    font-size:18px; font-weight:400; letter-spacing:.02em; color:rgba(200,222,236,.46);
+  }
+  .amt { font-size:29px; font-weight:600; color:rgba(238,247,252,.94); letter-spacing:-.01em; }
+  .amt.muted { color:rgba(200,222,236,.42); font-weight:400; font-size:24px; }
+  .step.last .amt { color:#8FD9BE; }
+
+  /* The note sat under a `margin-top:auto` footer, so its own margin collapsed
+     against nothing and the text ran into the footer's rule. */
+  .note {
+    margin-top:24px; margin-bottom:8px; padding-left:46px;
+    font-size:19px; color:rgba(200,222,236,.42);
+  }
+
+  footer {
+    margin-top:auto; padding-top:48px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-top:1px solid rgba(255,255,255,.13);
+  }
+  .wm { height:52px; display:block; }
+  .url { font-size:21px; font-weight:600; letter-spacing:.03em; color:rgba(219,233,242,.72); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <svg class="motif" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+    </defs>
+    <g stroke="#ffffff" fill="none" stroke-width="1.6" opacity=".05">
+      <g transform="rotate(7 160 1210)">
+        <rect x="-120" y="1020" width="420" height="420" rx="92"/>
+        <rect x="-180" y="960"  width="540" height="540" rx="118"/>
+        <rect x="-240" y="900"  width="660" height="660" rx="144"/>
+      </g>
+    </g>
+    <rect width="1080" height="1350" filter="url(#grain)" opacity=".045"/>
+  </svg>
+
+  <div class="eyebrow">From rent received to owner paid</div>
+
+  <h1>Month-end is a report.<br><em>Not a reconstruction.</em></h1>
+
+  <div class="body">
+    One tenant payment moves through the trust account, the commission and the
+    owner statement without anyone retyping it into a spreadsheet. By the time
+    you go looking for the number, it is there.
+  </div>
+
+  <div class="flow">
+    <div class="rail"></div>
+
+    <div class="step">
+      <div class="lbl">Rent received<span>Unit 12 · debit order</span></div>
+      <div class="amt">R 12 500.00</div>
+    </div>
+    <div class="step">
+      <div class="lbl">Trust account<span>Receipted and held</span></div>
+      <div class="amt muted">held</div>
+    </div>
+    <div class="step">
+      <div class="lbl">Management commission<span>Posted to income</span></div>
+      <div class="amt">– R 1 000.00</div>
+    </div>
+    <div class="step last">
+      <div class="lbl">Owner paid<span>Statement issued the same run</span></div>
+      <div class="amt">R 11 500.00</div>
+    </div>
+  </div>
+
+  <div class="note">Illustrative figures.</div>
+
+  <footer>
+    <img class="wm" src="wordmark-white.svg" alt="Locare">
+    <div class="url">locare.co.za</div>
+  </footer>
+
+</div>
+</body>
+</html>

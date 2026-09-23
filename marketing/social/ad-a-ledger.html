@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-400.woff2') format('woff2'); font-weight:400; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-600.woff2') format('woff2'); font-weight:600; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-800.woff2') format('woff2'); font-weight:800; font-display:block; }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1080px; height:1350px; overflow:hidden; }
+
+  /* Locare: brand #2D6A8F · dark #1E4A63 · tint #E7EEF3 */
+  .stage {
+    position:relative; width:1080px; height:1350px; overflow:hidden;
+    font-family:'PJS', sans-serif;
+    background:
+      radial-gradient(760px 520px at 84% 8%, rgba(45,106,143,.42), transparent 66%),
+      linear-gradient(163deg, #0C2331 0%, #123043 34%, #1A425A 68%, #102B3B 100%);
+    display:flex; flex-direction:column;
+    padding:92px 84px 78px;
+  }
+  .motif { position:absolute; inset:0; width:1080px; height:1350px; }
+
+  .eyebrow {
+    font-size:17px; font-weight:600; letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(167,204,226,.92);
+  }
+  h1 {
+    margin-top:34px;
+    font-size:104px; font-weight:800; line-height:.96; letter-spacing:-.028em;
+    color:#fff;
+  }
+  h1 .soft { color:rgba(255,255,255,.55); }
+  .body {
+    margin-top:34px; max-width:770px;
+    font-size:27px; font-weight:400; line-height:1.56; letter-spacing:.002em;
+    color:rgba(226,238,246,.80);
+  }
+
+  /* ── The one precise detail: a trust-ledger extract that balances. ──
+     Fictional amounts, no names. It is a proof, not a screenshot. */
+  .ledger {
+    margin-top:70px;
+    border-radius:22px;
+    background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.045));
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 26px 60px rgba(4,18,28,.42);
+    padding:36px 36px 34px;
+    font-variant-numeric:tabular-nums;
+  }
+  .ledger .cap {
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-size:15px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(167,204,226,.72);
+    padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  table { width:100%; border-collapse:collapse; }
+  th {
+    font-size:14px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+    color:rgba(167,204,226,.58); text-align:right; padding:18px 0 12px;
+  }
+  th:first-child { text-align:left; }
+  td {
+    font-size:24px; font-weight:400; color:rgba(238,246,251,.92);
+    text-align:right; padding:17px 0; border-top:1px solid rgba(255,255,255,.07);
+  }
+  td:first-child { text-align:left; font-size:23px; color:rgba(226,238,246,.86); }
+  td.dim { color:rgba(226,238,246,.30); }
+  tr.total td {
+    border-top:1px solid rgba(255,255,255,.22); padding-top:24px;
+    font-weight:600; color:#fff; font-size:25px;
+  }
+  tr.total td:first-child {
+    font-size:15px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:rgba(167,204,226,.78);
+  }
+  .balances {
+    display:flex; align-items:center; gap:12px;
+    margin-top:26px; font-size:20px; font-weight:600; color:#8FD9BE;
+  }
+  .tick {
+    width:24px; height:24px; border-radius:50%;
+    background:rgba(143,217,190,.16); border:1px solid rgba(143,217,190,.5);
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  footer {
+    margin-top:auto; padding-top:56px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-top:1px solid rgba(255,255,255,.13);
+  }
+  .wm { height:52px; display:block; }
+  .url { font-size:21px; font-weight:600; letter-spacing:.03em; color:rgba(226,238,246,.72); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <svg class="motif" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+    </defs>
+    <!-- The mark's tile silhouette (rx/size = 112/512), kept far off-centre. -->
+    <g stroke="#ffffff" fill="none" stroke-width="1.6" opacity=".055">
+      <g transform="rotate(-9 900 170)">
+        <rect x="740" y="10"  width="420" height="420" rx="92"/>
+        <rect x="680" y="-50" width="540" height="540" rx="118"/>
+        <rect x="620" y="-110" width="660" height="660" rx="144"/>
+      </g>
+    </g>
+    <rect width="1080" height="1350" filter="url(#grain)" opacity=".045"/>
+  </svg>
+
+  <div class="eyebrow">Trust accounting</div>
+
+  <h1>Every cent,<br>accounted for.</h1>
+
+  <div class="body">
+    Rent in, commission out, owner paid — every movement posted twice, and never
+    edited. A correction is a new entry, so the trail is still there when the
+    auditor asks for it.
+  </div>
+
+  <div class="ledger">
+    <div class="cap"><span>Trust ledger · extract</span><span>March</span></div>
+    <table>
+      <tr><th>Posting</th><th>Debit</th><th>Credit</th></tr>
+      <!-- Real double-entry, not decoration: rent receipt (Dr bank / Cr owner
+           payable) then commission (Dr owner payable / Cr income). An agency
+           principal reads this the way a designer reads kerning. -->
+      <tr><td>Rent received — trust bank</td><td>12 500.00</td><td class="dim">—</td></tr>
+      <tr><td>Owner payable — Unit 12</td><td class="dim">—</td><td>12 500.00</td></tr>
+      <tr><td>Owner payable — commission</td><td>1 000.00</td><td class="dim">—</td></tr>
+      <tr><td>Commission income</td><td class="dim">—</td><td>1 000.00</td></tr>
+      <tr class="total"><td>Balance</td><td>13 500.00</td><td>13 500.00</td></tr>
+    </table>
+    <div class="balances">
+      <span class="tick">
+        <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.4 3.4L11 1.6" stroke="#8FD9BE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      It balances. It always balances.
+    </div>
+  </div>
+
+  <footer>
+    <img class="wm" src="wordmark-white.svg" alt="Locare">
+    <div class="url">locare.co.za</div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-400.woff2') format('woff2'); font-weight:400; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-600.woff2') format('woff2'); font-weight:600; font-display:block; }
+  @font-face { font-family:'PJS'; src:url('fonts/pjs-800.woff2') format('woff2'); font-weight:800; font-display:block; }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1080px; height:1350px; overflow:hidden; }
+
+  .stage {
+    position:relative; width:1080px; height:1350px; overflow:hidden;
+    font-family:'PJS', sans-serif;
+    background:
+      radial-gradient(820px 560px at 76% 12%, #ffffff 0%, rgba(255,255,255,0) 68%),
+      linear-gradient(168deg, #F5F9FC 0%, #EAF2F7 46%, #DDE9F0 100%);
+    display:flex; flex-direction:column;
+    padding:92px 84px 78px;
+  }
+  .motif { position:absolute; inset:0; width:1080px; height:1350px; }
+
+  .eyebrow {
+    font-size:17px; font-weight:600; letter-spacing:.24em; text-transform:uppercase;
+    color:rgba(45,106,143,.86);
+  }
+  h1 {
+    margin-top:34px;
+    font-size:104px; font-weight:800; line-height:.96; letter-spacing:-.028em;
+    color:#0E2230;
+  }
+  h1 em { font-style:normal; color:#2D6A8F; }
+  .body {
+    margin-top:34px; max-width:760px;
+    font-size:27px; font-weight:400; line-height:1.56;
+    color:rgba(16,36,50,.72);
+  }
+
+  /* ── The device: the agency's own domain and the agency's own colour.
+       The accent inside the mockup is deliberately NOT Locare blue — that
+       contrast is the entire argument, made visible rather than claimed. ── */
+  .device { margin-top:64px; }
+  .chrome {
+    background:#fff; border-radius:20px 20px 0 0;
+    border:1px solid rgba(16,46,66,.10); border-bottom:none;
+    padding:20px 24px; display:flex; align-items:center; gap:18px;
+    box-shadow:0 -1px 0 rgba(255,255,255,.7) inset;
+  }
+  .dots { display:flex; gap:9px; }
+  .dots i { width:12px; height:12px; border-radius:50%; background:rgba(16,46,66,.14); display:block; }
+  .addr {
+    flex:1; display:flex; align-items:center; gap:12px;
+    background:#F1F5F8; border-radius:999px; padding:12px 20px;
+    font-size:22px; color:#123043; font-weight:600; letter-spacing:.01em;
+  }
+  .addr .host { color:rgba(16,36,50,.45); font-weight:400; }
+
+  .page {
+    background:#fff; border:1px solid rgba(16,46,66,.10); border-top:none;
+    border-radius:0 0 20px 20px; padding:38px 38px 40px;
+    box-shadow:0 30px 64px rgba(14,44,64,.13);
+  }
+  .brandrow { display:flex; align-items:center; gap:18px; }
+  .logo {
+    width:62px; height:62px; border-radius:16px; background:#0F6E56;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:800; font-size:27px; letter-spacing:-.02em;
+  }
+  .agency { font-size:27px; font-weight:800; color:#12212B; letter-spacing:-.01em; }
+  .agency span { display:block; font-size:17px; font-weight:400; letter-spacing:.04em; color:rgba(16,36,50,.46); margin-top:4px; }
+  .pill {
+    margin-left:auto; background:rgba(15,110,86,.10); color:#0F6E56;
+    font-size:17px; font-weight:600; border-radius:999px; padding:9px 18px;
+  }
+  .rule { height:1px; background:rgba(16,46,66,.10); margin:30px 0 8px; }
+  /* Real statement rows rather than grey skeleton bars: they fill the same
+     space with something worth reading, and carry the same 12 500 / 1 000 /
+     11 500 as the other two creatives so the set reads as one campaign. */
+  .rows { font-variant-numeric:tabular-nums; }
+  .row {
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:17px 0; font-size:24px; color:rgba(16,36,50,.78);
+  }
+  .row + .row { border-top:1px solid rgba(16,46,66,.07); }
+  .row .v { font-weight:600; color:#12212B; }
+  .statement {
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-top:12px; padding-top:26px; border-top:1px solid rgba(16,46,66,.18);
+    font-variant-numeric:tabular-nums;
+  }
+  .statement .lbl { font-size:19px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:rgba(16,36,50,.42); }
+  .statement .amt { font-size:34px; font-weight:800; color:#12212B; letter-spacing:-.015em; }
+
+  .caption {
+    margin-top:22px; margin-bottom:8px; font-size:17px; color:rgba(16,36,50,.40);
+  }
+
+  footer {
+    margin-top:auto; padding-top:48px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-top:1px solid rgba(16,46,66,.14);
+  }
+  .wm { height:52px; display:block; }
+  .url { font-size:21px; font-weight:600; letter-spacing:.03em; color:rgba(16,36,50,.60); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <svg class="motif" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="fade" cx="62%" cy="18%" r="72%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="52%" stop-color="#9a9a9a"/>
+        <stop offset="100%" stop-color="#000000"/>
+      </radialGradient>
+      <mask id="m"><rect width="1080" height="1350" fill="url(#fade)"/></mask>
+      <filter id="grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+      </filter>
+    </defs>
+    <g stroke="#2D6A8F" fill="none" stroke-width="1.6" opacity=".16" mask="url(#m)">
+      <g transform="rotate(-9 900 170)">
+        <rect x="740" y="10"   width="420" height="420" rx="92"/>
+        <rect x="680" y="-50"  width="540" height="540" rx="118"/>
+        <rect x="620" y="-110" width="660" height="660" rx="144"/>
+      </g>
+    </g>
+    <rect width="1080" height="1350" filter="url(#grain)" opacity=".05"/>
+  </svg>
+
+  <div class="eyebrow">White-label, end to end</div>
+
+  <h1>Your brand on it.<br><em>Never ours.</em></h1>
+
+  <div class="body">
+    Tenants and owners sign in at your own domain, under your logo and your
+    colours. Locare runs underneath — the only place our name appears is on
+    the invoice we send you.
+  </div>
+
+  <div class="device">
+    <div class="chrome">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <div class="addr">
+        <svg width="16" height="20" viewBox="0 0 16 20" fill="none">
+          <rect x="1.2" y="8" width="13.6" height="10.8" rx="3" stroke="#0F6E56" stroke-width="1.8"/>
+          <path d="M4.4 8V5.4a3.6 3.6 0 017.2 0V8" stroke="#0F6E56" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <span class="host">https://</span>rentals.youragency.co.za
+      </div>
+    </div>
+    <div class="page">
+      <div class="brandrow">
+        <div class="logo">A</div>
+        <div class="agency">Your Agency<span>Owner statement · March</span></div>
+        <div class="pill">Paid</div>
+      </div>
+      <div class="rule"></div>
+      <div class="rows">
+        <div class="row"><span>Rent collected</span><span class="v">R 12 500.00</span></div>
+        <div class="row"><span>Management fee</span><span class="v">– R 1 000.00</span></div>
+      </div>
+      <div class="statement">
+        <span class="lbl">Net to owner</span>
+        <span class="amt">R 11 500.00</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption">Example agency branding.</div>
+
+  <footer>
+    <img class="wm" src="wordmark-brand.svg" alt="Locare">
+    <div class="url">locare.co.za</div>
+  </footer>
+
+</div>
+</body>
+</html>
