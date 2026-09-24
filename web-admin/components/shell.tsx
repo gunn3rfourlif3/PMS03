@@ -6,6 +6,7 @@ import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, Calend
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
+import AssistantPanel from './assistant/panel';
 import { cn } from '@/lib/cn';
 
 const NAV = [
@@ -219,6 +220,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen lg:pl-[264px]">
       <IdleTimeout />
+      {nav === PARTNER_NAV && <AssistantPanel />}
       {/* Desktop sidebar */}
       <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
         <div>
