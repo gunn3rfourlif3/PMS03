@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { HelpCircle, X } from 'lucide-react';
 import { actorFromToken } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { contentFor, MANUAL_PATH } from './content';
 
 /**
  * The route key the panel's content is keyed on. It is the partner pathname
@@ -25,7 +26,8 @@ export function routeKeyFor(path: string): string {
  * strip (fixed top-right of the content column) rather than in the mobile bar,
  * because the desktop layout has no header element of its own.
  *
- * Content is Day 2's job: today this renders the route key and a placeholder.
+ * Content is curated per route in `content.ts`; an unknown route falls back to
+ * a generic entry naming the manual, so the panel is never empty.
  */
 export default function AssistantPanel() {
   const path = usePathname();
@@ -45,6 +47,7 @@ export default function AssistantPanel() {
   if (actorFromToken()) return null;
 
   const routeKey = routeKeyFor(path);
+  const entry = contentFor(routeKey);
 
   return (
     <>
@@ -85,7 +88,7 @@ export default function AssistantPanel() {
             )}
           >
             <div className="flex items-start justify-between gap-3">
-              <h2 className="font-heading text-lg font-bold text-ink">Help</h2>
+              <h2 className="font-heading text-lg font-bold text-ink">{entry.title}</h2>
               <button
                 type="button"
                 onClick={close}
@@ -97,8 +100,28 @@ export default function AssistantPanel() {
             </div>
 
             <div className="mt-4 flex-1 overflow-y-auto text-sm text-muted">
-              <p className="font-mono text-xs text-ink">{routeKey}</p>
-              <p className="mt-2">Guidance for this page is on its way.</p>
+              <p>{entry.purpose}</p>
+
+              {entry.questions.length > 0 && (
+                <dl className="mt-5 space-y-4">
+                  {entry.questions.map((item) => (
+                    <div key={item.q}>
+                      <dt className="text-sm font-semibold text-ink">{item.q}</dt>
+                      <dd className="mt-1">{item.a}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+
+              <p className="mt-6 border-t border-line pt-3 text-xs">
+                Full detail is in the Partner Manual, under{' '}
+                <span className="font-medium text-ink">{entry.manualSection}</span>{' '}
+                <span className="font-mono">
+                  ({MANUAL_PATH}
+                  {entry.manualAnchor})
+                </span>
+                .
+              </p>
             </div>
           </aside>
         </div>

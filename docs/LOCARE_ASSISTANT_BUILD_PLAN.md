@@ -57,7 +57,7 @@ the source of truth, so copy, do not paraphrase.
 
 Unknown route falls back to a generic entry naming the manual. No empty panel.
 
-- [ ] Done
+- [x] Done
 
 ## Day 3 — Agencies and Commissions content
 
@@ -128,3 +128,4 @@ against the manual. Report anything that drifted rather than fixing it silently.
 One line per run: date, day number, what landed, anything left.
 
 2026-09-24 — Day 1. Panel shell `components/assistant/panel.tsx` (slide-over, Escape + backdrop close, hidden during impersonation, route key placeholder) mounted from Shell on PARTNER_NAV routes. Typecheck clean. Nothing left.
+2026-09-25 — Day 2. `components/assistant/content.ts` (typed route→entry map, Overview + Pipeline from the manual's question headings verbatim, generic fallback entry) and the panel now renders title, purpose, Q&A and a manual-section pointer. Typecheck clean. Left: the manual pointer is plain text, not a link — nothing in web-admin serves `docs/manuals/Partner-Manual.md`, so Vernon needs to say where it lives before Day 6 signals can carry an href.
