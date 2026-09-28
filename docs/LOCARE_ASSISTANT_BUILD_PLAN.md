@@ -67,7 +67,7 @@ Read: `web-admin/app/partner/agencies/page.tsx`,
 Same shape as Day 2. Commissions is the highest-risk section: no rate, no
 threshold, no rand figure in the copy — link to the manual.
 
-- [ ] Done
+- [x] Done
 
 ## Day 4 — Activity, Banking, Leaderboard content
 
@@ -76,7 +76,7 @@ Read: the three matching manual sections. Pages only if a label is unclear.
 Completes all seven routes. Re-read the panel once end to end for tone: every
 answer is one or two sentences, and no answer invents a fact the manual lacks.
 
-- [ ] Done
+- [x] Done
 
 ## Day 5 — Signals, pure functions
 
@@ -90,7 +90,7 @@ changelog entries. Each returns `{ id, text, href } | null`.
 No fetching today. Pure functions and a Jest spec in `test/` — this is the only
 day that writes outside `web-admin/components/assistant/`.
 
-- [ ] Done
+- [x] Done
 
 ## Day 6 — Wire signals into the panel
 
@@ -129,3 +129,6 @@ One line per run: date, day number, what landed, anything left.
 
 2026-09-24 — Day 1. Panel shell `components/assistant/panel.tsx` (slide-over, Escape + backdrop close, hidden during impersonation, route key placeholder) mounted from Shell on PARTNER_NAV routes. Typecheck clean. Nothing left.
 2026-09-25 — Day 2. `components/assistant/content.ts` (typed route→entry map, Overview + Pipeline from the manual's question headings verbatim, generic fallback entry) and the panel now renders title, purpose, Q&A and a manual-section pointer. Typecheck clean. Left: the manual pointer is plain text, not a link — nothing in web-admin serves `docs/manuals/Partner-Manual.md`, so Vernon needs to say where it lives before Day 6 signals can carry an href.
+2026-09-26 — Day 3. `content.ts` gains `/partner/agencies` and `/partner/commissions`, questions copied verbatim from the manual's Agencies and Commissions sections. Commissions copy carries no rate, threshold, term or rand figure — the 90-day window, the statement/payout dates, the minimum balance, the Introducer term and the rate ladder all point at the manual instead. Typecheck clean. Left: the manual pointer is still plain text (Day 2's open question for Vernon).
+2026-09-27 — Day 4. `content.ts` gains `/partner/activity`, `/partner/banking` and `/partner/leaderboard`, questions copied verbatim from the manual's Activity, Banking and Leaderboard sections — all seven partner routes now have curated content. Panel re-read end to end: no answer states a rate, price, window or figure, and none asserts anything the manual does not. Typecheck clean. Left: (a) the manual pointer is still plain text, not a link — Vernon still needs to say where `docs/manuals/Partner-Manual.md` is served before Day 6 signals can carry an href; (b) tone drift for Day 7 to judge, not fixed here — several Agencies and Commissions answers run to three or four sentences against the one-or-two-sentence rule, and two of them (the “prospect asked whether I can see their tenants” and “why not pay on billing” answers) are coaching script rather than page help.
+2026-09-28 — Day 5. `components/assistant/signals.ts`: four pure signal functions (stale open deal past 14 days on `stageChangedAt`, at the open-lead cap, banking incomplete, unread changelog) each returning `{ id, text, href } | null`, plus `test/assistant-signals.spec.ts` (19 cases). Deliberately no import from `src/` — the entities pull in TypeORM, so the funnel stages and the banking field list are structural copies with a comment saying they move together. Cap text states no number; the masked `accountNumberLast4` counts as banking present. Typecheck clean, spec green. Left: (a) the manual pointer is still plain text (Days 2–4 open question); (b) the changelog signal has nowhere to link — the changelog is served at `/admin/changelog`, not a partner route, so `unreadChangelogSignal` takes an explicit `href` and returns null without one, and Day 6 must not render it until Vernon says where partners read updates; (c) Day 4’s tone drift still stands for Day 7.
