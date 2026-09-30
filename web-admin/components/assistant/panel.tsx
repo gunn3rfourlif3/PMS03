@@ -1,10 +1,12 @@
 'use client';
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { HelpCircle, X } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, HelpCircle, X } from 'lucide-react';
 import { actorFromToken } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { contentFor, MANUAL_PATH } from './content';
+import { useAssistantSignals } from './use-signals';
 
 /**
  * The route key the panel's content is keyed on. It is the partner pathname
@@ -33,6 +35,9 @@ export default function AssistantPanel() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
+  // Fetched lazily on first open, capped at three, and empty whenever there is
+  // nothing to say — see use-signals.ts for the blocked-upstream guard.
+  const signals = useAssistantSignals(open);
 
   useEffect(() => {
     if (!open) return;
@@ -100,6 +105,23 @@ export default function AssistantPanel() {
             </div>
 
             <div className="mt-4 flex-1 overflow-y-auto text-sm text-muted">
+              {signals.length > 0 && (
+                <ul className="mb-5 space-y-2">
+                  {signals.map((s) => (
+                    <li key={s.id}>
+                      <Link
+                        href={s.href}
+                        onClick={close}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-black/[0.02] px-3 py-2.5 text-sm text-ink transition hover:border-brand"
+                      >
+                        <span>{s.text}</span>
+                        <ChevronRight size={16} className="flex-none text-muted" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <p>{entry.purpose}</p>
 
               {entry.questions.length > 0 && (
