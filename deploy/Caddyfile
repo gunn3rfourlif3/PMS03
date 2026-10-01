@@ -179,6 +179,42 @@ buddhapets.co.za, www.buddhapets.co.za {
 	}
 }
 
+# ── COFiFi ───────────────────────────────────────────────────────────────
+# Afro Coffee & Treats Co. A separate project sharing this box and this Caddy.
+#
+# DNS: A records  @ / www .cofifi.com  ->  169.58.46.223
+#      MX is Google Workspace — left alone.
+#
+# `cofifi-wp` is a network alias set in the cofifi compose project; it resolves
+# over deploy_default, same arrangement as buddhapets-wp above.
+#
+# Expect 503 from this site. The shop sits behind a maintenance gate and serves
+# a holding page until it is deliberately opened. That is the design.
+
+cofifi.com, www.cofifi.com {
+	encode zstd gzip
+	reverse_proxy cofifi-wp:80
+
+	# wp-admin, login, cron and the REST API must never be cached upstream.
+	@dynamic path /wp-admin/* /wp-json/* /wp-login.php /wp-cron.php
+	header @dynamic Cache-Control "no-store"
+
+	# Neither may anything per-shopper. A cached cart served to the wrong
+	# person is the classic WooCommerce-behind-a-proxy failure.
+	@shopper path /cart* /checkout* /my-account*
+	header @shopper Cache-Control "no-store"
+
+	# The theme repo is mounted into the web root and carries deploy/ and
+	# setup/ — which hold .env and the database password.
+	@private path /wp-content/themes/cofifi/deploy/* /wp-content/themes/cofifi/setup/*
+	respond @private 404
+
+	# xmlrpc is the most brute-forced endpoint in WordPress and this install
+	# has no use for it.
+	@xmlrpc path /xmlrpc.php
+	respond @xmlrpc 403
+}
+
 # ── Agency domains, certificated on demand ───────────────────────────────
 # Everything above is an exact hostname, and Caddy matches the most specific
 # site address first — so these blocks keep their own config and their existing
