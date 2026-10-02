@@ -104,7 +104,12 @@ export function useAssistantSignals(enabled: boolean): Signal[] {
         if (cancelled) return;
         const list: any[] = Array.isArray(deals) ? deals : [];
         const cap = capFrom(me);
-        const openDeals = list.filter((d) => d && d.stage !== 'won' && d.stage !== 'lost').length;
+        // Prefer the server's count: it is computed from OPEN_STAGES, whereas
+        // "not won and not lost" here would also count any stage added later.
+        const reported = Number(me?.openDeals);
+        const openDeals = Number.isFinite(reported)
+          ? reported
+          : list.filter((d) => d && d.stage !== 'won' && d.stage !== 'lost').length;
         setSignals(buildSignals({
           deals: list,
           banking: banking ?? null,

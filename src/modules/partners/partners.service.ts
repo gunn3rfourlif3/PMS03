@@ -3,6 +3,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { randomBytes } from 'node:crypto';
 import { Partner, PartnerMember } from './partner.entities';
+import { OPEN_STAGES, openLeadCap } from './pipeline';
 
 const SIGNUP_BASE = () => (process.env.PARTNER_SIGNUP_BASE || process.env.SIGN_BASE || 'https://app.dantalan.co.za').replace(/\/$/, '');
 
@@ -18,10 +19,25 @@ export class PartnersService {
     return partnerId;
   }
 
-  async me(partnerId?: string | null): Promise<Partner> {
-    const p = await this.partners().findOne({ where: { id: this.assert(partnerId) } });
+  /**
+   * The signed-in partner, plus the two numbers the portal needs to know
+   * whether they can register another lead.
+   *
+   * The cap lives server-side in `openLeadCap()` off PARTNER_OPEN_LEAD_CAP and
+   * has no column on the entity, so a client that only had the entity could
+   * never tell a partner they had hit it. Reported here rather than from a new
+   * endpoint: the assistant panel is not allowed to add one, and the pipeline
+   * screen already calls this.
+   */
+  async me(partnerId?: string | null): Promise<Partner & { openLeadCap: number; openDeals: number }> {
+    const id = this.assert(partnerId);
+    const p = await this.partners().findOne({ where: { id } });
     if (!p) throw new NotFoundException('Partner not found');
-    return p;
+    const [row] = await this.ds.query(
+      `SELECT COUNT(*)::int AS "openDeals" FROM partner_deals WHERE partner_id = $1 AND stage = ANY($2)`,
+      [id, OPEN_STAGES],
+    );
+    return { ...p, openLeadCap: openLeadCap(), openDeals: Number(row?.openDeals) || 0 };
   }
 
   /** Portal overview metrics (commission fields are Phase 2 — 0 for now). */

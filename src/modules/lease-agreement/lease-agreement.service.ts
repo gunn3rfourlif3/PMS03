@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { randomUUID } from 'node:crypto';
@@ -270,10 +270,16 @@ export class LeaseAgreementService {
     agencyName: string;
     branding: Record<string, any>;
     signUrl: string;
+    /**
+     * Surface a delivery failure instead of only logging it. The first send is
+     * a side effect of creating the agreement and must not fail it; a resend IS
+     * the request, so the tenant must not be told "sent" when nothing was.
+     */
+    throwOnFailure?: boolean;
   }): Promise<void> {
     const firstName = args.tenantName?.split(' ')[0] || 'there';
     const b = args.branding ?? {};
-    await this.email(args.to,
+    const ok = await this.email(args.to,
       `Please sign your lease agreement — ${args.agencyName}`,
       `Hi ${firstName},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${args.signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${args.agencyName}`,
       renderEmail({
@@ -286,7 +292,14 @@ export class LeaseAgreementService {
         buttons: [{ label: 'Review & sign your lease', url: args.signUrl }],
         footerNote: "Once signed, we'll finalise everything. Thank you.",
       }),
-    ).catch((e) => this.log.error(`sign email failed: ${e.message}`));
+    ).catch((e) => {
+      this.log.error(`sign email failed: ${e.message}`);
+      if (args.throwOnFailure) throw e;
+      return false;
+    });
+    // A provider that declines (no credentials, bounce, rate limit) returns
+    // false rather than throwing, so the resend path has to check the result.
+    if (!ok && args.throwOnFailure) throw new Error('sign link email was not delivered');
   }
 
   /**
@@ -338,22 +351,41 @@ export class LeaseAgreementService {
           agencyName: vendorRow?.name ?? 'Your agency',
           branding,
           signUrl: `${this.signBase}/sign/${parsed.ref}`,
+          throwOnFailure: true,
         });
       });
       this.log.log(`signing link resent for user ${user.id}`);
     } catch (e: any) {
-      // Never surface the reason: the response is identical either way.
+      /*
+       * Only an unexpected fault reaches here — a missing DB function, a dead
+       * mail provider, a broken vendor row. The "nothing to resend" cases
+       * return above, so failing loudly here does not leak whether the
+       * destination exists: an unknown address never gets this far.
+       *
+       * It matters because the alternative is the worst outcome available:
+       * the tenant is told the link was sent, no link exists, and the only
+       * trace is a log line nobody is reading.
+       */
       this.log.error(`resendSigningLink failed: ${e?.message}`);
+      throw new InternalServerErrorException(
+        'We could not resend your signing link just now. Please try again in a few minutes.',
+      );
     }
     return { ok: true };
   }
 
-  private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<void> {
-    if (!to || !this.channels) return;
+  /**
+   * Returns whether the message actually went. A provider that answers
+   * `{ ok: false }` throws nothing, so a caller that needs to know delivery
+   * succeeded has to read the result, not just the absence of an exception.
+   */
+  private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<boolean> {
+    if (!to || !this.channels) return false;
     const provider = this.channels.get('email');
-    if (!provider) return;
+    if (!provider) return false;
     const res = await provider.send({ to, subject, body, html });
     if (!res.ok) this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
+    return !!res.ok;
   }
 
   /**
