@@ -33,6 +33,15 @@
 # Web back-office (Next.js)
 app.dantalan.co.za {
 	encode zstd gzip
+	# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+	# time and one image serves every brand, so an absolute host there sent every
+	# brand's browser to whichever one was compiled in. With the API on each app
+	# origin the bundle needs no hostname, and CORS stops governing first-party
+	# calls. Every host that serves web:3001 needs this route — a host without it
+	# has a console that cannot reach the API at all.
+	handle /api/* {
+		reverse_proxy api:3000
+	}
 	@assets path /_next/static/* /brand/*
 	handle @assets {
 		reverse_proxy web:3001
@@ -65,6 +74,15 @@ landlord.dantalan.co.za {
 # Public rentals site (served by the Next.js web container; public routes only)
 rentals.dantalan.co.za {
 	encode zstd gzip
+	# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+	# time and one image serves every brand, so an absolute host there sent every
+	# brand's browser to whichever one was compiled in. With the API on each app
+	# origin the bundle needs no hostname, and CORS stops governing first-party
+	# calls. Every host that serves web:3001 needs this route — a host without it
+	# has a console that cannot reach the API at all.
+	handle /api/* {
+		reverse_proxy api:3000
+	}
 	reverse_proxy web:3001
 }
 
@@ -73,6 +91,15 @@ rentals.dantalan.co.za {
 # /login, /apply, …) proxy straight through.
 dantalan.co.za, www.dantalan.co.za {
 	encode zstd gzip
+	# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+	# time and one image serves every brand, so an absolute host there sent every
+	# brand's browser to whichever one was compiled in. With the API on each app
+	# origin the bundle needs no hostname, and CORS stops governing first-party
+	# calls. Every host that serves web:3001 needs this route — a host without it
+	# has a console that cannot reach the API at all.
+	handle /api/* {
+		reverse_proxy api:3000
+	}
 	redir / /rentals
 	reverse_proxy web:3001
 }
@@ -102,6 +129,15 @@ locare.co.za, www.locare.co.za {
 # layer lands (Locare Phase 0).
 app.locare.co.za {
 	encode zstd gzip
+	# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+	# time and one image serves every brand, so an absolute host there sent every
+	# brand's browser to whichever one was compiled in. With the API on each app
+	# origin the bundle needs no hostname, and CORS stops governing first-party
+	# calls. Every host that serves web:3001 needs this route — a host without it
+	# has a console that cannot reach the API at all.
+	handle /api/* {
+		reverse_proxy api:3000
+	}
 	# Immutable hashed assets keep Next's long-lived caching.
 	@assets path /_next/static/* /brand/*
 	handle @assets {
@@ -242,6 +278,15 @@ https:// {
 	# match app.agency.co.za. Match the Host header by regex instead.
 	@app header_regexp host Host ^app\.
 	handle @app {
+		# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+		# time and one image serves every brand, so an absolute host there sent every
+		# brand's browser to whichever one was compiled in. With the API on each app
+		# origin the bundle needs no hostname, and CORS stops governing first-party
+		# calls. Every host that serves web:3001 needs this route — a host without it
+		# has a console that cannot reach the API at all.
+		handle /api/* {
+			reverse_proxy api:3000
+		}
 		@assets path /_next/static/* /brand/*
 		handle @assets {
 			reverse_proxy web:3001
@@ -273,6 +318,15 @@ https:// {
 
 	# Apex, www and rentals. all serve the public rentals site.
 	handle {
+		# Same-origin API. NEXT_PUBLIC_API_BASE is baked into the web bundle at build
+		# time and one image serves every brand, so an absolute host there sent every
+		# brand's browser to whichever one was compiled in. With the API on each app
+		# origin the bundle needs no hostname, and CORS stops governing first-party
+		# calls. Every host that serves web:3001 needs this route — a host without it
+		# has a console that cannot reach the API at all.
+		handle /api/* {
+			reverse_proxy api:3000
+		}
 		redir / /rentals
 		reverse_proxy web:3001
 	}

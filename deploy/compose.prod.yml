@@ -175,7 +175,17 @@ services:
       context: ../web-admin
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set NEXT_PUBLIC_API_BASE}
+        # Relative on purpose, and NOT from the env var. This one image serves
+        # every brand host (app.dantalan, app.locare, agency custom domains), so
+        # an absolute API host compiled in here sends every brand's browser to
+        # whichever brand was built. Caddy routes /api/* to the api container on
+        # each of those hosts, so the bundle needs no hostname and CORS stops
+        # governing first-party calls.
+        #
+        # NEXT_PUBLIC_API_BASE stays absolute in .env.prod because tenant and
+        # landlord below take EXPO_PUBLIC_API_BASE from it, and those hosts
+        # serve only their own static bundle — no /api route to be relative to.
+        NEXT_PUBLIC_API_BASE: /api
     restart: unless-stopped
     depends_on: [api]
 
