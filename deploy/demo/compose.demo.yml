@@ -1,0 +1,168 @@
+# Locare demo stack — a complete second copy of the product, for prospect demos.
+#
+# Same images as production, built from the same source tree, with its own
+# database, its own hostnames and its own mail. Nothing here can touch a
+# customer: no real mail provider, no payment rail, no shared volume.
+#
+#   docker compose -p demo -f deploy/demo/compose.demo.yml --env-file deploy/demo/.env.demo up -d --build
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# THE ONE DANGEROUS THING, READ BEFORE EDITING
+#
+# api/web/tenant/landlord join the PRODUCTION network (`deploy_default`) so the
+# production Caddy can route to them. On that network the name `postgres`
+# resolves to the PRODUCTION database. Every datastore reference below is
+# therefore written `demo-postgres` / `demo-redis`, and those two services are
+# deliberately NOT on the production network at all.
+#
+# If you ever find a bare `postgres` or `redis` hostname in this file, it is a
+# bug, and the blast radius is the live customer database.
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: demo
+
+services:
+  demo-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: pms
+    volumes:
+      - demo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [demo_internal]
+
+  demo-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - demo_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [demo_internal]
+
+  # Catch-all mailbox. Every message the platform sends during a demo lands here
+  # and goes nowhere else — OTP codes, lease signing links, invoices, welcome
+  # mail. The web UI at mail.demo.locare.co.za is worth showing the room: "this
+  # is the exact email your tenant receives."
+  demo-mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks: [demo_internal, prod]
+
+  demo-api:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    depends_on:
+      demo-postgres: { condition: service_healthy }
+      demo-redis: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # demo-postgres, NOT postgres. See the warning at the top of this file.
+      DATABASE_URL: postgres://pms_app:pms_app@demo-postgres:5432/pms
+      MIGRATION_DATABASE_URL: postgres://pms:${POSTGRES_PASSWORD}@demo-postgres:5432/pms
+      REDIS_URL: redis://demo-redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      PII_ENCRYPTION_KEY: ${PII_ENCRYPTION_KEY:?set PII_ENCRYPTION_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS}
+
+      # Mail: Mailpit only. SMTP_HOST takes precedence over SendGrid in
+      # http.providers.ts, and no SendGrid/Twilio key is set, so there is no
+      # configured path out of this stack even if something tries.
+      SMTP_HOST: demo-mailpit
+      SMTP_PORT: 1025
+      SMTP_SECURE: "false"
+      SMTP_FROM: noreply@demo.locare.co.za
+      SMTP_FROM_NAME: ${BRAND_NAME:-Locare}
+      OTP_CHANNELS: email
+      WELCOME_CHANNELS: email
+
+      # No payment or payout rail. Both fall back to the safe stub.
+      PAYMENT_PROVIDER: ""
+      PAYOUT_PROVIDER: ""
+
+      PLATFORM_DOMAIN: demo.locare.co.za
+      PLATFORM_IP: ${PLATFORM_IP:-169.58.46.223}
+      PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:?set PLATFORM_ADMIN_EMAILS}
+      AUTH_BASE: https://api.demo.locare.co.za
+      TENANT_APP_URL: https://app.demo.locare.co.za
+      SIGN_BASE: https://app.demo.locare.co.za
+      PUBLIC_API_BASE: /api
+
+      # Price ladder, same defaults as production so the tier maths the prospect
+      # sees is the real maths.
+      STARTER_PRICE: ${STARTER_PRICE:-6014}
+      GROWTH_PRICE: ${GROWTH_PRICE:-12600}
+      SCALE_PRICE: ${SCALE_PRICE:-22100}
+      STARTER_MIN_UNITS: ${STARTER_MIN_UNITS:-70}
+      STARTER_MAX_UNITS: ${STARTER_MAX_UNITS:-199}
+      GROWTH_MAX_UNITS: ${GROWTH_MAX_UNITS:-499}
+      MIN_BILLABLE_UNITS: ${MIN_BILLABLE_UNITS:-30}
+      CUSTOM_UNIT_RATE: ${CUSTOM_UNIT_RATE:-}
+
+      TRUSTED_DEVICE_DAYS: ${TRUSTED_DEVICE_DAYS:-30}
+      MEDIA_DIR: /data/media
+      DOCUMENT_AI_PROVIDER: heuristic
+    volumes:
+      - demo_mediadata:/data/media
+    networks: [demo_internal, prod]
+
+  demo-web:
+    build:
+      context: ../../web-admin
+      dockerfile: Dockerfile
+      args:
+        # Relative, as in production: Caddy serves /api on each demo app host.
+        NEXT_PUBLIC_API_BASE: /api
+    restart: unless-stopped
+    depends_on: [demo-api]
+    networks: [demo_internal, prod]
+
+  demo-tenant:
+    build:
+      context: ../../mobile-tenant
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE: https://api.demo.locare.co.za/api
+    restart: unless-stopped
+    depends_on: [demo-api]
+    networks: [demo_internal, prod]
+
+  demo-landlord:
+    build:
+      context: ../../mobile-landlord
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_API_BASE: https://api.demo.locare.co.za/api
+    restart: unless-stopped
+    depends_on: [demo-api]
+    networks: [demo_internal, prod]
+
+networks:
+  # Private to the demo stack. The datastores live only here, so nothing in the
+  # production project can reach them and vice versa.
+  demo_internal:
+  # The production project's network, joined so its Caddy can route to the demo
+  # containers by name — the same arrangement cofifi and buddhapets use.
+  prod:
+    external: true
+    name: deploy_default
+
+volumes:
+  demo_pgdata:
+  demo_redisdata:
+  demo_mediadata:

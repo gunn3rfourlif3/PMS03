@@ -30,6 +30,7 @@ coverage/
 
 # deployment secrets & backups
 deploy/.env.prod
+deploy/demo/.env.demo
 deploy/backups/
 
 # Generated marketing-video clips (large binaries; regenerate with scripts/video)

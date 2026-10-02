@@ -160,6 +160,70 @@ api.locare.co.za {
 	reverse_proxy api:3000
 }
 
+# ── Locare demo stack (prospect demos) ───────────────────────────────────
+# A second, complete copy of the product on its own database, served by the
+# `demo` compose project (deploy/demo/compose.demo.yml) over this same network.
+#
+# Explicit hostnames, so they beat the on-demand `^app\.` catch-all further
+# down — without these blocks app.demo.locare.co.za is served by PRODUCTION.
+#
+# Locked down on purpose. These hosts carry a named prospect's branding and
+# invented tenant records; neither should be found by a search engine or opened
+# by a stranger. basic_auth covers every path, and the X-Robots-Tag is belt and
+# braces for anything that follows a link.
+#
+# The bcrypt hash below is generated with:
+#   docker run --rm caddy:2-alpine caddy hash-password --plaintext '<password>'
+(demo_guard) {
+	basic_auth {
+		{$DEMO_USER} {$DEMO_PASSWORD_HASH}
+	}
+	header X-Robots-Tag "noindex, nofollow, noarchive"
+}
+
+app.demo.locare.co.za {
+	encode zstd gzip
+	import demo_guard
+	handle /api/* {
+		reverse_proxy demo-api:3000
+	}
+	@assets path /_next/static/* /brand/*
+	handle @assets {
+		reverse_proxy demo-web:3001
+	}
+	handle {
+		reverse_proxy demo-web:3001 {
+			header_down Cache-Control "no-cache"
+		}
+	}
+}
+
+api.demo.locare.co.za {
+	encode zstd gzip
+	import demo_guard
+	reverse_proxy demo-api:3000
+}
+
+tenant.demo.locare.co.za {
+	encode zstd gzip
+	import demo_guard
+	reverse_proxy demo-tenant:80
+}
+
+landlord.demo.locare.co.za {
+	encode zstd gzip
+	import demo_guard
+	reverse_proxy demo-landlord:80
+}
+
+# Every message the demo stack sends. Shown on screen during a demo, so it is
+# behind the same guard as everything else.
+mail.demo.locare.co.za {
+	encode zstd gzip
+	import demo_guard
+	reverse_proxy demo-mailpit:8025
+}
+
 # ── Locare app surfaces on the platform domain ───────────────────────────
 # Same Expo web export containers as the agency hosts. These have no DNS A
 # record yet, so they resolve nowhere — the blocks are ready for when they do.

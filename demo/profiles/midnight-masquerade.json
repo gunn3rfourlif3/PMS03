@@ -1,0 +1,89 @@
+{
+  "$comment": [
+    "A prospect profile. One file per prospect; the seeder builds an entire",
+    "agency from it. Nothing here is real: the portfolio, the people and the",
+    "money are invented to be plausible at this scale, and the only true things",
+    "are the agency's name and the portfolio size they told us.",
+    "",
+    "Every date is expressed as an offset from the run, never a literal, so the",
+    "world is current whenever it is seeded. A demo with last March's invoices",
+    "on screen is the detail that loses the room."
+  ],
+
+  "slug": "midnight-masquerade",
+  "agency": {
+    "name": "Midnight Masquerade",
+    "tradingName": "Midnight Masquerade Property",
+    "email": "admin@midnightmasquerade.demo",
+    "phone": "+27 21 555 0180",
+    "city": "Cape Town",
+    "addressText": "2nd Floor, The Foundry, Prestwich Street, Green Point, Cape Town, 8005"
+  },
+
+  "branding": {
+    "$comment": "Locare's own palette is the default. Replace brand/tint with theirs once we have the logo; logo is a path under demo/assets/ and may be null.",
+    "brand": "#0F6E56",
+    "tint": "#E1F5EE",
+    "accent": "#C9A227",
+    "logo": null
+  },
+
+  "subscription": {
+    "$comment": "500 units is past GROWTH_MAX_UNITS (499), so this is a Custom-tier conversation by the platform's own maths — not a sales posture. unitRateCents is read from CUSTOM_UNIT_RATE when left null.",
+    "tier": "custom",
+    "units": 500,
+    "unitRateCents": null,
+    "status": "active"
+  },
+
+  "portfolio": {
+    "$comment": "500 units across a believable Cape Town spread: a few large blocks carry the bulk, a long tail of small buildings and houses makes up the rest. The seeder generates units to hit `units` exactly.",
+    "targetUnits": 500,
+    "buildings": [
+      { "name": "Masquerade Heights", "suburb": "Sea Point", "type": "apartment_block", "units": 96 },
+      { "name": "The Carnival", "suburb": "Green Point", "type": "apartment_block", "units": 84 },
+      { "name": "Harlequin Court", "suburb": "Woodstock", "type": "apartment_block", "units": 72 },
+      { "name": "Domino Place", "suburb": "Observatory", "type": "apartment_block", "units": 60 },
+      { "name": "Venetian Mews", "suburb": "Gardens", "type": "complex", "units": 48 },
+      { "name": "Columbine Lofts", "suburb": "Salt River", "type": "complex", "units": 40 },
+      { "name": "Pierrot Gardens", "suburb": "Rondebosch", "type": "complex", "units": 36 },
+      { "name": "Bauta Villas", "suburb": "Claremont", "type": "complex", "units": 28 },
+      { "name": "Scaramouche Row", "suburb": "Mowbray", "type": "semi_detached", "units": 20 },
+      { "name": "Volto Street Houses", "suburb": "Kenilworth", "type": "house", "units": 16 }
+    ],
+    "rentRangeCents": { "min": 650000, "max": 2450000 },
+    "occupancyRate": 0.94
+  },
+
+  "people": {
+    "$comment": "Staff and the two app logins. Addresses are on the demo domain so Mailpit catches everything; the ones marked `watch` are the mailboxes opened on screen during the demo.",
+    "staff": [
+      { "name": "Celeste Marais", "email": "celeste@midnightmasquerade.demo", "role": "vendor_owner" },
+      { "name": "Thabo Nkosi", "email": "thabo@midnightmasquerade.demo", "role": "property_manager" },
+      { "name": "Riaan de Villiers", "email": "riaan@midnightmasquerade.demo", "role": "property_manager" }
+    ],
+    "landlordDemoAccount": { "name": "Annelize Fourie", "email": "landlord@demo.locare.co.za", "watch": true, "ownsBuildings": ["Venetian Mews", "Volto Street Houses"] },
+    "tenantDemoAccount": { "name": "Sipho Dlamini", "email": "tenant@demo.locare.co.za", "watch": true, "unit": "Masquerade Heights 304" }
+  },
+
+  "story": {
+    "$comment": "The handful of records that get opened on screen. Everything else is generated filler that only has to survive a scroll; these have to survive a click.",
+    "arrears": [
+      { "unit": "The Carnival 212", "tenant": "Lerato Mokoena", "daysLate": 11, "amountCents": 1180000 },
+      { "unit": "Harlequin Court 7B", "tenant": "Jason Pillay", "daysLate": 38, "amountCents": 1890000 }
+    ],
+    "maintenance": [
+      { "unit": "Masquerade Heights 304", "title": "Geyser leaking into ceiling", "status": "open", "openedDaysAgo": 2 },
+      { "unit": "Domino Place 15", "title": "Front gate motor replaced", "status": "resolved", "openedDaysAgo": 9 }
+    ],
+    "leaseExpiringSoon": { "unit": "Pierrot Gardens 4", "tenant": "Michelle Adams", "expiresInDays": 54 },
+    "newLeaseAwaitingSignature": { "unit": "Columbine Lofts 22", "tenant": "Kagiso Sithole", "sentDaysAgo": 1 }
+  },
+
+  "history": {
+    "$comment": "How much past to generate. Twelve months gives the reports something to draw and makes the account look lived-in rather than created this morning.",
+    "monthsOfInvoices": 12,
+    "monthsOfPayments": 12,
+    "rentDueDayOfMonth": 1
+  }
+}

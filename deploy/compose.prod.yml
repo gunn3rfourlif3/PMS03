@@ -7,6 +7,13 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    environment:
+      # Basic-auth credentials for the demo stack's hosts, consumed by the
+      # (demo_guard) snippet in the Caddyfile. Unset is NOT safe: Caddy
+      # substitutes an empty string and the guard stops guarding, so keep both
+      # set in .env.prod whenever the demo blocks are present.
+      DEMO_USER: ${DEMO_USER:?set DEMO_USER}
+      DEMO_PASSWORD_HASH: ${DEMO_PASSWORD_HASH:?set DEMO_PASSWORD_HASH}
     ports:
       - "80:80"
       - "443:443"
