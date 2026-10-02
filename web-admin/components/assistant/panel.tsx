@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, HelpCircle, X } from 'lucide-react';
@@ -39,9 +39,58 @@ export default function AssistantPanel() {
   // nothing to say — see use-signals.ts for the blocked-upstream guard.
   const signals = useAssistantSignals(open);
 
+  // Which help button opened the panel (desktop strip or mobile pill), so
+  // closing can hand focus back to the control the reader actually used.
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const sheetRef = useRef<HTMLElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
+
+  const openFrom = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    openerRef.current = e.currentTarget;
+    setOpen(true);
+  }, []);
+
+  // Focus moves into the sheet on open and back to the trigger on close. The
+  // close button is the first stop rather than the first signal link, so a
+  // keyboard reader can dismiss the panel without walking the content.
+  useEffect(() => {
+    if (open) {
+      closeRef.current?.focus();
+      return;
+    }
+    openerRef.current?.focus();
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        close();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      // Trap: the panel is aria-modal, so Tab must not walk the page behind it.
+      const sheet = sheetRef.current;
+      if (!sheet) return;
+      const stops = Array.from(
+        sheet.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+        // Filtered on markup, not on layout: an `offsetParent` check reads as
+        // the obvious "is it visible" test but is zero in any environment that
+        // has not computed layout, which silently empties the list and lets
+        // Tab walk the page behind an aria-modal dialog.
+      ).filter((el) => !el.hasAttribute('hidden') && el.getAttribute('aria-hidden') !== 'true');
+      if (stops.length === 0) return;
+      const first = stops[0];
+      const last = stops[stops.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || !sheet.contains(active))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (active === last || !sheet.contains(active))) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, close]);
@@ -58,7 +107,7 @@ export default function AssistantPanel() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openFrom}
         aria-label="Open help"
         aria-expanded={open}
         className="fixed right-4 top-3 z-20 hidden items-center gap-2 rounded-xl border border-line bg-white/90 px-3 py-2 text-sm font-medium text-ink shadow-soft backdrop-blur transition hover:text-brand lg:flex"
@@ -68,7 +117,7 @@ export default function AssistantPanel() {
 
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openFrom}
         aria-label="Open help"
         aria-expanded={open}
         className="fixed bottom-5 right-4 z-20 grid h-12 w-12 place-items-center rounded-full text-onbrand shadow-soft lg:hidden"
@@ -80,21 +129,24 @@ export default function AssistantPanel() {
       {open && (
         <div className="fixed inset-0 z-50" role="presentation">
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-up"
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-up motion-reduce:animate-none"
             onClick={close}
           />
           <aside
+            ref={sheetRef}
             role="dialog"
             aria-modal="true"
             aria-label="Help"
             className={cn(
-              'absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col',
+              'absolute inset-y-0 right-0 flex w-full max-w-none flex-col lg:max-w-[420px]',
               'border-l border-line bg-white p-5 shadow-soft',
+              'animate-fade-up motion-reduce:animate-none',
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-heading text-lg font-bold text-ink">{entry.title}</h2>
               <button
+                ref={closeRef}
                 type="button"
                 onClick={close}
                 aria-label="Close help"

@@ -73,6 +73,127 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
     manualAnchor: '#pipeline',
     manualSection: 'Pipeline',
   },
+  '/partner/agencies': {
+    title: 'Agencies',
+    purpose:
+      'The agencies attributed to you, with their tier, unit count, status and join date \u2014 and your referral link.',
+    questions: [
+      {
+        q: 'How does an agency become mine?',
+        a: 'Two ways, and only two. Your referral link \u2014 automatic and unambiguous, so prefer it and send the link. Or a named registered prospect logged in your pipeline with an agency name and a named contact, which Locare confirms is a genuine introduction before it counts. Saying you spoke to someone first is not attribution.',
+      },
+      {
+        q: 'Two of us spoke to the same agency. Who earns?',
+        a: 'Whoever recorded it first, inside the window the manual\u2019s Agencies section gives. That is the whole rule, and it is why you log on the day of the call.',
+      },
+      {
+        q: 'What can I see inside one of my agencies?',
+        a: 'Their name, tier, unit count, subscription and status. Nothing else \u2014 no tenants, no leases, no financials, no landlord details, not available to your login at all.',
+      },
+      {
+        q: 'A prospect asked whether I can see their tenants.',
+        a: 'Say it plainly: \u201cMy access shows me that you\u2019re a customer and what plan you\u2019re on. I cannot see your tenants or your money.\u201d It is true, and it is a stronger answer than any assurance you could offer instead.',
+      },
+    ],
+    manualAnchor: '#agencies',
+    manualSection: 'Agencies',
+  },
+
+  '/partner/commissions': {
+    title: 'Commissions',
+    purpose:
+      'Every accrual, by period, with the agency, the basis MRR, your rate, the amount and its status \u2014 and totals for pending, paid this month and paid to date.',
+    questions: [
+      {
+        q: 'What is commission calculated on?',
+        a: 'The referred agency\u2019s recurring subscription revenue, excluding VAT. Once-off and pass-through charges are excluded.',
+      },
+      {
+        q: 'When does it accrue?',
+        a: 'Only on payments actually received from the agency, in the month they are received. Nothing accrues on an invoice that has been raised but not paid.',
+      },
+      {
+        q: 'Why not pay on billing instead?',
+        a: 'Because recovering money already paid to a partner is the fastest way to poison a channel. Paying in arrears on collected revenue means clawbacks never arise.',
+      },
+      {
+        q: 'When am I paid?',
+        a: 'A statement comes first and the payout follows, both for the prior month. The manual\u2019s Commissions section gives the two dates.',
+      },
+      {
+        q: 'Nothing was paid out this month.',
+        a: 'Below a minimum balance the amount rolls over, and is swept quarterly regardless \u2014 so it is delayed, never lost. The manual\u2019s Commissions section gives the minimum.',
+      },
+      {
+        q: 'What do the statuses mean?',
+        a: '`pending` \u2014 accrued, not yet approved. `approved` \u2014 confirmed, due in the next run. `paid` \u2014 sent. `cancelled` \u2014 reversed before payment, which happens when the underlying payment was reversed or the accrual was found not to be commissionable.',
+      },
+      {
+        q: 'What is my rate?',
+        a: 'It follows your tier, and your current rate is shown on every line on this screen. The rate ladder and the qualification gates live in the commission structure document the manual points to \u2014 that is the source of truth, and neither the manual nor this panel restates the numbers.',
+      },
+      {
+        q: 'How long does it run?',
+        a: 'Introducer accruals run for a fixed term per agency; Partner and Reseller are lifetime, for as long as that agency keeps paying. The manual\u2019s Commissions section gives the term.',
+      },
+      {
+        q: 'Can I earn on my own agency?',
+        a: 'No. No commission is payable on an agency you control \u2014 yours, any entity where you or an immediate family member is a director, member or beneficial owner, or any agency under common control with one of those. It is checked at approval and again at accrual. If you run an agency and want to use Locare, you are welcome to; you pay for it like any other customer.',
+      },
+    ],
+    manualAnchor: '#commissions',
+    manualSection: 'Commissions',
+  },
+
+  '/partner/activity': {
+    title: 'Activity',
+    purpose:
+      'A log of your calls, emails, demos, notes and stage changes.',
+    questions: [
+      {
+        q: 'Is this busywork?',
+        a: 'No \u2014 it is the evidence behind a promotion to Partner, and it is what the leaderboard is computed from. A demo nobody recorded did not happen as far as your tier is concerned.',
+      },
+      {
+        q: 'What counts as an activity?',
+        a: 'Call, email, demo, note, stage change, signup. Stage changes and signups are recorded for you; the rest you log.',
+      },
+    ],
+    manualAnchor: '#activity',
+    manualSection: 'Activity',
+  },
+
+  '/partner/banking': {
+    title: 'Banking',
+    purpose:
+      'Where your payout account lives. Enter it once, and confirm it after any change at your bank.',
+    questions: [
+      {
+        q: 'Why has my payout not arrived?',
+        a: 'Missing or stale banking details are the most common reason. A payout run cannot include an account it does not have.',
+      },
+      {
+        q: 'Who can see these details?',
+        a: 'They are encrypted at rest and masked in admin views, the same as your KYC documents.',
+      },
+    ],
+    manualAnchor: '#banking',
+    manualSection: 'Banking',
+  },
+
+  '/partner/leaderboard': {
+    title: 'Leaderboard',
+    purpose:
+      'Other partners\u2019 display names, headline metric, rank and movement.',
+    questions: [
+      {
+        q: 'What can other partners see about me?',
+        a: 'Your display name, your headline metric, your rank and your streak. Never your pipeline, your contacts, your agencies or your banking.',
+      },
+    ],
+    manualAnchor: '#leaderboard',
+    manualSection: 'Leaderboard',
+  },
 };
 
 /**
