@@ -53,8 +53,11 @@ ssh deploy@169.58.46.223
 
 ## 2. Get the code
 ```bash
-git clone <your-repo-url> pms && cd pms
+git clone <your-repo-url> PMS03 && cd ~/PMS03
 # (or copy the project up with rsync/scp)
+# The live box uses ~/PMS03 — every command below assumes that directory, and
+# --env-file paths are relative to it, so run them from there or they fail with
+# "couldn't find env file".
 ```
 
 ---
@@ -166,7 +169,7 @@ enabling in addition to the logical DB dumps for defence in depth.
 ## 9. Day-to-day
 ```bash
 # update to a new release
-git pull
+cd ~/PMS03 && git pull
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod up -d --build
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env.prod exec api npm run migration:run:prod
 
