@@ -22,6 +22,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ? (payload as any).message
       : (exception instanceof Error ? exception.message : 'Internal server error');
 
+    /*
+     * Forward a `code` when the thrower supplied one. This envelope is built
+     * from scratch rather than passed through, so anything not copied here is
+     * silently lost — which is how a client ends up matching on message text to
+     * work out what happened. A code is the machine-readable half of an error:
+     * the message is for the reader, the code is for the caller.
+     */
+    const code = typeof payload === 'object' && payload && 'code' in payload
+      ? (payload as any).code
+      : undefined;
+
     if (status >= 500) {
       this.logger.error(`${req.method} ${req.url} ${status} [${requestId}] ${exception instanceof Error ? exception.stack : exception}`);
 
@@ -45,6 +56,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       error: HttpStatus[status] ?? 'Error',
       message,
+      ...(code ? { code } : {}),
       requestId,
       path: req.url,
       timestamp: new Date().toISOString(),
