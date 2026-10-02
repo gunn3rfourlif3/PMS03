@@ -85,22 +85,14 @@ export class LeaseAgreementService {
     }));
 
     const signUrl = `${this.signBase}/sign/${ref}`;
-    const firstName = input.tenantName?.split(' ')[0] || 'there';
     if (input.sendEmail !== false) {
-      await this.email(input.tenantEmail,
-        `Please sign your lease agreement — ${data.agencyName}`,
-        `Hi ${firstName},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${data.agencyName}`,
-        renderEmail({
-          agencyName: data.agencyName,
-          brandColor: branding.colors?.brand,
-          logoUrl: mailSafeLogo(branding.logo?.imageUrl),
-          markUrl: emailMarkBase(),
-          heading: `Hi ${firstName}, your lease is ready to sign`,
-          paragraphs: ['Please review your lease agreement and sign it online — it only takes a moment.'],
-          buttons: [{ label: 'Review & sign your lease', url: signUrl }],
-          footerNote: "Once signed, we'll finalise everything. Thank you.",
-        }),
-      ).catch((e) => this.log.error(`sign email failed: ${e.message}`));
+      await this.sendSignLinkEmail({
+        to: input.tenantEmail,
+        tenantName: input.tenantName,
+        agencyName: data.agencyName,
+        branding,
+        signUrl,
+      });
     }
 
     return { ref, signUrl, fileUrl };
@@ -265,6 +257,95 @@ export class LeaseAgreementService {
   list(leaseId?: string): Promise<LeaseAgreement[]> {
     const repo = this.tenant.getRepository(LeaseAgreement);
     return repo.find({ where: leaseId ? { leaseId } : {}, order: { createdAt: 'DESC' } });
+  }
+
+  /**
+   * The "please sign" email, shared by first send and resend so the two can
+   * never drift apart. Best-effort: a delivery failure is logged, never thrown,
+   * because neither caller should fail on it.
+   */
+  private async sendSignLinkEmail(args: {
+    to?: string;
+    tenantName?: string;
+    agencyName: string;
+    branding: Record<string, any>;
+    signUrl: string;
+  }): Promise<void> {
+    const firstName = args.tenantName?.split(' ')[0] || 'there';
+    const b = args.branding ?? {};
+    await this.email(args.to,
+      `Please sign your lease agreement — ${args.agencyName}`,
+      `Hi ${firstName},\n\nYour lease agreement is ready to sign. Please review and sign it here:\n${args.signUrl}\n\nOnce signed, we'll finalise everything. Thank you.\n\n— ${args.agencyName}`,
+      renderEmail({
+        agencyName: args.agencyName,
+        brandColor: b.colors?.brand,
+        logoUrl: mailSafeLogo(b.logo?.imageUrl),
+        markUrl: emailMarkBase(),
+        heading: `Hi ${firstName}, your lease is ready to sign`,
+        paragraphs: ['Please review your lease agreement and sign it online — it only takes a moment.'],
+        buttons: [{ label: 'Review & sign your lease', url: args.signUrl }],
+        footerNote: "Once signed, we'll finalise everything. Thank you.",
+      }),
+    ).catch((e) => this.log.error(`sign email failed: ${e.message}`));
+  }
+
+  /**
+   * PUBLIC, UNAUTHENTICATED: resend the signing link to its own tenant.
+   *
+   * Reached from the login screen, where a tenant with an unsigned lease is
+   * refused a session and so cannot use `mine()`. Two rules shape it:
+   *
+   * 1. It ALWAYS resolves to `{ ok: true }`, whatever it finds. The caller
+   *    supplies an email or phone number and learns nothing back, so this is
+   *    not an account-enumeration oracle. Throttling is on the controller.
+   * 2. It resends the EXISTING ref rather than generating a new agreement, so
+   *    links already sitting in the tenant's inbox keep working and no second
+   *    document is rendered.
+   *
+   * The destination is never used as the recipient: mail goes to the address on
+   * the user record, so this cannot be used to redirect a link to an attacker.
+   */
+  async resendSigningLink(destination: string): Promise<{ ok: true }> {
+    const dest = (destination ?? '').trim();
+    if (!dest) return { ok: true };
+
+    try {
+      const isEmail = dest.includes('@');
+      const phone = isEmail ? undefined : (toE164(dest) ?? dest);
+      const [user] = await this.ds.query(
+        isEmail
+          ? 'SELECT id, name, email FROM users WHERE lower(email) = lower($1) LIMIT 1'
+          : 'SELECT id, name, email FROM users WHERE phone = $1 LIMIT 1',
+        [isEmail ? dest : phone],
+      );
+      if (!user?.id || !user.email) return { ok: true };
+
+      const rows = await this.ds.query('SELECT auth_pending_signing_link($1) AS d', [user.id]);
+      const d = rows[0]?.d;
+      const parsed = typeof d === 'string' ? JSON.parse(d) : d;
+      if (!parsed?.vendorId || !parsed?.ref) return { ok: true };
+
+      await this.tenantRunner.runInVendorContext(parsed.vendorId, async () => {
+        const [vendorRow] = await this.tenant.getManager().query(
+          `SELECT name, config FROM vendors WHERE id = $1`, [parsed.vendorId],
+        );
+        const branding = (typeof vendorRow?.config === 'string'
+          ? JSON.parse(vendorRow.config)
+          : vendorRow?.config)?.branding ?? {};
+        await this.sendSignLinkEmail({
+          to: user.email,
+          tenantName: user.name,
+          agencyName: vendorRow?.name ?? 'Your agency',
+          branding,
+          signUrl: `${this.signBase}/sign/${parsed.ref}`,
+        });
+      });
+      this.log.log(`signing link resent for user ${user.id}`);
+    } catch (e: any) {
+      // Never surface the reason: the response is identical either way.
+      this.log.error(`resendSigningLink failed: ${e?.message}`);
+    }
+    return { ok: true };
   }
 
   private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<void> {

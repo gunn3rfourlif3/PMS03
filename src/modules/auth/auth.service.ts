@@ -214,9 +214,14 @@ export class AuthService {
             pending = !!row?.p;
           } catch { pending = false; }
           if (pending) {
-            throw new ForbiddenException(
-              'Please sign your lease agreement first. Your account is activated as soon as your lease is signed — check your email for the signing link.',
-            );
+            // `code` lets the sign-in screen offer "resend my link" without
+            // string-matching the message. Keep it in step with the client.
+            throw new ForbiddenException({
+              statusCode: 403,
+              code: 'LEASE_SIGNATURE_PENDING',
+              message:
+                'Please sign your lease agreement first. Your account is activated as soon as your lease is signed — check your email for the signing link.',
+            });
           }
         }
         payload = { sub: user.id, vendorId: active?.vendor_id ?? null, roles: active ? [active.role] : [] };

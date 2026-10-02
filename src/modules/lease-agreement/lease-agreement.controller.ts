@@ -35,6 +35,19 @@ export class LeaseAgreementController {
     return this.service.complete(ref, body?.fullName, ip);
   }
 
+  /**
+   * Resend the signing link to the tenant it belongs to. Public because the
+   * tenant asking is, by definition, unable to sign in yet. Always answers
+   * `{ ok: true }` so it reveals nothing about whether the destination exists;
+   * the throttle is the real control, and it is tighter than the signing one
+   * because each call can send mail.
+   */
+  @Throttle({ default: { limit: 3, ttl: 15 * 60_000 } })
+  @Post('resend-signing-link')
+  resendSigningLink(@Body() body: { destination: string }) {
+    return this.service.resendSigningLink(body?.destination);
+  }
+
   // ---- Staff ----
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')

@@ -12,6 +12,11 @@ export default function LoginPage() {
   const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
+  // Set when the API refuses the sign-in because the lease is still unsigned.
+  // The message alone is a dead end — it tells the tenant to check their email
+  // and offers no way to get a link that never arrived or has been lost.
+  const [signPending, setSignPending] = useState(false);
+  const [resent, setResent] = useState<'idle' | 'busy' | 'done'>('idle');
   const [busy, setBusy] = useState(false);
   const [googleOn, setGoogleOn] = useState(false);
   const [remember, setRemember] = useState(true);
@@ -40,12 +45,23 @@ export default function LoginPage() {
       setStage('verify');
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
+  const resendSignLink = async () => {
+    setResent('busy');
+    // The endpoint answers the same way whether or not it found anything, so
+    // there is nothing to report but "sent" — and nothing to retry into.
+    try { await api.resendSigningLink(destination.trim()); } catch { /* ignore */ }
+    setResent('done');
+  };
+
   const verify = async () => {
-    setErr(''); setBusy(true);
+    setErr(''); setSignPending(false); setBusy(true);
     try {
       const { accessToken } = await api.verifyOtp(destination.trim(), code.trim(), remember);
       auth.set(accessToken); router.replace(homeForRole());
-    } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+    } catch (e: any) {
+      setErr(e.message);
+      if (e?.code === 'LEASE_SIGNATURE_PENDING') setSignPending(true);
+    } finally { setBusy(false); }
   };
 
   if (resuming) {
@@ -79,7 +95,23 @@ export default function LoginPage() {
           )}
         </div>
 
-        {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
+        {err && (
+          <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">
+            {err}
+            {signPending && (
+              <div className="mt-2.5 border-t border-danger/20 pt-2.5">
+                {resent === 'done' ? (
+                  <span className="font-medium">Sent. Check your email for the signing link.</span>
+                ) : (
+                  <button type="button" onClick={resendSignLink} disabled={resent === 'busy'}
+                    className="font-semibold underline underline-offset-2 hover:no-underline disabled:opacity-60">
+                    {resent === 'busy' ? 'Sending\u2026' : 'Email me the signing link again'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {stage === 'request' ? (
           <div className="space-y-4">

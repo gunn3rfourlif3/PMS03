@@ -74,7 +74,11 @@ async function req(path: string, opts: RequestInit = {}): Promise<any> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: res.statusText }));
     const msg = Array.isArray(body.message) ? body.message.join(', ') : body.message;
-    throw new Error(msg || `Request failed (${res.status})`);
+    const err = new Error(msg || `Request failed (${res.status})`);
+    // Carry a machine-readable code when the API sends one, so callers can
+    // branch on the condition instead of matching the message text.
+    if (body?.code) (err as any).code = body.code;
+    throw err;
   }
   const text = await res.text();
   return text ? JSON.parse(text) : null;
@@ -140,6 +144,13 @@ export const api = {
   removeListingPhoto: (id: string, url: string): Promise<string[]> =>
     req(`/listings/${id}/media`, { method: 'DELETE', body: JSON.stringify({ url }) }),
 
+  /**
+   * Resend the lease signing link to its own tenant. Public and unauthenticated:
+   * a tenant with an unsigned lease cannot get a session to ask any other way.
+   * Always resolves, and never reports whether the destination was known.
+   */
+  resendSigningLink: (destination: string) =>
+    req('/lease-agreements/resend-signing-link', { method: 'POST', body: JSON.stringify({ destination }) }),
   requestOtp: (destination: string) =>
     req('/auth/otp/request', { method: 'POST', body: JSON.stringify({ destination }) }),
   verifyOtp: async (destination: string, code: string, remember?: boolean) => {
