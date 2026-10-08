@@ -90,12 +90,27 @@ export class UtilitiesService {
     );
   }
 
-  listMeters(filter?: { unitId?: string; propertyId?: string }): Promise<UtilityMeter[]> {
+  /**
+   * Paged on purpose. An agency with a submeter per unit has one row per unit
+   * per utility — at 500 units that is thousands, and the on-site demo already
+   * showed what an unpaginated list of that size does to a page.
+   */
+  async listMeters(
+    filter?: { unitId?: string; propertyId?: string; limit?: number; offset?: number },
+  ): Promise<{ rows: UtilityMeter[]; total: number; limit: number; offset: number }> {
     const repo = this.tenant.getRepository(UtilityMeter);
     const where: Record<string, unknown> = { status: 'active' };
     if (filter?.unitId) where.unitId = filter.unitId;
     if (filter?.propertyId) where.propertyId = filter.propertyId;
-    return repo.find({ where, order: { createdAt: 'ASC' } });
+    const limit = Math.min(Math.max(Number(filter?.limit) || 50, 1), 200);
+    const offset = Math.max(Number(filter?.offset) || 0, 0);
+    const [rows, total] = await repo.findAndCount({
+      where,
+      order: { createdAt: 'ASC' },
+      take: limit,
+      skip: offset,
+    });
+    return { rows, total, limit, offset };
   }
 
   async removeMeter(id: string): Promise<UtilityMeter> {

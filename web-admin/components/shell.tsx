@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck , Gauge } from 'lucide-react';
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';

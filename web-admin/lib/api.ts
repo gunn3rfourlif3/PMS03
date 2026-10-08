@@ -318,6 +318,24 @@ export const api = {
   requestSignature: (id: string, signerEmail: string, signerName?: string) =>
     req(`/documents/${id}/signature`, { method: 'POST', body: JSON.stringify({ signerEmail, signerName }) }),
 
+  // ---- utilities (municipal meters and readings) ----
+  utilityMeters: (q?: { unitId?: string; propertyId?: string; limit?: number; offset?: number }) => {
+    const p = new URLSearchParams();
+    if (q?.unitId) p.set('unitId', q.unitId);
+    if (q?.propertyId) p.set('propertyId', q.propertyId);
+    if (q?.limit != null) p.set('limit', String(q.limit));
+    if (q?.offset != null) p.set('offset', String(q.offset));
+    const qs = p.toString();
+    return req(`/utilities/meters${qs ? `?${qs}` : ''}`);
+  },
+  createUtilityMeter: (b: any) =>
+    req('/utilities/meters', { method: 'POST', body: JSON.stringify(b) }),
+  removeUtilityMeter: (id: string) =>
+    req(`/utilities/meters/${id}/remove`, { method: 'POST' }),
+  utilityReadings: (meterId: string, limit = 50) =>
+    req(`/utilities/meters/${meterId}/readings?limit=${limit}`),
+  captureUtilityReading: (b: any) =>
+    req('/utilities/readings', { method: 'POST', body: JSON.stringify(b) }),
   listInspections: () => req('/inspections'),
   createInspection: (b: { unitId: string; type: string; leaseId?: string }) =>
     req('/inspections', { method: 'POST', body: JSON.stringify(b) }),

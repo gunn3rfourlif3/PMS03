@@ -22,8 +22,13 @@ export class UtilitiesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
   @Get('meters')
-  listMeters(@Query('unitId') unitId?: string, @Query('propertyId') propertyId?: string) {
-    return this.service.listMeters({ unitId, propertyId });
+  listMeters(
+    @Query('unitId') unitId?: string,
+    @Query('propertyId') propertyId?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.service.listMeters({ unitId, propertyId, limit: Number(limit), offset: Number(offset) });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
