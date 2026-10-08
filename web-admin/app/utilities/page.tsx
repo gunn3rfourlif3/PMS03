@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Gauge, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, Gauge, ChevronLeft, ChevronRight, X, Download, Scale } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
+import { gapsToCsv } from '@/lib/utility-gap-csv';
 
 /** Mirrors UtilityKind / METERED in src/modules/utilities. */
 const KINDS = [
@@ -40,6 +41,11 @@ export default function UtilitiesPage() {
   const [mMultiplier, setMMultiplier] = useState('1');
 
   // capture
+  // recovery gap
+  const [showGap, setShowGap] = useState(false);
+  const [gap, setGap] = useState<any[]>([]);
+  const [gapProperty, setGapProperty] = useState('');
+
   const [capture, setCapture] = useState<any | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [cDate, setCDate] = useState(today());
@@ -90,6 +96,22 @@ export default function UtilitiesPage() {
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
 
+  const loadGap = async () => {
+    setErr('');
+    try { setGap(await api.utilityRecoveryGap({ propertyId: gapProperty || undefined })); }
+    catch (e: any) { setErr(e.message); }
+  };
+
+  const exportGap = () => {
+    const blob = new Blob([gapsToCsv(gap)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recovery-gap-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const openCapture = async (m: any) => {
     setCapture(m); setErr(''); setHistory([]);
     setCDate(today()); setCReading(''); setCTariff(''); setCCost('');
@@ -129,7 +151,14 @@ export default function UtilitiesPage() {
       <PageHeader
         title="Utilities"
         subtitle="Municipal meters and readings. Recorded only — nothing here bills a tenant."
-        action={<Button onClick={() => setShowNew((v) => !v)}><Plus size={16} /> Add meter</Button>}
+        action={
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => { setShowGap((v) => !v); if (!showGap) loadGap(); }}>
+              <Scale size={16} /> Recovery gap
+            </Button>
+            <Button onClick={() => setShowNew((v) => !v)}><Plus size={16} /> Add meter</Button>
+          </div>
+        }
       />
 
       {err && <GlassCard className="border-danger/40 p-3 text-sm text-danger">{err}</GlassCard>}
@@ -184,6 +213,67 @@ export default function UtilitiesPage() {
             <Button onClick={createMeter} disabled={busy || (attachTo === 'unit' ? !mUnitId : !mPropertyId)}>Save meter</Button>
             <Button variant="ghost" onClick={() => setShowNew(false)}>Cancel</Button>
           </div>
+        </GlassCard>
+      )}
+
+      {showGap && (
+        <GlassCard className="space-y-4 p-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="font-semibold">Recovery gap</h3>
+              <p className="text-xs text-muted">
+                The bulk municipal meter against the sum of the submeters under it — what was paid for and not recovered.
+              </p>
+            </div>
+            <div className="flex items-end gap-2">
+              <Field label="Property">
+                <select value={gapProperty} onChange={(e) => setGapProperty(e.target.value)} className="input">
+                  <option value="">All</option>
+                  {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </Field>
+              <Button variant="ghost" onClick={loadGap}>Refresh</Button>
+              <Button variant="ghost" onClick={exportGap} disabled={gap.length === 0}><Download size={16} /> CSV</Button>
+            </div>
+          </div>
+
+          {gap.length === 0 ? (
+            <EmptyState>Nothing to compare yet. A gap needs a bulk reading and at least one submeter reading in the same month.</EmptyState>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  <th className="py-2">Period</th>
+                  <th className="py-2">Property</th>
+                  <th className="py-2">Utility</th>
+                  <th className="py-2 text-right">Bulk</th>
+                  <th className="py-2 text-right">Submeters</th>
+                  <th className="py-2 text-right">Gap</th>
+                  <th className="py-2 text-right">Gap cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gap.map((g, i) => (
+                  <tr key={i} className="border-b border-line/50 last:border-0">
+                    <td className="py-2">{g.period}</td>
+                    <td className="py-2">{g.propertyName ?? '—'}</td>
+                    <td className="py-2">{g.kind}</td>
+                    <td className="py-2 text-right">{g.bulkConsumption ?? '—'}</td>
+                    <td className="py-2 text-right">
+                      {g.subConsumption ?? '—'}
+                      {g.subMeters > 0 && <span className="ml-1 text-xs text-muted">({g.subMeters})</span>}
+                    </td>
+                    <td className="py-2 text-right">
+                      {g.note
+                        ? <span className="text-xs text-muted">{g.note}</span>
+                        : <>{g.gapConsumption}{g.gapPct !== null && <span className="ml-1 text-xs text-muted">({g.gapPct}%)</span>}</>}
+                    </td>
+                    <td className="py-2 text-right">{g.gapCost != null ? money(g.gapCost) : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </GlassCard>
       )}
 

@@ -3,6 +3,7 @@ import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { UtilityMeter, UtilityKind, UtilityUom } from './utility-meter.entity';
 import { UtilityReading } from './utility-reading.entity';
 import { computeConsumption, deriveCost, isConsumptionError } from './utility-calc';
+import { computeGaps, GapRow, GapResult } from './utility-gap';
 
 export interface CreateMeterInput {
   /** Exactly one of these. A submeter hangs off a unit, a bulk meter off a property. */
@@ -197,6 +198,95 @@ export class UtilitiesService {
         media: input.media ?? [],
         note: input.note ?? null,
       }),
+    );
+  }
+
+  // ---------------- the recovery gap ----------------
+
+  /**
+   * Per property, per utility, per month: the bulk reading against the sum of
+   * the submeters under it. Two aggregates merged in memory rather than one
+   * FULL OUTER JOIN, because a period can exist on either side alone and the
+   * merge has to keep both — a property with a bulk reading and no submeter
+   * readings is exactly the case an agency wants to see.
+   *
+   * Runs through the tenant manager, so RLS scopes it; the explicit vendor_id
+   * predicate is belt and braces, not the isolation.
+   */
+  async recoveryGap(opts?: { propertyId?: string; from?: string; to?: string }): Promise<GapResult[]> {
+    const vendorId = this.tenant.vendorId;
+    const mgr = this.tenant.getManager();
+
+    const params: unknown[] = [vendorId];
+    let dateFilter = '';
+    if (opts?.from) { params.push(opts.from); dateFilter += ` AND r.reading_date >= $${params.length}`; }
+    if (opts?.to) { params.push(opts.to); dateFilter += ` AND r.reading_date <= $${params.length}`; }
+    let propFilterBulk = '';
+    let propFilterSub = '';
+    if (opts?.propertyId) {
+      params.push(opts.propertyId);
+      propFilterBulk = ` AND m.property_id = $${params.length}`;
+      propFilterSub = ` AND u.property_id = $${params.length}`;
+    }
+
+    const bulk = await mgr.query(
+      `SELECT m.property_id AS "propertyId", m.kind AS kind,
+              to_char(r.reading_date, 'YYYY-MM') AS period,
+              SUM(r.consumption)::float8 AS "bulkConsumption",
+              SUM(r.cost)::float8 AS "bulkCost"
+         FROM utility_readings r
+         JOIN utility_meters m ON m.id = r.meter_id
+        WHERE r.vendor_id = $1 AND m.property_id IS NOT NULL
+          AND r.deleted_at IS NULL AND m.deleted_at IS NULL${dateFilter}${propFilterBulk}
+        GROUP BY 1, 2, 3`,
+      params,
+    );
+
+    const sub = await mgr.query(
+      `SELECT u.property_id AS "propertyId", m.kind AS kind,
+              to_char(r.reading_date, 'YYYY-MM') AS period,
+              SUM(r.consumption)::float8 AS "subConsumption",
+              SUM(r.cost)::float8 AS "subCost",
+              COUNT(DISTINCT m.id)::int AS "subMeters"
+         FROM utility_readings r
+         JOIN utility_meters m ON m.id = r.meter_id
+         JOIN units u ON u.id = m.unit_id
+        WHERE r.vendor_id = $1 AND m.unit_id IS NOT NULL
+          AND r.deleted_at IS NULL AND m.deleted_at IS NULL${dateFilter}${propFilterSub}
+        GROUP BY 1, 2, 3`,
+      params,
+    );
+
+    const names: Record<string, string> = {};
+    const props = await mgr.query(
+      `SELECT id, name FROM properties WHERE vendor_id = $1 AND deleted_at IS NULL`,
+      [vendorId],
+    );
+    for (const p of props) names[p.id] = p.name;
+
+    const key = (r: { propertyId: string; kind: string; period: string }) =>
+      `${r.propertyId}|${r.kind}|${r.period}`;
+    const merged = new Map<string, GapRow>();
+    const blank = (r: any): GapRow => ({
+      propertyId: r.propertyId, propertyName: names[r.propertyId], kind: r.kind, period: r.period,
+      bulkConsumption: null, bulkCost: null, subConsumption: null, subCost: null, subMeters: 0,
+    });
+    for (const b of bulk) {
+      const row = merged.get(key(b)) ?? blank(b);
+      row.bulkConsumption = b.bulkConsumption;
+      row.bulkCost = b.bulkCost;
+      merged.set(key(b), row);
+    }
+    for (const s of sub) {
+      const row = merged.get(key(s)) ?? blank(s);
+      row.subConsumption = s.subConsumption;
+      row.subCost = s.subCost;
+      row.subMeters = s.subMeters;
+      merged.set(key(s), row);
+    }
+
+    return computeGaps([...merged.values()]).sort(
+      (a, b) => b.period.localeCompare(a.period) || (a.propertyName ?? '').localeCompare(b.propertyName ?? '') || a.kind.localeCompare(b.kind),
     );
   }
 

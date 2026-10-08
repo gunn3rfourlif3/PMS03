@@ -336,6 +336,14 @@ export const api = {
     req(`/utilities/meters/${meterId}/readings?limit=${limit}`),
   captureUtilityReading: (b: any) =>
     req('/utilities/readings', { method: 'POST', body: JSON.stringify(b) }),
+  utilityRecoveryGap: (q?: { propertyId?: string; from?: string; to?: string }) => {
+    const p = new URLSearchParams();
+    if (q?.propertyId) p.set('propertyId', q.propertyId);
+    if (q?.from) p.set('from', q.from);
+    if (q?.to) p.set('to', q.to);
+    const qs = p.toString();
+    return req(`/utilities/recovery-gap${qs ? `?${qs}` : ''}`);
+  },
   listInspections: () => req('/inspections'),
   createInspection: (b: { unitId: string; type: string; leaseId?: string }) =>
     req('/inspections', { method: 'POST', body: JSON.stringify(b) }),

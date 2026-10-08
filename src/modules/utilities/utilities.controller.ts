@@ -52,6 +52,18 @@ export class UtilitiesController {
     return this.service.listReadings(id, Number(limit) || 50);
   }
 
+  /** Bulk against the sum of its submeters: what was paid for and not recovered. */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Get('recovery-gap')
+  recoveryGap(
+    @Query('propertyId') propertyId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.service.recoveryGap({ propertyId, from, to });
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
   @Post('readings')
