@@ -8,6 +8,8 @@ import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
 import AssistantPanel from './assistant/panel';
 import { cn } from '@/lib/cn';
+import { useDeployment } from './deployment-provider';
+import { DeploymentCapabilities, DEPLOYMENT_LABELS, isOnSite } from '@/lib/deployment';
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,8 +17,8 @@ const NAV = [
   { href: '/leases', label: 'Leases', icon: CalendarClock },
   { href: '/lease-parsing', label: 'Import lease', icon: FileUp },
   { href: '/payments', label: 'Payments', icon: Receipt },
-  { href: '/listings', label: 'Listings', icon: Tags },
-  { href: '/applications', label: 'Applications', icon: ClipboardList },
+  { href: '/listings', label: 'Listings', icon: Tags, requires: 'publicListings' as const },
+  { href: '/applications', label: 'Applications', icon: ClipboardList, requires: 'publicListings' as const },
   { href: '/owners', label: 'Owners', icon: Users },
   { href: '/agents', label: 'Agents', icon: Handshake },
   { href: '/providers', label: 'Providers', icon: Wrench },
@@ -107,11 +109,39 @@ function BrandMark({ size = 34, dark = false }: { size?: number; dark?: boolean 
   );
 }
 
-function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?: typeof NAV }) {
+/**
+ * Says where this installation runs, but only when that is worth saying.
+ *
+ * Nothing shows on a private server, which is every deployment today — a chip
+ * reading "Private server" on an agency's own screen is noise about plumbing
+ * they did not ask about. On-site, it is the opposite: the client paid for the
+ * machine being in their building and the demo turns on them seeing it.
+ *
+ * Unbranded, and coloured from --brand, per the white-label rule.
+ */
+function DeploymentChip() {
+  const { profile } = useDeployment();
+  if (!isOnSite(profile)) return null;
+  return (
+    <div className="mx-2 mt-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-medium text-white/80">
+      {DEPLOYMENT_LABELS[profile]}
+    </div>
+  );
+}
+
+type NavItem = { href: string; label: string; icon: any; requires?: keyof DeploymentCapabilities };
+
+function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?: readonly NavItem[] }) {
   const path = usePathname();
+  const { capabilities } = useDeployment();
+  // An entry tagged with a capability the mode does not serve is absent, not
+  // disabled: the API refuses those routes, so a greyed-out link would be a
+  // control that leads nowhere. Untagged entries are staff work and show in
+  // every mode, which is the whole premise of the sealed option.
+  const visible = items.filter((i) => !i.requires || capabilities[i.requires]);
   return (
     <nav className="flex flex-col gap-1">
-      {items.map(({ href, label, icon: Icon }) => {
+      {visible.map(({ href, label, icon: Icon }) => {
         const active = path === href;
         return (
           <Link key={href} href={href} onClick={onNavigate}
@@ -225,6 +255,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
         <div>
           <div className="px-2 py-3"><BrandMark dark /></div>
+          <DeploymentChip />
           <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
         <div className="border-t border-white/10 pt-3"><SignOut /></div>

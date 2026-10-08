@@ -4,6 +4,8 @@ import { headers } from 'next/headers';
 import BrandProvider from '@/components/brand-provider';
 import Shell from '@/components/shell';
 import { brandForHost } from '@/lib/brand-shared';
+import DeploymentProvider from '@/components/deployment-provider';
+import { resolveDeploymentProfile } from '@/lib/deployment';
 
 // Title/description must carry the brand name: this is what crawlers (and
 // Google's OAuth brand-verification reviewer) see on app.<domain>. A generic
@@ -37,12 +39,17 @@ export const dynamic = 'force-dynamic';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const host = headers().get('host') ?? '';
   const brand = brandForHost(host);
+  // Server-side and at request time, not baked at build: one image serves all
+  // three deployment modes, which is what makes the demo's mode switch work.
+  const deployment = resolveDeploymentProfile(process.env.DEPLOYMENT_PROFILE);
 
   return (
     <html lang="en">
       <body>
         <BrandProvider initial={brand}>
-          <Shell>{children}</Shell>
+          <DeploymentProvider profile={deployment}>
+            <Shell>{children}</Shell>
+          </DeploymentProvider>
         </BrandProvider>
       </body>
     </html>

@@ -95,6 +95,11 @@ services:
       PAYMENT_PROVIDER: ""
       PAYOUT_PROVIDER: ""
 
+      # Which of the three on-site options this stack demonstrates. The API
+      # ENFORCES it; demo-web below reads the same value only to decide what to
+      # show. Both are fed from one variable so they cannot drift apart.
+      DEPLOYMENT_PROFILE: ${DEPLOYMENT_PROFILE:-private_server}
+
       PLATFORM_DOMAIN: demo.locare.co.za
       PLATFORM_IP: ${PLATFORM_IP:-169.58.46.223}
       PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:?set PLATFORM_ADMIN_EMAILS}
@@ -129,6 +134,11 @@ services:
         # Relative, as in production: Caddy serves /api on each demo app host.
         NEXT_PUBLIC_API_BASE: /api
     restart: unless-stopped
+    environment:
+      # Read at REQUEST time in the root layout (already force-dynamic for
+      # Host-based branding), not baked into the image — so one built image
+      # serves all three modes and switching does not rebuild.
+      DEPLOYMENT_PROFILE: ${DEPLOYMENT_PROFILE:-private_server}
     depends_on: [demo-api]
     networks: [demo_internal, prod]
 
