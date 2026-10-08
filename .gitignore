@@ -50,3 +50,12 @@ Claude outputs/
 
 # local scratch — design previews, throwaway output. Never committed.
 .scratch/
+
+# Redundant: a zip of marketing/brand/, which is tracked
+marketing/brand.zip
+
+# Generated daily-social renders (large binaries; regenerate with the pipeline)
+marketing/social/daily/out/
+
+# Staging area for files awaiting manual deletion
+_to_delete/
