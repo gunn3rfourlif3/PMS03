@@ -139,6 +139,10 @@ services:
       # Host-based branding), not baked into the image — so one built image
       # serves all three modes and switching does not rebuild.
       DEPLOYMENT_PROFILE: ${DEPLOYMENT_PROFILE:-private_server}
+      # The demo console exists ONLY in this stack. Production never sets it, so
+      # the route 404s there — a page explaining deployment options has no place
+      # in a real agency's back office.
+      DEMO_CONSOLE: "1"
     depends_on: [demo-api]
     networks: [demo_internal, prod]
 
