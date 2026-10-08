@@ -12,6 +12,7 @@ import { cascadeSend, parseChannels } from '@providers/notification/cascade';
 import { toE164 } from '@common/phone/e164';
 import { LeaseAgreement } from './lease-agreement.entity';
 import { renderLeaseAgreement, renderLeaseWithAttachment, mergeLeaseTemplate, LEASE_PLACEHOLDERS, LeaseAgreementData } from './lease-agreement.html';
+import { deploymentCapabilities } from '@common/config/deployment-profile';
 
 export interface CreateLeaseAgreementInput {
   leaseId: string;
@@ -26,6 +27,23 @@ export interface CreateLeaseAgreementInput {
   depositAmount?: number;
   /** When false, don't send the built-in sign-link email (caller sends its own). */
   sendEmail?: boolean;
+}
+
+/**
+ * Where a freshly created lease agreement is signed.
+ *
+ * WITH e-signature (modes B and C): the tenant's own signing page, as before.
+ *
+ * WITHOUT it (mode A, the sealed on-site install): an INTERNAL staff route that
+ * renders the lease for printing. There is no published address, so a tenant
+ * signing link points at a server the tenant cannot reach — a link that looks
+ * right and silently cannot work is worse than no link.
+ *
+ * Pure, so the branch is testable without a tenant context.
+ */
+export function signatureUrlFor(base: string, ref: string, eSignature: boolean): string {
+  const b = (base ?? '').replace(/\/+$/, '');
+  return eSignature ? `${b}/sign/${ref}` : `${b}/leases/print/${ref}`;
 }
 
 @Injectable()
@@ -84,8 +102,16 @@ export class LeaseAgreementService {
       status: 'sent',
     }));
 
-    const signUrl = `${this.signBase}/sign/${ref}`;
-    if (input.sendEmail !== false) {
+    // THE MODE A SIGNATURE PATH. `createForLease` mints its own ref and URL and
+    // never calls ESIGN_PROVIDER, so binding a print-and-sign provider was not
+    // enough on its own — the branch has to be here, where the URL is built.
+    const eSignature = deploymentCapabilities().eSignature;
+    const signUrl = signatureUrlFor(this.signBase, ref, eSignature);
+
+    // No tenant mail in a sealed install. There is no outbound path to a tenant,
+    // and mailing someone a link to a server they cannot reach is worse than
+    // sending nothing: it looks like the system worked.
+    if (eSignature && input.sendEmail !== false) {
       await this.sendSignLinkEmail({
         to: input.tenantEmail,
         tenantName: input.tenantName,
