@@ -38,8 +38,6 @@ enough to finish.
 
 ## Queue
 
-- [ ] **POPIA for letting agents** — what you may hold on a tenant, for how long,
-      and the operator relationship with your software provider
 - [ ] **Tenant screening within the law** — credit checks, consent, and the line
       between screening and discrimination
 - [ ] **The Rental Housing Tribunal** — what it can actually order, what it
@@ -59,6 +57,7 @@ enough to finish.
 
 ## Written
 
+- [x] POPIA for letting agents — 2026-10-07
 - [x] Lease escalation clauses that survive a dispute — 2026-09-17
 - [x] Your trust audit cost more than it should have — 2026-08-27
 - [x] Rental deposits under the Rental Housing Act
