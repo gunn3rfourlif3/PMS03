@@ -2,7 +2,6 @@ import {
   staleDealsSignal,
   openLeadCapSignal,
   bankingSignal,
-  unreadChangelogSignal,
   STALE_DEAL_DAYS,
   DealLike,
 } from '../web-admin/components/assistant/signals';
@@ -107,23 +106,5 @@ describe('banking', () => {
   it('accepts a masked account number as present', () => {
     const { accountNumber, ...rest } = complete;
     expect(bankingSignal({ ...rest, accountNumberLast4: '6789' })).toBeNull();
-  });
-});
-
-describe('unread changelog', () => {
-  it('says nothing at zero', () => {
-    expect(unreadChangelogSignal(0, '/partner/updates')).toBeNull();
-  });
-
-  it('counts and pluralises', () => {
-    expect(unreadChangelogSignal(1, '/partner/updates')!.text).toBe('1 update you have not read');
-    expect(unreadChangelogSignal(2, '/partner/updates')!.text).toBe('2 updates you have not read');
-  });
-
-  // Design §6: a prompt that cannot be acted on in one click should not exist.
-  // There is no partner-side changelog route yet, so a caller with no href gets
-  // no signal rather than a dead prompt.
-  it('does not fire without somewhere to send the partner', () => {
-    expect(unreadChangelogSignal(3, '')).toBeNull();
   });
 });

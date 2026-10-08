@@ -123,6 +123,86 @@ against the manual. Report anything that drifted rather than fixing it silently.
 
 ---
 
+# Phase 2 — three follow-up days
+
+Written 2026-10-05. Owner: Vernon. Days 1–7 are complete; these three close the
+items they left open. Same rules as above: one day per run, first unticked box
+wins, tick it and append one log line.
+
+## Amendments to the standing constraints
+
+Decided 2026-10-05, and themselves not to be relitigated by a run:
+
+- **One new partner route is allowed**, for the manual only (Day 8). Everything
+  else stands: no LLM, no API call, no new endpoint, no new table.
+- **Verbatim manual copy is no longer the rule.** The rule it was serving is
+  that the panel invents nothing. An answer may be shortened or re-voiced; it
+  may never gain a fact, a figure, a rate or a threshold the manual lacks.
+  Removing words cannot add a claim, so the no-invention guarantee survives.
+  Day 7's "present verbatim in the manual" check is replaced by Day 10's.
+
+## Day 8 — Serve the manual, link the pointers
+
+Read: `web-admin/components/assistant/content.ts`,
+`web-admin/components/shell.tsx` (nav only), `docs/manuals/Partner-Manual.md`
+(headings only — do not read the body).
+
+Add one read-only partner route that renders `docs/manuals/Partner-Manual.md`
+with a stable anchor per section. Markdown is read server-side at render time:
+no new endpoint, no new table. The route is reached from the panel, so it does
+**not** go in `PARTNER_NAV`.
+
+`content.ts`'s `manualAnchor` becomes a real href and the panel's pointer becomes
+a link. Signal hrefs that wanted the manual can now carry one.
+
+Closes open item (a), carried since Day 2.
+
+- [x] Done
+
+## Day 9 — Tone pass
+
+Read: `web-admin/components/assistant/content.ts`, and only the manual sections
+behind the six answers named below.
+
+Trim to one or two sentences: the open-lead cap answer, "how does an agency
+become mine", the commission statuses answer, "can I earn on my own agency".
+
+Rewrite as page help, not coaching script: "prospect asked whether I can see
+their tenants", "why not pay on billing".
+
+The hard rule, from the amendment above: remove and re-voice only. If an answer
+cannot be shortened without losing something the partner needs, leave it long
+and say so in the log — a long honest answer beats a short invented one.
+
+Closes open item (d), carried since Day 4.
+
+- [x] Done
+
+## Day 10 — Drop the changelog signal, verify Phase 2
+
+Read: `web-admin/components/assistant/signals.ts`, `use-signals.ts`,
+`panel.spec.tsx`, `test/assistant-signals.spec.ts`,
+`docs/LOCARE_ASSISTANT_DESIGN.md` (§6 only).
+
+Remove `unreadChangelogSignal`, `PARTNER_CHANGELOG_HREF`, the unread-count
+plumbing through `use-signals.ts`, and their spec cases. Leave a note in the
+design doc §6 saying the signal was cut because no partner route serves the
+changelog and no partner endpoint reports unread, and that re-adding it needs
+both.
+
+Then verify Phase 2: typecheck, both specs green, the manual route resolves every
+anchor `content.ts` names, and every answer checked against the manual under the
+amended rule — no answer asserts a fact, figure, rate or threshold the manual
+lacks. Report drift rather than fixing it silently.
+
+Closes open item (b), carried since Day 5.
+
+- [x] Done
+
+---
+
+---
+
 ## Log
 
 One line per run: date, day number, what landed, anything left.
@@ -137,3 +217,6 @@ One line per run: date, day number, what landed, anything left.
 2026-10-01 — Day 7 follow-up (asked for, outside the plan). Component tests added for `web-admin`: `components/assistant/panel.spec.tsx` (20 cases — route keying, impersonation guard, open/close, focus in and out, Tab trap, signal rules, curated content, no-figures check, mobile width, reduced motion) with `jest.config.js`, `jest.setup.ts`, `jest.style-stub.js` and a `test` script. Transform is ts-jest, not `next/jest`: the SWC native binding segfaults (“Bus error”) in this environment and these specs need no Next compiler features. The specs found a real defect in Day 7's trap, now fixed: focus stops were filtered on `el.offsetParent !== null`, which is null wherever layout has not been computed — the list came back empty and Tab walked the page behind the aria-modal dialog. Filtered on `hidden`/`aria-hidden` instead. Typecheck clean, panel spec 20/20, Day 5 spec still 19/19.
 2026-10-02 — Demo partner + an answer to open item (c). `scripts/seed-demo-partner.ts` (`npm run seed:partner`): one active partner, Demo Partner Co / partner@demo.test, with six deals (one 31 days stale in `proposal`), four activities and `banking` left empty, so the stale-deal and banking signals both fire in a real browser. Login is passwordless OTP, so the seed sets no password. While reading the schema for it: **the open-lead cap signal can never fire as written**. `/partner/me` returns the `Partner` entity, which has no cap column at all — the cap lives server-side only, in `openLeadCap()` off `PARTNER_OPEN_LEAD_CAP` with a default of 20 (`src/modules/partners/pipeline.ts`). `useAssistantSignals` looks for `openLeadCap`/`maxOpenLeads`/`leadCap` on that payload and will never find one. Either `/partner/me` (or `/partner/overview`) has to report the cap and the open count, or the signal should come out. Vernon's call — not changed here.
 2026-10-02 — Follow-up (asked for, outside the plan). Open item (c) closed: `/partner/me` now reports `openLeadCap` (from `openLeadCap()`) and `openDeals` (counted over OPEN_STAGES), so the open-lead cap signal can fire; `use-signals.ts` prefers the server's count over its own "not won and not lost" filter. No new endpoint — the payload of the one the pipeline page already calls. Also hardened the lease signing-link resend added earlier today: `email()` now returns whether delivery succeeded, `sendSignLinkEmail` takes `throwOnFailure`, and `resendSigningLink` turns an unexpected fault into a 500 instead of answering `{ ok: true }` — the old behaviour told a tenant their link was sent when the migration had not run. `test/lease-agreement-resend.spec.ts` (10 cases) covers the no-enumeration contract, existing-ref reuse, mailing the address on the user record rather than the request, and both loud-failure paths; writing it found the delivery-failure gap. Typecheck clean both sides, spec green. Left: (a) the manual pointer is still plain text and (b) the changelog signal is still inert — both now need a new partner route, which the plan's standing constraints forbid, so they need Vernon to relax that constraint or decide otherwise; (d) Day 4's tone drift still stands.
+2026-10-06 — Day 8. One new partner route, `app/partner/manual/page.tsx`: a server component that reads `docs/manuals/Partner-Manual.md` from disk at render time (`force-dynamic`, repo root resolved one level up from `web-admin`) and renders it with an id per heading — no new endpoint, no new table, no copy of the manual's text in the app. Markdown is parsed by a small in-file subset (h1/h2, paragraphs, block quotes, rules, pipe tables, inline bold and code) because `web-admin` has no markdown dependency and this route is not a reason to add one; a comment says to extend it if the manual grows lists or fences. Deliberately not in `PARTNER_NAV`. `content.ts` gains `MANUAL_ROUTE`, `slugify()` and `manualHref()` — the panel and the route slug headings the same way, so the links and the ids cannot drift — and the panel's pointer is now a `Link` to `/partner/manual#<section>` that closes the panel, with the file path still shown beside it. All seven anchors `content.ts` names resolve against the manual's headings. Typecheck clean; panel spec 21/21 (the two signal cases now scope to the signal list, since the sheet has a second link, plus one new case for the pointer). Left: (b) the changelog signal is still inert — Day 10 removes it; (d) Day 4's tone drift stands for Day 9.
+2026-10-07 — Day 9. Tone pass over `content.ts`, remove-and-re-voice only: the open-lead cap, “how does an agency become mine” and “can I earn on my own agency” answers are now two sentences each (the cap keeps the referral-link exemption and the pointer to the manual's cap; own-agency keeps the full control test and both check points); “why not pay on billing” and “a prospect asked whether I can see their tenants” are rewritten as page help rather than coaching script — the tenants answer no longer scripts a quoted line, it states what the partner's access shows. The commission statuses answer is only lightly trimmed and stays a four-item list: it defines `pending`, `approved`, `paid` and `cancelled`, and dropping any of them would lose something the partner needs, so it stays long by the day's hard rule. No answer gained a fact, figure, rate or threshold. The file header now records the amended rule. Typecheck clean. Left: (b) the changelog signal is still inert — Day 10 removes it.
+2026-10-08 — Day 10. `unreadChangelogSignal` removed from `signals.ts`, `PARTNER_CHANGELOG_HREF` and the unread-count argument removed from `use-signals.ts` (its `buildSignals` list is now three signals), and the three spec cases removed from `test/assistant-signals.spec.ts`. `panel.spec.tsx` needed no change — its only `changelog` reference is an `/admin/changelog` route-key fallback case, unrelated. Design doc §6: the table row is gone and a dated note says the signal was cut because no partner route serves the changelog and no partner endpoint reports unread, and that re-adding it needs both. Phase 2 verified: typecheck clean, panel spec 21/21, signals spec 16/16 (19 minus the three cut cases); all seven `manualAnchor` values resolve against the manual's headings (#overview, #pipeline, #agencies, #commissions, #activity, #banking, #leaderboard); every answer re-checked against the Agencies and Commissions manual sections under the amended rule — each is removal and re-voicing only, and no answer anywhere states a rate, figure, window or rand amount (the 90-day window, the 7th/15th dates, the R250 minimum, the 24-month Introducer term and the rate ladder all point at the manual). No drift to report. Left: nothing from Phase 2 — items (a), (b), (c) and (d) are all closed.

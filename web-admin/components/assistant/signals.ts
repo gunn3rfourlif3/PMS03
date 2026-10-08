@@ -115,22 +115,3 @@ export function bankingSignal(banking: Record<string, unknown> | null | undefine
     href: '/partner/banking',
   };
 }
-
-/**
- * Unread product updates.
- *
- * `href` has no default on purpose. The changelog is served at `/admin/changelog`,
- * which is not a partner route, so there is currently nowhere partner-side for
- * this to land. Until one exists, the caller has nothing to pass and this signal
- * should not render — a prompt that cannot be acted on in one click should not
- * exist (design §6).
- */
-export function unreadChangelogSignal(unread: number, href: string): Signal | null {
-  const n = Number(unread) || 0;
-  if (n < 1 || isBlank(href)) return null;
-  return {
-    id: 'unread-changelog',
-    text: n === 1 ? '1 update you have not read' : `${n} updates you have not read`,
-    href,
-  };
-}

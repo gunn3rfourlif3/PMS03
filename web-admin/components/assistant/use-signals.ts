@@ -19,19 +19,10 @@ import {
   bankingSignal,
   openLeadCapSignal,
   staleDealsSignal,
-  unreadChangelogSignal,
 } from './signals';
 
 /** At most this many prompts render at once (design §6: the panel is not a queue). */
 export const MAX_SIGNALS = 3;
-
-/**
- * Where partners read product updates. Empty on purpose: the changelog is
- * served at `/admin/changelog`, which is not a partner route, so the unread
- * signal has nowhere to land and `unreadChangelogSignal` returns null for a
- * blank href. Fill this in when a partner-side changelog route exists.
- */
-export const PARTNER_CHANGELOG_HREF = '';
 
 /**
  * Signals whose resolution is gated on the partner being approved.
@@ -73,7 +64,6 @@ export function buildSignals(input: SignalInputs, now: number = Date.now()): Sig
     staleDealsSignal(input.deals as never[], now),
     openLeadCapSignal(input.openDeals, input.openLeadCap),
     bankingSignal(input.banking),
-    unreadChangelogSignal(0, PARTNER_CHANGELOG_HREF),
   ].filter((s): s is Signal => s !== null);
 
   const past = isPastApprovalGate(input.status);

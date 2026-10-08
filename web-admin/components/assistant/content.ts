@@ -1,15 +1,46 @@
 /**
  * Curated help content, keyed by the route key `routeKeyFor()` produces.
  *
- * The Partner Manual is the source of truth. Question headings are copied from
- * it verbatim; answers are the manual's own wording, trimmed to a sentence or
- * two. Nothing here states a rate, price, cap or window — those live in the
- * manual only, so there is exactly one place to change when they move, and the
- * panel points the reader at the section instead of repeating the number.
+ * The Partner Manual is the source of truth. Question headings are the manual's
+ * own; answers are the manual's wording, shortened and re-voiced as page help
+ * under the Phase 2 amendment (2026-10-05) — an answer may lose words or
+ * change voice, it may never gain a fact, figure, rate or threshold the manual
+ * lacks, and removing words cannot add a claim. Nothing here states a rate,
+ * price, cap or window — those live in the manual only, so there is exactly
+ * one place to change when they move, and the panel points the reader at the
+ * section instead of repeating the number.
  */
 
 /** Path to the manual, relative to the repo root. */
 export const MANUAL_PATH = 'docs/manuals/Partner-Manual.md';
+
+/**
+ * The partner route that serves the manual. Added in Phase 2 Day 8 under the
+ * amendment allowing one new partner route for the manual only. Deliberately
+ * not in `PARTNER_NAV` — it is reached from this panel.
+ */
+export const MANUAL_ROUTE = '/partner/manual';
+
+/**
+ * The anchor id the manual route gives a heading. Kept here, next to the
+ * `manualAnchor` values, so the panel's links and the route's ids cannot drift
+ * apart: both sides slug the same way.
+ */
+export function slugify(heading: string): string {
+  return heading
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-');
+}
+
+/**
+ * Link to an entry's manual section. Falls back to the top of the manual when
+ * the entry names no section, which is what the generic fallback entry does.
+ */
+export function manualHref(entry: Pick<AssistantEntry, 'manualAnchor'>): string {
+  return `${MANUAL_ROUTE}${entry.manualAnchor}`;
+}
 
 export type AssistantQuestion = { q: string; a: string };
 
@@ -55,7 +86,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
       },
       {
         q: 'Why won’t it let me add another?',
-        a: 'You are holding as many open, unconverted prospects as the portal allows, so it refuses new ones until you close or lose some. Agencies that arrive through your referral link are exempt — those are conversions, not reservations. The manual’s Pipeline section gives the cap.',
+        a: 'You are holding as many open, unconverted prospects as the portal allows, so it refuses new ones until you close or lose some — though agencies that arrive through your referral link are exempt. The manual’s Pipeline section gives the cap.',
       },
       {
         q: 'When should I log a prospect?',
@@ -80,7 +111,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
     questions: [
       {
         q: 'How does an agency become mine?',
-        a: 'Two ways, and only two. Your referral link \u2014 automatic and unambiguous, so prefer it and send the link. Or a named registered prospect logged in your pipeline with an agency name and a named contact, which Locare confirms is a genuine introduction before it counts. Saying you spoke to someone first is not attribution.',
+        a: 'Two ways, and only two: your referral link \u2014 automatic and unambiguous, so prefer it and send the link \u2014 or a named registered prospect logged in your pipeline with an agency name and a named contact, which Locare confirms is a genuine introduction. Saying you spoke to someone first is not attribution.',
       },
       {
         q: 'Two of us spoke to the same agency. Who earns?',
@@ -92,7 +123,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
       },
       {
         q: 'A prospect asked whether I can see their tenants.',
-        a: 'Say it plainly: \u201cMy access shows me that you\u2019re a customer and what plan you\u2019re on. I cannot see your tenants or your money.\u201d It is true, and it is a stronger answer than any assurance you could offer instead.',
+        a: 'You cannot, and saying so plainly is the strongest answer: your access shows that they are a customer and what plan they are on, not their tenants and not their money.',
       },
     ],
     manualAnchor: '#agencies',
@@ -114,7 +145,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
       },
       {
         q: 'Why not pay on billing instead?',
-        a: 'Because recovering money already paid to a partner is the fastest way to poison a channel. Paying in arrears on collected revenue means clawbacks never arise.',
+        a: 'Commission is paid in arrears on collected revenue so that clawbacks never arise — recovering money already paid to a partner is the fastest way to poison a channel.',
       },
       {
         q: 'When am I paid?',
@@ -126,7 +157,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
       },
       {
         q: 'What do the statuses mean?',
-        a: '`pending` \u2014 accrued, not yet approved. `approved` \u2014 confirmed, due in the next run. `paid` \u2014 sent. `cancelled` \u2014 reversed before payment, which happens when the underlying payment was reversed or the accrual was found not to be commissionable.',
+        a: '`pending` \u2014 accrued, not yet approved. `approved` \u2014 confirmed, due in the next run. `paid` \u2014 sent. `cancelled` \u2014 reversed before payment, when the underlying payment was reversed or the accrual was found not to be commissionable.',
       },
       {
         q: 'What is my rate?',
@@ -138,7 +169,7 @@ export const ASSISTANT_CONTENT: Record<string, AssistantEntry> = {
       },
       {
         q: 'Can I earn on my own agency?',
-        a: 'No. No commission is payable on an agency you control \u2014 yours, any entity where you or an immediate family member is a director, member or beneficial owner, or any agency under common control with one of those. It is checked at approval and again at accrual. If you run an agency and want to use Locare, you are welcome to; you pay for it like any other customer.',
+        a: 'No \u2014 not on yours, nor any entity where you or an immediate family member is a director, member or beneficial owner, nor any agency under common control with one of those; it is checked at approval and again at accrual. If you run an agency and want to use Locare you are welcome to, paying for it like any other customer.',
       },
     ],
     manualAnchor: '#commissions',

@@ -123,11 +123,18 @@ queries, no inference, no model:
 | Deal untouched > 14 days | `stageChangedAt`, open stages | "4 deals have not moved in two weeks" |
 | At the open-lead cap | `isAtOpenLeadCap`, cap 20 | "You cannot add leads until some close" |
 | Banking details missing | partner banking | "Payouts cannot run without this" |
-| Unread changelog entries | changelog send state | "2 updates you have not read" |
 
 Each prompt states a number the screen can already prove, and links to the exact
 place it is resolved. A prompt that cannot be acted on in one click should not
 exist.
+
+**Unread changelog entries: cut 2026-10-08.** The fourth signal was removed
+rather than left inert. No partner route serves the changelog (it lives at
+`/admin/changelog`) and no partner endpoint reports an unread count, so the
+prompt had nowhere to send the partner and no number it could prove — both
+failures of the one-click rule above. Re-adding it needs both: a partner-side
+route that renders updates, and an unread count on a partner endpoint the
+pages already call. Until then it stays out.
 
 **Nothing here may nag about something that is blocked upstream.** Partner
 approval is currently gated on the outstanding VAT number, so a prompt telling a

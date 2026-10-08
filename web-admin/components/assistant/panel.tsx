@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChevronRight, HelpCircle, X } from 'lucide-react';
 import { actorFromToken } from '@/lib/api';
 import { cn } from '@/lib/cn';
-import { contentFor, MANUAL_PATH } from './content';
+import { contentFor, manualHref, MANUAL_PATH } from './content';
 import { useAssistantSignals } from './use-signals';
 
 /**
@@ -187,9 +187,22 @@ export default function AssistantPanel() {
                 </dl>
               )}
 
+              {/*
+                The pointer is a link as of Phase 2 Day 8: `/partner/manual`
+                serves the markdown with an anchor per section, so the reader
+                lands on the right section instead of being told a file path.
+                The path stays visible because the file, not this panel, is the
+                source of truth and it is worth saying where it lives.
+              */}
               <p className="mt-6 border-t border-line pt-3 text-xs">
                 Full detail is in the Partner Manual, under{' '}
-                <span className="font-medium text-ink">{entry.manualSection}</span>{' '}
+                <Link
+                  href={manualHref(entry)}
+                  onClick={close}
+                  className="font-medium text-ink underline decoration-line underline-offset-2 transition hover:decoration-ink"
+                >
+                  {entry.manualSection}
+                </Link>{' '}
                 <span className="font-mono">
                   ({MANUAL_PATH}
                   {entry.manualAnchor})

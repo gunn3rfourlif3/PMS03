@@ -160,7 +160,9 @@ describe('signals', () => {
     ];
     render(<AssistantPanel />);
     await user.click(triggers()[0]);
-    const links = within(sheet() as HTMLElement).getAllByRole('link');
+    // Scoped to the signal list: since Day 8 the manual pointer is a link too.
+    const list = within(sheet() as HTMLElement).getByRole('list');
+    const links = within(list).getAllByRole('link');
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute('href', '/partner/pipeline');
     expect(links[1]).toHaveTextContent('Banking details are incomplete');
@@ -174,7 +176,22 @@ describe('signals', () => {
     signals = [{ id: 'banking-missing', text: 'Banking details are incomplete', href: '/partner/banking' }];
     render(<AssistantPanel />);
     await user.click(triggers()[0]);
-    await user.click(within(sheet() as HTMLElement).getByRole('link'));
+    const list = within(sheet() as HTMLElement).getByRole('list');
+    await user.click(within(list).getByRole('link'));
+    expect(sheet()).not.toBeInTheDocument();
+  });
+});
+
+describe('manual pointer', () => {
+  it('links the section to the manual route and closes the panel', async () => {
+    const user = userEvent.setup();
+    render(<AssistantPanel />);
+    await user.click(triggers()[0]);
+    const link = within(sheet() as HTMLElement).getByRole('link', { name: 'Overview' });
+    expect(link).toHaveAttribute('href', '/partner/manual#overview');
+    // The file path stays beside it: the markdown, not the panel, is the source.
+    expect(screen.getByText(/Partner-Manual\.md/)).toBeInTheDocument();
+    await user.click(link);
     expect(sheet()).not.toBeInTheDocument();
   });
 });
