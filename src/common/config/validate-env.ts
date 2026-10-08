@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { resolveDeploymentProfile } from './deployment-profile';
 
 /**
  * Fail-fast configuration guard. In production the app REFUSES TO BOOT if a
@@ -18,6 +19,15 @@ export function validateEnv(): void {
       (isProd ? errors : warns).push(`${name} is unset or still a development default`);
     }
   };
+
+  // A misspelled DEPLOYMENT_PROFILE must not boot: resolve() throws rather than
+  // falling back, because falling back means opening tenant and landlord logins
+  // on an installation someone configured to be sealed.
+  try {
+    resolveDeploymentProfile(process.env.DEPLOYMENT_PROFILE);
+  } catch (e: any) {
+    errors.push(e?.message ?? 'DEPLOYMENT_PROFILE is invalid');
+  }
 
   require('JWT_SECRET', ['change-me-in-prod']);
   require('PII_ENCRYPTION_KEY');       // owner banking encryption key

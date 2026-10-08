@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CapabilityGuard, RequiresCapability } from '@common/config/capability.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ListingsService, CreateListingInput } from './listings.service';
 import { UploadedFileLike } from '@modules/media/media.service';
@@ -60,16 +61,22 @@ export class ListingsController {
   }
 
   // ---- Public browse (no auth; used by the rentals.<domain> site) ----
+  @UseGuards(CapabilityGuard)
+  @RequiresCapability('publicListings')
   @Get('public')
   publicBrowse(@Query('vendor') vendor: string) {
     return this.listings.publicList(vendor);
   }
 
+  @UseGuards(CapabilityGuard)
+  @RequiresCapability('publicListings')
   @Get('public/:id')
   publicOne(@Param('id') id: string) {
     return this.listings.publicOne(id);
   }
 
+  @UseGuards(CapabilityGuard)
+  @RequiresCapability('publicListings')
   @Get('published')
   browse() {
     return this.listings.listPublished();

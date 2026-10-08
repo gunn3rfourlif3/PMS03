@@ -12,6 +12,9 @@ import { generateOtpCode, hashOtp, verifyOtp, isExpired } from './otp.util';
 import { SessionStore } from './session-store.service';
 import { GoogleOAuthService, GoogleIdentity } from './google-oauth.service';
 import { decideGoogleLink } from './google-link';
+import {
+  deploymentCapabilities, deploymentProfile, deploymentRefusalMessage, rolesRefused,
+} from '@common/config/deployment-profile';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { cascadeSend, parseChannels } from '@providers/notification/cascade';
 import { toE164 } from '@common/phone/e164';
@@ -227,6 +230,25 @@ export class AuthService {
         payload = { sub: user.id, vendorId: active?.vendor_id ?? null, roles: active ? [active.role] : [] };
       }
     }
+    // THE MODE A GATE (LOCARE_ONSITE_DEMO_BUILD_PLAN.md Day 4).
+    //
+    // Here rather than at the controller, because `issueForUser` is the single
+    // place every sign-in path converges — OTP, Google, and anything added
+    // later. A check on the OTP endpoint alone would leave Google wide open.
+    //
+    // Refused AFTER the code is verified, not at `otp/request`: refusing on
+    // request would tell anyone who can type an address whether it belongs to a
+    // tenant. By this point they have proved control of the mailbox.
+    const refused = rolesRefused(payload.roles ?? [], deploymentCapabilities());
+    if (refused.length > 0) {
+      const profile = deploymentProfile();
+      throw new ForbiddenException({
+        statusCode: 403,
+        code: 'DEPLOYMENT_PROFILE_FORBIDS_ROLE',
+        message: deploymentRefusalMessage(profile),
+      });
+    }
+
     const jti = randomUUID();
     await this.sessions.create(jti, user.id, this.idleSec);
     return { accessToken: await this.signToken({ ...payload, jti }), idleMinutes: this.idleMinutes };
