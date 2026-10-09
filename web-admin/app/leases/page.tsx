@@ -4,11 +4,15 @@ import { useRouter } from 'next/navigation';
 import { CalendarClock, UserPlus, FileText, Copy, Check, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
+import Pager from '@/components/pager';
 
 export default function LeasesPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const PAGE = 50;
   const [editing, setEditing] = useState<string | null>(null);
   const [pct, setPct] = useState('8');
   const [months, setMonths] = useState('12');
@@ -34,11 +38,17 @@ export default function LeasesPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => { if (!auth.get()) { router.replace('/login'); return; } setReady(true); load(); }, []);
+  useEffect(() => { if (ready) load(); }, [offset]);
+
   const load = async () => {
     setErr('');
     try {
-      const [leases, agrs] = await Promise.all([api.listLeases(), api.leaseAgreements().catch(() => [])]);
-      setRows(leases);
+      const [leases, agrs] = await Promise.all([
+        api.listLeasesPaged({ limit: PAGE, offset }),
+        api.leaseAgreements().catch(() => []),
+      ]);
+      setRows(leases.rows ?? []);
+      setTotal(leases.total ?? 0);
       // Latest agreement per lease (list is newest-first).
       const map: Record<string, any> = {};
       for (const a of agrs as any[]) if (!map[a.leaseId]) map[a.leaseId] = a;
@@ -166,6 +176,7 @@ export default function LeasesPage() {
             </tbody>
           </table>
         </div>
+        <Pager total={total} limit={PAGE} offset={offset} onChange={setOffset} noun="leases" />
       </GlassCard>
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add tenant"

@@ -16,9 +16,25 @@ export class PropertiesController {
   }
 
   // ---- Units (literal path segments first so they don't collide with :id) ----
+  /**
+   * Units. Returns a plain array as it always has, unless `limit` is given, in
+   * which case it returns a page. Existing callers pass no limit and see no
+   * change.
+   */
   @UseGuards(JwtAuthGuard)
   @Get('units')
-  listUnits(@Query('propertyId') propertyId?: string) {
+  listUnits(
+    @Query('propertyId') propertyId?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    if (limit) {
+      return this.service.listUnitsPaged({ propertyId, limit: Number(limit), offset: Number(offset) });
+    }
+    return this.listUnitsAll(propertyId);
+  }
+
+  private listUnitsAll(propertyId?: string) {
     return this.service.listUnits(propertyId);
   }
 

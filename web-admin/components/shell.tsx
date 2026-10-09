@@ -17,6 +17,7 @@ const NAV = [
   { href: '/leases', label: 'Leases', icon: CalendarClock },
   { href: '/lease-parsing', label: 'Import lease', icon: FileUp },
   { href: '/payments', label: 'Payments', icon: Receipt },
+  { href: '/statements', label: 'Bank statement', icon: Banknote },
   { href: '/listings', label: 'Listings', icon: Tags, requires: 'publicListings' as const },
   { href: '/applications', label: 'Applications', icon: ClipboardList, requires: 'publicListings' as const },
   { href: '/owners', label: 'Owners', icon: Users },

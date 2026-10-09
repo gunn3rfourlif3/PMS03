@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { AddTenantInput, LeasingService } from './leasing.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
@@ -15,8 +15,10 @@ export class LeasingController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
+  /** Plain array as before; a page when `limit` is given. */
   @Get()
-  list() {
+  list(@Query('limit') limit?: string, @Query('offset') offset?: string) {
+    if (limit) return this.service.listPaged({ limit: Number(limit), offset: Number(offset) });
     return this.service.list();
   }
 

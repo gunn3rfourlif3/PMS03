@@ -55,6 +55,34 @@ export class LeasingService {
     `);
   }
 
+  /**
+   * The same list, one page at a time, with the total.
+   *
+   * Separate from `list()` for the same reason units are: `list()` has other
+   * callers and changing its shape would break them quietly. Ordered by unit
+   * label, as `list()` is, so a page is a stable slice rather than a shuffle.
+   */
+  async listPaged(opts: { limit?: number; offset?: number }): Promise<{
+    rows: unknown[]; total: number; limit: number; offset: number;
+  }> {
+    const limit = Math.min(Math.max(Number(opts?.limit) || 50, 1), 200);
+    const offset = Math.max(Number(opts?.offset) || 0, 0);
+    const mgr = this.tenant.getManager();
+    const rows = await mgr.query(`
+      SELECT l.id, u.label AS unit, l.tenant_id, l.rent_amount, l.type, l.status, l.start_date, l.end_date, l.escalation
+      FROM leases l JOIN units u ON u.id = l.unit_id
+      WHERE l.status = 'active' AND l.deleted_at IS NULL
+      ORDER BY u.label
+      LIMIT $1 OFFSET $2;
+    `, [limit, offset]);
+    const [{ count }] = await mgr.query(`
+      SELECT count(*)::int AS count
+      FROM leases l JOIN units u ON u.id = l.unit_id
+      WHERE l.status = 'active' AND l.deleted_at IS NULL;
+    `);
+    return { rows, total: Number(count), limit, offset };
+  }
+
   /** Renew a lease: apply an escalation % to rent and extend the term. Keeps a history. */
   async renew(id: string, input: { escalationPct?: number; months?: number; newEndDate?: string }): Promise<Lease> {
     const repo = this.tenant.getRepository(Lease);

@@ -275,6 +275,15 @@ export const api = {
     req(`/proof-of-payment/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) }),
 
   units: () => req('/properties/units'),
+  // Paged variants. The unpaged calls above are unchanged and still feed the
+  // dropdowns; tables use these.
+  unitsPaged: (q?: { propertyId?: string; limit?: number; offset?: number }) => {
+    const p = new URLSearchParams();
+    if (q?.propertyId) p.set('propertyId', q.propertyId);
+    p.set('limit', String(q?.limit ?? 50));
+    p.set('offset', String(q?.offset ?? 0));
+    return req(`/properties/units?${p.toString()}`);
+  },
   listProperties: () => req('/properties'),
   createProperty: (b: any) => req('/properties', { method: 'POST', body: JSON.stringify(b) }),
   updateProperty: (id: string, b: any) => req(`/properties/${id}`, { method: 'PUT', body: JSON.stringify(b) }),
@@ -355,7 +364,13 @@ export const api = {
   createApiKey: (name: string, scopes: string[]) => req('/api-keys', { method: 'POST', body: JSON.stringify({ name, scopes }) }),
   revokeApiKey: (id: string) => req(`/api-keys/${id}/revoke`, { method: 'POST' }),
   listNotifications: () => req('/notifications'),
+  // ---- bank-statement reconciliation (the mode A rent path) ----
+  previewStatement: (file: File) => reqForm('/statements/preview', fileForm(file)),
+  commitStatement: (allocations: { invoiceId: string; amount: number; reference?: string }[]) =>
+    req('/statements/commit', { method: 'POST', body: JSON.stringify({ allocations }) }),
   listLeases: () => req('/leasing'),
+  listLeasesPaged: (q?: { limit?: number; offset?: number }) =>
+    req(`/leasing?limit=${q?.limit ?? 50}&offset=${q?.offset ?? 0}`),
   addTenant: (b: { name: string; email: string; phone?: string; unitId: string; rentAmount: number; startDate: string; endDate?: string; referredByAgentId?: string }) =>
     req('/leasing/tenants', { method: 'POST', body: JSON.stringify(b) }),
   renewLease: (id: string, escalationPct: number, months: number) =>

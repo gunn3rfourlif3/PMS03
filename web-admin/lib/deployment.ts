@@ -66,3 +66,30 @@ export function capabilitiesFor(profile: DeploymentProfile): DeploymentCapabilit
 export function isOnSite(profile: DeploymentProfile): boolean {
   return profile === 'onsite_backoffice' || profile === 'onsite_connected';
 }
+
+/**
+ * Ask the API what mode this installation is in.
+ *
+ * The API enforces the mode, so it is the only honest source for it. The
+ * server-rendered value in the root layout is a first paint that avoids a flash
+ * of the wrong menu; this confirms it. If they ever disagree, this wins — and
+ * the one that would have been wrong is the one that only decides what to show.
+ *
+ * On failure the caller keeps the server-rendered value: a back office that
+ * blanks its own menu because one fetch failed is worse than a stale label.
+ */
+export async function fetchDeployment(): Promise<
+  { profile: DeploymentProfile; capabilities: DeploymentCapabilities } | null
+> {
+  try {
+    const base = process.env.NEXT_PUBLIC_API_BASE ?? '/api';
+    const res = await fetch(`${base}/deployment`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    const body = await res.json();
+    const profile = resolveDeploymentProfile(body?.profile);
+    return { profile, capabilities: body?.capabilities ?? capabilitiesFor(profile) };
+  } catch {
+    return null;
+  }
+}
+

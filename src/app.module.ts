@@ -24,6 +24,8 @@ import { BillingModule } from './modules/billing/billing.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { UtilitiesModule } from './modules/utilities/utilities.module';
+import { DeploymentController } from './common/config/deployment.controller';
+import { StatementsModule } from './modules/statements/statements.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { CommsModule } from './modules/comms/comms.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -84,6 +86,7 @@ import { EsignModule } from './providers/esign/esign.module';
     AccountingModule,
     MaintenanceModule,
     UtilitiesModule,
+    StatementsModule,
     DocumentsModule,
     CommsModule,
     NotificationsModule,
@@ -110,6 +113,7 @@ import { EsignModule } from './providers/esign/esign.module';
     ImportsModule,
     HostsModule,
   ],
+  controllers: [DeploymentController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

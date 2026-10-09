@@ -59,6 +59,34 @@ export class PropertiesService {
     return repo.find({ where: propertyId ? { propertyId } : {}, order: { label: 'ASC' } });
   }
 
+  /**
+   * Paged units.
+   *
+   * A SEPARATE method rather than a `limit` argument on `listUnits`, because
+   * that one feeds several dropdowns and changing its return shape would break
+   * them silently. Callers that want a page ask for one; everyone else is
+   * unaffected.
+   *
+   * Worth knowing: at 500 units those dropdowns are themselves a problem — a
+   * 500-option select is not usable. Paging the tables is the fix for the thing
+   * that was actually unusable; the selects need a search box, which is a
+   * different job.
+   */
+  async listUnitsPaged(
+    opts: { propertyId?: string; limit?: number; offset?: number },
+  ): Promise<{ rows: Unit[]; total: number; limit: number; offset: number }> {
+    const repo = this.tenant.getRepository(Unit);
+    const limit = Math.min(Math.max(Number(opts?.limit) || 50, 1), 200);
+    const offset = Math.max(Number(opts?.offset) || 0, 0);
+    const [rows, total] = await repo.findAndCount({
+      where: opts?.propertyId ? { propertyId: opts.propertyId } : {},
+      order: { label: 'ASC' },
+      take: limit,
+      skip: offset,
+    });
+    return { rows, total, limit, offset };
+  }
+
   /** Reject a unit label that already exists in the same property (case-insensitive). */
   private async assertUniqueLabel(propertyId: string, label: string, excludeId?: string): Promise<void> {
     const qb = this.tenant.getRepository(Unit).createQueryBuilder('u')
