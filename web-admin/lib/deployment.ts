@@ -37,6 +37,14 @@ export const CAPABILITIES: Record<DeploymentProfile, DeploymentCapabilities> = {
   private_server: CONNECTED,
 };
 
+/**
+ * English labels, still used by `app/demo/page.tsx`.
+ *
+ * The sidebar chip now reads these from the i18n catalogue
+ * (`deployment.<profile>` in `shared/i18n/en.ts`) so it translates. The two
+ * must say the same thing until Days 3–5 convert the demo page, at which point
+ * this constant should go.
+ */
 export const DEPLOYMENT_LABELS: Record<DeploymentProfile, string> = {
   onsite_backoffice: 'On-site, back office',
   onsite_connected: 'On-site, connected',

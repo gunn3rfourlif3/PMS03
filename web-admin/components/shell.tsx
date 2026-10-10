@@ -9,66 +9,75 @@ import IdleTimeout from './idle-timeout';
 import AssistantPanel from './assistant/panel';
 import { cn } from '@/lib/cn';
 import { useDeployment } from './deployment-provider';
-import { DeploymentCapabilities, DEPLOYMENT_LABELS, isOnSite } from '@/lib/deployment';
+import { DeploymentCapabilities, isOnSite } from '@/lib/deployment';
+import { useLocale, useT } from './locale-provider';
+import LocaleSwitcher from './locale-switcher';
+import type { MessageKey } from '@shared/i18n';
 
-const NAV = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/properties', label: 'Properties', icon: Building2 },
-  { href: '/leases', label: 'Leases', icon: CalendarClock },
-  { href: '/lease-parsing', label: 'Import lease', icon: FileUp },
-  { href: '/payments', label: 'Payments', icon: Receipt },
-  { href: '/statements', label: 'Bank statement', icon: Banknote },
-  { href: '/listings', label: 'Listings', icon: Tags, requires: 'publicListings' as const },
-  { href: '/applications', label: 'Applications', icon: ClipboardList, requires: 'publicListings' as const },
-  { href: '/owners', label: 'Owners', icon: Users },
-  { href: '/agents', label: 'Agents', icon: Handshake },
-  { href: '/providers', label: 'Providers', icon: Wrench },
-  { href: '/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/documents', label: 'Documents', icon: FileText },
-  { href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
-  { href: '/utilities', label: 'Utilities', icon: Gauge },
-  { href: '/api-keys', label: 'API keys', icon: KeyRound },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/billing', label: 'Billing', icon: CreditCard },
-  { href: '/settings', label: 'Settings', icon: SettingsIcon },
+type NavItem = { href: string; key: MessageKey; icon: any; requires?: keyof DeploymentCapabilities };
+
+/* Annotated rather than inferred: without it TypeScript widens `key` to
+   `string` and the catalogue's key union stops catching a typo'd key. */
+const NAV: readonly NavItem[] = [
+  { href: '/', key: 'nav.dashboard', icon: LayoutDashboard },
+  { href: '/properties', key: 'nav.properties', icon: Building2 },
+  { href: '/leases', key: 'nav.leases', icon: CalendarClock },
+  { href: '/lease-parsing', key: 'nav.leaseParsing', icon: FileUp },
+  { href: '/payments', key: 'nav.payments', icon: Receipt },
+  { href: '/statements', key: 'nav.statements', icon: Banknote },
+  { href: '/listings', key: 'nav.listings', icon: Tags, requires: 'publicListings' as const },
+  { href: '/applications', key: 'nav.applications', icon: ClipboardList, requires: 'publicListings' as const },
+  { href: '/owners', key: 'nav.owners', icon: Users },
+  { href: '/agents', key: 'nav.agents', icon: Handshake },
+  { href: '/providers', key: 'nav.providers', icon: Wrench },
+  { href: '/reports', key: 'nav.reports', icon: BarChart3 },
+  { href: '/documents', key: 'nav.documents', icon: FileText },
+  { href: '/inspections', key: 'nav.inspections', icon: ClipboardCheck },
+  { href: '/utilities', key: 'nav.utilities', icon: Gauge },
+  { href: '/api-keys', key: 'nav.apiKeys', icon: KeyRound },
+  { href: '/notifications', key: 'nav.notifications', icon: Bell },
+  { href: '/messages', key: 'nav.messages', icon: MessageSquare },
+  { href: '/billing', key: 'nav.billing', icon: CreditCard },
+  { href: '/settings', key: 'nav.settings', icon: SettingsIcon },
 ];
 
-const PORTAL_NAV = [
-  { href: '/portal', label: 'Overview', icon: LayoutGrid },
-  { href: '/portal/statements', label: 'Statements', icon: Receipt },
-  { href: '/portal/properties', label: 'Properties', icon: Building2 },
-  { href: '/portal/banking', label: 'Banking', icon: Landmark },
+const PORTAL_NAV: readonly NavItem[] = [
+  { href: '/portal', key: 'portal.nav.overview', icon: LayoutGrid },
+  { href: '/portal/statements', key: 'portal.nav.statements', icon: Receipt },
+  { href: '/portal/properties', key: 'portal.nav.properties', icon: Building2 },
+  { href: '/portal/banking', key: 'portal.nav.banking', icon: Landmark },
 ];
 
-const PARTNER_NAV = [
-  { href: '/partner', label: 'Overview', icon: LayoutGrid },
-  { href: '/partner/pipeline', label: 'Pipeline', icon: Columns3 },
-  { href: '/partner/activity', label: 'Activity', icon: Activity },
-  { href: '/partner/leaderboard', label: 'Leaderboard', icon: Trophy },
-  { href: '/partner/agencies', label: 'Agencies', icon: Building2 },
-  { href: '/partner/commissions', label: 'Commissions', icon: Receipt },
-  { href: '/partner/banking', label: 'Banking', icon: Landmark },
+const PARTNER_NAV: readonly NavItem[] = [
+  { href: '/partner', key: 'partner.nav.overview', icon: LayoutGrid },
+  { href: '/partner/pipeline', key: 'partner.nav.pipeline', icon: Columns3 },
+  { href: '/partner/activity', key: 'partner.nav.activity', icon: Activity },
+  { href: '/partner/leaderboard', key: 'partner.nav.leaderboard', icon: Trophy },
+  { href: '/partner/agencies', key: 'partner.nav.agencies', icon: Building2 },
+  { href: '/partner/commissions', key: 'partner.nav.commissions', icon: Receipt },
+  { href: '/partner/banking', key: 'partner.nav.banking', icon: Landmark },
 ];
 
-const ADMIN_NAV = [
+const ADMIN_NAV: readonly NavItem[] = [
   // First, deliberately: bringing an agency live is the work in front of you.
   // Everything below it is administration of agencies already running.
-  { href: '/admin/onboarding', label: 'Onboarding', icon: Rocket },
-  { href: '/admin/agencies', label: 'Agencies', icon: Building2 },
-  { href: '/admin/partners', label: 'Partners', icon: Handshake },
-  { href: '/admin/partner-applications', label: 'Applications', icon: ClipboardCheck },
-  { href: '/admin/commissions', label: 'Commissions', icon: Receipt },
-  { href: '/admin/payouts', label: 'Payout run', icon: Banknote },
-  { href: '/admin/billing', label: 'Billing', icon: CreditCard },
-  { href: '/admin/imports', label: 'Import templates', icon: FileSpreadsheet },
-  { href: '/admin/changelog', label: 'Updates', icon: Megaphone },
-  { href: '/admin/operators', label: 'Operators', icon: ShieldCheck },
+  { href: '/admin/onboarding', key: 'admin.nav.onboarding', icon: Rocket },
+  { href: '/admin/agencies', key: 'admin.nav.agencies', icon: Building2 },
+  { href: '/admin/partners', key: 'admin.nav.partners', icon: Handshake },
+  { href: '/admin/partner-applications', key: 'admin.nav.applications', icon: ClipboardCheck },
+  { href: '/admin/commissions', key: 'admin.nav.commissions', icon: Receipt },
+  { href: '/admin/payouts', key: 'admin.nav.payouts', icon: Banknote },
+  { href: '/admin/billing', key: 'admin.nav.billing', icon: CreditCard },
+  { href: '/admin/imports', key: 'admin.nav.imports', icon: FileSpreadsheet },
+  { href: '/admin/changelog', key: 'admin.nav.changelog', icon: Megaphone },
+  { href: '/admin/operators', key: 'admin.nav.operators', icon: ShieldCheck },
 ];
 
 /** Shown whenever the session token carries an impersonation `act` claim. */
 function ImpersonationBanner() {
   const [busy, setBusy] = useState(false);
+  const t = useT();
+  const b = useBrand();
   const actor = actorFromToken();
   if (!actor) return null;
   const exit = async () => {
@@ -78,7 +87,10 @@ function ImpersonationBanner() {
   };
   return (
     <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', borderRadius: '1rem', border: '1px solid #FCD34D', background: '#FEF3C7', color: '#92400E', padding: '10px 16px', fontSize: 14 }}>
-      <span>Viewing <b>{actor.agency}</b> as Locare support — you’re acting on this agency’s live data.</span>
+      {/* The agency name was bold inline; the sentence now comes from the
+          catalogue as one string, because a translator cannot reorder a clause
+          that is split across JSX elements. Emphasis moved to the whole line. */}
+      <span><b>{t('shell.impersonating', { agency: actor.agency, platform: b.name })}</b></span>
       <button onClick={exit} disabled={busy}
         style={{ borderRadius: 8, background: '#92400E', color: '#fff', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1, border: 0 }}>
         {busy ? 'Exiting…' : 'Exit impersonation'}
@@ -123,18 +135,19 @@ function BrandMark({ size = 34, dark = false }: { size?: number; dark?: boolean 
  */
 function DeploymentChip() {
   const { profile } = useDeployment();
+  const t = useT();
   if (!isOnSite(profile)) return null;
   return (
     <div className="mx-2 mt-1 rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-medium text-white/80">
-      {DEPLOYMENT_LABELS[profile]}
+      {t(`deployment.${profile}` as MessageKey)}
     </div>
   );
 }
 
-type NavItem = { href: string; label: string; icon: any; requires?: keyof DeploymentCapabilities };
 
 function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?: readonly NavItem[] }) {
   const path = usePathname();
+  const t = useT();
   const { capabilities } = useDeployment();
   // An entry tagged with a capability the mode does not serve is absent, not
   // disabled: the API refuses those routes, so a greyed-out link would be a
@@ -143,7 +156,7 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
   const visible = items.filter((i) => !i.requires || capabilities[i.requires]);
   return (
     <nav className="flex flex-col gap-1">
-      {visible.map(({ href, label, icon: Icon }) => {
+      {visible.map(({ href, key, icon: Icon }) => {
         const active = path === href;
         return (
           <Link key={href} href={href} onClick={onNavigate}
@@ -151,7 +164,7 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
               active ? 'text-onbrand shadow-soft' : 'text-white/70 hover:text-white hover:bg-white/10')}
             style={active ? { background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 90%, white), var(--brand))' } : undefined}>
             <Icon size={18} className={active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'} />
-            {label}
+            {t(key)}
           </Link>
         );
       })}
@@ -161,10 +174,11 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
 
 function SignOut({ onDone }: { onDone?: () => void }) {
   const router = useRouter();
+  const t = useT();
   return (
     <button onClick={async () => { await api.logout().catch(() => {}); auth.clear(); onDone?.(); router.replace('/login'); }}
       className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/10 hover:text-red-300">
-      <LogOut size={18} /> Sign out
+      <LogOut size={18} /> {t('shell.signOut')}
     </button>
   );
 }
@@ -191,15 +205,14 @@ function Footer() {
  */
 function BrandSplash() {
   const b = useBrand();
+  const t = useT();
   return (
     <main className="grid min-h-screen place-items-center p-6 text-center">
       <div>
         <h1 className="font-heading text-2xl font-bold text-ink">{b.name}</h1>
         {b.tagline && <p className="mt-2 text-sm text-muted">{b.tagline}</p>}
         <p className="mx-auto mt-3 max-w-md text-sm text-muted">
-          {b.name} is a property-management platform for rental agencies — leasing,
-          rent collection, trust accounting, owner payouts and maintenance. Sign in
-          to continue to your back-office.
+          {t('shell.splash.blurb', { brand: b.name })}
         </p>
       </div>
     </main>
@@ -209,6 +222,7 @@ function BrandSplash() {
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
+  const t = useT();
   const [open, setOpen] = useState(false);
   // Auth lives in browser storage, so the server can't know whether to show the
   // authed chrome. Waiting for mount stops the server from rendering a sidebar
@@ -260,14 +274,17 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <DeploymentChip />
           <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
-        <div className="border-t border-white/10 pt-3"><SignOut /></div>
+        <div className="border-t border-white/10 pt-3">
+          <LocaleSwitcher />
+          <SignOut />
+        </div>
       </aside>
 
       {/* Mobile top bar */}
       <header className="glass sticky top-0 z-30 flex items-center justify-between rounded-none px-4 py-3 lg:hidden">
-        <button onClick={() => setOpen(true)} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Menu size={20} /></button>
+        <button onClick={() => setOpen(true)} aria-label={t('shell.openMenu')} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Menu size={20} /></button>
         <BrandMark size={30} />
-        <button onClick={() => router.push('/notifications')} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Bell size={18} /></button>
+        <button onClick={() => router.push('/notifications')} aria-label={t('shell.notifications')} className="grid h-9 w-9 place-items-center rounded-xl text-ink hover:bg-black/5"><Bell size={18} /></button>
       </header>
 
       {/* Mobile drawer */}
@@ -278,11 +295,14 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             <div>
               <div className="flex items-center justify-between px-2 py-2">
                 <BrandMark size={30} dark />
-                <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl text-white hover:bg-white/10"><X size={18} /></button>
+                <button onClick={() => setOpen(false)} aria-label={t('shell.closeMenu')} className="grid h-9 w-9 place-items-center rounded-xl text-white hover:bg-white/10"><X size={18} /></button>
               </div>
               <div className="mt-4"><NavLinks items={nav} onNavigate={() => setOpen(false)} /></div>
             </div>
-            <div className="border-t border-white/10 pt-3"><SignOut onDone={() => setOpen(false)} /></div>
+            <div className="border-t border-white/10 pt-3">
+              <LocaleSwitcher />
+              <SignOut onDone={() => setOpen(false)} />
+            </div>
           </div>
         </div>
       )}

@@ -6,6 +6,8 @@ import Shell from '@/components/shell';
 import { brandForHost } from '@/lib/brand-shared';
 import DeploymentProvider from '@/components/deployment-provider';
 import { resolveDeploymentProfile } from '@/lib/deployment';
+import LocaleProvider from '@/components/locale-provider';
+import { resolveRequestLocale } from '@/lib/locale';
 
 // Title/description must carry the brand name: this is what crawlers (and
 // Google's OAuth brand-verification reviewer) see on app.<domain>. A generic
@@ -42,14 +44,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Server-side and at request time, not baked at build: one image serves all
   // three deployment modes, which is what makes the demo's mode switch work.
   const deployment = resolveDeploymentProfile(process.env.DEPLOYMENT_PROFILE);
+  // Resolved per request like the brand above, so the first HTML is already in
+  // the demo's language. DEPLOYMENT_LOCALE on the container is the whole switch.
+  const locale = resolveRequestLocale(host, process.env.DEPLOYMENT_LOCALE);
 
   return (
-    <html lang="en">
+    // `lang` is the server's best guess; LocaleProvider corrects it on mount if
+    // the viewer has a stored preference. `suppressHydrationWarning` covers
+    // exactly that one attribute — without it React warns on every load where a
+    // stored locale differs from the deployment's.
+    <html lang={locale} suppressHydrationWarning>
       <body>
         <BrandProvider initial={brand}>
-          <DeploymentProvider profile={deployment}>
-            <Shell>{children}</Shell>
-          </DeploymentProvider>
+          <LocaleProvider initial={locale}>
+            <DeploymentProvider profile={deployment}>
+              <Shell>{children}</Shell>
+            </DeploymentProvider>
+          </LocaleProvider>
         </BrandProvider>
       </body>
     </html>
