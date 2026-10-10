@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { Download, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Donut, BentoTile, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Donut, BentoTile } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
@@ -21,6 +22,7 @@ function downloadCsv(filename: string, rows: any[]) {
 
 export default function ReportsPage() {
   const router = useRouter();
+  const { t, money, number } = useLocale();
   const [ready, setReady] = useState(false);
   const [period, setPeriod] = useState(thisPeriod());
   const [income, setIncome] = useState<any>(null);
@@ -50,37 +52,39 @@ export default function ReportsPage() {
 
   if (!ready) return null;
   const rate = collection ? Math.round(Number(collection.collectionRate)) : 0;
+  // `name` is what the axis renders, so it is translated here rather than
+  // being a key the chart would have to resolve.
   const chartData = income ? [
-    { name: 'Rent collected', value: Number(income.rentCollected), fill: '#1D9E75' },
-    { name: 'Mgmt fees', value: Number(income.managementFees), fill: '#378ADD' },
-    { name: 'Expenses', value: Number(income.expenses), fill: '#D85A30' },
-    { name: 'Net operating', value: Number(income.netOperating), fill: '#534AB7' },
+    { name: t('reports.series.rentCollected'), value: Number(income.rentCollected), fill: '#1D9E75' },
+    { name: t('reports.series.managementFees'), value: Number(income.managementFees), fill: '#378ADD' },
+    { name: t('reports.series.expenses'), value: Number(income.expenses), fill: '#D85A30' },
+    { name: t('reports.series.netOperating'), value: Number(income.netOperating), fill: '#534AB7' },
   ] : [];
 
   return (
     <div>
-      <PageHeader title="Reports" subtitle="Period income statement and data exports"
+      <PageHeader title={t('reports.title')} subtitle={t('reports.subtitle')}
         action={<div className="flex items-end gap-2">
-          <div className="w-32"><Field label="Period"><input className="input" value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="YYYY-MM" /></Field></div>
-          <Button onClick={load} loading={running}><RefreshCw size={16} /> Run</Button>
+          <div className="w-32"><Field label={t('reports.period')}><input className="input" value={period} onChange={(e) => setPeriod(e.target.value)} placeholder={t('reports.periodPlaceholder')} /></Field></div>
+          <Button onClick={load} loading={running}><RefreshCw size={16} /> {t('reports.run')}</Button>
         </div>} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="teal" value={income ? money(income.rentCollected) : '—'} label="Rent collected" />
-        <BentoTile tone="blue" value={income ? money(income.managementFees) : '—'} label="Management fees" />
-        <BentoTile tone="coral" value={income ? money(income.expenses) : '—'} label="Expenses" />
-        <BentoTile tone="purple" value={income ? money(income.netOperating) : '—'} label="Net operating" />
+        <BentoTile tone="teal" value={income ? money(income.rentCollected) : t('common.none')} label={t('reports.tile.rentCollected')} />
+        <BentoTile tone="blue" value={income ? money(income.managementFees) : t('common.none')} label={t('reports.tile.managementFees')} />
+        <BentoTile tone="coral" value={income ? money(income.expenses) : t('common.none')} label={t('reports.tile.expenses')} />
+        <BentoTile tone="purple" value={income ? money(income.netOperating) : t('common.none')} label={t('reports.tile.netOperating')} />
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
         <GlassCard className="lg:col-span-2">
-          <div className="mb-1 font-heading text-base font-bold text-ink">Income breakdown · {period}</div>
-          <p className="mb-3 text-sm text-muted">Cash basis — rent collected plus management-fee income, less expenses incurred.</p>
+          <div className="mb-1 font-heading text-base font-bold text-ink">{t('reports.breakdownTitle', { period })}</div>
+          <p className="mb-3 text-sm text-muted">{t('reports.breakdownBlurb')}</p>
           <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
-                <XAxis type="number" tickFormatter={(v) => 'R' + (v / 1000) + 'k'} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+                <XAxis type="number" tickFormatter={(v) => t('reports.axisThousands', { value: number(v / 1000, 1) })} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="name" width={104} tick={{ fontSize: 12, fill: 'var(--ink)' }} axisLine={false} tickLine={false} />
                 <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} formatter={(v: any) => money(Number(v))} />
                 <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={26}>
@@ -92,30 +96,32 @@ export default function ReportsPage() {
         </GlassCard>
 
         <GlassCard className="flex flex-col items-center justify-center gap-3">
-          <Donut value={rate} tone="teal" size={140} sub="collected" />
+          <Donut value={rate} tone="teal" size={140} sub={t('reports.collected')} />
           <div className="text-center">
-            <div className="font-heading text-base font-bold text-ink">Collection rate</div>
-            <div className="text-sm text-muted">{collection ? `${money(collection.collected)} of ${money(collection.billed)}` : '—'}</div>
+            <div className="font-heading text-base font-bold text-ink">{t('reports.collectionRate')}</div>
+            <div className="text-sm text-muted">{collection
+              ? t('reports.collectedOfBilled', { collected: money(collection.collected), billed: money(collection.billed) })
+              : t('common.none')}</div>
           </div>
         </GlassCard>
       </div>
 
       <GlassCard className="mt-3">
-        <div className="mb-3 font-heading text-base font-bold text-ink">Income statement · {period}</div>
+        <div className="mb-3 font-heading text-base font-bold text-ink">{t('reports.statementTitle', { period })}</div>
         <div className="divide-y divide-line text-sm">
-          <Row label="Rent collected" value={income ? money(income.rentCollected) : '—'} />
-          <Row label="Management fee income" value={income ? money(income.managementFees) : '—'} />
-          <Row label="Expenses" value={income ? `(${money(income.expenses)})` : '—'} danger />
-          <Row label="Net operating income" value={income ? money(income.netOperating) : '—'} bold />
+          <Row label={t('reports.row.rentCollected')} value={income ? money(income.rentCollected) : t('common.none')} />
+          <Row label={t('reports.row.managementFees')} value={income ? money(income.managementFees) : t('common.none')} />
+          <Row label={t('reports.row.expenses')} value={income ? `(${money(income.expenses)})` : t('common.none')} danger />
+          <Row label={t('reports.row.netOperating')} value={income ? money(income.netOperating) : t('common.none')} bold />
         </div>
       </GlassCard>
 
       <GlassCard className="mt-3">
-        <div className="mb-3 font-heading text-base font-bold text-ink">Exports</div>
+        <div className="mb-3 font-heading text-base font-bold text-ink">{t('reports.exports')}</div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="ghost" loading={busy} onClick={() => exportCsv('rent-roll')}><Download size={16} /> Rent roll (CSV)</Button>
-          <Button variant="ghost" loading={busy} onClick={() => exportCsv('arrears')}><Download size={16} /> Arrears aging (CSV)</Button>
-          <Button variant="ghost" loading={busy} onClick={() => exportCsv('collection')}><Download size={16} /> Collection (CSV)</Button>
+          <Button variant="ghost" loading={busy} onClick={() => exportCsv('rent-roll')}><Download size={16} /> {t('reports.export.rentRoll')}</Button>
+          <Button variant="ghost" loading={busy} onClick={() => exportCsv('arrears')}><Download size={16} /> {t('reports.export.arrears')}</Button>
+          <Button variant="ghost" loading={busy} onClick={() => exportCsv('collection')}><Download size={16} /> {t('reports.export.collection')}</Button>
         </div>
       </GlassCard>
     </div>

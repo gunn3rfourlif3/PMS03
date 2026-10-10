@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation';
 import { Upload, Download, PenLine } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
 export default function DocumentsPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [ready, setReady] = useState(false);
   const [leases, setLeases] = useState<any[]>([]);
   const [leaseId, setLeaseId] = useState('');
@@ -47,7 +49,7 @@ export default function DocumentsPage() {
       }
       await api.docConfirm(documentId);
       if (fileRef.current) fileRef.current.value = '';
-      setMsg('Document registered.');
+      setMsg(t('documents.registered'));
       await loadDocs(leaseId);
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
@@ -64,7 +66,7 @@ export default function DocumentsPage() {
     try {
       const r = await api.requestSignature(signFor, signerEmail, signerName || undefined);
       setSignFor(null);
-      setMsg(`Signature requested — signing link: ${r.signUrl}`);
+      setMsg(t('documents.signatureRequested', { url: r.signUrl }));
       await loadDocs(leaseId);
     } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
@@ -73,63 +75,67 @@ export default function DocumentsPage() {
 
   return (
     <div>
-      <PageHeader title="Documents" subtitle="Lease documents, uploads, and e-signature" />
+      <PageHeader title={t('documents.title')} subtitle={t('documents.subtitle')} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
       {msg && <div className="mb-4 break-words rounded-xl px-3 py-2 text-sm text-brand" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)' }}>{msg}</div>}
 
       <GlassCard>
-        <div className="mb-3 font-heading text-lg font-bold">Add document</div>
+        <div className="mb-3 font-heading text-lg font-bold">{t('documents.add')}</div>
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[200px] flex-1">
-            <Field label="Lease">
+            <Field label={t('documents.field.lease')}>
               <select className="input" value={leaseId} onChange={(e) => onLease(e.target.value)}>
-                {leases.length === 0 && <option value="">No active leases</option>}
+                {leases.length === 0 && <option value="">{t('documents.noLeases')}</option>}
                 {leases.map((l) => <option key={l.lease_id} value={l.lease_id}>{l.unit}</option>)}
               </select>
             </Field>
           </div>
-          <div className="w-48"><Field label="Type"><input className="input" value={type} onChange={(e) => setType(e.target.value)} /></Field></div>
-          <div className="w-56"><Field label="File (optional in dev)"><input ref={fileRef} type="file" className="input !py-2" /></Field></div>
-          <Button onClick={add} loading={busy} disabled={!leaseId}><Upload size={16} /> Add</Button>
+          <div className="w-48">{/* The value is a document-type code sent to the API, so the input's
+              content is data and is not translated — only its label. */}
+          <Field label={t('documents.field.type')}><input className="input" value={type} onChange={(e) => setType(e.target.value)} /></Field></div>
+          <div className="w-56"><Field label={t('documents.field.file')}><input ref={fileRef} type="file" className="input !py-2" /></Field></div>
+          <Button onClick={add} loading={busy} disabled={!leaseId}><Upload size={16} /> {t('documents.addButton')}</Button>
         </div>
       </GlassCard>
 
       <GlassCard className="mt-4 !p-0 overflow-hidden">
-        <div className="px-5 pt-5 font-heading text-lg font-bold">Documents</div>
+        <div className="px-5 pt-5 font-heading text-lg font-bold">{t('documents.listTitle')}</div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">File</th><th className="px-5 py-3 font-semibold">Type</th><th className="px-5 py-3 font-semibold">Ver</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3"></th>
+              <th className="px-5 py-3 font-semibold">{t('documents.th.file')}</th><th className="px-5 py-3 font-semibold">{t('documents.th.type')}</th><th className="px-5 py-3 font-semibold">{t('documents.th.version')}</th><th className="px-5 py-3 font-semibold">{t('documents.th.status')}</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {docs.map((d) => (
                 <tr key={d.id} className="border-t border-line hover:bg-black/[0.02]">
                   <td className="px-5 py-3 font-medium">{d.filename}</td>
                   <td className="px-5 py-3 text-muted">{d.type}</td>
-                  <td className="px-5 py-3">v{d.version}</td>
-                  <td className="px-5 py-3"><Badge tone={d.status === 'stored' ? 'success' : 'muted'}>{d.status}</Badge></td>
+                  <td className="px-5 py-3">{t('documents.version', { version: d.version })}</td>
+                  {/* Only `stored` has a translation; any other status the API
+                      sends renders as itself. */}
+                  <td className="px-5 py-3"><Badge tone={d.status === 'stored' ? 'success' : 'muted'}>{d.status === 'stored' ? t('documents.status.stored') : d.status}</Badge></td>
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
-                      <Button variant="ghost" onClick={() => download(d.id)}><Download size={15} /> Download</Button>
-                      <Button variant="ghost" onClick={() => openSign(d.id)}><PenLine size={15} /> Send to sign</Button>
+                      <Button variant="ghost" onClick={() => download(d.id)}><Download size={15} /> {t('documents.download')}</Button>
+                      <Button variant="ghost" onClick={() => openSign(d.id)}><PenLine size={15} /> {t('documents.sendToSign')}</Button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {docs.length === 0 && <tr><td colSpan={5}><EmptyState>No documents for this lease yet.</EmptyState></td></tr>}
+              {docs.length === 0 && <tr><td colSpan={5}><EmptyState>{t('documents.empty')}</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>
       </GlassCard>
 
-      <Modal open={!!signFor} onClose={() => setSignFor(null)} title="Send for e-signature"
+      <Modal open={!!signFor} onClose={() => setSignFor(null)} title={t('documents.signModalTitle')}
         footer={<>
-          <Button variant="ghost" onClick={() => setSignFor(null)} disabled={busy}>Cancel</Button>
-          <Button onClick={sign} loading={busy} disabled={!signerEmail}><PenLine size={15} /> Request signature</Button>
+          <Button variant="ghost" onClick={() => setSignFor(null)} disabled={busy}>{t('common.cancel')}</Button>
+          <Button onClick={sign} loading={busy} disabled={!signerEmail}><PenLine size={15} /> {t('documents.requestSignature')}</Button>
         </>}>
         <div className="space-y-4">
-          <Field label="Signer email"><input className="input" type="email" value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} placeholder="tenant@example.com" /></Field>
-          <Field label="Signer name (optional)"><input className="input" value={signerName} onChange={(e) => setSignerName(e.target.value)} /></Field>
+          <Field label={t('documents.field.signerEmail')}><input className="input" type="email" value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} placeholder={t('documents.field.signerEmailPlaceholder')} /></Field>
+          <Field label={t('documents.field.signerName')}><input className="input" value={signerName} onChange={(e) => setSignerName(e.target.value)} /></Field>
         </div>
       </Modal>
     </div>

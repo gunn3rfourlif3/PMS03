@@ -3,12 +3,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge, EmptyState, Modal, ConfirmModal, Field, BentoTile } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
+import type { MessageKey, TFunction } from '@shared/i18n';
 
 const tone = (s: string): 'brand' | 'success' | 'danger' | 'muted' =>
   s === 'approved' ? 'success' : s === 'rejected' ? 'danger' : s === 'screening' ? 'brand' : 'muted';
 
+const STATUSES = ['submitted', 'screening', 'approved', 'rejected'] as const;
+const statusLabel = (t: TFunction, st: string): string =>
+  (STATUSES as readonly string[]).includes(st) ? t(`applications.status.${st}` as MessageKey) : st;
+
 export default function ApplicationsPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [ready, setReady] = useState(false);
   const [apps, setApps] = useState<any[]>([]);
   const [err, setErr] = useState('');
@@ -52,67 +59,70 @@ export default function ApplicationsPage() {
 
   return (
     <div>
-      <PageHeader title="Applications" subtitle="Screen and decide on tenant applications" />
+      <PageHeader title={t('applications.title')} subtitle={t('applications.subtitle')} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="blue" value={String(apps.length)} label="Applications" />
-        <BentoTile tone="amber" value={String(apps.filter((a) => a.status === 'screening').length)} label="In screening" />
-        <BentoTile tone="green" value={String(apps.filter((a) => a.status === 'approved').length)} label="Approved" />
-        <BentoTile tone="coral" value={String(apps.filter((a) => a.status === 'rejected').length)} label="Rejected" />
+        <BentoTile tone="blue" value={String(apps.length)} label={t('applications.tile.total')} />
+        <BentoTile tone="amber" value={String(apps.filter((a) => a.status === 'screening').length)} label={t('applications.tile.screening')} />
+        <BentoTile tone="green" value={String(apps.filter((a) => a.status === 'approved').length)} label={t('applications.tile.approved')} />
+        <BentoTile tone="coral" value={String(apps.filter((a) => a.status === 'rejected').length)} label={t('applications.tile.rejected')} />
       </div>
 
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Applicant</th><th className="px-5 py-3 font-semibold">Email</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Recommendation</th><th className="px-5 py-3"></th>
+              <th className="px-5 py-3 font-semibold">{t('applications.th.applicant')}</th><th className="px-5 py-3 font-semibold">{t('applications.th.email')}</th><th className="px-5 py-3 font-semibold">{t('applications.th.status')}</th><th className="px-5 py-3 font-semibold">{t('applications.th.recommendation')}</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {apps.map((a) => (
                 <tr key={a.id} className="border-t border-line hover:bg-black/[0.02]">
                   <td className="px-5 py-3 font-medium">{a.applicantName}</td>
                   <td className="px-5 py-3 text-muted">{a.applicantEmail}</td>
-                  <td className="px-5 py-3"><Badge tone={tone(a.status)}>{a.status}</Badge></td>
-                  <td className="px-5 py-3">{a.screeningResult?.recommendation ?? '—'}</td>
+                  <td className="px-5 py-3"><Badge tone={tone(a.status)}>{statusLabel(t, a.status)}</Badge></td>
+                  {/* The screening recommendation comes from the API as free
+                      text and is shown as sent — there is no fixed vocabulary
+                      here to key against. */}
+                  <td className="px-5 py-3">{a.screeningResult?.recommendation ?? t('common.none')}</td>
                   <td className="px-5 py-3">
                     <div className="flex gap-2">
-                      <Button variant="ghost" onClick={() => setViewFor(a)}>View</Button>
-                      {a.status === 'submitted' && <Button variant="ghost" onClick={() => setScreenFor(a)}>Screen</Button>}
+                      <Button variant="ghost" onClick={() => setViewFor(a)}>{t('applications.view')}</Button>
+                      {a.status === 'submitted' && <Button variant="ghost" onClick={() => setScreenFor(a)}>{t('applications.screen')}</Button>}
                       {a.status === 'screening' && (<>
-                        <Button onClick={() => openApprove(a)}>Approve</Button>
-                        <Button variant="ghost" onClick={() => setRejectFor(a)}>Reject</Button>
+                        <Button onClick={() => openApprove(a)}>{t('applications.approve')}</Button>
+                        <Button variant="ghost" onClick={() => setRejectFor(a)}>{t('applications.reject')}</Button>
                       </>)}
                     </div>
                   </td>
                 </tr>
               ))}
-              {apps.length === 0 && <tr><td colSpan={5}><EmptyState>No applications yet.</EmptyState></td></tr>}
+              {apps.length === 0 && <tr><td colSpan={5}><EmptyState>{t('applications.empty')}</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>
       </GlassCard>
 
       {/* Screen */}
-      <Modal open={!!screenFor} onClose={() => setScreenFor(null)} title={`Screen ${screenFor?.applicantName ?? ''}`}
+      <Modal open={!!screenFor} onClose={() => setScreenFor(null)} title={t('applications.screenTitle', { name: screenFor?.applicantName ?? '' })}
         footer={<>
-          <Button variant="ghost" onClick={() => setScreenFor(null)} disabled={busy}>Cancel</Button>
-          <Button onClick={runScreen} loading={busy}>Run screening</Button>
+          <Button variant="ghost" onClick={() => setScreenFor(null)} disabled={busy}>{t('common.cancel')}</Button>
+          <Button onClick={runScreen} loading={busy}>{t('applications.runScreening')}</Button>
         </>}>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Monthly income (R)"><input className="input" value={income} onChange={(e) => setIncome(e.target.value)} inputMode="numeric" /></Field>
-          <Field label="Credit score"><input className="input" value={credit} onChange={(e) => setCredit(e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t('applications.field.income')}><input className="input" value={income} onChange={(e) => setIncome(e.target.value)} inputMode="numeric" /></Field>
+          <Field label={t('applications.field.creditScore')}><input className="input" value={credit} onChange={(e) => setCredit(e.target.value)} inputMode="numeric" /></Field>
         </div>
       </Modal>
 
       {/* Approve */}
-      <Modal open={!!approveFor} onClose={() => setApproveFor(null)} title={`Approve ${approveFor?.applicantName ?? ''}`}
+      <Modal open={!!approveFor} onClose={() => setApproveFor(null)} title={t('applications.approveTitle', { name: approveFor?.applicantName ?? '' })}
         footer={<>
-          <Button variant="ghost" onClick={() => setApproveFor(null)} disabled={busy}>Cancel</Button>
-          <Button onClick={runApprove} loading={busy} disabled={!startDate}>Approve &amp; create lease</Button>
+          <Button variant="ghost" onClick={() => setApproveFor(null)} disabled={busy}>{t('common.cancel')}</Button>
+          <Button onClick={runApprove} loading={busy} disabled={!startDate}>{t('applications.approveAndCreate')}</Button>
         </>}>
-        <p className="mb-4 text-sm text-muted">Approving creates a lease for this applicant starting on:</p>
-        <Field label="Lease start date"><input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></Field>
+        <p className="mb-4 text-sm text-muted">{t('applications.approveBlurb')}</p>
+        <Field label={t('applications.field.leaseStart')}><input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></Field>
       </Modal>
 
       {/* Reject */}
@@ -122,14 +132,16 @@ export default function ApplicationsPage() {
         onConfirm={runReject}
         loading={busy}
         tone="danger"
-        confirmLabel="Reject application"
-        title={`Reject ${rejectFor?.applicantName ?? 'this applicant'}?`}
-        message="The applicant will be marked rejected. You can't undo this."
+        confirmLabel={t('applications.rejectConfirm')}
+        title={rejectFor?.applicantName
+          ? t('applications.rejectTitle', { name: rejectFor.applicantName })
+          : t('applications.rejectTitleFallback')}
+        message={t('applications.rejectMessage')}
       />
 
       {/* View application details */}
-      <Modal open={!!viewFor} onClose={() => setViewFor(null)} title={viewFor?.applicantName ?? 'Application'}
-        footer={<Button variant="ghost" onClick={() => setViewFor(null)}>Close</Button>}>
+      <Modal open={!!viewFor} onClose={() => setViewFor(null)} title={viewFor?.applicantName ?? t('applications.detailsTitle')}
+        footer={<Button variant="ghost" onClick={() => setViewFor(null)}>{t('common.close')}</Button>}>
         {viewFor && <ApplicationDetails a={viewFor} />}
       </Modal>
     </div>
@@ -147,30 +159,38 @@ function Row({ label, value }: { label: string; value: any }) {
 }
 
 function ApplicationDetails({ a }: { a: any }) {
+  const { t, money: fmtMoney, date } = useLocale();
   const d = a.details ?? {};
-  const money = (n: any) => (n ? `R${Number(n).toLocaleString('en-ZA')}` : undefined);
+  // Was a local `R${Number(n).toLocaleString('en-ZA')}` — hardcoded South
+  // African grouping. Now the locale's formatter, which also carries the
+  // currency symbol, so the template no longer prepends one.
+  const money = (n: any) => (n ? fmtMoney(Number(n)) : undefined);
   return (
     <div>
-      <Row label="Email" value={a.applicantEmail} />
-      <Row label="Phone" value={a.applicantPhone} />
-      <Row label="ID / passport" value={d.idNumber} />
-      <Row label="Date of birth" value={d.dateOfBirth} />
-      <Row label="Current address" value={d.currentAddress} />
-      <Row label="Employment" value={d.employmentStatus} />
-      <Row label="Employer" value={d.employer} />
-      <Row label="Gross monthly income" value={money(d.monthlyIncome)} />
-      <Row label="Occupants" value={d.occupants} />
-      <Row label="Preferred move-in" value={d.moveInDate} />
-      <Row label="Pets" value={d.pets ? (d.petDetails ? `Yes — ${d.petDetails}` : 'Yes') : 'No'} />
-      <Row label="Consent given" value={d.consent ? 'Yes' : undefined} />
+      <Row label={t('applications.row.email')} value={a.applicantEmail} />
+      <Row label={t('applications.row.phone')} value={a.applicantPhone} />
+      <Row label={t('applications.row.id')} value={d.idNumber} />
+      <Row label={t('applications.row.dob')} value={d.dateOfBirth ? date(d.dateOfBirth) : undefined} />
+      <Row label={t('applications.row.address')} value={d.currentAddress} />
+      {/* Employment status and employer arrive as the applicant's own free
+          text, so they are shown as entered. */}
+      <Row label={t('applications.row.employment')} value={d.employmentStatus} />
+      <Row label={t('applications.row.employer')} value={d.employer} />
+      <Row label={t('applications.row.income')} value={money(d.monthlyIncome)} />
+      <Row label={t('applications.row.occupants')} value={d.occupants} />
+      <Row label={t('applications.row.moveIn')} value={d.moveInDate ? date(d.moveInDate) : undefined} />
+      <Row label={t('applications.row.pets')} value={d.pets
+        ? (d.petDetails ? t('applications.petsYesWithDetail', { detail: d.petDetails }) : t('applications.yes'))
+        : t('applications.no')} />
+      <Row label={t('applications.row.consent')} value={d.consent ? t('applications.yes') : undefined} />
       {d.message && (
         <div className="mt-3">
-          <div className="text-sm text-muted">Message</div>
+          <div className="text-sm text-muted">{t('applications.message')}</div>
           <p className="mt-1 whitespace-pre-line text-sm text-ink">{d.message}</p>
         </div>
       )}
       {!a.applicantPhone && !d.idNumber && !d.message && (
-        <p className="text-sm text-muted">No extra details were captured for this application.</p>
+        <p className="text-sm text-muted">{t('applications.noExtraDetails')}</p>
       )}
     </div>
   );
