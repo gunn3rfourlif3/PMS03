@@ -26,6 +26,7 @@ const NAV = [
   { href: '/reports', label: 'Reports', icon: BarChart3 },
   { href: '/documents', label: 'Documents', icon: FileText },
   { href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
+  { href: '/utilities', label: 'Utilities', icon: Gauge },
   { href: '/api-keys', label: 'API keys', icon: KeyRound },
   { href: '/notifications', label: 'Notifications', icon: Bell },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
