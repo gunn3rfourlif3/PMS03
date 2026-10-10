@@ -24,7 +24,10 @@
     "migration:revert:prod": "DATABASE_URL=\"${MIGRATION_DATABASE_URL:-$DATABASE_URL}\" typeorm migration:revert -d dist/common/database/data-source.js",
     "seed": "ts-node -r tsconfig-paths/register scripts/seed.ts",
     "seed:partner": "ts-node -r tsconfig-paths/register scripts/seed-demo-partner.ts",
-    "seed:prospect": "ts-node -r tsconfig-paths/register scripts/seed-prospect.ts"
+    "seed:prospect": "ts-node -r tsconfig-paths/register scripts/seed-prospect.ts",
+    "marketing:i18n:extract": "node scripts/marketing-i18n/extract.mjs",
+    "marketing:i18n:build": "node scripts/marketing-i18n/build.mjs",
+    "marketing:i18n:selftest": "node scripts/marketing-i18n/selftest.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",

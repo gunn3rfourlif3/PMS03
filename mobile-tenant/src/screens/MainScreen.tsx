@@ -18,8 +18,10 @@ export default function MainScreen({ navigation }: any) {
       <View style={{ flex: 1 }}>
         {tab === 'home' && <HomeScreen navigation={navigation} goTab={setTab} />}
         {tab === 'pay' && <PayScreen />}
-        {tab === 'docs' && <DocsScreen />}
-        {tab === 'profile' && <ProfileScreen />}
+        {/* Both take `navigation` so they can push the revived stack
+            screens (Lease from Docs, Dashboard from Profile). */}
+        {tab === 'docs' && <DocsScreen navigation={navigation} />}
+        {tab === 'profile' && <ProfileScreen navigation={navigation} />}
       </View>
       <BottomNav active={tab} onChange={setTab} onFab={() => navigation.navigate('Maintenance')} />
     </View>

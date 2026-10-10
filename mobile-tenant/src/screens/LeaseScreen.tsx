@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, money } from '../ui';
+import { Card } from '../ui';
+import { useLocale } from '../i18n';
 
 export default function LeaseScreen() {
   const t = useTheme();
+  const { t: tr, money, date } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const [lease, setLease] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -15,20 +17,24 @@ export default function LeaseScreen() {
   }, []);
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
-  if (!lease) return <View style={s.center}><Text style={s.muted}>No active lease found.</Text></View>;
+  if (!lease) return <View style={s.center}><Text style={s.muted}>{tr('tenant.lease.notFound')}</Text></View>;
 
+  // `status`, `type` and `billingCycle` are API enums with no key set on this
+  // screen — shown as sent, same as on the Documents tab. The
+  // `textTransform: 'capitalize'` on the value style was doing the formatting
+  // and does nothing outside the Latin alphabet.
   const rows: [string, string][] = [
-    ['Status', lease.status],
-    ['Type', lease.type],
-    ['Monthly rent', money(lease.rentAmount)],
-    ['Billing cycle', lease.billingCycle],
-    ['Start date', lease.startDate],
-    ['End date', lease.endDate || '-'],
+    [tr('tenant.lease.row.status'), lease.status],
+    [tr('tenant.lease.row.type'), lease.type],
+    [tr('tenant.docs.row.monthlyRent'), money(lease.rentAmount)],
+    [tr('tenant.docs.row.billingCycle'), lease.billingCycle],
+    [tr('tenant.docs.row.startDate'), date(lease.startDate)],
+    [tr('tenant.docs.row.endDate'), lease.endDate ? date(lease.endDate) : '-'],
   ];
 
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }}>
-      <Text style={s.heading}>Lease details</Text>
+      <Text style={s.heading}>{tr('tenant.lease.title')}</Text>
       <Card style={{ padding: 4 }}>
         {rows.map(([k, v], idx) => (
           <View key={k} style={[s.row, idx === rows.length - 1 && { borderBottomWidth: 0 }]}>

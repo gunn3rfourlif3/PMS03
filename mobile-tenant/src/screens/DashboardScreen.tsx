@@ -6,10 +6,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { useAuth } from '../auth-context';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, Pill, Button, BrandFooter, money } from '../ui';
+import { Card, Pill, Button, BrandFooter } from '../ui';
+import { useLocale } from '../i18n';
 
 export default function DashboardScreen({ navigation }: any) {
   const t = useTheme();
+  const { t: tr, money, date } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const { signOut } = useAuth();
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -18,7 +20,7 @@ export default function DashboardScreen({ navigation }: any) {
 
   const load = useCallback(async () => {
     try { setInvoices(await api.myInvoices()); }
-    catch (e: any) { Alert.alert('Could not load', e.message); }
+    catch (e: any) { Alert.alert(tr('tenant.common.couldNotLoad'), e.message); }
     finally { setLoading(false); }
   }, []);
 
@@ -32,8 +34,8 @@ export default function DashboardScreen({ navigation }: any) {
     try {
       const res = await api.initiatePayment(due.id, 'eft');
       if (res.redirectUrl) await Linking.openURL(res.redirectUrl);
-      else Alert.alert('Payment started', 'Reference: ' + res.paymentId);
-    } catch (e: any) { Alert.alert('Payment failed', e.message); }
+      else Alert.alert(tr('tenant.common.paymentStartedTitle'), tr('tenant.common.paymentReference', { ref: res.paymentId }));
+    } catch (e: any) { Alert.alert(tr('tenant.common.paymentFailed'), e.message); }
     finally { setPaying(false); }
   };
 
@@ -43,30 +45,33 @@ export default function DashboardScreen({ navigation }: any) {
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
       <Card style={{ marginBottom: 16 }}>
         <View style={s.rowBetween}>
-          <Text style={s.muted}>{due ? `${due.period} rent` : 'Rent'}</Text>
-          {due ? <Pill label={`Due ${due.dueDate}`} tone="danger" /> : <Pill label="All paid" tone="success" />}
+          <Text style={s.muted}>{due ? tr('tenant.home.periodRent', { period: due.period }) : tr('tenant.home.rent')}</Text>
+          {due
+            ? <Pill label={tr('tenant.dashboard.due', { date: date(due.dueDate) })} tone="danger" />
+            : <Pill label={tr('tenant.home.allPaid')} tone="success" />}
         </View>
         <Text style={s.amount}>{due ? money(due.total) : money(0)}</Text>
-        <Text style={s.muted}>{due ? 'Includes VAT' : 'Nothing outstanding'}</Text>
-        {due && <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 16 }} />}
+        <Text style={s.muted}>{due ? tr('tenant.home.includesVat') : tr('tenant.home.nothingOutstanding')}</Text>
+        {due && <Button label={tr('tenant.home.payRent')} onPress={pay} busy={paying} style={{ marginTop: 16 }} />}
       </Card>
 
       <View style={s.actions}>
-        <Action t={t} icon="R" label="Pay" onPress={pay} disabled={!due} />
-        <Action t={t} icon="L" label="Lease" onPress={() => navigation.navigate('Lease')} />
-        <Action t={t} icon="+" label="Report" onPress={() => navigation.navigate('Maintenance')} />
-        <Action t={t} icon="->" label="Sign out" onPress={signOut} />
+        <Action t={t} icon="R" label={tr('tenant.dashboard.action.pay')} onPress={pay} disabled={!due} />
+        {/* This navigate('Lease') used to target an unregistered route. */}
+        <Action t={t} icon="L" label={tr('tenant.dashboard.action.lease')} onPress={() => navigation.navigate('Lease')} />
+        <Action t={t} icon="+" label={tr('tenant.dashboard.action.report')} onPress={() => navigation.navigate('Maintenance')} />
+        <Action t={t} icon="->" label={tr('tenant.dashboard.action.signOut')} onPress={signOut} />
       </View>
 
-      <Text style={s.sectionTitle}>Invoices</Text>
-      {invoices.length === 0 && <Card><Text style={s.muted}>No invoices yet.</Text></Card>}
+      <Text style={s.sectionTitle}>{tr('tenant.dashboard.invoices')}</Text>
+      {invoices.length === 0 && <Card><Text style={s.muted}>{tr('tenant.dashboard.noInvoices')}</Text></Card>}
       {invoices.map((i) => (
         <Card key={i.id} style={{ marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
             <Text style={s.invoicePeriod}>{i.period}</Text>
             <Text style={s.muted}>{money(i.total)}</Text>
           </View>
-          <Pill label={i.status} tone={i.status === 'paid' ? 'success' : 'danger'} />
+          <Pill label={i.status === 'paid' ? tr('tenant.pay.paid') : i.status} tone={i.status === 'paid' ? 'success' : 'danger'} />
         </Card>
       ))}
       <BrandFooter />

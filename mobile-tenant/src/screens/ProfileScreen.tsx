@@ -6,7 +6,7 @@ import { Branding, useTheme, fontFamily } from '../theme';
 import { Card, Button, BrandFooter } from '../ui';
 import { useLocale } from '../i18n';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { signOut } = useAuth();
@@ -56,6 +56,8 @@ export default function ProfileScreen() {
         </Card>
       )}
 
+      {/* Entry point for the revived Dashboard screen. */}
+      <Button label={tr('tenant.profile.accountOverview')} variant="secondary" onPress={() => navigation?.navigate('Dashboard')} style={{ marginBottom: 10 }} />
       <Button label={tr('tenant.profile.signOut')} variant="secondary" onPress={signOut} />
       <BrandFooter />
     </ScrollView>

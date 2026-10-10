@@ -20,6 +20,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import MainScreen from './src/screens/MainScreen';
 import MaintenanceScreen from './src/screens/MaintenanceScreen';
 import MessagesScreen from './src/screens/MessagesScreen';
+import DashboardScreen from './src/screens/DashboardScreen';
+import LeaseScreen from './src/screens/LeaseScreen';
 
 const Stack = createNativeStackNavigator();
 const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: 'transparent' } };
@@ -90,6 +92,14 @@ function Shell() {
                 />
                 <Stack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: tr('tenant.nav.maintenanceTitle') }} />
                 <Stack.Screen name="Messages" component={MessagesScreen} options={{ title: tr('tenant.nav.messagesTitle') }} />
+                {/* Both registered on 2026-10-10. They existed but were
+                    unreachable — nothing imported them, and DashboardScreen
+                    navigated to a 'Lease' route that was never registered, so
+                    its Lease action would have thrown had anyone reached it.
+                    Entry points: Lease from the Documents tab, Account
+                    overview from Profile. */}
+                <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: tr('tenant.nav.dashboardTitle') }} />
+                <Stack.Screen name="Lease" component={LeaseScreen} options={{ title: tr('tenant.nav.leaseTitle') }} />
               </>
             ) : (
               <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />

@@ -10,7 +10,7 @@ import type { TFunction } from '../../../shared/i18n';
 
 type Agreement = { ref: string; status: string; signUrl: string; fileUrl: string } | null;
 
-export default function DocsScreen() {
+export default function DocsScreen({ navigation }: any) {
   const t = useTheme();
   const { t: tr, money, date } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
@@ -84,6 +84,12 @@ export default function DocsScreen() {
               </View>
             ))}
           </Card>
+          {/* Entry point for the revived Lease screen: the full detail view
+              adds the lease's status and type, which this summary omits. */}
+          <TouchableOpacity style={[s.btn, s.btnGhost]} onPress={() => navigation?.navigate('Lease')} activeOpacity={0.85}>
+            <Ionicons name="list-outline" size={18} color={t.colors.brand} />
+            <Text style={[s.btnText, { color: t.colors.brand }]}>{tr('tenant.docs.viewFullLease')}</Text>
+          </TouchableOpacity>
         </>
       )}
     </ScrollView>
