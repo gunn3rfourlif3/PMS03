@@ -71,3 +71,32 @@ export function missingKeys(locale: Locale): MessageKey[] {
   const target = CATALOGUES[locale] ?? {};
   return (Object.keys(en) as MessageKey[]).filter((k) => !target[k]);
 }
+
+/**
+ * Plural selection via `Intl.PluralRules`.
+ *
+ * Added on Day 3, when the dashboard's "{n} tenant / {n} tenants" showed that
+ * the Day 1 core could not express a count without inventing a string.
+ *
+ * The caller passes a BASE key and the count; this picks `<base>.one`,
+ * `<base>.other` and so on from the locale's own plural categories, falling
+ * back to `<base>.other`. English uses two; Chinese uses only `other`, which is
+ * why a translator must not be handed an English "one" form and asked to make
+ * it fit — each locale declares the forms it needs by which keys it defines.
+ *
+ * `count` is passed through as `{count}` so the template never has to repeat it.
+ */
+export function translatePlural(locale: Locale, base: string, count: number, vars?: Vars): string {
+  let category = 'other';
+  try {
+    category = new Intl.PluralRules(locale).select(count);
+  } catch {
+    // No Intl.PluralRules: `other` is the safe form, and English's `other` is
+    // the plural, which is wrong only for exactly one item.
+  }
+  const withCount: Vars = { count, ...vars };
+  const key = `${base}.${category}` as MessageKey;
+  const direct = CATALOGUES[locale]?.[key] ?? CATALOGUES[DEFAULT_LOCALE]?.[key];
+  if (direct) return interpolate(direct, withCount);
+  return translate(locale, `${base}.other` as MessageKey, withCount);
+}

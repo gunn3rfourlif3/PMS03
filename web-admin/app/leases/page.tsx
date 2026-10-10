@@ -3,11 +3,13 @@ import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalendarClock, UserPlus, FileText, Copy, Check, ExternalLink } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, Modal, BentoTile } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 import Pager from '@/components/pager';
 
 export default function LeasesPage() {
   const router = useRouter();
+  const { t, money, date } = useLocale();
   const [ready, setReady] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -104,23 +106,23 @@ export default function LeasesPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <PageHeader title="Leases" subtitle="Active leases — add tenants, renew and apply escalation" />
-        <Button onClick={openAdd}><UserPlus size={16} /> Add tenant</Button>
+        <PageHeader title={t('leases.title')} subtitle={t('leases.subtitle')} />
+        <Button onClick={openAdd}><UserPlus size={16} /> {t('leases.addTenant')}</Button>
       </div>
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="purple" value={String(rows.length)} label="Active leases" />
-        <BentoTile tone="teal" value={money(rows.reduce((s, l) => s + Number(l.rent_amount || 0), 0))} label="Monthly rent roll" />
-        <BentoTile tone="green" value={String(Object.values(agreements).filter((a: any) => a.status === 'signed').length)} label="Signed agreements" />
-        <BentoTile tone="amber" value={String(Object.values(agreements).filter((a: any) => a.status && a.status !== 'signed').length)} label="Awaiting signature" />
+        <BentoTile tone="purple" value={String(rows.length)} label={t('leases.tile.active')} />
+        <BentoTile tone="teal" value={money(rows.reduce((s, l) => s + Number(l.rent_amount || 0), 0))} label={t('leases.tile.rentRoll')} />
+        <BentoTile tone="green" value={String(Object.values(agreements).filter((a: any) => a.status === 'signed').length)} label={t('leases.tile.signed')} />
+        <BentoTile tone="amber" value={String(Object.values(agreements).filter((a: any) => a.status && a.status !== 'signed').length)} label={t('leases.tile.awaiting')} />
       </div>
 
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">Unit</th><th className="px-5 py-3 font-semibold">Rent</th><th className="px-5 py-3 font-semibold">Type</th><th className="px-5 py-3 font-semibold">Start</th><th className="px-5 py-3 font-semibold">End</th><th className="px-5 py-3 font-semibold">Status</th><th className="px-5 py-3 font-semibold">Lease agreement</th><th className="px-5 py-3"></th>
+              <th className="px-5 py-3 font-semibold">{t('leases.th.unit')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.rent')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.type')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.start')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.end')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.status')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.agreement')}</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {rows.map((l) => (
@@ -129,84 +131,86 @@ export default function LeasesPage() {
                     <td className="px-5 py-3 font-medium">{l.unit}</td>
                     <td className="px-5 py-3">{money(l.rent_amount)}</td>
                     <td className="px-5 py-3 text-muted">{l.type}</td>
-                    <td className="px-5 py-3 text-muted">{l.start_date}</td>
-                    <td className="px-5 py-3 text-muted">{l.end_date || '—'}</td>
+                    {/* Dates were printed as the API's raw ISO strings; they
+                        now format per locale. */}
+                    <td className="px-5 py-3 text-muted">{date(l.start_date)}</td>
+                    <td className="px-5 py-3 text-muted">{l.end_date ? date(l.end_date) : t('common.none')}</td>
                     <td className="px-5 py-3"><Badge tone="success">{l.status}</Badge></td>
                     <td className="px-5 py-3">
                       {(() => {
                         const a = agreements[l.id];
                         if (!a) return (
-                          <Button variant="ghost" onClick={() => sendLease(l.id)} loading={sendBusy === l.id}><FileText size={14} /> Send lease</Button>
+                          <Button variant="ghost" onClick={() => sendLease(l.id)} loading={sendBusy === l.id}><FileText size={14} /> {t('leases.sendLease')}</Button>
                         );
                         if (a.status === 'signed') return (
                           <div className="flex items-center gap-2">
-                            <Badge tone="success">Signed</Badge>
-                            <a href={a.fileUrl} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title="View signed agreement"><FileText size={14} /></a>
+                            <Badge tone="success">{t('leases.signed')}</Badge>
+                            <a href={a.fileUrl} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title={t('leases.viewSigned')}><FileText size={14} /></a>
                           </div>
                         );
                         return (
                           <div className="flex items-center gap-1">
-                            <Badge tone="brand">Awaiting signature</Badge>
-                            <Button variant="ghost" onClick={() => copySign(a.ref)} title="Copy signing link">
+                            <Badge tone="brand">{t('leases.awaitingSignature')}</Badge>
+                            <Button variant="ghost" onClick={() => copySign(a.ref)} title={t('leases.copySigningLink')}>
                               {copied === a.ref ? <Check size={13} /> : <Copy size={13} />}
                             </Button>
-                            <a href={signLink(a.ref)} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title="Open signing page"><ExternalLink size={14} /></a>
+                            <a href={signLink(a.ref)} target="_blank" rel="noreferrer" className="grid h-7 w-7 place-items-center rounded-lg text-muted hover:bg-black/5 hover:text-brand" title={t('leases.openSigningPage')}><ExternalLink size={14} /></a>
                           </div>
                         );
                       })()}
                     </td>
-                    <td className="px-5 py-3"><Button variant="ghost" onClick={() => startRenew(l)}><CalendarClock size={15} /> Renew</Button></td>
+                    <td className="px-5 py-3"><Button variant="ghost" onClick={() => startRenew(l)}><CalendarClock size={15} /> {t('leases.renew')}</Button></td>
                   </tr>
                   {editing === l.id && (
                     <tr className="bg-black/[0.03]">
                       <td colSpan={8} className="px-5 py-4">
                         <div className="flex flex-wrap items-end gap-3">
-                          <div className="w-32"><Field label="Escalation %"><input className="input" value={pct} onChange={(e) => setPct(e.target.value)} /></Field></div>
-                          <div className="w-32"><Field label="Extend (months)"><input className="input" value={months} onChange={(e) => setMonths(e.target.value)} /></Field></div>
-                          <div className="text-sm text-muted">New rent: <span className="font-semibold text-ink">{money(projected(l.rent_amount))}</span></div>
-                          <Button onClick={() => renew(l.id)} loading={busy}>Apply renewal</Button>
-                          <Button variant="ghost" onClick={() => setEditing(null)}>Cancel</Button>
+                          <div className="w-32"><Field label={t('leases.escalationPct')}><input className="input" value={pct} onChange={(e) => setPct(e.target.value)} /></Field></div>
+                          <div className="w-32"><Field label={t('leases.extendMonths')}><input className="input" value={months} onChange={(e) => setMonths(e.target.value)} /></Field></div>
+                          <div className="text-sm text-muted">{t('leases.newRent')}: <span className="font-semibold text-ink">{money(projected(l.rent_amount))}</span></div>
+                          <Button onClick={() => renew(l.id)} loading={busy}>{t('leases.applyRenewal')}</Button>
+                          <Button variant="ghost" onClick={() => setEditing(null)}>{t('common.cancel')}</Button>
                         </div>
                       </td>
                     </tr>
                   )}
                 </Fragment>
               ))}
-              {rows.length === 0 && <tr><td colSpan={8}><EmptyState>No active leases. Use “Add tenant” to onboard your first tenant.</EmptyState></td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8}><EmptyState>{t('leases.empty')}</EmptyState></td></tr>}
             </tbody>
           </table>
         </div>
-        <Pager total={total} limit={PAGE} offset={offset} onChange={setOffset} noun="leases" />
+        <Pager total={total} limit={PAGE} offset={offset} onChange={setOffset} noun={t('leases.pagerNoun')} />
       </GlassCard>
 
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add tenant"
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} title={t('leases.addModalTitle')}
         footer={<>
-          <Button variant="ghost" onClick={() => setShowAdd(false)} disabled={addBusy}>Cancel</Button>
-          <Button onClick={submitAdd} loading={addBusy} disabled={!canAdd}>Add tenant &amp; create lease</Button>
+          <Button variant="ghost" onClick={() => setShowAdd(false)} disabled={addBusy}>{t('common.cancel')}</Button>
+          <Button onClick={submitAdd} loading={addBusy} disabled={!canAdd}>{t('leases.addAndCreate')}</Button>
         </>}>
         {addErr && <div className="mb-3 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{addErr}</div>}
-        <p className="mb-4 text-sm text-muted">Creates the tenant’s login account (they sign in with their email) and an active lease on the selected unit.</p>
+        <p className="mb-4 text-sm text-muted">{t('leases.addBlurb')}</p>
         <div className="grid gap-3">
-          <Field label="Full name"><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Tenant" /></Field>
-          <Field label="Email"><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" /></Field>
-          <Field label="Phone (optional)"><input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27 82 000 0000" /></Field>
-          <Field label="Unit">
+          <Field label={t('leases.field.fullName')}><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('leases.field.fullNamePlaceholder')} /></Field>
+          <Field label={t('leases.field.email')}><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('leases.field.emailPlaceholder')} /></Field>
+          <Field label={t('leases.field.phone')}><input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('leases.field.phonePlaceholder')} /></Field>
+          <Field label={t('leases.field.unit')}>
             <select className="input" value={unitId} onChange={(e) => pickUnit(e.target.value)}>
-              <option value="">Select a unit…</option>
+              <option value="">{t('leases.field.unitPlaceholder')}</option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>{u.label}{u.status && u.status !== 'vacant' ? ` — ${u.status}` : ''}</option>
               ))}
             </select>
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Monthly rent (R)"><input className="input" inputMode="numeric" value={rent} onChange={(e) => setRent(e.target.value)} placeholder="8500" /></Field>
-            <Field label="Start date"><input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
+            <Field label={t('leases.field.rent')}><input className="input" inputMode="numeric" value={rent} onChange={(e) => setRent(e.target.value)} placeholder={t('leases.field.rentPlaceholder')} /></Field>
+            <Field label={t('leases.field.startDate')}><input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
           </div>
-          <Field label="End date (optional)"><input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
+          <Field label={t('leases.field.endDate')}><input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
           {agentsList.length > 0 && (
-            <Field label="Referred by agent (optional)">
+            <Field label={t('leases.field.referredBy')}>
               <select className="input" value={referredBy} onChange={(e) => setReferredBy(e.target.value)}>
-                <option value="">— none —</option>
+                <option value="">{t('leases.referredNone')}</option>
                 {agentsList.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </Field>

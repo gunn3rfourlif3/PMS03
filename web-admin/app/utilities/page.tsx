@@ -3,24 +3,36 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Gauge, ChevronLeft, ChevronRight, X, Download, Scale } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, money } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
+import type { MessageKey, TFunction } from '@shared/i18n';
 import { gapsToCsv } from '@/lib/utility-gap-csv';
 
-/** Mirrors UtilityKind / METERED in src/modules/utilities. */
+/**
+ * Mirrors UtilityKind / METERED in src/modules/utilities.
+ *
+ * The English `label` is gone — the display name now comes from the catalogue,
+ * keyed by `key`. `uom` stays as written: kWh, kL and m3 are unit symbols that
+ * go to the API, not words to translate.
+ */
 const KINDS = [
-  { key: 'electricity', label: 'Electricity', uom: 'kWh', metered: true },
-  { key: 'water', label: 'Water', uom: 'kL', metered: true },
-  { key: 'gas', label: 'Gas', uom: 'm3', metered: true },
-  { key: 'sewerage', label: 'Sewerage', uom: 'fixed', metered: false },
-  { key: 'refuse', label: 'Refuse', uom: 'fixed', metered: false },
-];
+  { key: 'electricity', uom: 'kWh', metered: true },
+  { key: 'water', uom: 'kL', metered: true },
+  { key: 'gas', uom: 'm3', metered: true },
+  { key: 'sewerage', uom: 'fixed', metered: false },
+  { key: 'refuse', uom: 'fixed', metered: false },
+] as const;
 const kindOf = (k: string) => KINDS.find((x) => x.key === k);
+/** An unknown kind from the API renders as itself, not as a key name. */
+const kindLabel = (t: TFunction, kind: string): string =>
+  kindOf(kind) ? t(`utilities.kind.${kind}` as MessageKey) : kind;
 
 const PAGE = 50;
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function UtilitiesPage() {
   const router = useRouter();
+  const { t, money, number, date } = useLocale();
   const [ready, setReady] = useState(false);
   const [meters, setMeters] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -76,7 +88,8 @@ export default function UtilitiesPage() {
 
   const unitLabel = (id?: string | null) => units.find((u) => u.id === id)?.label ?? '';
   const propName = (id?: string | null) => properties.find((p) => p.id === id)?.name ?? '';
-  const where = (m: any) => (m.unitId ? unitLabel(m.unitId) : `${propName(m.propertyId)} — bulk`);
+  const where = (m: any) =>
+    m.unitId ? unitLabel(m.unitId) : t('utilities.bulkSuffix', { property: propName(m.propertyId) });
 
   const createMeter = async () => {
     setBusy(true); setErr('');
@@ -149,14 +162,14 @@ export default function UtilitiesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Utilities"
-        subtitle="Municipal meters and readings. Recorded only — nothing here bills a tenant."
+        title={t('utilities.title')}
+        subtitle={t('utilities.subtitle')}
         action={
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => { setShowGap((v) => !v); if (!showGap) loadGap(); }}>
-              <Scale size={16} /> Recovery gap
+              <Scale size={16} /> {t('utilities.recoveryGap')}
             </Button>
-            <Button onClick={() => setShowNew((v) => !v)}><Plus size={16} /> Add meter</Button>
+            <Button onClick={() => setShowNew((v) => !v)}><Plus size={16} /> {t('utilities.addMeter')}</Button>
           </div>
         }
       />
@@ -166,52 +179,52 @@ export default function UtilitiesPage() {
       {showNew && (
         <GlassCard className="space-y-4 p-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="Attached to">
+            <Field label={t('utilities.field.attachedTo')}>
               <select value={attachTo} onChange={(e) => setAttachTo(e.target.value as any)} className="input">
-                <option value="unit">A unit (submeter)</option>
-                <option value="property">A property (bulk meter)</option>
+                <option value="unit">{t('utilities.attach.unit')}</option>
+                <option value="property">{t('utilities.attach.property')}</option>
               </select>
             </Field>
             {attachTo === 'unit' ? (
-              <Field label="Unit">
+              <Field label={t('utilities.field.unit')}>
                 <select value={mUnitId} onChange={(e) => setMUnitId(e.target.value)} className="input">
-                  <option value="">Select…</option>
+                  <option value="">{t('utilities.selectPlaceholder')}</option>
                   {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
                 </select>
               </Field>
             ) : (
-              <Field label="Property">
+              <Field label={t('utilities.field.property')}>
                 <select value={mPropertyId} onChange={(e) => setMPropertyId(e.target.value)} className="input">
-                  <option value="">Select…</option>
+                  <option value="">{t('utilities.selectPlaceholder')}</option>
                   {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </Field>
             )}
-            <Field label="Utility">
+            <Field label={t('utilities.field.utility')}>
               <select value={mKind} onChange={(e) => setMKind(e.target.value)} className="input">
-                {KINDS.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
+                {KINDS.map((k) => <option key={k.key} value={k.key}>{kindLabel(t, k.key)}</option>)}
               </select>
             </Field>
-            <Field label="Meter number">
-              <input value={mSerial} onChange={(e) => setMSerial(e.target.value)} className="input" placeholder="As printed on the meter" />
+            <Field label={t('utilities.field.meterNumber')}>
+              <input value={mSerial} onChange={(e) => setMSerial(e.target.value)} className="input" placeholder={t('utilities.field.meterNumberPlaceholder')} />
             </Field>
             {kindOf(mKind)?.metered && (
               <>
-                <Field label="Dial digits">
+                <Field label={t('utilities.field.dialDigits')}>
                   <input value={mDigits} onChange={(e) => setMDigits(e.target.value)} className="input" inputMode="numeric" />
                 </Field>
-                <Field label="Multiplier (CT ratio)">
+                <Field label={t('utilities.field.multiplier')}>
                   <input value={mMultiplier} onChange={(e) => setMMultiplier(e.target.value)} className="input" inputMode="decimal" />
                 </Field>
               </>
             )}
           </div>
           <p className="text-xs text-muted">
-            Dial digits are what makes a rollover computable. Without them a wrapped meter has to be rejected rather than guessed at.
+            {t('utilities.dialDigitsHint')}
           </p>
           <div className="flex gap-2">
-            <Button onClick={createMeter} disabled={busy || (attachTo === 'unit' ? !mUnitId : !mPropertyId)}>Save meter</Button>
-            <Button variant="ghost" onClick={() => setShowNew(false)}>Cancel</Button>
+            <Button onClick={createMeter} disabled={busy || (attachTo === 'unit' ? !mUnitId : !mPropertyId)}>{t('utilities.saveMeter')}</Button>
+            <Button variant="ghost" onClick={() => setShowNew(false)}>{t('common.cancel')}</Button>
           </div>
         </GlassCard>
       )}
@@ -220,47 +233,47 @@ export default function UtilitiesPage() {
         <GlassCard className="space-y-4 p-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h3 className="font-semibold">Recovery gap</h3>
+              <h3 className="font-semibold">{t('utilities.recoveryGap')}</h3>
               <p className="text-xs text-muted">
-                The bulk municipal meter against the sum of the submeters under it — what was paid for and not recovered.
+                {t('utilities.gapBlurb')}
               </p>
             </div>
             <div className="flex items-end gap-2">
-              <Field label="Property">
+              <Field label={t('utilities.field.property')}>
                 <select value={gapProperty} onChange={(e) => setGapProperty(e.target.value)} className="input">
-                  <option value="">All</option>
+                  <option value="">{t('utilities.gapAllProperties')}</option>
                   {properties.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </Field>
-              <Button variant="ghost" onClick={loadGap}>Refresh</Button>
-              <Button variant="ghost" onClick={exportGap} disabled={gap.length === 0}><Download size={16} /> CSV</Button>
+              <Button variant="ghost" onClick={loadGap}>{t('utilities.refresh')}</Button>
+              <Button variant="ghost" onClick={exportGap} disabled={gap.length === 0}><Download size={16} /> {t('utilities.csv')}</Button>
             </div>
           </div>
 
           {gap.length === 0 ? (
-            <EmptyState>Nothing to compare yet. A gap needs a bulk reading and at least one submeter reading in the same month.</EmptyState>
+            <EmptyState>{t('utilities.gapEmpty')}</EmptyState>
           ) : (
             <table className="w-full text-sm">
               <thead className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
                 <tr>
-                  <th className="py-2">Period</th>
-                  <th className="py-2">Property</th>
-                  <th className="py-2">Utility</th>
-                  <th className="py-2 text-right">Bulk</th>
-                  <th className="py-2 text-right">Submeters</th>
-                  <th className="py-2 text-right">Gap</th>
-                  <th className="py-2 text-right">Gap cost</th>
+                  <th className="py-2">{t('utilities.gap.th.period')}</th>
+                  <th className="py-2">{t('utilities.gap.th.property')}</th>
+                  <th className="py-2">{t('utilities.gap.th.utility')}</th>
+                  <th className="py-2 text-right">{t('utilities.gap.th.bulk')}</th>
+                  <th className="py-2 text-right">{t('utilities.gap.th.submeters')}</th>
+                  <th className="py-2 text-right">{t('utilities.gap.th.gap')}</th>
+                  <th className="py-2 text-right">{t('utilities.gap.th.gapCost')}</th>
                 </tr>
               </thead>
               <tbody>
                 {gap.map((g, i) => (
                   <tr key={i} className="border-b border-line/50 last:border-0">
                     <td className="py-2">{g.period}</td>
-                    <td className="py-2">{g.propertyName ?? '—'}</td>
-                    <td className="py-2">{g.kind}</td>
-                    <td className="py-2 text-right">{g.bulkConsumption ?? '—'}</td>
+                    <td className="py-2">{g.propertyName ?? t('common.none')}</td>
+                    <td className="py-2">{kindLabel(t, g.kind)}</td>
+                    <td className="py-2 text-right">{g.bulkConsumption ?? t('common.none')}</td>
                     <td className="py-2 text-right">
-                      {g.subConsumption ?? '—'}
+                      {g.subConsumption ?? t('common.none')}
                       {g.subMeters > 0 && <span className="ml-1 text-xs text-muted">({g.subMeters})</span>}
                     </td>
                     <td className="py-2 text-right">
@@ -268,7 +281,7 @@ export default function UtilitiesPage() {
                         ? <span className="text-xs text-muted">{g.note}</span>
                         : <>{g.gapConsumption}{g.gapPct !== null && <span className="ml-1 text-xs text-muted">({g.gapPct}%)</span>}</>}
                     </td>
-                    <td className="py-2 text-right">{g.gapCost != null ? money(g.gapCost) : '—'}</td>
+                    <td className="py-2 text-right">{g.gapCost != null ? money(g.gapCost) : t('common.none')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -279,14 +292,14 @@ export default function UtilitiesPage() {
 
       <GlassCard className="overflow-hidden">
         {meters.length === 0 ? (
-          <EmptyState>No meters yet. Add one to start capturing readings.</EmptyState>
+          <EmptyState>{t('utilities.noMeters')}</EmptyState>
         ) : (
           <table className="w-full text-sm">
             <thead className="border-b border-line text-left text-xs uppercase tracking-wide text-muted">
               <tr>
-                <th className="px-4 py-3">Where</th>
-                <th className="px-4 py-3">Utility</th>
-                <th className="px-4 py-3">Meter no.</th>
+                <th className="px-4 py-3">{t('utilities.th.where')}</th>
+                <th className="px-4 py-3">{t('utilities.th.utility')}</th>
+                <th className="px-4 py-3">{t('utilities.th.meterNo')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -295,11 +308,11 @@ export default function UtilitiesPage() {
                 <tr key={m.id} className="border-b border-line/50 last:border-0">
                   <td className="px-4 py-3">{where(m)}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={m.metered ? 'brand' : 'muted'}>{kindOf(m.kind)?.label ?? m.kind}</Badge>
+                    <Badge tone={m.metered ? 'brand' : 'muted'}>{kindLabel(t, m.kind)}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-muted">{m.serial || '—'}</td>
+                  <td className="px-4 py-3 text-muted">{m.serial || t('common.none')}</td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" onClick={() => openCapture(m)}><Gauge size={16} /> Capture</Button>
+                    <Button variant="ghost" onClick={() => openCapture(m)}><Gauge size={16} /> {t('utilities.capture')}</Button>
                   </td>
                 </tr>
               ))}
@@ -309,13 +322,18 @@ export default function UtilitiesPage() {
 
         {total > PAGE && (
           <div className="flex items-center justify-between border-t border-line px-4 py-3 text-sm">
-            <span className="text-muted">{total} meters · page {page} of {pages}</span>
+            {/* This duplicates components/pager.tsx. Translated in place
+                rather than refactored — swapping in <Pager> is a behaviour
+                change this day has no mandate for, but it should happen. */}
+            <span className="text-muted">
+              {t('pager.summary', { count: number(total, 0), noun: t('utilities.pagerNoun'), page, pages })}
+            </span>
             <div className="flex gap-2">
               <Button variant="ghost" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE))}>
-                <ChevronLeft size={16} /> Previous
+                <ChevronLeft size={16} /> {t('pager.previous')}
               </Button>
               <Button variant="ghost" disabled={page >= pages} onClick={() => setOffset(offset + PAGE)}>
-                Next <ChevronRight size={16} />
+                {t('pager.next')} <ChevronRight size={16} />
               </Button>
             </div>
           </div>
@@ -326,32 +344,35 @@ export default function UtilitiesPage() {
         <GlassCard className="space-y-4 p-4">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="font-semibold">{where(capture)} — {kindOf(capture.kind)?.label}</h3>
+              <h3 className="font-semibold">{where(capture)} — {kindLabel(t, capture.kind)}</h3>
               <p className="text-xs text-muted">
-                {capture.serial ? `Meter ${capture.serial}. ` : ''}
+                {capture.serial ? `${t('utilities.meterPrefix', { serial: capture.serial })} ` : ''}
                 {previous
-                  ? `Previous: ${previous.reading ?? '—'} on ${previous.readingDate}`
-                  : 'No previous reading — this one sets the baseline, so it records no consumption.'}
+                  ? t('utilities.previousReading', {
+                      reading: previous.reading ?? t('common.none'),
+                      date: date(previous.readingDate),
+                    })
+                  : t('utilities.noPreviousReading')}
               </p>
             </div>
             <Button variant="ghost" onClick={() => setCapture(null)}><X size={16} /></Button>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Field label="Reading date">
+            <Field label={t('utilities.field.readingDate')}>
               <input type="date" value={cDate} onChange={(e) => setCDate(e.target.value)} className="input" />
             </Field>
             {capture.metered && (
-              <Field label={`Reading (${capture.unitOfMeasure})`}>
+              <Field label={t('utilities.field.reading', { uom: capture.unitOfMeasure })}>
                 <input value={cReading} onChange={(e) => setCReading(e.target.value)} className="input" inputMode="decimal" autoFocus />
               </Field>
             )}
-            <Field label="Tariff per unit">
-              <input value={cTariff} onChange={(e) => setCTariff(e.target.value)} className="input" inputMode="decimal" placeholder="Optional" />
+            <Field label={t('utilities.field.tariff')}>
+              <input value={cTariff} onChange={(e) => setCTariff(e.target.value)} className="input" inputMode="decimal" placeholder={t('utilities.optional')} />
             </Field>
-            <Field label="Cost">
+            <Field label={t('utilities.field.cost')}>
               <input value={cCost} onChange={(e) => setCCost(e.target.value)} className="input" inputMode="decimal"
-                placeholder={capture.metered ? 'Or leave blank to compute' : 'Required'} />
+                placeholder={capture.metered ? t('utilities.costPlaceholderMetered') : t('utilities.costPlaceholderRequired')} />
             </Field>
           </div>
 
@@ -359,39 +380,39 @@ export default function UtilitiesPage() {
             <div className="flex flex-wrap gap-4 text-sm">
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={cRollover} onChange={(e) => setCRollover(e.target.checked)} />
-                The meter rolled over
+                {t('utilities.rolledOver')}
               </label>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={cEstimated} onChange={(e) => setCEstimated(e.target.checked)} />
-                Estimated, not read
+                {t('utilities.estimatedNotRead')}
               </label>
             </div>
           )}
 
-          <Field label="Note">
-            <input value={cNote} onChange={(e) => setCNote(e.target.value)} className="input" placeholder="Optional" />
+          <Field label={t('utilities.field.note')}>
+            <input value={cNote} onChange={(e) => setCNote(e.target.value)} className="input" placeholder={t('utilities.optional')} />
           </Field>
 
-          <Button onClick={submitReading} disabled={busy || (capture.metered && cReading === '')}>Save reading</Button>
+          <Button onClick={submitReading} disabled={busy || (capture.metered && cReading === '')}>{t('utilities.saveReading')}</Button>
 
           {history.length > 0 && (
             <div className="pt-2">
-              <p className="mb-2 text-xs uppercase tracking-wide text-muted">Recent readings</p>
+              <p className="mb-2 text-xs uppercase tracking-wide text-muted">{t('utilities.recentReadings')}</p>
               <table className="w-full text-sm">
                 <tbody>
                   {history.map((r) => (
                     <tr key={r.id} className="border-b border-line/50 last:border-0">
-                      <td className="py-2">{r.readingDate}</td>
-                      <td className="py-2">{r.reading ?? '—'}</td>
+                      <td className="py-2">{date(r.readingDate)}</td>
+                      <td className="py-2">{r.reading ?? t('common.none')}</td>
                       <td className="py-2 text-muted">
                         {r.consumption === null || r.consumption === undefined
-                          ? 'baseline'
-                          : `${r.consumption} ${capture.unitOfMeasure}`}
+                          ? t('utilities.baseline')
+                          : t('utilities.consumption', { amount: r.consumption, uom: capture.unitOfMeasure })}
                       </td>
-                      <td className="py-2">{r.cost != null ? money(r.cost) : '—'}</td>
+                      <td className="py-2">{r.cost != null ? money(r.cost) : t('common.none')}</td>
                       <td className="py-2">
-                        {r.estimated && <Badge tone="muted">estimated</Badge>}
-                        {r.rollover && <Badge tone="danger">rollover</Badge>}
+                        {r.estimated && <Badge tone="muted">{t('utilities.badge.estimated')}</Badge>}
+                        {r.rollover && <Badge tone="danger">{t('utilities.badge.rollover')}</Badge>}
                       </td>
                     </tr>
                   ))}

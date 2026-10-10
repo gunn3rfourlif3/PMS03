@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   DEFAULT_LOCALE, LOCALES, LOCALE_NAMES, Locale, MessageKey, TFunction, Vars,
-  isRtl, resolveLocale, translate,
+  isRtl, resolveLocale, translate, translatePlural,
 } from '@shared/i18n';
 import * as fmt from '@shared/i18n/format';
 
@@ -12,6 +12,9 @@ interface LocaleContextValue {
   locale: Locale;
   setLocale: (next: Locale) => void;
   t: TFunction;
+  /** Counted strings: `tn('dashboard.arrears', n)` picks the locale's own
+   * plural form and passes `{count}` for free. */
+  tn: (base: string, count: number, vars?: Vars) => string;
   /** Locale-bound formatters, so a caller never has to remember to pass the
    * locale and so no component can format against the wrong one. */
   money: (amount: number | null | undefined) => string;
@@ -107,6 +110,7 @@ export default function LocaleProvider({
       locale,
       setLocale,
       t: (key: MessageKey, vars?: Vars) => translate(locale, key, vars),
+      tn: (base: string, count: number, vars?: Vars) => translatePlural(locale, base, count, vars),
       money: (a) => fmt.money(locale, a),
       number: (v, d) => fmt.number(locale, v, d),
       percent: (v, d) => fmt.percent(locale, v, d),

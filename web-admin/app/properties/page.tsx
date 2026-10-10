@@ -3,18 +3,30 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Building2, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, BentoTile, money, ConfirmModal } from '@/components/ui';
+import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, BentoTile, ConfirmModal } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
+import type { MessageKey, TFunction } from '@shared/i18n';
 
 type PendingDelete = { kind: 'property' | 'unit'; id: string; pid?: string; label: string };
 
-const PTYPES = ['building', 'complex', 'single_unit', 'co_living'];
-const USTATUS = ['vacant', 'occupied', 'maintenance', 'reserved', 'offline'];
-const label = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+const PTYPES = ['building', 'complex', 'single_unit', 'co_living'] as const;
+const USTATUS = ['vacant', 'occupied', 'maintenance', 'reserved', 'offline'] as const;
+
+/* These replace a `label()` helper that prettified the enum value with a string
+   replace (`single_unit` → "Single Unit"). That cannot translate, so each enum
+   member now has its own catalogue key. The enum VALUES are untouched and are
+   still what goes to the API — only the display changed. An unknown value from
+   the API renders as itself rather than as a key name. */
+const typeLabel = (t: TFunction, value: string): string =>
+  (PTYPES as readonly string[]).includes(value) ? t(`properties.type.${value}` as MessageKey) : value;
+const statusLabel = (t: TFunction, value: string): string =>
+  (USTATUS as readonly string[]).includes(value) ? t(`properties.status.${value}` as MessageKey) : value;
 const uTone = (s: string): 'success' | 'brand' | 'muted' | 'danger' =>
   s === 'occupied' ? 'success' : s === 'vacant' ? 'brand' : s === 'maintenance' ? 'danger' : 'muted';
 
 export default function PropertiesPage() {
   const router = useRouter();
+  const { t, money } = useLocale();
   const [ready, setReady] = useState(false);
   const [props, setProps] = useState<any[]>([]);
   const [owners, setOwners] = useState<any[]>([]);
@@ -93,30 +105,32 @@ export default function PropertiesPage() {
 
   return (
     <div>
-      <PageHeader title="Properties" subtitle="Manage your buildings and units" />
+      <PageHeader title={t('properties.title')} subtitle={t('properties.subtitle')} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="blue" value={String(props.length)} label="Properties" />
-        <BentoTile tone="purple" value={String(totalUnits)} label="Units" />
-        <BentoTile tone="teal" value={String(occupied)} label="Occupied" chip={`${occRate}%`} />
-        <BentoTile tone="amber" value={String(totalUnits - occupied)} label="Vacant" />
+        <BentoTile tone="blue" value={String(props.length)} label={t('properties.tile.properties')} />
+        <BentoTile tone="purple" value={String(totalUnits)} label={t('properties.tile.units')} />
+        <BentoTile tone="teal" value={String(occupied)} label={t('properties.tile.occupied')} chip={`${occRate}%`} />
+        <BentoTile tone="amber" value={String(totalUnits - occupied)} label={t('properties.tile.vacant')} />
       </div>
 
       <GlassCard>
-        <div className="mb-3 font-heading text-lg font-bold">Add property</div>
+        <div className="mb-3 font-heading text-lg font-bold">{t('properties.add')}</div>
         <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1"><Field label="Name"><input className="input" value={form.name ?? ''} onChange={(e) => setF('name', e.target.value)} placeholder="Sandton Heights" /></Field></div>
-          <div className="w-44"><Field label="Type">
-            <select className="input" value={form.type} onChange={(e) => setF('type', e.target.value)}>{PTYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}</select>
+          <div className="min-w-[200px] flex-1"><Field label={t('properties.field.name')}><input className="input" value={form.name ?? ''} onChange={(e) => setF('name', e.target.value)} placeholder={t('properties.field.namePlaceholder')} /></Field></div>
+          <div className="w-44"><Field label={t('properties.field.type')}>
+            {/* `pt`, not `t`: the map parameter would otherwise shadow the
+                translator. */}
+            <select className="input" value={form.type} onChange={(e) => setF('type', e.target.value)}>{PTYPES.map((pt) => <option key={pt} value={pt}>{typeLabel(t, pt)}</option>)}</select>
           </Field></div>
-          <div className="w-52"><Field label="Owner (optional)">
+          <div className="w-52"><Field label={t('properties.field.ownerOptional')}>
             <select className="input" value={form.ownerId ?? ''} onChange={(e) => setF('ownerId', e.target.value)}>
-              <option value="">— none —</option>
+              <option value="">{t('properties.ownerNone')}</option>
               {owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </Field></div>
-          <Button onClick={addProp} loading={busy} disabled={!form.name}><Plus size={16} /> Add</Button>
+          <Button onClick={addProp} loading={busy} disabled={!form.name}><Plus size={16} /> {t('properties.addButton')}</Button>
         </div>
       </GlassCard>
 
@@ -124,11 +138,11 @@ export default function PropertiesPage() {
         <GlassCard key={p.id} className="mt-4">
           {editProp === p.id ? (
             <div className="flex flex-wrap items-end gap-3">
-              <div className="min-w-[180px] flex-1"><Field label="Name"><input className="input" value={pEdit.name} onChange={(e) => setPEdit({ ...pEdit, name: e.target.value })} /></Field></div>
-              <div className="w-40"><Field label="Type"><select className="input" value={pEdit.type} onChange={(e) => setPEdit({ ...pEdit, type: e.target.value })}>{PTYPES.map((t) => <option key={t} value={t}>{label(t)}</option>)}</select></Field></div>
-              <div className="w-52"><Field label="Owner"><select className="input" value={pEdit.ownerId} onChange={(e) => setPEdit({ ...pEdit, ownerId: e.target.value })}><option value="">— none —</option>{owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></Field></div>
-              <Button onClick={() => saveProp(p.id)} loading={busy}>Save</Button>
-              <Button variant="ghost" onClick={() => setEditProp(null)}>Cancel</Button>
+              <div className="min-w-[180px] flex-1"><Field label={t('properties.field.name')}><input className="input" value={pEdit.name} onChange={(e) => setPEdit({ ...pEdit, name: e.target.value })} /></Field></div>
+              <div className="w-40"><Field label={t('properties.field.type')}><select className="input" value={pEdit.type} onChange={(e) => setPEdit({ ...pEdit, type: e.target.value })}>{PTYPES.map((pt) => <option key={pt} value={pt}>{typeLabel(t, pt)}</option>)}</select></Field></div>
+              <div className="w-52"><Field label={t('properties.field.owner')}><select className="input" value={pEdit.ownerId} onChange={(e) => setPEdit({ ...pEdit, ownerId: e.target.value })}><option value="">{t('properties.ownerNone')}</option>{owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></Field></div>
+              <Button onClick={() => saveProp(p.id)} loading={busy}>{t('common.save')}</Button>
+              <Button variant="ghost" onClick={() => setEditProp(null)}>{t('common.cancel')}</Button>
             </div>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -136,13 +150,13 @@ export default function PropertiesPage() {
                 <span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)', color: 'var(--brand)' }}><Building2 size={18} /></span>
                 <div>
                   <div className="font-heading text-base font-bold">{p.name}</div>
-                  <div className="mt-0.5 text-sm text-muted">{label(p.type)}{ownerName(p.owner_id) ? ` · ${ownerName(p.owner_id)}` : ''} · {p.occupied_count}/{p.unit_count} occupied</div>
+                  <div className="mt-0.5 text-sm text-muted">{typeLabel(t, p.type)}{ownerName(p.owner_id) ? ` · ${ownerName(p.owner_id)}` : ''} · {t('properties.occupiedOf', { occupied: p.occupied_count, total: p.unit_count })}</div>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => toggle(p)}>{openId === p.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />} Units</Button>
-                <Button variant="ghost" onClick={() => startEditProp(p)}><Pencil size={15} /> Edit</Button>
-                <Button variant="ghost" onClick={() => setPendingDelete({ kind: 'property', id: p.id, label: p.name })}><Trash2 size={15} /> Delete</Button>
+                <Button variant="ghost" onClick={() => toggle(p)}>{openId === p.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />} {t('properties.units')}</Button>
+                <Button variant="ghost" onClick={() => startEditProp(p)}><Pencil size={15} /> {t('properties.edit')}</Button>
+                <Button variant="ghost" onClick={() => setPendingDelete({ kind: 'property', id: p.id, label: p.name })}><Trash2 size={15} /> {t('properties.delete')}</Button>
               </div>
             </div>
           )}
@@ -150,38 +164,38 @@ export default function PropertiesPage() {
           {openId === p.id && (
             <div className="mt-4 border-t border-line pt-4">
               <div className="mb-3 flex flex-wrap items-end gap-2">
-                <div className="w-28"><Field label="Unit label"><input className="input" value={uForm.label ?? ''} onChange={(e) => setUF('label', e.target.value)} placeholder="A-101" /></Field></div>
-                <div className="w-36"><Field label="Status"><select className="input" value={uForm.status} onChange={(e) => setUF('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{label(st)}</option>)}</select></Field></div>
-                <div className="w-28"><Field label="Rent"><input className="input" value={uForm.marketRent ?? ''} onChange={(e) => setUF('marketRent', e.target.value)} /></Field></div>
-                <div className="w-20"><Field label="Beds"><input className="input" value={uForm.bedrooms ?? ''} onChange={(e) => setUF('bedrooms', e.target.value)} /></Field></div>
-                <div className="w-20"><Field label="Baths"><input className="input" value={uForm.bathrooms ?? ''} onChange={(e) => setUF('bathrooms', e.target.value)} /></Field></div>
-                <div className="w-24"><Field label="Size m²"><input className="input" value={uForm.sizeSqm ?? ''} onChange={(e) => setUF('sizeSqm', e.target.value)} placeholder="65" /></Field></div>
-                <Button onClick={() => addUnit(p.id)} loading={busy} disabled={!uForm.label}><Plus size={15} /> Unit</Button>
+                <div className="w-28"><Field label={t('properties.unit.label')}><input className="input" value={uForm.label ?? ''} onChange={(e) => setUF('label', e.target.value)} placeholder={t('properties.unit.labelPlaceholder')} /></Field></div>
+                <div className="w-36"><Field label={t('properties.unit.status')}><select className="input" value={uForm.status} onChange={(e) => setUF('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{statusLabel(t, st)}</option>)}</select></Field></div>
+                <div className="w-28"><Field label={t('properties.unit.rent')}><input className="input" value={uForm.marketRent ?? ''} onChange={(e) => setUF('marketRent', e.target.value)} /></Field></div>
+                <div className="w-20"><Field label={t('properties.unit.beds')}><input className="input" value={uForm.bedrooms ?? ''} onChange={(e) => setUF('bedrooms', e.target.value)} /></Field></div>
+                <div className="w-20"><Field label={t('properties.unit.baths')}><input className="input" value={uForm.bathrooms ?? ''} onChange={(e) => setUF('bathrooms', e.target.value)} /></Field></div>
+                <div className="w-24"><Field label={t('properties.unit.size')}><input className="input" value={uForm.sizeSqm ?? ''} onChange={(e) => setUF('sizeSqm', e.target.value)} placeholder={t('properties.unit.sizePlaceholder')} /></Field></div>
+                <Button onClick={() => addUnit(p.id)} loading={busy} disabled={!uForm.label}><Plus size={15} /> {t('properties.unit.addButton')}</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-                    <th className="py-2 pr-3 font-semibold">Unit</th><th className="py-2 pr-3 font-semibold">Status</th><th className="py-2 pr-3 font-semibold">Rent</th><th className="py-2 pr-3 font-semibold">Beds / Baths / m²</th><th className="py-2"></th>
+                    <th className="py-2 pr-3 font-semibold">{t('properties.th.unit')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.status')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.rent')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.bedsBathsSize')}</th><th className="py-2"></th>
                   </tr></thead>
                   <tbody>
                     {units.map((u) => editUnit === u.id ? (
                       <tr key={u.id} className="border-t border-line">
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.label} onChange={(e) => setUE('label', e.target.value)} /></td>
-                        <td className="py-2 pr-3"><select className="input w-32" value={uEdit.status} onChange={(e) => setUE('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{label(st)}</option>)}</select></td>
+                        <td className="py-2 pr-3"><select className="input w-32" value={uEdit.status} onChange={(e) => setUE('status', e.target.value)}>{USTATUS.map((st) => <option key={st} value={st}>{statusLabel(t, st)}</option>)}</select></td>
                         <td className="py-2 pr-3"><input className="input w-24" value={uEdit.marketRent} onChange={(e) => setUE('marketRent', e.target.value)} /></td>
-                        <td className="py-2 pr-3"><div className="flex gap-1"><input className="input w-14" value={uEdit.bedrooms} onChange={(e) => setUE('bedrooms', e.target.value)} title="Beds" /><input className="input w-14" value={uEdit.bathrooms} onChange={(e) => setUE('bathrooms', e.target.value)} title="Baths" /><input className="input w-16" value={uEdit.sizeSqm ?? ''} onChange={(e) => setUE('sizeSqm', e.target.value)} placeholder="m²" title="Size m²" /></div></td>
-                        <td className="py-2"><div className="flex gap-2"><Button onClick={() => saveUnit(u.id, p.id)} loading={busy}>Save</Button><Button variant="ghost" onClick={() => setEditUnit(null)}>Cancel</Button></div></td>
+                        <td className="py-2 pr-3"><div className="flex gap-1"><input className="input w-14" value={uEdit.bedrooms} onChange={(e) => setUE('bedrooms', e.target.value)} title={t('properties.unit.beds')} /><input className="input w-14" value={uEdit.bathrooms} onChange={(e) => setUE('bathrooms', e.target.value)} title={t('properties.unit.baths')} /><input className="input w-16" value={uEdit.sizeSqm ?? ''} onChange={(e) => setUE('sizeSqm', e.target.value)} placeholder="m²" title={t('properties.unit.size')} /></div></td>
+                        <td className="py-2"><div className="flex gap-2"><Button onClick={() => saveUnit(u.id, p.id)} loading={busy}>{t('common.save')}</Button><Button variant="ghost" onClick={() => setEditUnit(null)}>{t('common.cancel')}</Button></div></td>
                       </tr>
                     ) : (
                       <tr key={u.id} className="border-t border-line hover:bg-black/[0.02]">
                         <td className="py-2 pr-3 font-medium">{u.label}</td>
-                        <td className="py-2 pr-3"><Badge tone={uTone(u.status)}>{u.status}</Badge></td>
+                        <td className="py-2 pr-3"><Badge tone={uTone(u.status)}>{statusLabel(t, u.status)}</Badge></td>
                         <td className="py-2 pr-3">{money(u.marketRent)}</td>
-                        <td className="py-2 pr-3 text-muted">{u.bedrooms}bd / {u.bathrooms}ba{u.sizeSqm ? ` · ${u.sizeSqm}m²` : ''}</td>
+                        <td className="py-2 pr-3 text-muted">{t('properties.unit.bedsBaths', { beds: u.bedrooms, baths: u.bathrooms })}{u.sizeSqm ? ` ${t('properties.unit.sizeSuffix', { size: u.sizeSqm })}` : ''}</td>
                         <td className="py-2"><div className="flex gap-2"><Button variant="ghost" onClick={() => startEditUnit(u)}><Pencil size={14} /></Button><Button variant="ghost" onClick={() => setPendingDelete({ kind: 'unit', id: u.id, pid: p.id, label: u.label })}><Trash2 size={14} /></Button></div></td>
                       </tr>
                     ))}
-                    {units.length === 0 && <tr><td colSpan={5}><EmptyState>No units yet — add one above.</EmptyState></td></tr>}
+                    {units.length === 0 && <tr><td colSpan={5}><EmptyState>{t('properties.noUnits')}</EmptyState></td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -189,7 +203,7 @@ export default function PropertiesPage() {
           )}
         </GlassCard>
       ))}
-      {props.length === 0 && <GlassCard className="mt-4"><EmptyState>No properties yet — add one above.</EmptyState></GlassCard>}
+      {props.length === 0 && <GlassCard className="mt-4"><EmptyState>{t('properties.noProperties')}</EmptyState></GlassCard>}
 
       <ConfirmModal
         open={!!pendingDelete}
@@ -197,11 +211,15 @@ export default function PropertiesPage() {
         onConfirm={confirmDelete}
         loading={deleting}
         tone="danger"
-        confirmLabel={pendingDelete?.kind === 'unit' ? 'Delete unit' : 'Delete property'}
-        title={pendingDelete?.kind === 'unit' ? `Delete unit ${pendingDelete?.label}?` : `Delete ${pendingDelete?.label ?? 'this property'}?`}
+        confirmLabel={pendingDelete?.kind === 'unit' ? t('properties.deleteUnitConfirm') : t('properties.deletePropertyConfirm')}
+        title={pendingDelete?.kind === 'unit'
+          ? t('properties.deleteUnitTitle', { label: pendingDelete?.label ?? '' })
+          : pendingDelete?.label
+            ? t('properties.deletePropertyTitle', { label: pendingDelete.label })
+            : t('properties.deletePropertyTitleFallback')}
         message={pendingDelete?.kind === 'unit'
-          ? 'The unit will be removed. This is blocked if it has an active lease.'
-          : 'The property will be removed. This is blocked if it still has units.'}
+          ? t('properties.deleteUnitMessage')
+          : t('properties.deletePropertyMessage')}
       />
     </div>
   );
