@@ -3,12 +3,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Trophy } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { GlassCard, PageHeader, BentoTile, EmptyState, money } from '@/components/ui';
-
-const when = (d?: string) => (d ? new Date(d).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
+import { GlassCard, PageHeader, BentoTile, EmptyState } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
 export default function PartnerOverview() {
   const router = useRouter();
+  const { t, money, dateTime } = useLocale();
+  // Was a module-level `toLocaleString('en-ZA', …)`; it needs the locale, so it
+  // moved inside the component.
+  const when = (d?: string) => (d ? dateTime(d) : '');
   const [ready, setReady] = useState(false);
   const [ov, setOv] = useState<any>(null);
   const [rank, setRank] = useState<{ pos: number; total: number } | null>(null);
@@ -36,31 +39,31 @@ export default function PartnerOverview() {
 
   return (
     <div>
-      <PageHeader title="Partner overview" subtitle="Your software-sales pipeline, agencies and commission" />
+      <PageHeader title={t('partner.title')} subtitle={t('partner.subtitle')} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="teal" value={money(ov?.pipelineValue ?? 0)} label="Pipeline value" />
-        <BentoTile tone="blue" value={String(ov?.agenciesSigned ?? 0)} label="Agencies signed" chip={ov?.referredMrr ? `${money(ov.referredMrr)} MRR` : undefined} />
-        <BentoTile tone="purple" value={String(ov?.activeDeals ?? 0)} label="Active deals" />
-        <BentoTile tone="amber" value={String(ov?.demosThisWeek ?? 0)} label="Demos this week" />
+        <BentoTile tone="teal" value={money(ov?.pipelineValue ?? 0)} label={t('partner.tile.pipelineValue')} />
+        <BentoTile tone="blue" value={String(ov?.agenciesSigned ?? 0)} label={t('partner.tile.agenciesSigned')} chip={ov?.referredMrr ? t('partner.mrrChip', { amount: money(ov.referredMrr) }) : undefined} />
+        <BentoTile tone="purple" value={String(ov?.activeDeals ?? 0)} label={t('partner.tile.activeDeals')} />
+        <BentoTile tone="amber" value={String(ov?.demosThisWeek ?? 0)} label={t('partner.tile.demosThisWeek')} />
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BentoTile tone="green" value={money(ov?.commissionMtd ?? 0)} label="Commission MTD" />
-        <BentoTile tone="amber" value={money(ov?.commissionPending ?? 0)} label="Pending" />
-        <BentoTile tone="blue" value={money(ov?.commissionPaid ?? 0)} label="Paid" />
+        <BentoTile tone="green" value={money(ov?.commissionMtd ?? 0)} label={t('partner.tile.commissionMtd')} />
+        <BentoTile tone="amber" value={money(ov?.commissionPending ?? 0)} label={t('partner.tile.pending')} />
+        <BentoTile tone="blue" value={money(ov?.commissionPaid ?? 0)} label={t('partner.tile.paid')} />
         <div className="flex min-h-[104px] flex-col justify-between rounded-3xl border border-line bg-card p-5">
           <Trophy size={20} className="text-brand" />
           <div>
-            <div className="font-heading text-2xl font-bold text-ink">{rank ? `#${rank.pos}` : '—'}</div>
-            <div className="mt-1 text-xs font-medium text-muted">{rank ? `of ${rank.total} partners` : 'Leaderboard rank'}</div>
+            <div className="font-heading text-2xl font-bold text-ink">{rank ? t('partner.rank', { pos: rank.pos }) : t('common.none')}</div>
+            <div className="mt-1 text-xs font-medium text-muted">{rank ? t('partner.rankOf', { total: rank.total }) : t('partner.leaderboardRank')}</div>
           </div>
         </div>
       </div>
 
       <GlassCard className="mt-3">
-        <div className="mb-3 font-heading text-base font-bold text-ink">Recent activity</div>
+        <div className="mb-3 font-heading text-base font-bold text-ink">{t('partner.recentActivity')}</div>
         <div className="divide-y divide-line text-sm">
           {acts.map((a) => (
             <div key={a.id} className="flex items-center justify-between py-2.5">
@@ -68,7 +71,7 @@ export default function PartnerOverview() {
               <span className="text-xs text-muted">{when(a.createdAt)}</span>
             </div>
           ))}
-          {acts.length === 0 && <EmptyState>No activity yet — add a deal to get started.</EmptyState>}
+          {acts.length === 0 && <EmptyState>{t('partner.noActivityYet')}</EmptyState>}
         </div>
       </GlassCard>
     </div>

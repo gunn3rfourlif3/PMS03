@@ -1,8 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { MANUAL_PATH, slugify } from '@/components/assistant/content';
+import { translate } from '@shared/i18n';
+import { resolveRequestLocale } from '@/lib/locale';
 
 /**
  * The Partner Manual, served read-only to partners.
@@ -227,6 +230,22 @@ function Blocks({ blocks }: { blocks: Block[] }) {
 
 export default function PartnerManualPage() {
   const markdown = readManual();
+  /**
+   * This is a SERVER component, so it cannot use `useLocale()`. The chrome is
+   * translated from the locale the request resolves to — the deployment's
+   * setting, then the host.
+   *
+   * The limitation that follows, and it is real: a viewer who switched language
+   * with the in-app switcher sees that choice everywhere EXCEPT here, because
+   * the stored preference lives in their browser and this page renders before
+   * any of it is readable. Fixing it means either a cookie the server can read
+   * or splitting the chrome into a client component. Flagged, not faked.
+   *
+   * The manual's own text is untranslated by design — see the catalogue note.
+   */
+  const locale = resolveRequestLocale(headers().get('host'), process.env.DEPLOYMENT_LOCALE);
+  const t = (key: Parameters<typeof translate>[1], vars?: Record<string, string>) =>
+    translate(locale, key, vars);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -235,7 +254,7 @@ export default function PartnerManualPage() {
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted transition hover:text-ink"
       >
         <ArrowLeft size={16} />
-        Back to the portal
+        {t('partner.manual.back')}
       </Link>
 
       {markdown ? (
@@ -244,10 +263,8 @@ export default function PartnerManualPage() {
         </article>
       ) : (
         <div className="rounded-2xl border border-line p-6 text-sm text-muted">
-          <p className="font-medium text-ink">The manual is not available on this server.</p>
-          <p className="mt-1">
-            It is read from <span className="font-mono">{MANUAL_PATH}</span> at render time. Ask support for a copy.
-          </p>
+          <p className="font-medium text-ink">{t('partner.manual.unavailableTitle')}</p>
+          <p className="mt-1">{t('partner.manual.unavailableBody', { path: MANUAL_PATH })}</p>
         </div>
       )}
     </div>

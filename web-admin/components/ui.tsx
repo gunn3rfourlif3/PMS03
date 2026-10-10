@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/cn';
 import { Loader2, X, ChevronLeft } from 'lucide-react';
+import { useLocale } from './locale-provider';
+import { DEFAULT_LOCALE, money as formatMoney } from '@shared/i18n';
 
 type Div = React.HTMLAttributes<HTMLDivElement>;
 
@@ -42,6 +44,7 @@ const ROOT_PATHS = ['/', '/portal', '/login'];
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
+  const { t } = useLocale();
   const showBack = !ROOT_PATHS.includes(path);
   // Portal sub-pages go back to the portal overview; everything else uses history.
   const goBack = () => (path.startsWith('/portal') ? router.push('/portal') : router.back());
@@ -51,7 +54,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
       {showBack && (
         <button onClick={goBack}
           className="mb-3 inline-flex items-center gap-1 rounded-lg py-1 pr-2.5 pl-1.5 text-sm font-medium text-muted transition hover:bg-black/5 hover:text-brand">
-          <ChevronLeft size={16} /> Back
+          <ChevronLeft size={16} /> {t('ui.back')}
         </button>
       )}
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -92,7 +95,7 @@ export function Modal({
         {title && (
           <div className="mb-4 flex items-start justify-between gap-4">
             <h2 className="font-heading text-lg font-bold text-ink">{title}</h2>
-            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-black/5 hover:text-ink"><X size={18} /></button>
+            <ModalCloseButton onClose={onClose} />
           </div>
         )}
         <div>{children}</div>
@@ -102,18 +105,30 @@ export function Modal({
   );
 }
 
+/* Split out so `Modal` itself stays usable from anywhere: the close button is
+   the only part that needs the translator, and an icon-only button needs an
+   accessible name regardless of language. */
+function ModalCloseButton({ onClose }: { onClose: () => void }) {
+  const { t } = useLocale();
+  return (
+    <button onClick={onClose} aria-label={t('ui.closeDialog')}
+      className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-black/5 hover:text-ink"><X size={18} /></button>
+  );
+}
+
 /** Confirmation dialog — replaces window.confirm. */
 export function ConfirmModal({
-  open, onClose, onConfirm, title, message, confirmLabel = 'Confirm', tone = 'brand', loading,
+  open, onClose, onConfirm, title, message, confirmLabel, tone = 'brand', loading,
 }: {
   open: boolean; onClose: () => void; onConfirm: () => void; title: string;
   message?: React.ReactNode; confirmLabel?: string; tone?: 'brand' | 'danger'; loading?: boolean;
 }) {
+  const { t } = useLocale();
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm"
       footer={<>
-        <Button variant="ghost" onClick={onClose} disabled={loading}>Cancel</Button>
-        <Button onClick={onConfirm} loading={loading} className={tone === 'danger' ? '!bg-danger' : undefined}>{confirmLabel}</Button>
+        <Button variant="ghost" onClick={onClose} disabled={loading}>{t('common.cancel')}</Button>
+        <Button onClick={onConfirm} loading={loading} className={tone === 'danger' ? '!bg-danger' : undefined}>{confirmLabel ?? t('ui.confirm')}</Button>
       </>}>
       {message && <p className="text-sm text-muted">{message}</p>}
     </Modal>
@@ -170,7 +185,11 @@ export function BentoTile({ tone, icon, value, label, chip, className }: {
   );
 }
 
-export function Donut({ value, tone = 'teal', size = 108, sub = 'on time' }: { value: number; tone?: BentoTone; size?: number; sub?: string }) {
+export function Donut({ value, tone = 'teal', size = 108, sub }: { value: number; tone?: BentoTone; size?: number; sub?: string }) {
+  const { t, percent } = useLocale();
+  // The default was the literal 'on time'; it now comes from the catalogue so
+  // a caller that does not pass `sub` still gets a translated caption.
+  const caption = sub ?? t('ui.donut.onTime');
   const c = BENTO[tone];
   const r = size * 0.39, circ = 2 * Math.PI * r, dash = (Math.max(0, Math.min(100, value)) / 100) * circ, ctr = size / 2;
   return (
@@ -180,8 +199,8 @@ export function Donut({ value, tone = 'teal', size = 108, sub = 'on time' }: { v
         <circle cx={ctr} cy={ctr} r={r} fill="none" stroke={c.bar} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} transform={`rotate(-90 ${ctr} ${ctr})`} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-heading text-xl font-bold" style={{ color: c.text }}>{Math.round(value)}%</span>
-        <span className="text-[11px]" style={{ color: c.sub }}>{sub}</span>
+        <span className="font-heading text-xl font-bold" style={{ color: c.text }}>{percent(Math.round(value) / 100, 0)}</span>
+        <span className="text-[11px]" style={{ color: c.sub }}>{caption}</span>
       </div>
     </div>
   );
@@ -200,4 +219,17 @@ export function EmptyState({ children }: { children: React.ReactNode }) {
   return <div className="py-10 text-center text-sm text-muted">{children}</div>;
 }
 
-export const money = (n: number) => 'R' + Number(n).toLocaleString('en-ZA');
+/**
+ * @deprecated Locale-unaware. Use `useLocale().money` instead.
+ *
+ * This was `'R' + Number(n).toLocaleString('en-ZA')` — South African grouping
+ * hardcoded into every page that imported it. It is kept, formatting in the
+ * DEFAULT locale, only because routes outside this plan's day list still import
+ * it (`app/rentals`, `app/admin/*`, `components/new-agency-form`): removing it
+ * would break them, and silently guessing a locale from a plain function that
+ * cannot see the provider would be worse. It now at least goes through the one
+ * shared formatter, so the ZAR rule holds in one place.
+ *
+ * Every route swept on Days 3–5 uses the hook and does NOT import this.
+ */
+export const money = (n: number) => formatMoney(DEFAULT_LOCALE, Number(n));

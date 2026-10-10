@@ -4,12 +4,17 @@ import { useRouter } from 'next/navigation';
 import { Send, CheckCircle2, RotateCcw, Inbox, ChevronLeft } from 'lucide-react';
 import { api, auth, messageStreamUrl } from '@/lib/api';
 import { GlassCard, PageHeader, Badge, Button, EmptyState } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
-const when = (d?: string) => (d ? new Date(d).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
+/* `when()` was `toLocaleString('en-ZA', …)` — South African date order and
+   month names hardcoded. It now comes from the locale's own formatter, via the
+   hook, so it lives inside the component rather than at module scope. */
 const initials = (name?: string) => (name || '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
 export default function MessagesPage() {
   const router = useRouter();
+  const { t, dateTime } = useLocale();
+  const when = (d?: string) => (d ? dateTime(d) : '');
   const [ready, setReady] = useState(false);
   const [rows, setRows] = useState<any[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -85,7 +90,7 @@ export default function MessagesPage() {
 
   return (
     <div>
-      <PageHeader title="Messages" subtitle="Conversations with your tenants" />
+      <PageHeader title={t('messages.title')} subtitle={t('messages.subtitle')} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
@@ -101,7 +106,7 @@ export default function MessagesPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-ink">{c.tenantName || 'Tenant'}{c.unitLabel ? ` · Unit ${c.unitLabel}` : ''}</span>
+                    <span className="truncate text-sm font-semibold text-ink">{c.tenantName || t('messages.tenantFallback')}{c.unitLabel ? ` ${t('messages.unitSuffix', { label: c.unitLabel })}` : ''}</span>
                     <span className="shrink-0 text-[11px] text-muted">{when(c.lastMessageAt)}</span>
                   </div>
                   <div className="truncate text-[13px] font-medium text-ink/80">{c.subject}</div>
@@ -109,11 +114,11 @@ export default function MessagesPage() {
                 </div>
                 <span className="mt-1 flex shrink-0 flex-col items-end gap-1">
                   {c.unread && <span className="h-2.5 w-2.5 rounded-full" style={{ background: 'var(--brand)' }} />}
-                  {c.status === 'closed' && <span className="text-[10px] uppercase tracking-wide text-muted">closed</span>}
+                  {c.status === 'closed' && <span className="text-[10px] uppercase tracking-wide text-muted">{t('messages.closedTag')}</span>}
                 </span>
               </button>
             ))}
-            {rows.length === 0 && <EmptyState>No conversations yet.</EmptyState>}
+            {rows.length === 0 && <EmptyState>{t('messages.empty')}</EmptyState>}
           </div>
         </GlassCard>
 
@@ -123,7 +128,7 @@ export default function MessagesPage() {
             <div className="hidden h-[70vh] place-items-center text-muted lg:grid">
               <div className="flex flex-col items-center gap-2">
                 <Inbox size={30} className="opacity-40" />
-                <span className="text-sm">Select a conversation</span>
+                <span className="text-sm">{t('messages.selectConversation')}</span>
               </div>
             </div>
           ) : (
@@ -131,16 +136,22 @@ export default function MessagesPage() {
               <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3.5 sm:px-5">
                 <button onClick={back}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-black/5 hover:text-ink lg:hidden"
-                  aria-label="Back to inbox"><ChevronLeft size={20} /></button>
+                  aria-label={t('messages.backToInbox')}><ChevronLeft size={20} /></button>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-semibold text-ink">{thread.conversation.subject}</div>
                   <div className="text-xs text-muted">
-                    {(() => { const r = rows.find((r) => r.id === thread.conversation.id); return `${r?.tenantName || 'Tenant'}${r?.unitLabel ? ` · Unit ${r.unitLabel}` : ''}`; })()}
-                    {' · '}<Badge tone={thread.conversation.status === 'closed' ? 'muted' : 'success'}>{thread.conversation.status}</Badge>
+                    {(() => {
+                      const r = rows.find((row) => row.id === thread.conversation.id);
+                      const name = r?.tenantName || t('messages.tenantFallback');
+                      return r?.unitLabel ? `${name} ${t('messages.unitSuffix', { label: r.unitLabel })}` : name;
+                    })()}
+                    {' · '}<Badge tone={thread.conversation.status === 'closed' ? 'muted' : 'success'}>
+                      {thread.conversation.status === 'closed' ? t('messages.status.closed') : t('messages.status.open')}
+                    </Badge>
                   </div>
                 </div>
                 <Button variant="ghost" onClick={toggleStatus} className="!py-1.5 text-sm">
-                  {thread.conversation.status === 'closed' ? <><RotateCcw size={15} /> Reopen</> : <><CheckCircle2 size={15} /> Close</>}
+                  {thread.conversation.status === 'closed' ? <><RotateCcw size={15} /> {t('messages.reopen')}</> : <><CheckCircle2 size={15} /> {t('messages.close')}</>}
                 </Button>
               </div>
 
@@ -164,10 +175,10 @@ export default function MessagesPage() {
                 <textarea
                   value={draft} onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  rows={1} placeholder="Type a reply…"
+                  rows={1} placeholder={t('messages.replyPlaceholder')}
                   className="max-h-32 min-h-[42px] flex-1 resize-none rounded-xl border border-line bg-black/[0.04] px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-muted focus:border-[var(--brand)]"
                 />
-                <Button onClick={send} loading={busy} disabled={!draft.trim()} className="!py-2.5"><Send size={16} /> Send</Button>
+                <Button onClick={send} loading={busy} disabled={!draft.trim()} className="!py-2.5"><Send size={16} /> {t('messages.send')}</Button>
               </div>
             </div>
           )}

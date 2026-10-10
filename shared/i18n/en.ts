@@ -767,4 +767,415 @@ export const en = {
   // File types and the size limit are technical facts, not a claim about the
   // product; the sentence around them translates.
   'listings.photoHint': 'JPG, PNG or WebP · up to 10MB. The first photo is used as the cover.',
+
+  // --- components/ui -------------------------------------------------------
+  'ui.back': 'Back',
+  'ui.confirm': 'Confirm',
+  'ui.closeDialog': 'Close dialog',
+  'ui.donut.onTime': 'on time',
+
+  // --- /api-keys -----------------------------------------------------------
+  'apiKeys.title': 'API keys',
+  'apiKeys.subtitle': 'Programmatic access to your vendor data',
+  'apiKeys.copyNow': 'Copy your new key now — it won’t be shown again.',
+  'apiKeys.copy': 'Copy',
+  'apiKeys.create': 'Create key',
+  'apiKeys.field.name': 'Name',
+  'apiKeys.field.namePlaceholder': 'Zapier integration',
+  'apiKeys.scopes': 'Scopes',
+  // Scope names are part of the API's contract — an integrator reads them in
+  // our docs — so they are shown as written rather than translated.
+  'apiKeys.createButton': 'Create',
+  'apiKeys.listTitle': 'Keys',
+  'apiKeys.th.name': 'Name',
+  'apiKeys.th.prefix': 'Prefix',
+  'apiKeys.th.scopes': 'Scopes',
+  'apiKeys.th.status': 'Status',
+  'apiKeys.th.created': 'Created',
+  'apiKeys.status.active': 'Active',
+  'apiKeys.status.expired': 'Expired',
+  'apiKeys.status.revoked': 'Revoked',
+  'apiKeys.revoke': 'Revoke',
+  'apiKeys.empty': 'No API keys yet.',
+  'apiKeys.revokeConfirm': 'Revoke key',
+  'apiKeys.revokeTitle': 'Revoke this key?',
+  'apiKeys.revokeMessage': "Apps using it will stop working immediately. This can't be undone.",
+
+  // --- /notifications ------------------------------------------------------
+  'notifications.title': 'Notifications',
+  'notifications.subtitle': 'Delivery activity across your vendor',
+  'notifications.status.queued': 'Queued',
+  'notifications.status.sent': 'Sent',
+  'notifications.status.delivered': 'Delivered',
+  'notifications.status.failed': 'Failed',
+  'notifications.channel.email': 'Email',
+  'notifications.channel.sms': 'SMS',
+  'notifications.channel.push': 'Push',
+  'notifications.empty': 'No notifications yet.',
+
+  // --- /settings (branding) ------------------------------------------------
+  'settings.title': 'Branding',
+  'settings.subtitle': 'Your white-label theme — applies to every app that loads your brand',
+  'settings.save': 'Save branding',
+  'settings.loadFailed': 'Could not load branding.',
+  'settings.saved': 'Saved. This console re-themed instantly; mobile apps update on next reload.',
+  'settings.identity': 'Identity',
+  'settings.field.displayName': 'Display name',
+  'settings.field.tagline': 'Tagline',
+  'settings.field.logoUrl': 'Logo image URL (optional — falls back to a lettered tile)',
+  'settings.field.logoInverseUrl':
+    'Logo for dark backgrounds (optional — used on your public rentals footer; falls back to the logo above)',
+  'settings.field.markUrl': 'Square mark URL (optional — browser tab icon; must be square, e.g. 512×512)',
+  'settings.typography': 'Typography',
+  'settings.field.bodyFont': 'Body font family (e.g. Poppins, or System)',
+  'settings.field.headingFont': 'Heading font family',
+  'settings.field.webFontUrl': 'Web font stylesheet URL (Google Fonts, optional)',
+  'settings.colors': 'Colors',
+  'settings.color.brand': 'Primary',
+  'settings.color.onBrand': 'On primary',
+  'settings.color.accent': 'Accent',
+  'settings.color.tint': 'Tint',
+  'settings.color.ink': 'Text',
+  'settings.color.muted': 'Muted text',
+  'settings.color.line': 'Borders',
+  'settings.color.bg': 'Background',
+  'settings.color.card': 'Card',
+  'settings.color.danger': 'Danger',
+  'settings.color.dangerBg': 'Danger bg',
+  'settings.color.success': 'Success',
+  'settings.contact': 'Contact',
+  'settings.field.email': 'Email',
+  'settings.field.phone': 'Phone',
+  'settings.field.website': 'Website',
+  'settings.field.address': 'Address',
+  'settings.lease': 'Lease agreement',
+  'settings.leaseBlurb':
+    'Upload your own lease agreement (PDF). When you approve a tenant, we automatically prepare a signing packet — a schedule with their details (name, unit, rent, deposit, dates) plus your lease — and email them a link to sign. No editing needed.',
+  'settings.templateSaved': 'Advanced template saved.',
+  'settings.leaseUploaded': 'Lease uploaded — new tenants will be sent this to sign.',
+  'settings.leaseRemoved': 'Lease removed — the built-in starter will be used until you upload one.',
+  'settings.leaseIsUploaded': 'Your lease is uploaded',
+  'settings.viewCurrentLease': 'View current lease',
+  'settings.replace': 'Replace',
+  'settings.remove': 'Remove',
+  'settings.uploadLease': 'Upload lease (PDF)',
+  'settings.advancedSummary': 'Advanced: use a text template with placeholders instead',
+  // The placeholder token itself is a literal the template engine matches, so
+  // it is interpolated in rather than written into the sentence.
+  'settings.advancedBlurb':
+    'Paste plain text or HTML with placeholders like {token}. Only used when no lease file is uploaded above.',
+  'settings.templatePlaceholder': 'Optional. Include {token} where the signature block should appear.',
+  'settings.saveTextTemplate': 'Save text template',
+
+  // --- /billing ------------------------------------------------------------
+  'billing.title': 'Billing',
+  'billing.subtitle': 'Your plan and monthly subscription invoices',
+  // Plan tier names. These are the product's own plan names and a locale may
+  // well keep them as-is; they are keys so that choice belongs to the
+  // translator rather than being forced by the code.
+  'billing.tier.custom': 'Custom',
+  'billing.tier.starter': 'Starter',
+  'billing.tier.growth': 'Growth',
+  'billing.tier.scale': 'Scale',
+  'billing.tier.enterprise': 'Enterprise',
+  'billing.tile.yourPlan': 'Your plan',
+  'billing.tile.billableUnits': 'Billable units',
+  'billing.tile.billableUnitsMin': 'Billable units (min {min})',
+  'billing.tile.monthlyFee': 'Monthly fee',
+  'billing.tile.monthlyFeeAgreed': 'Monthly fee (agreed)',
+  'billing.byArrangement': 'By arrangement',
+  'billing.band.plus': '{min}+ units',
+  'billing.band.range': '{min}–{max} units',
+  // Counted, via `tn`. Used inside the plan sentences below.
+  'billing.units.one': '{count} unit',
+  'billing.units.other': '{count} units',
+  // The plan paragraph. Each branch is ONE whole sentence rather than fragments
+  // glued together, so a translator can reorder inside it. No figure here is
+  // asserted by the copy — every amount, unit count and band comes from the
+  // subscription payload.
+  'billing.custom.agreed':
+    'You’re on an agreed price of {amount} a month for {units}. Published pricing starts at {band}.',
+  'billing.custom.belowMin':
+    'You have {units}, below our {min}-unit minimum. We’ll agree your price with you before the first invoice — nothing is billed until then.',
+  'billing.custom.line':
+    'You’re on {tier} — {billable} units at {rate} a unit, {total} a month, billed here.',
+  'billing.moveUp': 'At {min} units you move to {tier} at {price} a month.',
+  'billing.now.agreed': 'You’re on {tier} ({band}) at an agreed price of {amount} a month.',
+  'billing.now.published': 'You’re on {tier} — {band} at {amount} a month, billed here.',
+  'billing.largestBand': 'This is the largest published band.',
+  'billing.eft.title': 'Paying by EFT',
+  'billing.eft.blurb': 'Card and instant EFT are handled by the Pay button below.',
+  // Emphasised as a whole sentence. It was previously one paragraph with the
+  // "quote the reference" clause bolded inline; a clause split across JSX
+  // cannot be reordered by a translator, so the emphasis now covers the whole
+  // sentence instead.
+  'billing.eft.quoteReference':
+    'To pay by ordinary bank transfer, use these details and quote the reference for the invoice you are paying — it is how we match your payment.',
+  'billing.eft.bank': 'Bank',
+  'billing.eft.accountName': 'Account name',
+  'billing.eft.accountNumber': 'Account number',
+  'billing.eft.branchCode': 'Branch code',
+  'billing.eft.swift': 'SWIFT',
+  'billing.eft.footnote':
+    'An EFT is reconciled by hand, so allow a working day after payment before the invoice shows as paid.',
+  'billing.invoices': 'Invoices',
+  'billing.th.period': 'Period',
+  'billing.th.plan': 'Plan',
+  'billing.th.units': 'Units',
+  'billing.th.amount': 'Amount',
+  'billing.th.due': 'Due',
+  'billing.th.eftReference': 'EFT reference',
+  'billing.th.status': 'Status',
+  'billing.status.issued': 'Issued',
+  'billing.status.paid': 'Paid',
+  'billing.status.void': 'Void',
+  'billing.pay': 'Pay',
+  'billing.paymentStarted': 'Payment started — reference {ref}',
+  'billing.empty': 'No subscription invoices yet.',
+
+  // --- /messages -----------------------------------------------------------
+  'messages.title': 'Messages',
+  'messages.subtitle': 'Conversations with your tenants',
+  'messages.tenantFallback': 'Tenant',
+  'messages.unitSuffix': '· Unit {label}',
+  'messages.closedTag': 'closed',
+  'messages.status.open': 'Open',
+  'messages.status.closed': 'Closed',
+  'messages.empty': 'No conversations yet.',
+  'messages.selectConversation': 'Select a conversation',
+  'messages.backToInbox': 'Back to inbox',
+  'messages.reopen': 'Reopen',
+  'messages.close': 'Close',
+  'messages.replyPlaceholder': 'Type a reply…',
+  'messages.send': 'Send',
+
+  // --- /portal (owner portal) ----------------------------------------------
+  'portal.welcome': 'Welcome, {name}',
+  'portal.titleFallback': 'Owner portal',
+  'portal.subtitle': 'Your portfolio at a glance',
+  'portal.metric.properties': 'Properties',
+  'portal.metric.monthlyRent': 'Monthly rent',
+  'portal.metric.paidToDate': 'Paid to date',
+  'portal.metric.awaitingPayout': 'Awaiting payout',
+  'portal.occupancy': 'Occupancy',
+  'portal.unitsOccupied': '{occupied} of {units} units occupied',
+  'portal.latestStatement': 'Latest statement',
+  'portal.forPeriod': 'for {period}',
+  'portal.paidOut': 'Paid out',
+  'portal.awaitingPayout': 'Awaiting payout',
+  'portal.noStatements': 'No statements yet.',
+  'portal.addBanking': 'Add your banking details so we can pay you out.',
+
+  'portal.statements.title': 'Statements',
+  'portal.statements.subtitle': 'Monthly collections, fees and payouts',
+  'portal.statements.th.period': 'Period',
+  'portal.statements.th.collected': 'Collected',
+  'portal.statements.th.fee': 'Fee',
+  'portal.statements.th.netPayout': 'Net payout',
+  'portal.statements.th.status': 'Status',
+  'portal.statements.paidOn': 'Paid {date}',
+  'portal.statements.paidNoDate': 'Paid',
+  'portal.statements.empty': 'No statements yet.',
+
+  'portal.properties.title': 'Properties',
+  'portal.properties.subtitle': 'The properties we manage for you',
+  'portal.properties.pctFull': '{pct} full',
+  'portal.properties.unitsOccupied': '{occupied}/{units} units occupied',
+  'portal.properties.perMonth': '/mo',
+  'portal.properties.empty': 'No properties on file.',
+
+  'portal.banking.title': 'Banking details',
+  'portal.banking.subtitle': 'Where we send your payouts',
+  'portal.banking.blurb': 'Your details are used only to disburse rent collected on your behalf.',
+  'portal.banking.field.bank': 'Bank',
+  'portal.banking.field.bankPlaceholder': 'e.g. FNB',
+  'portal.banking.field.accountHolder': 'Account holder',
+  'portal.banking.field.accountNumber': 'Account number',
+  'portal.banking.field.branchCode': 'Branch code',
+  'portal.banking.field.accountType': 'Account type',
+  // South African account types, as a bank expects them on a payout instruction.
+  'portal.banking.accountType.cheque': 'Cheque',
+  'portal.banking.accountType.savings': 'Savings',
+  'portal.banking.accountType.transmission': 'Transmission',
+  'portal.banking.save': 'Save banking details',
+  'portal.banking.saved': 'Saved',
+
+  // --- /partner (overview) -------------------------------------------------
+  'partner.title': 'Partner overview',
+  'partner.subtitle': 'Your software-sales pipeline, agencies and commission',
+  'partner.tile.pipelineValue': 'Pipeline value',
+  'partner.tile.agenciesSigned': 'Agencies signed',
+  'partner.mrrChip': '{amount} MRR',
+  'partner.tile.activeDeals': 'Active deals',
+  'partner.tile.demosThisWeek': 'Demos this week',
+  'partner.tile.commissionMtd': 'Commission MTD',
+  'partner.tile.pending': 'Pending',
+  'partner.tile.paid': 'Paid',
+  'partner.rank': '#{pos}',
+  'partner.rankOf': 'of {total} partners',
+  'partner.leaderboardRank': 'Leaderboard rank',
+  'partner.recentActivity': 'Recent activity',
+  'partner.noActivityYet': 'No activity yet — add a deal to get started.',
+
+  // --- /partner/activity ---------------------------------------------------
+  'partner.activity.title': 'Activity',
+  'partner.activity.subtitle': 'Your calls, demos, notes and pipeline moves',
+  'partner.activity.field.type': 'Type',
+  'partner.activity.field.summary': 'Summary',
+  'partner.activity.summaryPlaceholder': 'Called Acme Rentals — sending a demo invite',
+  'partner.activity.log': 'Log activity',
+  // The activity `type` enum. `stage_change` and `signup` are written by the
+  // server rather than chosen in the form, so they are display-only here.
+  'partner.activity.type.call': 'Call',
+  'partner.activity.type.email': 'Email',
+  'partner.activity.type.demo': 'Demo',
+  'partner.activity.type.note': 'Note',
+  'partner.activity.type.stage_change': 'Stage change',
+  'partner.activity.type.signup': 'Sign-up',
+  'partner.activity.empty': 'No activity yet.',
+
+  // --- /partner/banking ----------------------------------------------------
+  'partner.banking.title': 'Banking',
+  'partner.banking.subtitle': 'Where your commission payouts are sent (stored encrypted)',
+  'partner.banking.field.bankName': 'Bank',
+  'partner.banking.field.accountHolder': 'Account holder',
+  'partner.banking.field.accountNumber': 'Account number',
+  'partner.banking.field.branchCode': 'Branch code',
+  'partner.banking.field.accountType': 'Account type',
+  'partner.banking.save': 'Save banking',
+  'partner.banking.saved': 'Saved',
+
+  // --- /partner/commissions ------------------------------------------------
+  'partner.commissions.title': 'Commissions',
+  'partner.commissions.subtitle': 'Recurring commission on your referred agencies’ subscriptions',
+  'partner.commissions.tile.pending': 'Pending',
+  'partner.commissions.tile.paidMtd': 'Paid this month',
+  'partner.commissions.tile.paid': 'Paid to date',
+  'partner.commissions.th.period': 'Period',
+  'partner.commissions.th.agency': 'Agency',
+  'partner.commissions.th.basisMrr': 'Basis MRR',
+  'partner.commissions.th.rate': 'Rate',
+  'partner.commissions.th.amount': 'Amount',
+  'partner.commissions.th.status': 'Status',
+  // Statuses are the same vocabulary the staff /agents page uses; separate keys
+  // because the partner reads them about their own earnings.
+  'partner.commissions.status.pending': 'Pending',
+  'partner.commissions.status.approved': 'Approved',
+  'partner.commissions.status.paid': 'Paid',
+  'partner.commissions.status.cancelled': 'Cancelled',
+  'partner.commissions.empty': 'No commissions yet — they accrue monthly on paid agencies.',
+
+  // --- /partner/agencies ---------------------------------------------------
+  'partner.agencies.title': 'Agencies',
+  'partner.agencies.subtitle': 'Agencies you’ve referred and your referral link',
+  'partner.agencies.add': 'Add agency',
+  'partner.agencies.referralLink': 'Your referral link',
+  'partner.agencies.referralBlurb':
+    'Share this — agencies who sign up through it are attributed to you (after admin approval).',
+  'partner.agencies.copied': 'Copied',
+  'partner.agencies.copy': 'Copy',
+  'partner.agencies.referred': 'Referred agencies',
+  'partner.agencies.th.agency': 'Agency',
+  'partner.agencies.th.tier': 'Tier',
+  'partner.agencies.th.units': 'Units',
+  'partner.agencies.th.mrr': 'MRR',
+  'partner.agencies.th.status': 'Status',
+  'partner.agencies.th.joined': 'Joined',
+  'partner.agencies.empty': 'No agencies yet — add one or share your link.',
+  'partner.agencies.addTitle': 'Add agency',
+  'partner.agencies.create': 'Create agency',
+  'partner.agencies.addBlurb':
+    'Creates the agency and its owner login, attributed to you. They sign in with their email.',
+  'partner.agencies.field.agencyName': 'Agency name',
+  'partner.agencies.field.agencyNamePlaceholder': 'Acme Rentals',
+  'partner.agencies.field.ownerName': 'Owner name',
+  'partner.agencies.field.ownerEmail': 'Owner email',
+  'partner.agencies.field.ownerEmailPlaceholder': 'owner@acme.co.za',
+  'partner.agencies.field.expectedUnits': 'Expected units (optional)',
+
+  // --- /partner/pipeline ---------------------------------------------------
+  'partner.pipeline.title': 'Pipeline',
+  'partner.pipeline.subtitle': 'Track prospective agencies through the sales funnel',
+  'partner.pipeline.addDeal': 'Add deal',
+  // The funnel stages. These are the same stage keys `signals.ts` copies from
+  // `src/modules/partners/pipeline.ts`; the keys are display only and the
+  // values sent to the API are unchanged.
+  'partner.pipeline.stage.lead': 'Lead',
+  'partner.pipeline.stage.contacted': 'Contacted',
+  'partner.pipeline.stage.demo': 'Demo',
+  'partner.pipeline.stage.trial': 'Trial',
+  'partner.pipeline.stage.proposal': 'Proposal',
+  'partner.pipeline.stage.won': 'Won',
+  'partner.pipeline.stage.lost': 'Lost',
+  'partner.pipeline.dealSummary': '{units} units · {mrr}/mo',
+  'partner.pipeline.emptyColumn': 'Empty',
+  // This is the text of a browser `window.prompt`, which cannot be styled or
+  // laid out — translated, but still a native dialog.
+  'partner.pipeline.lostReasonPrompt': 'Reason lost? (optional)',
+  'partner.pipeline.addTitle': 'Add deal',
+  'partner.pipeline.field.prospect': 'Agency / prospect name',
+  'partner.pipeline.field.contactName': 'Contact name',
+  'partner.pipeline.field.contactEmail': 'Contact email',
+  'partner.pipeline.field.expectedUnits': 'Expected units',
+  // "(R)" is the ZAR symbol; the input takes a bare number.
+  'partner.pipeline.field.expectedMrr': 'Expected MRR (R)',
+
+  // --- /partner/leaderboard ------------------------------------------------
+  'partner.leaderboard.title': 'Leaderboard',
+  'partner.leaderboard.subtitle':
+    'Ranked on rent-roll subscription revenue actually collected — not signed, not invoiced',
+  'partner.leaderboard.window.month': 'This month',
+  'partner.leaderboard.window.quarter': 'This quarter',
+  'partner.leaderboard.window.all': 'All time',
+  'partner.leaderboard.move.new': 'new',
+  'partner.leaderboard.move.up': 'up {n}',
+  'partner.leaderboard.move.down': 'down {n}',
+  'partner.leaderboard.move.same': 'no change',
+  'partner.leaderboard.yourRank': 'Your rank of {total} · {movement}',
+  'partner.leaderboard.collectedIn.month': 'Collected this month',
+  'partner.leaderboard.collectedIn.quarter': 'Collected this quarter',
+  'partner.leaderboard.collectedIn.all': 'Collected all time',
+  'partner.leaderboard.liveAgenciesEarning': 'Live paying agencies · earning in {active} of last {of} months',
+  'partner.leaderboard.ofGate': 'of gate',
+  // ⚠ The "26%" in this heading is written into the COPY, not read from a
+  // constant like the gate amount and month count beside it. If the commission
+  // structure changes, this string silently lies — see the open item Day 5
+  // logged. It is reproduced as-is here rather than being quietly corrected or
+  // dropped, because changing a stated rate is not a translation decision.
+  'partner.leaderboard.gateHeading': 'Progress to Reseller (26%)',
+  'partner.leaderboard.gateMet':
+    'You have met {amount} collected for {months} consecutive months. Promotion is an admin review, not automatic — {brand} will be in touch.',
+  'partner.leaderboard.gateProgress': '{met} of {months} months at {amount} collected.',
+  'partner.leaderboard.gateShortfall':
+    'A further {amount} collected this month puts the current month over the line.',
+  'partner.leaderboard.gateQualifies': 'This month already qualifies.',
+  'partner.leaderboard.rolling3m': 'Rolling three months: {amount} collected.',
+  'partner.leaderboard.medal.1': '1st',
+  'partner.leaderboard.medal.2': '2nd',
+  'partner.leaderboard.medal.3': '3rd',
+  'partner.leaderboard.youSuffix': '· you',
+  'partner.leaderboard.you': 'you',
+  'partner.leaderboard.liveAgencies.one': '{count} live agency',
+  'partner.leaderboard.liveAgencies.other': '{count} live agencies',
+  'partner.leaderboard.earningMonths': '· earning {active}/{of} months',
+  'partner.leaderboard.th.rank': '#',
+  'partner.leaderboard.th.partner': 'Partner',
+  'partner.leaderboard.th.move': 'Move',
+  'partner.leaderboard.th.liveAgencies': 'Live agencies',
+  'partner.leaderboard.th.earning': 'Earning',
+  'partner.leaderboard.th.collected': 'Collected',
+  'partner.leaderboard.monthsOf': '{active}/{of} mo',
+  'partner.leaderboard.private': 'private',
+  'partner.leaderboard.empty': 'No active partners on the board yet.',
+  'partner.leaderboard.loading': 'Loading…',
+  'partner.leaderboard.privacyNote':
+    'Other partners’ revenue is private — you see their rank, agency count and activity only, and they see the same of yours. Ranking is on subscription fees {brand} has actually received, so the board matches your commission statement.',
+
+  // --- /partner/manual (chrome only) ---------------------------------------
+  // The MANUAL'S OWN TEXT is not translated — it is read from
+  // docs/manuals/Partner-Manual.md at render time and stays the single source
+  // of truth. Only this page's own chrome is keyed.
+  'partner.manual.back': 'Back to the portal',
+  'partner.manual.unavailableTitle': 'The manual is not available on this server.',
+  'partner.manual.unavailableBody': 'It is read from {path} at render time. Ask support for a copy.',
 } as const;
