@@ -7,12 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
 import { Card, Pill, Button, BrandFooter, hexToRgba } from '../ui';
+import { useLocale } from '../i18n';
 
-const when = (d?: string) => (d ? new Date(d).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
 const initials = (n?: string) => (n || '?').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 
 export default function MessagesScreen() {
   const t = useTheme();
+  const { t: tr, dateTime } = useLocale();
+  // Was a module-level `toLocaleString('en-ZA', …)`.
+  const when = (d?: string) => (d ? dateTime(d) : '');
   const s = useMemo(() => makeStyles(t), [t]);
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +27,7 @@ export default function MessagesScreen() {
 
   const loadInbox = useCallback(async () => {
     try { setRows(await api.messageInbox()); }
-    catch (e: any) { Alert.alert('Error', e.message); }
+    catch (e: any) { Alert.alert(tr('landlord.common.error'), e.message); }
     finally { setLoading(false); }
   }, []);
   useFocusEffect(useCallback(() => { loadInbox(); }, [loadInbox]));
@@ -35,7 +38,7 @@ export default function MessagesScreen() {
       setThread(await api.messageThread(row.id));
       loadInbox();
       setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 80);
-    } catch (e: any) { Alert.alert('Error', e.message); }
+    } catch (e: any) { Alert.alert(tr('landlord.common.error'), e.message); }
   };
 
   const send = async () => {
@@ -47,14 +50,14 @@ export default function MessagesScreen() {
       setThread(await api.messageThread(active.id));
       loadInbox();
       setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 80);
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setBusy(false); }
+    } catch (e: any) { Alert.alert(tr('landlord.common.error'), e.message); } finally { setBusy(false); }
   };
 
   const toggleStatus = async () => {
     if (!thread) return;
     const next = thread.conversation.status === 'closed' ? 'open' : 'closed';
     try { await api.messageSetStatus(thread.conversation.id, next); setThread(await api.messageThread(thread.conversation.id)); loadInbox(); }
-    catch (e: any) { Alert.alert('Error', e.message); }
+    catch (e: any) { Alert.alert(tr('landlord.common.error'), e.message); }
   };
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
@@ -69,10 +72,10 @@ export default function MessagesScreen() {
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={s.threadTitle} numberOfLines={1}>{thread.conversation.subject}</Text>
-            <Text style={s.threadSub} numberOfLines={1}>{active.tenantName || 'Tenant'}{active.unitLabel ? ` · Unit ${active.unitLabel}` : ''}</Text>
+            <Text style={s.threadSub} numberOfLines={1}>{active.tenantName || tr('landlord.messages.tenantFallback')}{active.unitLabel ? ` ${tr('landlord.messages.unitSuffix', { label: active.unitLabel })}` : ''}</Text>
           </View>
           <TouchableOpacity onPress={toggleStatus}>
-            <Pill label={thread.conversation.status === 'closed' ? 'Reopen' : 'Close'} tone={thread.conversation.status === 'closed' ? 'muted' : 'success'} />
+            <Pill label={thread.conversation.status === 'closed' ? tr('landlord.messages.reopen') : tr('landlord.messages.close')} tone={thread.conversation.status === 'closed' ? 'muted' : 'success'} />
           </TouchableOpacity>
         </View>
 
@@ -91,7 +94,7 @@ export default function MessagesScreen() {
         </ScrollView>
 
         <View style={s.composer}>
-          <TextInput style={s.input} value={draft} onChangeText={setDraft} placeholder="Type a reply…" placeholderTextColor={t.colors.muted} multiline />
+          <TextInput style={s.input} value={draft} onChangeText={setDraft} placeholder={tr('landlord.messages.replyPlaceholder')} placeholderTextColor={t.colors.muted} multiline />
           <Button label="" icon="send" onPress={send} busy={busy} style={{ paddingHorizontal: 16 }} />
         </View>
       </KeyboardAvoidingView>
@@ -101,7 +104,7 @@ export default function MessagesScreen() {
   // ---- Inbox list ----
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }} refreshControl={<RefreshControl refreshing={false} onRefresh={loadInbox} tintColor={t.colors.brand} />}>
-      <Text style={s.heading}>Messages</Text>
+      <Text style={s.heading}>{tr('landlord.messages.title')}</Text>
       {rows.map((c) => (
         <TouchableOpacity key={c.id} activeOpacity={0.85} onPress={() => openThread(c)}>
           <Card style={{ marginBottom: 10 }}>
@@ -111,7 +114,7 @@ export default function MessagesScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={s.name}>{c.tenantName || 'Tenant'}{c.unitLabel ? `  ·  Unit ${c.unitLabel}` : ''}</Text>
+                  <Text style={s.name}>{c.tenantName || tr('landlord.messages.tenantFallback')}{c.unitLabel ? `  ${tr('landlord.messages.unitSuffix', { label: c.unitLabel })}` : ''}</Text>
                   <Text style={s.time}>{when(c.lastMessageAt)}</Text>
                 </View>
                 <Text style={s.subject} numberOfLines={1}>{c.subject}</Text>
@@ -122,7 +125,7 @@ export default function MessagesScreen() {
           </Card>
         </TouchableOpacity>
       ))}
-      {rows.length === 0 && <Card><Text style={s.preview}>No conversations yet.</Text></Card>}
+      {rows.length === 0 && <Card><Text style={s.preview}>{tr('landlord.messages.empty')}</Text></Card>}
       <BrandFooter />
     </ScrollView>
   );

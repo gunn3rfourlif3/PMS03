@@ -14,6 +14,7 @@ import { useIdleLogout } from './src/useIdleLogout';
 import { IDLE_TIMEOUT_MINUTES } from './src/config';
 import { AuthContext } from './src/auth-context';
 import { ThemeProvider, useTheme, fontFamily } from './src/theme';
+import { LocaleProvider, useT } from './src/i18n';
 import { Logo, GradientBackground } from './src/ui';
 import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
@@ -28,6 +29,7 @@ const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background
 
 function Shell() {
   const t = useTheme();
+  const tr = useT();
   const [fontsLoaded] = useFonts({
     ...Ionicons.font,
     PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
@@ -85,29 +87,29 @@ function Shell() {
                 component={DashboardScreen}
                 options={{
                   headerTitle: () => <Logo size={30} light />,
-                  title: 'Home',
+                  title: tr('landlord.tab.home'),
                   tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} />,
                 }}
               />
               <Tab.Screen
                 name="Approvals"
                 component={ApprovalsScreen}
-                options={{ title: 'Approvals', tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} /> }}
+                options={{ title: tr('landlord.tab.approvals'), tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} /> }}
               />
               <Tab.Screen
                 name="Tickets"
                 component={TicketsScreen}
-                options={{ title: 'Maintenance', tabBarIcon: ({ color, size }) => <Ionicons name="construct-outline" color={color} size={size} /> }}
+                options={{ title: tr('landlord.tab.maintenance'), tabBarIcon: ({ color, size }) => <Ionicons name="construct-outline" color={color} size={size} /> }}
               />
               <Tab.Screen
                 name="Messages"
                 component={MessagesScreen}
-                options={{ title: 'Messages', tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" color={color} size={size} /> }}
+                options={{ title: tr('landlord.tab.messages'), tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles-outline" color={color} size={size} /> }}
               />
               <Tab.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ title: 'Profile', tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} /> }}
+                options={{ title: tr('landlord.tab.profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} /> }}
               />
             </Tab.Navigator>
           ) : (
@@ -123,7 +125,12 @@ function Shell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Shell />
+      {/* Outside Shell because Shell needs the translator for the tab titles —
+          GlassTabBar reads each route's `options.title`, so translating those
+          translates the tab bar too. */}
+      <LocaleProvider>
+        <Shell />
+      </LocaleProvider>
     </ThemeProvider>
   );
 }

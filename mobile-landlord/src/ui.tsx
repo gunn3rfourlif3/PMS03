@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Branding, useTheme, fontFamily } from './theme';
+import { DEFAULT_LOCALE, money as formatMoney } from '../../shared/i18n';
 
 /** #rrggbb (+optional aa) -> rgba() string. */
 export function hexToRgba(hex: string, alpha = 1): string {
@@ -151,7 +152,15 @@ function fs(t: Branding) {
   return { fontSize: 13, color: t.colors.muted, fontFamily: fontFamily(t) } as const;
 }
 
-export const money = (n: number) => 'R' + Number(n).toLocaleString('en-ZA');
+/**
+ * @deprecated Locale-unaware. Use `useLocale().money` instead.
+ *
+ * Was `'R' + Number(n).toLocaleString('en-ZA')`. Kept only so an importer this
+ * sweep missed still compiles; it now formats in the DEFAULT locale through the
+ * one shared formatter, so the ZAR rule holds in one place. Every screen in
+ * this app uses the hook.
+ */
+export const money = (n: number) => formatMoney(DEFAULT_LOCALE, Number(n));
 
 /* ── Bento primitives ──────────────────────────────────────────────────────
    Ported from the back-office (web-admin/components/ui.tsx) so all three

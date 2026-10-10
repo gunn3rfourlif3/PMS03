@@ -6,14 +6,16 @@ import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
 import {
-  Button, BrandFooter, money, hexToRgba,
+  Button, BrandFooter, hexToRgba,
   BentoTile, BentoHero, ProgressBar, SectionTitle, ListCard, Row, EmptyRow,
 } from '../ui';
+import { useLocale } from '../i18n';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
 export default function DashboardScreen() {
   const t = useTheme();
+  const { t: tr, tn, money, percent } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const [loading, setLoading] = useState(true);
   const [rentRoll, setRentRoll] = useState<any[]>([]);
@@ -45,16 +47,16 @@ export default function DashboardScreen() {
       contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
       refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}
     >
-      <Text style={s.heading}>Portfolio</Text>
+      <Text style={s.heading}>{tr('landlord.dashboard.title')}</Text>
 
       {/* Collected is the number an agency principal actually opens the app for,
           so it gets the hero and the rest arrange around it. */}
       <BentoHero
         tone="purple"
-        eyebrow={`Collected · ${period}`}
+        eyebrow={tr('landlord.dashboard.collectedFor', { period })}
         value={collection ? money(collection.collected) : '—'}
-        caption={collection ? `of ${money(collection.billed)} billed this period` : undefined}
-        chip={`${Math.round(rate)}% collected`}
+        caption={collection ? tr('landlord.dashboard.ofBilled', { amount: money(collection.billed) }) : undefined}
+        chip={tr('landlord.dashboard.ratePill', { rate: percent(Math.round(rate) / 100, 0) })}
       >
         <View style={{ marginTop: 16 }}>
           <ProgressBar value={rate} tone="purple" />
@@ -63,24 +65,26 @@ export default function DashboardScreen() {
 
       <View style={s.row}>
         <BentoTile tone="coral" icon="alert-circle-outline" value={owed ? money(owed) : money(0)}
-          label={arrears?.arrears ? `Arrears · ${arrears.arrears} tenants` : 'Arrears'} />
+          label={arrears?.arrears
+            ? tn('landlord.dashboard.arrearsTenants', Number(arrears.arrears))
+            : tr('landlord.dashboard.arrears')} />
         <BentoTile tone="amber" icon="construct-outline" value={openTickets == null ? '—' : String(openTickets)}
-          label="Open tickets" />
+          label={tr('landlord.dashboard.openTickets')} />
       </View>
       <View style={s.row}>
-        <BentoTile tone="blue" icon="home-outline" value={String(rentRoll.length)} label="Active leases" />
-        <BentoTile tone="teal" icon="trending-up-outline" value={`${Math.round(rate)}%`} label="Collection rate" />
+        <BentoTile tone="blue" icon="home-outline" value={String(rentRoll.length)} label={tr('landlord.dashboard.activeLeases')} />
+        <BentoTile tone="teal" icon="trending-up-outline" value={percent(Math.round(rate) / 100, 0)} label={tr('landlord.dashboard.collectionRate')} />
       </View>
 
       <View style={s.periodRow}>
-        <Text style={s.muted}>Period</Text>
+        <Text style={s.muted}>{tr('landlord.dashboard.period')}</Text>
         <TextInput style={s.periodInput} value={period} onChangeText={setPeriod} onSubmitEditing={load} />
-        <Button label="Refresh" variant="secondary" icon="refresh" onPress={load} style={{ paddingVertical: 9, paddingHorizontal: 14 }} />
+        <Button label={tr('landlord.dashboard.refresh')} variant="secondary" icon="refresh" onPress={load} style={{ paddingVertical: 9, paddingHorizontal: 14 }} />
       </View>
 
-      <SectionTitle>Rent roll</SectionTitle>
+      <SectionTitle>{tr('landlord.dashboard.rentRoll')}</SectionTitle>
       <ListCard>
-        {rentRoll.length === 0 && <EmptyRow>No active leases yet.</EmptyRow>}
+        {rentRoll.length === 0 && <EmptyRow>{tr('landlord.dashboard.noLeases')}</EmptyRow>}
         {rentRoll.map((r, idx) => {
           const behind = Number(r.outstanding) > 0;
           return (
@@ -90,9 +94,11 @@ export default function DashboardScreen() {
               leftIcon={behind ? 'alert-circle' : 'home'}
               leftTone={behind ? 'coral' : 'teal'}
               title={r.unit}
-              subtitle={r.status === 'active' ? 'Occupied' : r.status}
+              subtitle={r.status === 'active' ? tr('landlord.dashboard.occupied') : r.status}
               right={money(r.rent_amount)}
-              rightSub={behind ? `${money(r.outstanding)} due` : '/mo'}
+              rightSub={behind
+                ? tr('landlord.dashboard.amountDue', { amount: money(r.outstanding) })
+                : tr('landlord.dashboard.perMonth')}
             />
           );
         })}

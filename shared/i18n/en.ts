@@ -1327,4 +1327,143 @@ export const en = {
   'tenant.profile.nameFallback': 'Tenant',
   'tenant.profile.signOut': 'Sign out',
   'tenant.profile.language': 'Language',
+
+  // =========================================================================
+  // mobile-landlord (the agency / landlord app)
+  // =========================================================================
+  // Namespaced `landlord.*`. Where the wording matches a `tenant.*` key it is
+  // still a separate key: the two apps address opposite sides of the same
+  // tenancy, and "Close" on a manager's thread is not necessarily the same word
+  // as "closed" on a tenant's.
+
+  'landlord.tab.home': 'Home',
+  'landlord.tab.approvals': 'Approvals',
+  'landlord.tab.maintenance': 'Maintenance',
+  'landlord.tab.messages': 'Messages',
+  'landlord.tab.profile': 'Profile',
+
+  // --- Login ---------------------------------------------------------------
+  'landlord.login.taglineFallback': 'Landlord portal',
+  'landlord.login.destinationLabel': 'Email or mobile number',
+  'landlord.login.destinationPlaceholder': 'you@example.com or +27…',
+  'landlord.login.destinationHint': 'We’ll send a code to your email or by SMS. Use +27… for phone numbers.',
+  'landlord.login.sendCode': 'Send code',
+  'landlord.login.codeLabel': '6-digit code',
+  'landlord.login.remember': 'Remember this device (skip the code next time)',
+  'landlord.login.verify': 'Verify & sign in',
+  'landlord.login.useDifferent': 'Use a different address',
+  'landlord.login.codeSentTitle': 'Code sent',
+  'landlord.login.codeSentBody': 'We sent a 6-digit code to {destination}.',
+  'landlord.login.sendFailed': 'Could not send code',
+  'landlord.login.signInFailed': 'Sign in failed',
+  'landlord.common.error': 'Error',
+
+  // --- Dashboard -----------------------------------------------------------
+  'landlord.dashboard.title': 'Portfolio',
+  'landlord.dashboard.collectedFor': 'Collected · {period}',
+  'landlord.dashboard.ofBilled': 'of {amount} billed this period',
+  'landlord.dashboard.ratePill': '{rate} collected',
+  // Counted, via `tn`.
+  'landlord.dashboard.arrearsTenants.one': 'Arrears · {count} tenant',
+  'landlord.dashboard.arrearsTenants.other': 'Arrears · {count} tenants',
+  'landlord.dashboard.arrears': 'Arrears',
+  'landlord.dashboard.openTickets': 'Open tickets',
+  'landlord.dashboard.activeLeases': 'Active leases',
+  'landlord.dashboard.collectionRate': 'Collection rate',
+  'landlord.dashboard.period': 'Period',
+  'landlord.dashboard.refresh': 'Refresh',
+  'landlord.dashboard.rentRoll': 'Rent roll',
+  'landlord.dashboard.noLeases': 'No active leases yet.',
+  'landlord.dashboard.occupied': 'Occupied',
+  'landlord.dashboard.amountDue': '{amount} due',
+  'landlord.dashboard.perMonth': '/mo',
+
+  // --- Approvals -----------------------------------------------------------
+  'landlord.approvals.title': 'Applications',
+  'landlord.approvals.status.submitted': 'Submitted',
+  'landlord.approvals.status.screening': 'Screening',
+  'landlord.approvals.status.approved': 'Approved',
+  'landlord.approvals.status.rejected': 'Rejected',
+  'landlord.approvals.screeningLabel': 'Screening',
+  // The screening verdict the API returns.
+  'landlord.approvals.recommendation.approve': 'Approve',
+  'landlord.approvals.recommendation.decline': 'Decline',
+  'landlord.approvals.recommendation.review': 'Review',
+  'landlord.approvals.screen': 'Screen',
+  'landlord.approvals.approve': 'Approve',
+  'landlord.approvals.reject': 'Reject',
+  'landlord.approvals.empty': 'No applications right now.',
+
+  // --- Tickets / maintenance ----------------------------------------------
+  'landlord.tickets.title': 'Maintenance',
+  // The same category and priority vocabulary the tenant app sends.
+  'landlord.tickets.category.plumbing': 'Plumbing',
+  'landlord.tickets.category.electrical': 'Electrical',
+  'landlord.tickets.category.appliance': 'Appliance',
+  'landlord.tickets.category.general': 'General',
+  'landlord.tickets.priority.low': 'Low',
+  'landlord.tickets.priority.medium': 'Medium',
+  'landlord.tickets.priority.high': 'High',
+  'landlord.tickets.priority.urgent': 'Urgent',
+  'landlord.tickets.status.open': 'Open',
+  'landlord.tickets.status.assigned': 'Assigned',
+  'landlord.tickets.status.resolved': 'Resolved',
+  'landlord.tickets.status.closed': 'Closed',
+  'landlord.tickets.unit': 'Unit {id}',
+  'landlord.tickets.workOrder': 'Work order {id} · {status}',
+  'landlord.tickets.workOrderWithContractor': 'Work order {id} · {status} · {contractor}',
+  'landlord.tickets.wo.assigned': 'Assigned',
+  'landlord.tickets.wo.in_progress': 'In progress',
+  'landlord.tickets.wo.completed': 'Completed',
+  'landlord.tickets.assignTo': 'Assign to',
+  // The tick marks a provider whose category matches the ticket's.
+  'landlord.tickets.providerMatch': '{name} ✓',
+  'landlord.tickets.noProviders': 'No providers — add them in the web console.',
+  'landlord.tickets.assignToNamed': 'Assign to {name}',
+  'landlord.tickets.assignNoContractor': 'Assign (no contractor)',
+  'landlord.tickets.startWork': 'Start work',
+  // "(R)" is the ZAR symbol; the input takes a bare number.
+  'landlord.tickets.costPlaceholder': 'Cost (R)',
+  'landlord.tickets.complete': 'Complete',
+  'landlord.tickets.awaitingTenant': 'Resolved — awaiting tenant approval',
+  'landlord.tickets.closed': 'Closed',
+  'landlord.tickets.empty': 'No maintenance tickets.',
+
+  // --- Messages ------------------------------------------------------------
+  'landlord.messages.title': 'Messages',
+  'landlord.messages.tenantFallback': 'Tenant',
+  'landlord.messages.unitSuffix': '· Unit {label}',
+  'landlord.messages.reopen': 'Reopen',
+  'landlord.messages.close': 'Close',
+  'landlord.messages.replyPlaceholder': 'Type a reply…',
+  'landlord.messages.empty': 'No conversations yet.',
+
+  // --- Profile -------------------------------------------------------------
+  'landlord.profile.title': 'Profile',
+  'landlord.profile.nameFallback': 'Manager',
+  'landlord.profile.signOut': 'Sign out',
+  'landlord.profile.language': 'Language',
+
+  // --- tenant: Dashboard and Lease (revived 2026-10-10) --------------------
+  // These two screens were unreachable until the routes below were registered.
+  // Several strings deliberately REUSE `tenant.home.*` and `tenant.pay.*`: the
+  // app-to-app separation rule is about different audiences, and these screens
+  // address the same tenant about the same rent, so sharing a key here keeps
+  // the two screens from drifting apart in wording.
+  'tenant.nav.dashboardTitle': 'Account overview',
+  'tenant.nav.leaseTitle': 'Lease details',
+  'tenant.dashboard.due': 'Due {date}',
+  'tenant.dashboard.action.pay': 'Pay',
+  'tenant.dashboard.action.lease': 'Lease',
+  'tenant.dashboard.action.report': 'Report',
+  'tenant.dashboard.action.signOut': 'Sign out',
+  'tenant.dashboard.invoices': 'Invoices',
+  'tenant.dashboard.noInvoices': 'No invoices yet.',
+  'tenant.lease.title': 'Lease details',
+  'tenant.lease.notFound': 'No active lease found.',
+  'tenant.lease.row.status': 'Status',
+  'tenant.lease.row.type': 'Type',
+  // Entry points added so the two screens are actually reachable.
+  'tenant.docs.viewFullLease': 'View full lease details',
+  'tenant.profile.accountOverview': 'Account overview',
 } as const;

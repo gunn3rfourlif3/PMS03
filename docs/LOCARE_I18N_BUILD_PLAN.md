@@ -148,7 +148,7 @@ Read: `mobile-landlord/App.tsx` and its screens.
 
 Same as Day 6, and the Metro question is already answered by it.
 
-- [ ] Done
+- [x] Done
 
 ## Day 8 — marketing
 
@@ -163,7 +163,7 @@ say why, and convert `index.html` plus one guide as the pattern — not all 21.
 
 The `guides/` and `demo/` subtrees are explicitly deferred.
 
-- [ ] Done
+- [x] Done
 
 ## Day 9 — Fill zh-Hans, and verify
 
@@ -240,3 +240,38 @@ Left, reported not fixed:
 (iii) **Nothing here has been run.** Typecheck and a key-presence check are not a bundle: whether Metro actually resolves `../../shared/i18n` at runtime needs `npx expo start` in `mobile-tenant`, which this session cannot do (the same sandbox limit that blocks Day 2's `next build`). **If one command gets run by hand before Day 7, it should be that one** — Day 7 copies this exact configuration into the landlord app, so a mistake here doubles.
 
 (iv) Carried: Day 2's `externalDir` check, Day 5's untouched `app/admin/*` and public routes (still needing their own day before Day 9), the leaderboard's hardcoded 26%, and Day 3's lease enum.
+2026-10-10 — Day 7. mobile-landlord. `en.ts` is now 1170 keys (`landlord.*`, separate from `tenant.*` even where the English matches — the two apps address opposite sides of the same tenancy, and "Close" on a manager's thread is not necessarily "closed" on a tenant's). All three surfaces typecheck clean; every `tr()`/`tn()` key the landlord app references is confirmed present in `en.ts`, and no `en-ZA` or hardcoded label survives a sweep of its screens.
+
+Day 6 answered the Metro question, so this day was mostly mechanical: `metro.config.js` is the tenant app's file with its comment retargeted, and `src/i18n.tsx` is a deliberate copy. **That copy is a decision, not an oversight**, and the file says so: the two apps are separate Expo projects with their own `node_modules` and no shared source directory of their own, so the alternative was a third shared package for 120 lines. If a third app ever appears, that trade flips and it belongs in `shared/`. The tab bar came free — `GlassTabBar` renders each route's `options.title`, so translating the five `Tab.Screen` titles translates the bar.
+
+Decisions. (1) **The screening verdict IS keyed here, unlike web-admin.** On `/applications` the recommendation is free text shown as sent; this screen compares it against `'approve'`/`'decline'` to choose a pill colour, so the vocabulary is known at this point and can have keys. Worth recording because the two surfaces now treat the same API field differently, and that is deliberate. (2) Ticket categories, priorities, ticket statuses and work-order statuses each got key sets; the `textTransform: 'capitalize'` on the category style was doing the display formatting and does nothing outside the Latin alphabet. (3) The work-order line was `Work order {id} · {status}` with the contractor appended — now two whole keys, because a language that orders those clauses differently cannot be served by concatenation. (4) `src/ui.tsx`'s `money` is deprecated in the same shape as the other two surfaces; no screen in this app imports it any more.
+
+Left, reported not fixed:
+
+(i) **Still nothing has been run — and this is now the single largest piece of unverified work in the plan.** Three surfaces import `shared/i18n`, two of them through a Metro config no one has bundled. `npx expo start` in `mobile-landlord` and in `mobile-tenant`, plus `npm run build` in `web-admin`, are the three commands that would confirm Days 2, 6 and 7 actually work. A typecheck proves the types line up; it proves nothing about module resolution at bundle time.
+
+(ii) The tenant app's two dead screens (`DashboardScreen`, `LeaseScreen`) are still untranslated and still await Vernon's delete-or-revive. The landlord app has no equivalent — all five of its screens are reachable.
+
+(iii) Carried: Day 5's untouched `app/admin/*` and public web routes (still needing their own day before Day 9 can honestly verify), the leaderboard's hardcoded 26%, `/reports`' thousands abbreviation, and the lease/billing-cycle enums that live in `src/` and are outside every day's file list.
+2026-10-10 — Day 7 follow-up (asked for, outside the day sequence). **The tenant app's two dead screens are revived rather than deleted**, per Vernon. `DashboardScreen` and `LeaseScreen` are now registered stack screens with translated titles, swept into the catalogue, and — the part that actually makes "revived" true — each has a real entry point: **Lease** from the Documents tab, under the lease-terms summary, since the full view is what adds the lease's status and type; **Account overview** from Profile, as a secondary destination rather than a second Home tab. `MainScreen` now passes `navigation` into Docs and Profile so they can push them. Worth recording: `DashboardScreen`'s Lease action called `navigate('Lease')` against a route that was never registered, so it would have thrown the moment anyone reached it — the screens were not merely unreachable, one of them was broken. Neither imports the deprecated `money` any more; nothing in the tenant app does. Typecheck clean, every key present. **Still Vernon's judgement, and not a translation question:** `DashboardScreen` overlaps `HomeScreen` (rent hero, pay action) and `PayScreen` (full invoice list) almost completely, so a tenant now has two places showing the same rent. It is reachable and correct, but if the overlap is unwanted the fix is a product decision, not an i18n one.
+2026-10-10 — Day 8. marketing. **The decision the day asked for, and it is neither of the two options the plan offered.** Both are wrong for this site, and `index.html` says why in its own comment: it carries a JSON-LD FAQPage that must stay in sync with the visible copy, and "divergence is a manual-action risk". A client-side swap leaves the structured data describing English while the page shows Chinese — precisely that divergence, on the page where it costs most, plus a flash of English and nothing for a crawler. Hand-written per-locale copies of an 822-line SEO-critical page, in a directory whose guides are regenerated weekly by a content agent, drift the day after they are made.
+
+So: **one English source, pre-rendered per-locale output.** `scripts/marketing-i18n/` (three plain Node scripts, zero dependencies — the site gains no build step it did not have, these are `npm run` scripts): `extract.mjs` writes the translator's checklist, `build.mjs` renders `marketing/<locale>/…`, `selftest.mjs` proves the renderer does not mangle markup. Output is static, so `hreflang` works, JavaScript-off works, and crawlers see real pages; there is no second copy to maintain.
+
+Translations are keyed by the **English source text**, not by `data-i18n` attributes added to the markup. That means the source pages are never touched (this pipeline cannot break the live English site), the weekly content agent needs to know nothing about i18n, and visible copy and structured data translate from the same map. The cost is real and is made loud rather than hidden: a reworded English string loses its translation, so the build reports every unmatched string, exits non-zero, and **writes nothing at all** — a half-Chinese marketing page reads as broken rather than as untranslated.
+
+**Two things verification caught that a coverage count would not have.** (1) A probe run showed the JSON-LD descriptions staying English while the visible copy translated — the structured data has prose of its own that is not on the page, so nothing matched it, and the walk skipped misses silently. That is the exact divergence this design claims to prevent. Fixed: `JSONLD_PROSE_KEYS` puts JSON-LD prose into the inventory (239 strings, up from 222) and reports misses like any other string, while everything outside that key list — price, priceCurrency, url, @type, the CIPC registration number — is left alone *by construction* rather than by hoping it has no catalogue entry. Re-probed: a JSON-LD-only string now translates, and the price and registration number come through untouched. (2) `selftest.mjs` renders an identity locale and diffs it against the source, so the only permitted differences are `<html lang>`, the canonical/hreflang block and reserialised JSON-LD. It passes on both pages, and it is the check that matters most here: a scanner bug on a 59KB revenue page would not show up as missing coverage.
+
+Scope, as the day specifies: `index.html` and one guide (`guides/popia-for-letting-agents.html`) are in the build as the pattern. `social/` (ad creative), `internal/` (not public), `demo/`, `tools/` (calculator UI, needs its own pass) and the other guide bodies are out, and `PAGES` in `lib.mjs` is the one place to add them.
+
+Left:
+
+(i) **`shared/i18n/marketing/zh-Hans.json` is a scaffold — 233 entries, all empty.** Day 9 fills it. Until then the build correctly refuses to write anything, which is why there is no `marketing/zh-Hans/` directory yet.
+
+(ii) **The Dockerfile and sitemap are deliberately NOT updated.** Adding `COPY zh-Hans /srv/zh-Hans` now would ship a duplicate-content English page at `/zh-Hans/` — an SEO own-goal. The build prints both steps as the next action once coverage is complete; Day 9 should do them in the same change as the fill.
+
+(iii) Marketing strings live in `shared/i18n/marketing/*.json` rather than in `shared/i18n/en.ts`. Same directory, so there is still one home for catalogues, but JSON rather than TypeScript because a plain Node script cannot import a `.ts` module without a loader — and a loader is the dependency the plan says to avoid.
+
+(iv) **Nobody on this project reads Chinese.** The scaffold's `_README` carries the unreviewed-translation rule and the do-not-translate list (prices, VAT rates, POPIA/PPRA/Rental Housing Act, registration numbers, URLs). This page states prices and a VAT rate; a mistranslation there is a commercial claim, not a typo.
+
+(v) Carried: Day 2's `externalDir` check, Days 6–7's unbundled Metro configs, Day 5's untouched `app/admin/*` and public web routes (still needing their own day before Day 9), and the leaderboard's hardcoded 26%.
