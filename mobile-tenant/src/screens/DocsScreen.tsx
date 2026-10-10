@@ -4,12 +4,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, Pill, money, hexToRgba } from '../ui';
+import { Card, Pill, hexToRgba } from '../ui';
+import { useLocale } from '../i18n';
+import type { TFunction } from '../../../shared/i18n';
 
 type Agreement = { ref: string; status: string; signUrl: string; fileUrl: string } | null;
 
 export default function DocsScreen() {
   const t = useTheme();
+  const { t: tr, money, date } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const [lease, setLease] = useState<any>(null);
   const [agreement, setAgreement] = useState<Agreement>(null);
@@ -29,7 +32,7 @@ export default function DocsScreen() {
   const open = async (url?: string) => {
     if (!url) return;
     try { await Linking.openURL(url); }
-    catch { Alert.alert('Could not open', 'The document link could not be opened.'); }
+    catch { Alert.alert(tr('tenant.docs.couldNotOpenTitle'), tr('tenant.docs.couldNotOpenBody')); }
   };
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
@@ -40,7 +43,7 @@ export default function DocsScreen() {
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }}
       refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
-      <Text style={s.heading}>Documents</Text>
+      <Text style={s.heading}>{tr('tenant.docs.title')}</Text>
 
       {/* Lease agreement document — review/sign or view the signed copy. */}
       {agreement ? (
@@ -48,33 +51,33 @@ export default function DocsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={s.docIcon}><Ionicons name="document-text-outline" size={22} color={t.colors.brand} /></View>
             <View style={{ flex: 1 }}>
-              <Text style={s.docTitle}>Lease agreement</Text>
-              <Text style={s.muted}>{signed ? 'Signed' : needsSign ? 'Awaiting your signature' : agreement.status}</Text>
+              <Text style={s.docTitle}>{tr('tenant.docs.leaseAgreement')}</Text>
+              <Text style={s.muted}>{signed ? tr('tenant.docs.signedStatus') : needsSign ? tr('tenant.docs.awaitingSignature') : agreement.status}</Text>
             </View>
-            <Pill label={signed ? 'Signed' : needsSign ? 'Sign' : agreement.status}
+            <Pill label={signed ? tr('tenant.docs.signedStatus') : needsSign ? tr('tenant.docs.signPill') : agreement.status}
               tone={signed ? 'success' : needsSign ? 'danger' : 'muted'} />
           </View>
           {needsSign && (
             <TouchableOpacity style={[s.btn, { backgroundColor: t.colors.brand }]} onPress={() => open(agreement.signUrl)} activeOpacity={0.85}>
               <Ionicons name="create-outline" size={18} color={t.colors.onBrand} />
-              <Text style={[s.btnText, { color: t.colors.onBrand }]}>Review &amp; sign</Text>
+              <Text style={[s.btnText, { color: t.colors.onBrand }]}>{tr('tenant.docs.reviewAndSign')}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity style={[s.btn, s.btnGhost]} onPress={() => open(agreement.fileUrl)} activeOpacity={0.85}>
             <Ionicons name="eye-outline" size={18} color={t.colors.brand} />
-            <Text style={[s.btnText, { color: t.colors.brand }]}>{signed ? 'View signed lease' : 'View document'}</Text>
+            <Text style={[s.btnText, { color: t.colors.brand }]}>{signed ? tr('tenant.docs.viewSigned') : tr('tenant.docs.viewDocument')}</Text>
           </TouchableOpacity>
         </Card>
       ) : (
-        <Card style={{ marginBottom: 12 }}><Text style={s.muted}>Your lease agreement isn’t available yet. It will appear here once your agent sends it.</Text></Card>
+        <Card style={{ marginBottom: 12 }}><Text style={s.muted}>{tr('tenant.docs.notAvailable')}</Text></Card>
       )}
 
       {/* Lease terms summary. */}
       {lease && (
         <>
-          <Text style={s.section}>Lease terms</Text>
+          <Text style={s.section}>{tr('tenant.docs.leaseTerms')}</Text>
           <Card style={{ padding: 4 }}>
-            {rows(lease, money).map(([k, v], idx, arr) => (
+            {rows(tr, lease, money, date).map(([k, v], idx, arr) => (
               <View key={k} style={[s.row, idx === arr.length - 1 && { borderBottomWidth: 0 }]}>
                 <Text style={s.k}>{k}</Text>
                 <Text style={s.v}>{v}</Text>
@@ -87,12 +90,21 @@ export default function DocsScreen() {
   );
 }
 
-function rows(lease: any, money: (n: number) => string): [string, string][] {
+function rows(
+  t: TFunction,
+  lease: any,
+  money: (n: number) => string,
+  date: (v: string) => string,
+): [string, string][] {
   return [
-    ['Monthly rent', money(lease.rentAmount)],
-    ['Billing cycle', lease.billingCycle],
-    ['Start date', lease.startDate],
-    ['End date', lease.endDate || '-'],
+    [t('tenant.docs.row.monthlyRent'), money(lease.rentAmount)],
+    // `billingCycle` is an API enum with no key set on this screen, so it shows
+    // as sent. The `textTransform: 'capitalize'` on the value style was doing
+    // the formatting and does nothing outside the Latin alphabet — flagged in
+    // the Day 6 log rather than guessed at.
+    [t('tenant.docs.row.billingCycle'), lease.billingCycle],
+    [t('tenant.docs.row.startDate'), date(lease.startDate)],
+    [t('tenant.docs.row.endDate'), lease.endDate ? date(lease.endDate) : '-'],
   ];
 }
 

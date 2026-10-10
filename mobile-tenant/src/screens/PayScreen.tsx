@@ -6,10 +6,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
-import { Card, Pill, Button, money, BentoHero, SectionTitle, ListCard, Row, EmptyRow } from '../ui';
+import { Card, Pill, Button, BentoHero, SectionTitle, ListCard, Row, EmptyRow } from '../ui';
+import { useLocale } from '../i18n';
 
 export default function PayScreen() {
   const t = useTheme();
+  const { t: tr, money, date } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [lease, setLease] = useState<any | null>(null);
@@ -21,7 +23,7 @@ export default function PayScreen() {
     try {
       const [inv, la] = await Promise.all([api.myInvoices(), api.myLeaseAgreement().catch(() => null)]);
       setInvoices(inv); setLease(la);
-    } catch (e: any) { Alert.alert('Could not load', e.message); }
+    } catch (e: any) { Alert.alert(tr('tenant.common.couldNotLoad'), e.message); }
     finally { setLoading(false); }
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -34,8 +36,8 @@ export default function PayScreen() {
     try {
       const res = await api.initiatePayment(due.id, 'eft');
       if (res.redirectUrl) await Linking.openURL(res.redirectUrl);
-      else { Alert.alert('Payment started', 'Reference: ' + res.paymentId); await load(); }
-    } catch (e: any) { Alert.alert('Payment failed', e.message); }
+      else { Alert.alert(tr('tenant.common.paymentStartedTitle'), tr('tenant.common.paymentReference', { ref: res.paymentId })); await load(); }
+    } catch (e: any) { Alert.alert(tr('tenant.common.paymentFailed'), e.message); }
     finally { setPaying(false); }
   };
 
@@ -47,9 +49,9 @@ export default function PayScreen() {
     setUploading(true);
     try {
       await api.uploadProof(due.id, { uri: a.uri, name: a.fileName ?? 'proof.jpg', mimeType: a.mimeType ?? 'image/jpeg', file: a.file });
-      Alert.alert('Proof sent', 'Thanks — we’ve received your proof of payment and will confirm it shortly.');
+      Alert.alert(tr('tenant.pay.proofSentTitle'), tr('tenant.pay.proofSentBody'));
       await load();
-    } catch (e: any) { Alert.alert('Upload failed', e.message); }
+    } catch (e: any) { Alert.alert(tr('tenant.pay.uploadFailed'), e.message); }
     finally { setUploading(false); }
   };
 
@@ -57,40 +59,42 @@ export default function PayScreen() {
 
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16, paddingBottom: 130 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
-      <Text style={s.heading}>Payments</Text>
+      <Text style={s.heading}>{tr('tenant.pay.title')}</Text>
 
       {lease && lease.status !== 'signed' && (
         <Card style={{ marginBottom: 16, borderWidth: 1, borderColor: t.colors.brand }}>
-          <Text style={s.section}>Lease agreement</Text>
-          <Text style={s.muted}>Please review and sign your lease agreement before paying your first rent.</Text>
-          <Button label="Review & sign lease" onPress={() => lease.signUrl && Linking.openURL(lease.signUrl)} style={{ marginTop: 12 }} />
+          <Text style={s.section}>{tr('tenant.pay.leaseAgreement')}</Text>
+          <Text style={s.muted}>{tr('tenant.pay.signFirst')}</Text>
+          <Button label={tr('tenant.pay.reviewAndSign')} onPress={() => lease.signUrl && Linking.openURL(lease.signUrl)} style={{ marginTop: 12 }} />
         </Card>
       )}
       {lease && lease.status === 'signed' && (
         <Card style={{ marginBottom: 16 }}>
-          <View style={s.rowBetween}><Text style={s.muted}>Lease agreement</Text><Pill label="Signed" tone="success" /></View>
+          <View style={s.rowBetween}><Text style={s.muted}>{tr('tenant.pay.leaseAgreement')}</Text><Pill label={tr('tenant.pay.signed')} tone="success" /></View>
         </Card>
       )}
 
       <BentoHero
         tone={due ? 'amber' : 'teal'}
-        eyebrow={due ? `${due.period} rent` : 'Rent'}
+        eyebrow={due ? tr('tenant.home.periodRent', { period: due.period }) : tr('tenant.home.rent')}
         value={due ? money(due.total) : money(0)}
-        caption={due ? 'Includes VAT' : 'Nothing outstanding'}
-        chip={due ? `Due ${due.dueDate}` : 'All paid'}
+        caption={due ? tr('tenant.home.includesVat') : tr('tenant.home.nothingOutstanding')}
+        chip={due ? tr('tenant.pay.due', { date: date(due.dueDate) }) : tr('tenant.home.allPaid')}
       >
         {due ? (
           <>
-            <Button label="Pay rent" onPress={pay} busy={paying} style={{ marginTop: 18 }} />
-            <Button label="Upload proof of payment" variant="secondary" onPress={uploadProof} busy={uploading} style={{ marginTop: 10 }} />
+            <Button label={tr('tenant.home.payRent')} onPress={pay} busy={paying} style={{ marginTop: 18 }} />
+            <Button label={tr('tenant.pay.uploadProof')} variant="secondary" onPress={uploadProof} busy={uploading} style={{ marginTop: 10 }} />
           </>
         ) : null}
       </BentoHero>
 
-      <SectionTitle>History</SectionTitle>
+      <SectionTitle>{tr('tenant.pay.history')}</SectionTitle>
       <ListCard>
-        {invoices.length === 0 && <EmptyRow>No invoices yet.</EmptyRow>}
+        {invoices.length === 0 && <EmptyRow>{tr('tenant.pay.noInvoices')}</EmptyRow>}
         {invoices.map((i, idx) => {
+          // An unpaid invoice's status comes from the API and has no catalogue
+          // on this screen, so it shows as sent.
           const isPaid = i.status === 'paid';
           return (
             <Row
@@ -99,7 +103,7 @@ export default function PayScreen() {
               leftIcon={isPaid ? 'checkmark-circle' : 'time-outline'}
               leftTone={isPaid ? 'teal' : 'amber'}
               title={i.period}
-              subtitle={isPaid ? 'Paid' : i.status}
+              subtitle={isPaid ? tr('tenant.pay.paid') : i.status}
               right={money(i.total)}
             />
           );

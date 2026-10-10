@@ -140,7 +140,7 @@ copy of the catalogue.
 Switcher on the tenant settings screen. Device locale is the default when it
 matches a locale we ship.
 
-- [ ] Done
+- [x] Done
 
 ## Day 7 — mobile-landlord
 
@@ -223,3 +223,20 @@ Left, reported not fixed:
 (iv) `/partner/pipeline` still asks for a lost reason with `window.prompt`. The string is translated, but a native dialog cannot be styled or laid out and ignores the page's direction — replacing it with a modal is a UI change this day had no mandate for.
 
 (v) Carried: Day 3's lease `type`/`status` enum is still raw, `/reports`' thousands abbreviation still cannot express a ten-thousands grouping, `/utilities` still has an inline pager duplicating `components/pager.tsx`, and **Day 2's `externalDir` build check is still unverified** — it cannot be done from this session.
+2026-10-10 — Day 6. mobile-tenant. `en.ts` is now 1080 keys (`tenant.*`, namespaced separately from the back-office keys even where the English matches — a tenant and a property manager read about the same thing as different audiences). Both sides typecheck clean; every `tr()`/`tn()` key the app references is confirmed present in `en.ts`.
+
+**The Metro question the day was there to answer: resolved, and with no new dependency.** `mobile-tenant/metro.config.js` (new) sets `watchFolders` to the repo's `shared/` directory only — not the repo root, which would pull web-admin's and the API's `node_modules` into Metro's file map and slow every rebuild — and pins `nodeModulesPaths` to this app's own `node_modules` so a module required from the watched folder cannot resolve a second copy of React. `expo/metro-config` is already a transitive dependency of `expo`, so package.json is untouched. Deliberately NOT a path alias: `@shared/*` would need `babel-plugin-module-resolver`, and the plan says stop rather than add one — so the screens use relative imports (`../../shared/i18n`), which read slightly worse and cost nothing. **Day 7 inherits this answer.**
+
+Two platform differences from web, both forced and both recorded in `src/i18n.tsx` rather than hidden: persistence reuses the SecureStore/localStorage pair `src/api.ts` already uses for the session token (a locale is not a secret and SecureStore is not really its home, but the alternative was adding async-storage); and the device language is read from `Intl.DateTimeFormat().resolvedOptions().locale` rather than `expo-localization`, wrapped so a runtime without Intl falls back to English instead of crashing on first render. Unlike web there is no server render, so the app can start on the device's own language and correct from storage on mount.
+
+Decisions. (1) **Maintenance categories moved to lowercase values.** They were English title-case strings held in state and sent as `category.toLowerCase()`; the stored value is therefore unchanged, but keeping the English strings as state would have meant translating what goes to the server and writing Chinese into ticket records. Categories, priorities and statuses now each have a key set. (2) **`HomeScreen` was choosing the hero's colour by string-comparing a label against `'Overdue'`** — which breaks the moment the label is translated, and would have silently shown a calm hero on an overdue account in Mandarin. Split into a `dueState()` returning a state plus a `dueLabel()` that renders it; the colour now switches on the state. **This was a real latent bug, not a translation artifact.** (3) `src/ui.tsx`'s `money` is deprecated the same way web-admin's is, formatting in the default locale through the shared formatter, because the two unreachable screens still import it. (4) The switcher is chips on the Profile screen rather than a Picker: a Picker needs `@react-native-picker/picker`, and the two shipped locales fit on one row. Each chip is labelled in its own language.
+
+Left, reported not fixed:
+
+(i) **`src/screens/DashboardScreen.tsx` (105 lines) and `src/screens/LeaseScreen.tsx` (54 lines) are imported by nothing.** `MainScreen` hosts Home/Pay/Docs/Profile and `App.tsx` registers only Main, Maintenance, Messages and Login; `DashboardScreen` even navigates to a `'Lease'` route that is not registered. I did **not** translate them — 159 lines of unreachable screens is waste, and translating them would have hidden the fact that they are dead. **Vernon's call: delete them, or wire them back in and they need a sweep.** They are the only remaining importers of the deprecated `money`.
+
+(ii) `lease.billingCycle` on the Documents screen and an unpaid invoice's `status` on the Pay screen are API enums with no key set — shown as sent. The `textTransform: 'capitalize'` on those value styles was doing the formatting and does nothing outside the Latin alphabet. The billing-cycle enum lives in `src/`, which this day's file list does not include.
+
+(iii) **Nothing here has been run.** Typecheck and a key-presence check are not a bundle: whether Metro actually resolves `../../shared/i18n` at runtime needs `npx expo start` in `mobile-tenant`, which this session cannot do (the same sandbox limit that blocks Day 2's `next build`). **If one command gets run by hand before Day 7, it should be that one** — Day 7 copies this exact configuration into the landlord app, so a mistake here doubles.
+
+(iv) Carried: Day 2's `externalDir` check, Day 5's untouched `app/admin/*` and public routes (still needing their own day before Day 9), the leaderboard's hardcoded 26%, and Day 3's lease enum.

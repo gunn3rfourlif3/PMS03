@@ -6,11 +6,13 @@ import { api } from '../api';
 import { useAuth } from '../auth-context';
 import { Branding, useTheme, fontFamily } from '../theme';
 import { Logo, Button, BrandFooter } from '../ui';
+import { useLocale } from '../i18n';
 
 export default function LoginScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { signIn } = useAuth();
+  const { t: tr } = useLocale();
   const [stage, setStage] = useState<'request' | 'verify'>('request');
   const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
@@ -21,13 +23,13 @@ export default function LoginScreen() {
     setBusy(true);
     // setCode('') matters: only the newest challenge is checked server-side, so a
     // stale value left in the field would submit a dead code and burn an attempt.
-    try { await api.requestOtp(destination.trim()); setCode(''); setStage('verify'); Alert.alert('Code sent', `We sent a 6-digit code to ${destination.trim()}.`); }
-    catch (e: any) { Alert.alert('Could not send code', e.message); } finally { setBusy(false); }
+    try { await api.requestOtp(destination.trim()); setCode(''); setStage('verify'); Alert.alert(tr('tenant.login.codeSentTitle'), tr('tenant.login.codeSentBody', { destination: destination.trim() })); }
+    catch (e: any) { Alert.alert(tr('tenant.login.sendFailed'), e.message); } finally { setBusy(false); }
   };
   const verify = async () => {
     setBusy(true);
     try { const { accessToken } = await api.verifyOtp(destination.trim(), code.trim(), remember); await signIn(accessToken); }
-    catch (e: any) { Alert.alert('Sign in failed', e.message); } finally { setBusy(false); }
+    catch (e: any) { Alert.alert(tr('tenant.login.signInFailed'), e.message); } finally { setBusy(false); }
   };
 
   return (
@@ -38,25 +40,25 @@ export default function LoginScreen() {
             <Logo size={54} showName={false} />
           </View>
           <Text style={s.title}>{t.logo.text}</Text>
-          <Text style={s.sub}>{t.tagline ?? 'Sign in to manage your rental'}</Text>
+          <Text style={s.sub}>{t.tagline ?? tr('tenant.login.taglineFallback')}</Text>
 
           {stage === 'request' ? (
             <>
-              <Text style={s.label}>Email or mobile number</Text>
-              <TextInput style={s.input} value={destination} onChangeText={setDestination} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com or +27…" placeholderTextColor={t.colors.muted} />
-              <Text style={s.hint}>We’ll send a code to your email or by SMS. Use +27… for phone numbers.</Text>
-              <Button label="Send code" onPress={request} busy={busy} style={{ marginTop: 8 }} />
+              <Text style={s.label}>{tr('tenant.login.destinationLabel')}</Text>
+              <TextInput style={s.input} value={destination} onChangeText={setDestination} autoCapitalize="none" keyboardType="email-address" placeholder={tr('tenant.login.destinationPlaceholder')} placeholderTextColor={t.colors.muted} />
+              <Text style={s.hint}>{tr('tenant.login.destinationHint')}</Text>
+              <Button label={tr('tenant.login.sendCode')} onPress={request} busy={busy} style={{ marginTop: 8 }} />
             </>
           ) : (
             <>
-              <Text style={s.label}>6-digit code</Text>
-              <TextInput style={s.input} value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} placeholder="123456" placeholderTextColor={t.colors.muted} />
+              <Text style={s.label}>{tr('tenant.login.codeLabel')}</Text>
+              <TextInput style={s.input} value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} placeholder={tr('tenant.login.codePlaceholder')} placeholderTextColor={t.colors.muted} />
               <View style={s.rememberRow}>
                 <Switch value={remember} onValueChange={setRemember} trackColor={{ true: t.colors.brand }} />
-                <Text style={s.rememberLabel}>Remember this device (skip the code next time)</Text>
+                <Text style={s.rememberLabel}>{tr('tenant.login.remember')}</Text>
               </View>
-              <Button label="Verify & sign in" onPress={verify} busy={busy} style={{ marginTop: 8 }} />
-              <Text style={s.link} onPress={() => setStage('request')}>Use a different address</Text>
+              <Button label={tr('tenant.login.verify')} onPress={verify} busy={busy} style={{ marginTop: 8 }} />
+              <Text style={s.link} onPress={() => setStage('request')}>{tr('tenant.login.useDifferent')}</Text>
             </>
           )}
         </View>

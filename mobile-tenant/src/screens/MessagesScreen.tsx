@@ -7,13 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
 import { Card, Pill, Button, hexToRgba } from '../ui';
-
-const when = (d?: string) => (d ? new Date(d).toLocaleString('en-ZA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '');
+import { useLocale } from '../i18n';
 
 type Mode = { view: 'list' } | { view: 'thread'; id: string } | { view: 'new' };
 
 export default function MessagesScreen({ navigation }: any) {
   const t = useTheme();
+  const { t: tr, dateTime } = useLocale();
+  // Was a module-level `toLocaleString('en-ZA', …)`; it needs the active locale,
+  // so it moved inside the component.
+  const when = (d?: string) => (d ? dateTime(d) : '');
   const s = useMemo(() => makeStyles(t), [t]);
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +29,7 @@ export default function MessagesScreen({ navigation }: any) {
 
   const loadList = useCallback(async () => {
     try { setRows(await api.myMessages()); }
-    catch (e: any) { Alert.alert('Error', e.message); }
+    catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); }
     finally { setLoading(false); }
   }, []);
   useFocusEffect(useCallback(() => { loadList(); }, [loadList]));
@@ -34,7 +37,7 @@ export default function MessagesScreen({ navigation }: any) {
   const openThread = async (id: string) => {
     setMode({ view: 'thread', id }); setThread(null);
     try { setThread(await api.messageThread(id)); loadList(); setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 80); }
-    catch (e: any) { Alert.alert('Error', e.message); }
+    catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); }
   };
 
   const send = async () => {
@@ -46,18 +49,18 @@ export default function MessagesScreen({ navigation }: any) {
       setThread(await api.messageThread(mode.id));
       loadList();
       setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 80);
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setBusy(false); }
+    } catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); } finally { setBusy(false); }
   };
 
   const create = async () => {
-    if (!subject.trim() || !draft.trim()) { Alert.alert('Add a subject and message'); return; }
+    if (!subject.trim() || !draft.trim()) { Alert.alert(tr('tenant.messages.needSubjectAndBody')); return; }
     setBusy(true);
     try {
       const c = await api.startConversation(subject.trim(), draft.trim());
       setSubject(''); setDraft('');
       await loadList();
       openThread(c.id);
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setBusy(false); }
+    } catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); } finally { setBusy(false); }
   };
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
@@ -71,14 +74,14 @@ export default function MessagesScreen({ navigation }: any) {
             <TouchableOpacity onPress={() => { setMode({ view: 'list' }); setSubject(''); setDraft(''); }} style={s.back}>
               <Ionicons name="chevron-back" size={22} color={t.colors.brand} />
             </TouchableOpacity>
-            <Text style={s.threadTitle}>New message</Text>
+            <Text style={s.threadTitle}>{tr('tenant.messages.newMessage')}</Text>
           </View>
           <Card style={{ marginTop: 8 }}>
-            <Text style={s.label}>Subject</Text>
-            <TextInput style={s.field} value={subject} onChangeText={setSubject} placeholder="e.g. Leaking tap in kitchen" placeholderTextColor={t.colors.muted} />
-            <Text style={[s.label, { marginTop: 14 }]}>Message</Text>
-            <TextInput style={[s.field, { height: 120, textAlignVertical: 'top' }]} value={draft} onChangeText={setDraft} placeholder="Write your message to the property manager…" placeholderTextColor={t.colors.muted} multiline />
-            <Button label="Send message" onPress={create} busy={busy} style={{ marginTop: 16 }} />
+            <Text style={s.label}>{tr('tenant.messages.subject')}</Text>
+            <TextInput style={s.field} value={subject} onChangeText={setSubject} placeholder={tr('tenant.messages.subjectPlaceholder')} placeholderTextColor={t.colors.muted} />
+            <Text style={[s.label, { marginTop: 14 }]}>{tr('tenant.messages.message')}</Text>
+            <TextInput style={[s.field, { height: 120, textAlignVertical: 'top' }]} value={draft} onChangeText={setDraft} placeholder={tr('tenant.messages.messagePlaceholder')} placeholderTextColor={t.colors.muted} multiline />
+            <Button label={tr('tenant.messages.send')} onPress={create} busy={busy} style={{ marginTop: 16 }} />
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -95,9 +98,9 @@ export default function MessagesScreen({ navigation }: any) {
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={s.threadTitle} numberOfLines={1}>{thread.conversation.subject}</Text>
-            <Text style={s.threadSub}>Property manager</Text>
+            <Text style={s.threadSub}>{tr('tenant.messages.propertyManager')}</Text>
           </View>
-          {thread.conversation.status === 'closed' && <Pill label="closed" tone="muted" />}
+          {thread.conversation.status === 'closed' && <Pill label={tr('tenant.messages.closed')} tone="muted" />}
         </View>
         <ScrollView ref={scroller} style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 20 }}>
           {thread.messages.map((m) => {
@@ -113,7 +116,7 @@ export default function MessagesScreen({ navigation }: any) {
           })}
         </ScrollView>
         <View style={s.composer}>
-          <TextInput style={s.input} value={draft} onChangeText={setDraft} placeholder="Type a message…" placeholderTextColor={t.colors.muted} multiline />
+          <TextInput style={s.input} value={draft} onChangeText={setDraft} placeholder={tr('tenant.messages.replyPlaceholder')} placeholderTextColor={t.colors.muted} multiline />
           <Button label="" icon="send" onPress={send} busy={busy} style={{ paddingHorizontal: 16 }} />
         </View>
       </KeyboardAvoidingView>
@@ -125,10 +128,10 @@ export default function MessagesScreen({ navigation }: any) {
     <View style={s.wrap}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={false} onRefresh={loadList} tintColor={t.colors.brand} />}>
         <View style={s.listHeader}>
-          <Text style={s.heading}>Messages</Text>
+          <Text style={s.heading}>{tr('tenant.messages.title')}</Text>
           <TouchableOpacity onPress={() => setMode({ view: 'new' })} style={[s.newBtn, { backgroundColor: hexToRgba(t.colors.brand, 0.12) }]}>
             <Ionicons name="create-outline" size={16} color={t.colors.brand} />
-            <Text style={{ color: t.colors.brand, fontWeight: '700', fontSize: 13, fontFamily: fontFamily(t) }}>New</Text>
+            <Text style={{ color: t.colors.brand, fontWeight: '700', fontSize: 13, fontFamily: fontFamily(t) }}>{tr('tenant.messages.new')}</Text>
           </TouchableOpacity>
         </View>
         {rows.map((c) => (
@@ -148,7 +151,7 @@ export default function MessagesScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
         {rows.length === 0 && (
-          <Card><Text style={s.preview}>No messages yet. Tap “New” to reach your property manager.</Text></Card>
+          <Card><Text style={s.preview}>{tr('tenant.messages.empty')}</Text></Card>
         )}
       </ScrollView>
     </View>

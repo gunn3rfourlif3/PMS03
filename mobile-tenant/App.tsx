@@ -14,6 +14,7 @@ import { useIdleLogout } from './src/useIdleLogout';
 import { IDLE_TIMEOUT_MINUTES } from './src/config';
 import { AuthContext } from './src/auth-context';
 import { ThemeProvider, useTheme, fontFamily } from './src/theme';
+import { LocaleProvider, useT } from './src/i18n';
 import { Logo, GradientBackground } from './src/ui';
 import LoginScreen from './src/screens/LoginScreen';
 import MainScreen from './src/screens/MainScreen';
@@ -25,6 +26,7 @@ const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background
 
 function Shell() {
   const t = useTheme();
+  const tr = useT();
   const [fontsLoaded] = useFonts({
     ...Ionicons.font,
     PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
@@ -86,8 +88,8 @@ function Shell() {
                     headerRight: () => <Ionicons name="notifications-outline" size={22} color={t.colors.onBrand} />,
                   }}
                 />
-                <Stack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: 'Report an issue' }} />
-                <Stack.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
+                <Stack.Screen name="Maintenance" component={MaintenanceScreen} options={{ title: tr('tenant.nav.maintenanceTitle') }} />
+                <Stack.Screen name="Messages" component={MessagesScreen} options={{ title: tr('tenant.nav.messagesTitle') }} />
               </>
             ) : (
               <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
@@ -103,7 +105,11 @@ function Shell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Shell />
+      {/* Inside ThemeProvider so a themed screen can use both, and outside
+          Shell because Shell itself needs the translator for the stack titles. */}
+      <LocaleProvider>
+        <Shell />
+      </LocaleProvider>
     </ThemeProvider>
   );
 }

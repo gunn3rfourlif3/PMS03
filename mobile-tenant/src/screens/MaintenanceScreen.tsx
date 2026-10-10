@@ -6,20 +6,38 @@ import { useFocusEffect } from '@react-navigation/native';
 import { api } from '../api';
 import { Branding, useTheme, fontFamily } from '../theme';
 import { Card, Pill, Button, BrandFooter } from '../ui';
+import { useLocale } from '../i18n';
+import type { MessageKey, TFunction } from '../../../shared/i18n';
 
-const CATEGORIES = ['Plumbing', 'Electrical', 'Appliance', 'General'];
-const PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+/**
+ * The category values are now LOWERCASE, matching what the API already
+ * received: `submit` used to send `category.toLowerCase()`, so the stored value
+ * is unchanged — only the display moved to the catalogue. Keeping the English
+ * title-case strings as state would have meant translating the value sent to
+ * the server, which would write Chinese into the ticket record.
+ */
+const CATEGORIES = ['plumbing', 'electrical', 'appliance', 'general'] as const;
+const PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
+const STATUSES = ['open', 'assigned', 'resolved', 'closed'] as const;
+
+const categoryLabel = (t: TFunction, c: string): string =>
+  (CATEGORIES as readonly string[]).includes(c) ? t(`tenant.maintenance.category.${c}` as MessageKey) : c;
+const priorityLabel = (t: TFunction, p: string): string =>
+  (PRIORITIES as readonly string[]).includes(p) ? t(`tenant.maintenance.priority.${p}` as MessageKey) : p;
+const statusLabel = (t: TFunction, st: string): string =>
+  (STATUSES as readonly string[]).includes(st) ? t(`tenant.maintenance.status.${st}` as MessageKey) : st;
 
 const statusTone = (s: string): 'brand' | 'danger' | 'success' | 'muted' =>
   s === 'closed' ? 'muted' : s === 'resolved' ? 'success' : s === 'assigned' ? 'brand' : 'danger';
 
 export default function MaintenanceScreen() {
   const t = useTheme();
+  const { t: tr } = useLocale();
   const s = useMemo(() => makeStyles(t), [t]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [unitId, setUnitId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('Plumbing');
+  const [category, setCategory] = useState<string>('plumbing');
   const [priority, setPriority] = useState('medium');
   const [description, setDescription] = useState('');
   const [busy, setBusy] = useState(false);
@@ -28,24 +46,25 @@ export default function MaintenanceScreen() {
     try {
       const [mine, lease] = await Promise.all([api.myTickets(), api.myLease().catch(() => null)]);
       setTickets(mine); setUnitId(lease?.unitId ?? null);
-    } catch (e: any) { Alert.alert('Error', e.message); } finally { setLoading(false); }
+    } catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); } finally { setLoading(false); }
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const submit = async () => {
-    if (!unitId) { Alert.alert('No active lease', 'You need an active lease to report an issue.'); return; }
-    if (!description.trim()) { Alert.alert('Add a description', 'Tell us what needs fixing.'); return; }
+    if (!unitId) { Alert.alert(tr('tenant.maintenance.noLeaseTitle'), tr('tenant.maintenance.noLeaseBody')); return; }
+    if (!description.trim()) { Alert.alert(tr('tenant.maintenance.noDescriptionTitle'), tr('tenant.maintenance.noDescriptionBody')); return; }
     setBusy(true);
     try {
-      await api.createTicket({ unitId, category: category.toLowerCase(), description: description.trim(), priority });
-      setDescription(''); setPriority('medium'); setCategory('Plumbing');
+      // `category` is already the lowercase value the API expects.
+      await api.createTicket({ unitId, category, description: description.trim(), priority });
+      setDescription(''); setPriority('medium'); setCategory('plumbing');
       await load();
-      Alert.alert('Reported', 'Your maintenance request has been logged.');
-    } catch (e: any) { Alert.alert('Could not submit', e.message); } finally { setBusy(false); }
+      Alert.alert(tr('tenant.maintenance.reportedTitle'), tr('tenant.maintenance.reportedBody'));
+    } catch (e: any) { Alert.alert(tr('tenant.maintenance.submitFailed'), e.message); } finally { setBusy(false); }
   };
 
   const approve = async (id: string) => {
-    try { await api.approveTicket(id); await load(); } catch (e: any) { Alert.alert('Error', e.message); }
+    try { await api.approveTicket(id); await load(); } catch (e: any) { Alert.alert(tr('tenant.common.error'), e.message); }
   };
 
   if (loading) return <View style={s.center}><ActivityIndicator color={t.colors.brand} /></View>;
@@ -53,53 +72,53 @@ export default function MaintenanceScreen() {
   return (
     <ScrollView style={s.wrap} contentContainerStyle={{ padding: 16 }} refreshControl={<RefreshControl refreshing={false} onRefresh={load} tintColor={t.colors.brand} />}>
       <Card style={{ marginBottom: 16 }}>
-        <Text style={s.formTitle}>Report an issue</Text>
+        <Text style={s.formTitle}>{tr('tenant.maintenance.title')}</Text>
 
-        <Text style={s.label}>Category</Text>
+        <Text style={s.label}>{tr('tenant.maintenance.category')}</Text>
         <View style={s.chips}>
           {CATEGORIES.map((c) => (
-            <Chip key={c} t={t} label={c} active={category === c} onPress={() => setCategory(c)} />
+            <Chip key={c} t={t} label={categoryLabel(tr, c)} active={category === c} onPress={() => setCategory(c)} />
           ))}
         </View>
 
-        <Text style={s.label}>Priority</Text>
+        <Text style={s.label}>{tr('tenant.maintenance.priority')}</Text>
         <View style={s.chips}>
           {PRIORITIES.map((p) => (
-            <Chip key={p} t={t} label={p} active={priority === p} onPress={() => setPriority(p)} />
+            <Chip key={p} t={t} label={priorityLabel(tr, p)} active={priority === p} onPress={() => setPriority(p)} />
           ))}
         </View>
 
-        <Text style={s.label}>What's wrong?</Text>
+        <Text style={s.label}>{tr('tenant.maintenance.whatsWrong')}</Text>
         <TextInput
           style={s.input}
           value={description}
           onChangeText={setDescription}
-          placeholder="e.g. Kitchen tap is leaking"
+          placeholder={tr('tenant.maintenance.descriptionPlaceholder')}
           placeholderTextColor={t.colors.muted}
           multiline
         />
-        <Button label="Submit request" onPress={submit} busy={busy} style={{ marginTop: 14 }} />
+        <Button label={tr('tenant.maintenance.submit')} onPress={submit} busy={busy} style={{ marginTop: 14 }} />
       </Card>
 
-      <Text style={s.section}>My requests</Text>
+      <Text style={s.section}>{tr('tenant.maintenance.myRequests')}</Text>
       {tickets.map((tk) => (
         <Card key={tk.id} style={{ marginBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
-              <Text style={s.cat}>{tk.category}</Text>
+              <Text style={s.cat}>{categoryLabel(tr, tk.category)}</Text>
               <Text style={s.desc}>{tk.description}</Text>
             </View>
-            <Pill label={tk.status} tone={statusTone(tk.status)} />
+            <Pill label={statusLabel(tr, tk.status)} tone={statusTone(tk.status)} />
           </View>
           {tk.status === 'resolved' && (
             <View style={{ marginTop: 12 }}>
-              <Text style={s.resolvedNote}>Work is done — please confirm to close it out.</Text>
-              <Button label="Approve & close" onPress={() => approve(tk.id)} style={{ marginTop: 10 }} />
+              <Text style={s.resolvedNote}>{tr('tenant.maintenance.resolvedNote')}</Text>
+              <Button label={tr('tenant.maintenance.approveClose')} onPress={() => approve(tk.id)} style={{ marginTop: 10 }} />
             </View>
           )}
         </Card>
       ))}
-      {tickets.length === 0 && <Card><Text style={s.muted}>No requests yet.</Text></Card>}
+      {tickets.length === 0 && <Card><Text style={s.muted}>{tr('tenant.maintenance.noRequests')}</Text></Card>}
       <BrandFooter />
     </ScrollView>
   );

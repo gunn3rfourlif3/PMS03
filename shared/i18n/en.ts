@@ -1178,4 +1178,153 @@ export const en = {
   'partner.manual.back': 'Back to the portal',
   'partner.manual.unavailableTitle': 'The manual is not available on this server.',
   'partner.manual.unavailableBody': 'It is read from {path} at render time. Ask support for a copy.',
+
+  // =========================================================================
+  // mobile-tenant (the tenant app)
+  // =========================================================================
+  // Namespaced `tenant.*` and kept SEPARATE from the back-office keys above
+  // even where the English matches. A tenant and a property manager are
+  // different audiences reading about the same thing — "Paid" on a clerk's
+  // reconciliation screen and "Paid" on a tenant's own invoice may well need
+  // different words, and one shared key would make that impossible to fix.
+
+  'tenant.nav.maintenanceTitle': 'Report an issue',
+  'tenant.nav.messagesTitle': 'Messages',
+
+  // --- Login ---------------------------------------------------------------
+  'tenant.login.taglineFallback': 'Sign in to manage your rental',
+  'tenant.login.destinationLabel': 'Email or mobile number',
+  'tenant.login.destinationPlaceholder': 'you@example.com or +27…',
+  // The +27 example is South Africa's dialling code; a deployment elsewhere
+  // would want its own, which is a config question rather than a translation.
+  'tenant.login.destinationHint': 'We’ll send a code to your email or by SMS. Use +27… for phone numbers.',
+  'tenant.login.sendCode': 'Send code',
+  'tenant.login.codeLabel': '6-digit code',
+  'tenant.login.codePlaceholder': '123456',
+  'tenant.login.remember': 'Remember this device (skip the code next time)',
+  'tenant.login.verify': 'Verify & sign in',
+  'tenant.login.useDifferent': 'Use a different address',
+  'tenant.login.codeSentTitle': 'Code sent',
+  'tenant.login.codeSentBody': 'We sent a 6-digit code to {destination}.',
+  'tenant.login.sendFailed': 'Could not send code',
+  'tenant.login.signInFailed': 'Sign in failed',
+
+  // --- Home ----------------------------------------------------------------
+  'tenant.home.greeting': 'Hi',
+  'tenant.home.greetingNamed': 'Hi {name}',
+  'tenant.home.periodRent': '{period} rent',
+  'tenant.home.rent': 'Rent',
+  'tenant.home.includesVat': 'Includes VAT',
+  'tenant.home.includesVatDue': 'Includes VAT · due {date}',
+  'tenant.home.nothingOutstanding': 'Nothing outstanding',
+  'tenant.home.allPaid': 'All paid',
+  'tenant.home.overdue': 'Overdue',
+  'tenant.home.dueToday': 'Due today',
+  // Counted, via `tn`.
+  'tenant.home.dueIn.one': 'Due in {count} day',
+  'tenant.home.dueIn.other': 'Due in {count} days',
+  'tenant.home.payRent': 'Pay rent',
+  'tenant.home.tile.pay': 'Pay',
+  'tenant.home.tile.payLabel': 'Rent & history',
+  'tenant.home.tile.log': 'Log',
+  'tenant.home.tile.maintenance': 'Maintenance',
+  'tenant.home.tile.lease': 'Lease',
+  'tenant.home.tile.leaseLabel': 'Your documents',
+  'tenant.home.tile.chat': 'Chat',
+  'tenant.home.tile.messages': 'Messages',
+  'tenant.home.recent': 'Recent',
+  'tenant.home.noActivity': 'No recent activity.',
+  'tenant.home.paymentReceived': 'Payment received',
+  'tenant.common.couldNotLoad': 'Could not load',
+  'tenant.common.paymentStartedTitle': 'Payment started',
+  'tenant.common.paymentReference': 'Reference: {ref}',
+  'tenant.common.paymentFailed': 'Payment failed',
+  'tenant.common.error': 'Error',
+
+  // --- Pay -----------------------------------------------------------------
+  'tenant.pay.title': 'Payments',
+  'tenant.pay.leaseAgreement': 'Lease agreement',
+  'tenant.pay.signFirst': 'Please review and sign your lease agreement before paying your first rent.',
+  'tenant.pay.reviewAndSign': 'Review & sign lease',
+  'tenant.pay.signed': 'Signed',
+  'tenant.pay.due': 'Due {date}',
+  'tenant.pay.uploadProof': 'Upload proof of payment',
+  'tenant.pay.proofSentTitle': 'Proof sent',
+  'tenant.pay.proofSentBody': 'Thanks — we’ve received your proof of payment and will confirm it shortly.',
+  'tenant.pay.uploadFailed': 'Upload failed',
+  'tenant.pay.history': 'History',
+  'tenant.pay.noInvoices': 'No invoices yet.',
+  'tenant.pay.paid': 'Paid',
+
+  // --- Documents -----------------------------------------------------------
+  'tenant.docs.title': 'Documents',
+  'tenant.docs.leaseAgreement': 'Lease agreement',
+  'tenant.docs.signedStatus': 'Signed',
+  'tenant.docs.awaitingSignature': 'Awaiting your signature',
+  'tenant.docs.signPill': 'Sign',
+  'tenant.docs.reviewAndSign': 'Review & sign',
+  'tenant.docs.viewSigned': 'View signed lease',
+  'tenant.docs.viewDocument': 'View document',
+  'tenant.docs.notAvailable':
+    'Your lease agreement isn’t available yet. It will appear here once your agent sends it.',
+  'tenant.docs.couldNotOpenTitle': 'Could not open',
+  'tenant.docs.couldNotOpenBody': 'The document link could not be opened.',
+  'tenant.docs.leaseTerms': 'Lease terms',
+  'tenant.docs.row.monthlyRent': 'Monthly rent',
+  'tenant.docs.row.billingCycle': 'Billing cycle',
+  'tenant.docs.row.startDate': 'Start date',
+  'tenant.docs.row.endDate': 'End date',
+
+  // --- Maintenance ---------------------------------------------------------
+  'tenant.maintenance.title': 'Report an issue',
+  'tenant.maintenance.category': 'Category',
+  // The category VALUES are sent to the API; only the display is translated.
+  'tenant.maintenance.category.plumbing': 'Plumbing',
+  'tenant.maintenance.category.electrical': 'Electrical',
+  'tenant.maintenance.category.appliance': 'Appliance',
+  'tenant.maintenance.category.general': 'General',
+  'tenant.maintenance.priority': 'Priority',
+  'tenant.maintenance.priority.low': 'Low',
+  'tenant.maintenance.priority.medium': 'Medium',
+  'tenant.maintenance.priority.high': 'High',
+  'tenant.maintenance.priority.urgent': 'Urgent',
+  'tenant.maintenance.whatsWrong': 'What’s wrong?',
+  'tenant.maintenance.descriptionPlaceholder': 'e.g. Kitchen tap is leaking',
+  'tenant.maintenance.submit': 'Submit request',
+  'tenant.maintenance.noLeaseTitle': 'No active lease',
+  'tenant.maintenance.noLeaseBody': 'You need an active lease to report an issue.',
+  'tenant.maintenance.noDescriptionTitle': 'Add a description',
+  'tenant.maintenance.noDescriptionBody': 'Tell us what needs fixing.',
+  'tenant.maintenance.reportedTitle': 'Reported',
+  'tenant.maintenance.reportedBody': 'Your maintenance request has been logged.',
+  'tenant.maintenance.submitFailed': 'Could not submit',
+  'tenant.maintenance.myRequests': 'My requests',
+  'tenant.maintenance.status.open': 'Open',
+  'tenant.maintenance.status.assigned': 'Assigned',
+  'tenant.maintenance.status.resolved': 'Resolved',
+  'tenant.maintenance.status.closed': 'Closed',
+  'tenant.maintenance.resolvedNote': 'Work is done — please confirm to close it out.',
+  'tenant.maintenance.approveClose': 'Approve & close',
+  'tenant.maintenance.noRequests': 'No requests yet.',
+
+  // --- Messages ------------------------------------------------------------
+  'tenant.messages.title': 'Messages',
+  'tenant.messages.new': 'New',
+  'tenant.messages.newMessage': 'New message',
+  'tenant.messages.subject': 'Subject',
+  'tenant.messages.subjectPlaceholder': 'e.g. Leaking tap in kitchen',
+  'tenant.messages.message': 'Message',
+  'tenant.messages.messagePlaceholder': 'Write your message to the property manager…',
+  'tenant.messages.send': 'Send message',
+  'tenant.messages.needSubjectAndBody': 'Add a subject and message',
+  'tenant.messages.propertyManager': 'Property manager',
+  'tenant.messages.closed': 'closed',
+  'tenant.messages.replyPlaceholder': 'Type a message…',
+  'tenant.messages.empty': 'No messages yet. Tap “New” to reach your property manager.',
+
+  // --- Profile -------------------------------------------------------------
+  'tenant.profile.title': 'Profile',
+  'tenant.profile.nameFallback': 'Tenant',
+  'tenant.profile.signOut': 'Sign out',
+  'tenant.profile.language': 'Language',
 } as const;
