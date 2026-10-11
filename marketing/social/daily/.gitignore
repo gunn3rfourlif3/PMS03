@@ -1,3 +1,9 @@
 out/*.png
 out/.day-*.html
 .transfer.tgz
+
+# The run cursor, not source. It is rewritten every evening, so tracking it
+# made the tree permanently dirty and would have collided with `git pull` on
+# any box that runs the pipeline. render.mjs already treats a missing file as
+# day 0. See README, "Why state.json is not committed".
+state.json

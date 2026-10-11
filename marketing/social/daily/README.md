@@ -54,6 +54,19 @@ without being the same picture thirty times:
 - **No customer counts, testimonials or logo walls.** One agency is live and
   there are no paying customers, so there is nothing true to put there yet.
 
+## Why `state.json` is not committed
+
+It is a cursor, not source: `render.mjs` rewrites it on every scheduled run, so
+tracking it meant the working tree was dirty every single day, and every commit
+unrelated to marketing had to remember to leave it out. Worse, a box that runs
+the pipeline AND pulls — the VPS — would hit `git pull` refusing to overwrite
+its own local change.
+
+It is now ignored and lives only where the pipeline runs. The consequence to
+know: `render.mjs` reads a missing file as day 0, so a fresh clone starts the
+calendar from day 1 again. If you move the pipeline to another machine, copy
+`state.json` across by hand, or pass `--day N` once to resume.
+
 ## Why `out/*.png` is not committed
 
 The images are fully reproducible from `calendar.json` + `render.mjs`, and a
