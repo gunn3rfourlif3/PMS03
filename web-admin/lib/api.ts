@@ -261,6 +261,12 @@ export const api = {
       method: 'PATCH', body: JSON.stringify(patch),
     }),
 
+  /**
+   * Per-unit portfolio state for the god's-eye view. RLS scopes it to the
+   * caller's agency. `asOf` fixes the date the state is judged against.
+   */
+  portfolioState: (asOf?: string) =>
+    req(`/reporting/portfolio-state${asOf ? `?asOf=${encodeURIComponent(asOf)}` : ''}`),
   rentRoll: () => req('/reporting/rent-roll'),
   arrears: () => req('/reporting/arrears'),
   collection: (period: string) => req(`/reporting/collection/${period}`),

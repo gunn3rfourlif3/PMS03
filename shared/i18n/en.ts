@@ -50,6 +50,7 @@ export const en = {
   'nav.agents': 'Agents',
   'nav.providers': 'Providers',
   'nav.reports': 'Reports',
+  'nav.godsEye': 'Portfolio map',
   'nav.documents': 'Documents',
   'nav.inspections': 'Inspections',
   'nav.utilities': 'Utilities',
@@ -1466,4 +1467,10 @@ export const en = {
   // Entry points added so the two screens are actually reachable.
   'tenant.docs.viewFullLease': 'View full lease details',
   'tenant.profile.accountOverview': 'Account overview',
+
+  // --- God's-eye portfolio view -------------------------------------------
+  // The nav label is deliberately plain: agencies and their staff see this
+  // surface, and "god's eye" is our name for the feature, not theirs.
+  'godsEye.title': 'Portfolio map',
+  'godsEye.subtitle': 'Every unit, worst condition first. Click a unit for detail.',
 } as const;

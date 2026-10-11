@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { collectionRate } from './reporting-calc';
+import {
+  PortfolioUnit,
+  PortfolioUnitRow,
+  PortfolioSummary,
+  deriveUnitState,
+  summarisePortfolio,
+} from './portfolio-state';
 
 /**
  * Read-only management reports. All queries run through the request's RLS-scoped
@@ -104,5 +111,108 @@ export class ReportingService {
     const billed = Number(rows[0]?.billed ?? 0);
     const collected = Number(rows[0]?.collected ?? 0);
     return { period, billed, collected, collectionRate: collectionRate(billed, collected) };
+  }
+
+  /**
+   * One row per unit with everything the god's-eye view paints: occupancy, the
+   * live lease, arrears age, open tickets and the last completed inspection.
+   *
+   * RLS scopes this to the caller's agency, so the result is one agency's whole
+   * portfolio — there is no cross-vendor variant by design.
+   *
+   * `outstanding` sums the TOTAL of unpaid invoices, which overstates a
+   * `partly_paid` one. That matches `arrearsAging()` and `rentRoll()`
+   * deliberately: three reports agreeing on a known simplification beats one
+   * of them quietly disagreeing. Fixing it properly means allocating payments
+   * against invoices, which is a change to all three at once.
+   *
+   * `today` is resolved once here and passed into the pure deriver so every
+   * unit in one response is judged against the same date.
+   */
+  async portfolioState(
+    today?: string,
+  ): Promise<{ asOf: string; summary: PortfolioSummary; units: PortfolioUnit[] }> {
+    const asOf = today ?? new Date().toISOString().slice(0, 10);
+
+    const rows: Record<string, unknown>[] = await this.tenant.getManager().query(`
+      SELECT
+        u.id                          AS "unitId",
+        u.property_id                 AS "propertyId",
+        p.name                        AS "propertyName",
+        u.label                       AS "label",
+        u.status                      AS "unitStatus",
+        l.id                          AS "leaseId",
+        l.status                      AS "leaseStatus",
+        to_char(l.end_date, 'YYYY-MM-DD')          AS "leaseEndDate",
+        l.tenant_id                   AS "tenantId",
+        COALESCE(l.rent_amount, 0)    AS "rentAmount",
+        COALESCE(inv.outstanding, 0)  AS "outstanding",
+        COALESCE(inv.max_days_overdue, 0)          AS "maxDaysOverdue",
+        COALESCE(tk.open_tickets, 0)  AS "openTickets",
+        COALESCE(tk.urgent_tickets, 0)             AS "urgentTickets",
+        to_char(insp.last_inspection_on, 'YYYY-MM-DD') AS "lastInspectionOn"
+      FROM units u
+      JOIN properties p ON p.id = u.property_id AND p.deleted_at IS NULL
+      LEFT JOIN LATERAL (
+        SELECT l2.id, l2.status, l2.end_date, l2.tenant_id, l2.rent_amount
+          FROM leases l2
+         WHERE l2.unit_id = u.id
+           AND l2.deleted_at IS NULL
+           AND l2.status IN ('active', 'ending')
+         ORDER BY l2.start_date DESC
+         LIMIT 1
+      ) l ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(i.total), 0) AS outstanding,
+               COALESCE(MAX(GREATEST(CURRENT_DATE - i.due_date, 0)), 0) AS max_days_overdue
+          FROM invoices i
+         WHERE i.lease_id = l.id
+           AND i.status IN ('issued', 'partly_paid', 'overdue')
+      ) inv ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*) FILTER (WHERE t.status IN ('open', 'assigned')) AS open_tickets,
+               COUNT(*) FILTER (WHERE t.status IN ('open', 'assigned')
+                                  AND t.priority = 'urgent')           AS urgent_tickets
+          FROM tickets t
+         WHERE t.unit_id = u.id
+           AND t.deleted_at IS NULL
+      ) tk ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT MAX(i2.conducted_on) AS last_inspection_on
+          FROM inspections i2
+         WHERE i2.unit_id = u.id
+           AND i2.deleted_at IS NULL
+           AND i2.status IN ('completed', 'signed_off')
+      ) insp ON TRUE
+      WHERE u.deleted_at IS NULL
+      ORDER BY p.name, u.label;
+    `);
+
+    // pg returns numeric columns as strings; coerce before the pure deriver so
+    // the rules never compare a string to a number.
+    const units = rows.map((r) =>
+      deriveUnitState(
+        {
+          unitId: String(r.unitId),
+          propertyId: String(r.propertyId),
+          propertyName: String(r.propertyName ?? ''),
+          label: String(r.label ?? ''),
+          unitStatus: String(r.unitStatus ?? 'vacant'),
+          leaseId: (r.leaseId as string | null) ?? null,
+          leaseStatus: (r.leaseStatus as string | null) ?? null,
+          leaseEndDate: (r.leaseEndDate as string | null) ?? null,
+          tenantId: (r.tenantId as string | null) ?? null,
+          rentAmount: Number(r.rentAmount ?? 0),
+          outstanding: Number(r.outstanding ?? 0),
+          maxDaysOverdue: Number(r.maxDaysOverdue ?? 0),
+          openTickets: Number(r.openTickets ?? 0),
+          urgentTickets: Number(r.urgentTickets ?? 0),
+          lastInspectionOn: (r.lastInspectionOn as string | null) ?? null,
+        } satisfies PortfolioUnitRow,
+        asOf,
+      ),
+    );
+
+    return { asOf, summary: summarisePortfolio(units), units };
   }
 }

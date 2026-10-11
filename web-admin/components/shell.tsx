@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck , Gauge } from 'lucide-react';
+import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck , Gauge, Globe2 } from 'lucide-react';
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import IdleTimeout from './idle-timeout';
@@ -30,6 +30,7 @@ const NAV: readonly NavItem[] = [
   { href: '/owners', key: 'nav.owners', icon: Users },
   { href: '/agents', key: 'nav.agents', icon: Handshake },
   { href: '/providers', key: 'nav.providers', icon: Wrench },
+  { href: '/gods-eye', key: 'nav.godsEye', icon: Globe2 },
   { href: '/reports', key: 'nav.reports', icon: BarChart3 },
   { href: '/documents', key: 'nav.documents', icon: FileText },
   { href: '/inspections', key: 'nav.inspections', icon: ClipboardCheck },

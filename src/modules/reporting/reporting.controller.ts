@@ -1,8 +1,13 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ReportingService } from './reporting.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
+
+/** Reject anything that is not a plain 'YYYY-MM-DD' rather than passing it on. */
+function isIsoDate(v?: string): v is string {
+  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
+}
 
 @Controller('reporting')
 export class ReportingController {
@@ -25,6 +30,18 @@ export class ReportingController {
   @Get('arrears')
   arrears() {
     return this.service.arrearsAging();
+  }
+
+  /**
+   * Per-unit portfolio state for the god's-eye view. RLS keeps it to the
+   * caller's own agency. `?asOf=YYYY-MM-DD` fixes the date the state is judged
+   * against, so a recorded scene replays identically.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @Get('portfolio-state')
+  portfolioState(@Query('asOf') asOf?: string) {
+    return this.service.portfolioState(isIsoDate(asOf) ? asOf : undefined);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
