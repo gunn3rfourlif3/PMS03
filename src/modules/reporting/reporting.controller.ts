@@ -4,9 +4,16 @@ import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@modules/auth/roles.guard';
 import { Roles } from '@modules/auth/roles.decorator';
 
-/** Reject anything that is not a plain 'YYYY-MM-DD' rather than passing it on. */
+/**
+ * Reject anything that is not a real 'YYYY-MM-DD' rather than passing it on.
+ * The shape check alone is not enough: `Date.parse('2026-02-29T00:00:00Z')`
+ * rolls over to 1 March instead of failing, so an impossible date would be
+ * accepted and quietly answer for a different day. Round-trip to catch it.
+ */
 function isIsoDate(v?: string): v is string {
-  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`));
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const d = new Date(`${v}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
 }
 
 @Controller('reporting')

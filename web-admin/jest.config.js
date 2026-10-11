@@ -8,7 +8,11 @@
 module.exports = {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
-  testMatch: ['<rootDir>/components/**/*.spec.tsx', '<rootDir>/lib/**/*.spec.ts'],
+  testMatch: [
+    '<rootDir>/components/**/*.spec.tsx',
+    '<rootDir>/components/**/*.spec.ts',
+    '<rootDir>/lib/**/*.spec.ts',
+  ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '\\.(css|scss)$': '<rootDir>/jest.style-stub.js',

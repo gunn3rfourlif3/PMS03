@@ -11,7 +11,7 @@
  * table view behind a toggle. Colour is never the only carrier of state.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/cn';
 import {
   FAMILY_LABEL,
@@ -23,6 +23,7 @@ import {
   describeUnit,
   groupByProperty,
 } from './state';
+import type { ViewMode } from './view-state';
 
 export interface GridProps {
   units: PortfolioUnit[];
@@ -32,6 +33,12 @@ export interface GridProps {
   /** Active state filter; null shows everything. */
   filter: UnitState | null;
   onFilter: (state: UnitState | null) => void;
+  /**
+   * Grid or table. Held by the page rather than here, because it is part of the
+   * shareable view state — a link that says "table" has to open as a table.
+   */
+  mode: ViewMode;
+  onMode: (mode: ViewMode) => void;
 }
 
 /** A legend swatch that doubles as the state filter. */
@@ -203,8 +210,9 @@ export default function HaloGrid({
   onSelect,
   filter,
   onFilter,
+  mode,
+  onMode,
 }: GridProps) {
-  const [view, setView] = useState<'grid' | 'table'>('grid');
 
   const shown = useMemo(
     () => (filter ? units.filter((u) => u.state === filter) : units),
@@ -233,11 +241,11 @@ export default function HaloGrid({
             <button
               key={v}
               type="button"
-              onClick={() => setView(v)}
-              aria-pressed={view === v}
+              onClick={() => onMode(v)}
+              aria-pressed={mode === v}
               className={cn(
                 'rounded-full px-3 py-1 text-xs capitalize transition',
-                view === v ? 'bg-[var(--ink)] text-white' : 'text-[var(--muted)] hover:text-[var(--ink)]',
+                mode === v ? 'bg-[var(--ink)] text-white' : 'text-[var(--muted)] hover:text-[var(--ink)]',
               )}
             >
               {v}
@@ -250,7 +258,7 @@ export default function HaloGrid({
         <p className="py-8 text-center text-sm text-[var(--muted)]">
           No units in this state.
         </p>
-      ) : view === 'table' ? (
+      ) : mode === 'table' ? (
         <TableView units={tableRows} onSelect={onSelect} />
       ) : (
         <div className="flex flex-col gap-6">
