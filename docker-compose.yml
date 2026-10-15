@@ -15,5 +15,13 @@ services:
     image: redis:7-alpine
     ports:
       - "6380:6379"
+  # Catches every outbound email so a demo can show a real inbox on screen
+  # instead of an OTP read off the API log. 1025 = SMTP, 8025 = web inbox.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 volumes:
   pgdata:
