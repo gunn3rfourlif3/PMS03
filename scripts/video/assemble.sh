@@ -77,6 +77,11 @@ SETTLE="${VIDEO_SETTLE:-1.0}"
 VO_DIR="${VIDEO_VO_DIR:-docs/video/vo}"
 VO_PAD="${VIDEO_VO_PAD:-0.7}"
 
+# Every encode pins -pix_fmt yuv420p. The Playwright captures are RGB, so x264
+# otherwise picks yuv444p and emits High 4:4:4 Predictive — which no browser can
+# decode. It plays fine in VLC, so it ships looking correct and fails only in a
+# <video> tag. That is what broke locare.co.za/demo from Aug to Oct 2026.
+
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found — install it first"; exit 1; }
 [ -d "$RAW" ] || { echo "no clips in $RAW — run: node scripts/video/record.mjs"; exit 1; }
 
@@ -105,17 +110,17 @@ for f in "$RAW"/*.webm; do
     # whole job of the background here.
     ffmpeg -y -loglevel error -i "$f" \
       -vf "scale=-2:1080,pad=1920:1080:(ow-iw)/2:0:color=0x15161b,fps=30,format=yuv420p" \
-      -an -c:v libx264 -preset veryfast -crf 20 "$RAW/norm/$base.mp4"
+      -an -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "$RAW/norm/$base.mp4"
 
     # Also keep a native 1080x1920 copy for the vertical app cuts.
     mkdir -p "$RAW/vert"
     ffmpeg -y -loglevel error -i "$f" \
       -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=30,format=yuv420p" \
-      -an -c:v libx264 -preset veryfast -crf 20 "$RAW/vert/$base.mp4"
+      -an -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "$RAW/vert/$base.mp4"
   else
     ffmpeg -y -loglevel error -i "$f" \
       -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0x15161b,fps=30,format=yuv420p" \
-      -an -c:v libx264 -preset veryfast -crf 20 "$RAW/norm/$base.mp4"
+      -an -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "$RAW/norm/$base.mp4"
   fi
 done
 
@@ -164,7 +169,7 @@ x=1920-text_w-96:y=${VH}+(${BAND}-text_h)/2"
   fi
 
   ffmpeg -y -loglevel error -i "$in" -vf "$layers" \
-    -c:v libx264 -preset veryfast -crf 20 -an "$out"
+    -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -an "$out"
 }
 
 vo_count=$(ls "$VO_DIR"/*.wav 2>/dev/null | wc -l | tr -d ' ')
@@ -264,7 +269,7 @@ line_spacing=10:x=64:y=${VH}+80"
   fi
 
   ffmpeg -y -loglevel error -i "$in" -vf "$layers" \
-    -c:v libx264 -preset veryfast -crf 20 -an "$out"
+    -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -an "$out"
 }
 
 if [ -d "$RAW/vert" ]; then
@@ -341,7 +346,7 @@ build() {
     i=$((i+1))
     local out="$seg/$(printf '%02d' $i)-$id.mp4"
     ffmpeg -y -loglevel error -i "$src" -ss "$ss" -t "$dur" \
-      -c:v libx264 -preset veryfast -crf 20 -an "$out"
+      -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -an "$out"
     echo "file '$(cd "$seg" && pwd)/$(basename "$out")'" >> "$list"
 
     # Use the segment's REAL length, not the requested one, to place narration.
@@ -385,7 +390,7 @@ build() {
     done < "$list"
     filter="${filter%;}"
     ffmpeg -y -loglevel error "${args[@]}" -filter_complex "$filter" -map "[${prev}]" \
-      -c:v libx264 -preset veryfast -crf 20 -an "$OUT/$name-silent.mp4"
+      -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -an "$OUT/$name-silent.mp4"
   fi
 
   # ── audio: narration first, music underneath ──────────────────────────────
@@ -413,21 +418,25 @@ build() {
 [${vocount}:a]volume=-18dB,atrim=0:${total},afade=t=out:st=${fade}:d=2[bed];\
 [vo][bed]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]" \
         -map "$((vocount+1)):v" -map "[a]" -t "$total" \
-        -c:v copy -c:a aac -b:a 192k "$OUT/$name.mp4"
+        -c:v copy -movflags +faststart -c:a aac -b:a 192k "$OUT/$name.mp4"
     else
       ffmpeg -y -loglevel error "${voargs[@]}" -i "$OUT/$name-silent.mp4" \
         -filter_complex "${vofilter}${mixin}amix=inputs=${vocount}:normalize=0,alimiter=limit=0.95[a]" \
         -map "${vocount}:v" -map "[a]" -t "$total" \
-        -c:v copy -c:a aac -b:a 192k "$OUT/$name.mp4"
+        -c:v copy -movflags +faststart -c:a aac -b:a 192k "$OUT/$name.mp4"
     fi
     rm -f "$OUT/$name-silent.mp4"
   elif [ -f "$MUSIC" ]; then
     ffmpeg -y -loglevel error -i "$OUT/$name-silent.mp4" -stream_loop -1 -i "$MUSIC" \
       -filter_complex "[1:a]volume=-12dB,atrim=0:${total},afade=t=out:st=${fade}:d=2[a]" \
-      -map 0:v -map "[a]" -t "$total" -c:v copy -c:a aac -b:a 160k "$OUT/$name.mp4"
+      -map 0:v -map "[a]" -t "$total" -c:v copy -movflags +faststart -c:a aac -b:a 160k "$OUT/$name.mp4"
     rm -f "$OUT/$name-silent.mp4"
   else
-    mv "$OUT/$name-silent.mp4" "$OUT/$name.mp4"
+    # Remux rather than rename: faststart puts moov ahead of mdat, so a browser
+    # can start playing without a second range request to the end of the file.
+    ffmpeg -y -loglevel error -i "$OUT/$name-silent.mp4" \
+      -c copy -movflags +faststart "$OUT/$name.mp4"
+    rm -f "$OUT/$name-silent.mp4"
   fi
 
   printf "  → %-22s %5.1fs\n" "$name.mp4" "$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUT/$name.mp4")"
@@ -533,9 +542,9 @@ build "locare-15s" \
 # so they survive a 1:1 crop; the 9:16 pad keeps them clear of platform UI.
 echo "cropping social versions…"
 ffmpeg -y -loglevel error -i "$OUT/locare-15s.mp4" \
-  -vf "crop=1080:1080:(iw-1080)/2:0" -c:a copy "$OUT/locare-15s-square.mp4"
+  -vf "crop=1080:1080:(iw-1080)/2:0" -pix_fmt yuv420p -c:a copy "$OUT/locare-15s-square.mp4"
 ffmpeg -y -loglevel error -i "$OUT/locare-15s.mp4" \
-  -vf "scale=1080:-2,pad=1080:1920:0:(oh-ih)/2:color=0x15161b" -c:a copy "$OUT/locare-15s-vertical.mp4"
+  -vf "scale=1080:-2,pad=1080:1920:0:(oh-ih)/2:color=0x15161b" -pix_fmt yuv420p -c:a copy "$OUT/locare-15s-vertical.mp4"
 
 echo
 echo "done — files in $OUT:"
