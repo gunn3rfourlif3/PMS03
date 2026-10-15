@@ -349,8 +349,25 @@ async function main() {
       const start = new Date(today);
       start.setMonth(start.getMonth() - Math.floor(rnd() * 24));
       start.setDate(1);
+
+      // The CURRENT term's end, not the first term's. A 12-month lease whose
+      // term has run out gets renewed by a real agency; leaving it expired made
+      // HALF the book `lease_expired` on the day it was seeded, because starts
+      // are spread over 24 months and the term is 12. That drowned the
+      // portfolio map — every unit carried a flag and nothing could recede.
+      // A deliberate few are left as holdovers, which is the case the state
+      // exists to catch.
       const end = new Date(start);
       end.setMonth(end.getMonth() + 12);
+      if (end <= today) {
+        if (rnd() < 0.08) {
+          // Holdover: expired, but recently — an agency that let one lapse,
+          // not one that has not papered a tenancy in two years.
+          end.setTime(today.getTime() - Math.floor(rnd() * 90 + 1) * 86400000);
+        } else {
+          while (end <= today) end.setFullYear(end.getFullYear() + 1);
+        }
+      }
       await q(
         `INSERT INTO leases (vendor_id,unit_id,tenant_id,type,status,start_date,end_date,rent_amount,billing_cycle)
          VALUES ($1,$2,$3,'fixed','active',$4,$5,$6,'monthly')`,
@@ -360,6 +377,49 @@ async function main() {
     }
   }
 
+
+  // ----------------------------- Inspections -------------------------------
+  // Nothing seeded inspections before this, so `MAX(conducted_on)` was null for
+  // every unit and the portfolio map flagged all 470 tenancies
+  // `inspection_never`. An agency that has traded for a year has inspected most
+  // of its stock; the ones it has not are the finding worth surfacing.
+  {
+    const leasesForInspection: Array<{ id: string; unit_id: string }> = await q(
+      `SELECT l.id, l.unit_id FROM leases l
+        WHERE l.vendor_id=$1 AND l.status='active'
+          AND NOT EXISTS (SELECT 1 FROM inspections i WHERE i.unit_id = l.unit_id AND i.vendor_id = $1)
+        ORDER BY l.unit_id`,
+      [V],
+    );
+    let inspected = 0;
+    for (const l of leasesForInspection) {
+      const roll = rnd();
+      // 5% never inspected, 10% gone stale past the 365-day cadence, the rest current.
+      if (roll < 0.05) continue;
+      const daysAgo =
+        roll < 0.15
+          ? 400 + Math.floor(rnd() * 300)
+          : 25 + Math.floor(rnd() * 330);
+      const conducted = new Date(today.getTime() - daysAgo * 86400000);
+      await q(
+        `INSERT INTO inspections (vendor_id,unit_id,lease_id,type,status,checklist,tenant_signoff,conducted_on)
+         VALUES ($1,$2,$3,'periodic','signed_off',$4::jsonb,true,$5)`,
+        [
+          V,
+          l.unit_id,
+          l.id,
+          JSON.stringify([
+            { area: 'Kitchen', condition: 'good' },
+            { area: 'Bathroom', condition: 'good' },
+            { area: 'Living area', condition: 'fair' },
+          ]),
+          isoDate(conducted),
+        ],
+      );
+      inspected++;
+    }
+    if (inspected) console.log(`  inspections: ${inspected} recorded`);
+  }
 
   // ======================= Day 2: history and story =======================
   // VAT, as `src/providers/policy/za/za-vat.tax.ts` defines it. Rent is treated

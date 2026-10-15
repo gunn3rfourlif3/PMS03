@@ -11,6 +11,7 @@ const full: ViewState = {
   asOf: '2026-06-30',
   filter: 'arrears_90_plus',
   mode: 'table',
+  property: 'c0ffee00-0000-4000-8000-000000000002',
   selected: 'a1b2c3d4-0000-4000-8000-000000000001',
 };
 
@@ -31,6 +32,7 @@ describe('encodeViewState', () => {
     expect(p.get('asOf')).toBe('2026-06-30');
     expect(p.get('state')).toBe('arrears_90_plus');
     expect(p.get('mode')).toBe('table');
+    expect(p.get('property')).toBe(full.property);
     expect(p.get('unit')).toBe(full.selected);
   });
 
@@ -45,6 +47,7 @@ describe('encodeViewState', () => {
       asOf: '30-06-2026',
       filter: 'not_a_state' as any,
       mode: 'grid',
+      property: 'has spaces too',
       selected: 'has spaces',
     });
     expect(q).toBe('');

@@ -5,6 +5,11 @@
  * property. Ported from God's Eye View's detection overlay — the point of that
  * feature is that you see every object's state at once without reading a table.
  *
+ * SCOPE: ONE PROPERTY. The page hands this the units of the property the
+ * operator opened, not the whole portfolio. Five hundred tiles cannot be read —
+ * ninety-six can be counted by eye. "Which property" is answered one level up,
+ * by `rollup.tsx`.
+ *
  * Accessibility is not an afterthought here: 500 coloured squares are useless
  * to a screen reader, so each tile is a real <button> with a sentence-long
  * aria-label, carries a text code as well as a colour, and the whole grid has a
@@ -109,7 +114,17 @@ function Legend({
   );
 }
 
-/** One unit tile. 2px gap between fills so adjacent states never bleed together. */
+/**
+ * One unit tile. 2px gap between fills so adjacent states never bleed together.
+ *
+ * NO LABEL ON THE TILE. `unit.label` is the full "Masquerade Heights 1106", and
+ * a 44px box cannot hold it — `truncate` needs a width to bite against, and
+ * inside a centred grid track there is none, so every tile painted its name
+ * across its neighbours and the whole grid became unreadable. Identity is in
+ * the tooltip, the aria-label and the detail panel, which is where someone
+ * looks when they want to know WHICH unit. The tile answers WHAT KIND, and the
+ * code is now centred at a size that can actually be read.
+ */
 function Tile({
   unit,
   selected,
@@ -128,20 +143,13 @@ function Tile({
       aria-pressed={selected}
       title={describeUnit(unit)}
       className={cn(
-        'relative grid h-11 w-11 place-items-center rounded-lg text-[10px] font-bold leading-tight transition',
+        'grid h-11 w-11 place-items-center rounded-lg text-[11px] font-bold leading-none transition',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] focus-visible:ring-offset-1',
         selected && 'ring-2 ring-[var(--ink)] ring-offset-1',
       )}
       style={{ background: s.bg, color: s.fg }}
     >
-      <span className="truncate px-1" aria-hidden>
-        {unit.label}
-      </span>
-      {s.code && (
-        <span aria-hidden className="absolute right-0.5 top-0.5 text-[8px] opacity-80">
-          {s.code}
-        </span>
-      )}
+      <span aria-hidden>{s.code}</span>
     </button>
   );
 }

@@ -1472,5 +1472,12 @@ export const en = {
   // The nav label is deliberately plain: agencies and their staff see this
   // surface, and "god's eye" is our name for the feature, not theirs.
   'godsEye.title': 'Portfolio map',
-  'godsEye.subtitle': 'Every unit, worst condition first. Click a unit for detail.',
+  'godsEye.subtitle': 'Where the portfolio needs attention. Open a property for its units.',
+  'godsEye.allProperties': 'All properties',
+  'godsEye.byProperty': 'By property',
+  'godsEye.byPropertyHint': 'Each bar is that property’s units, by the kind of problem. Open a property for its unit grid.',
+  'godsEye.unitsInProperty': 'units',
+  'godsEye.inArrears': 'in arrears',
+  'godsEye.backToPortfolio': 'Back to all properties',
+  'godsEye.nothingOutstanding': 'Nothing outstanding',
 } as const;

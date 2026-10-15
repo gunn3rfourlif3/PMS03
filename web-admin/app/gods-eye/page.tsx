@@ -4,6 +4,11 @@
  * God's-eye view — the whole portfolio on one screen, every unit's worst
  * condition visible at a glance.
  *
+ * TWO LEVELS, NOT ONE. The roll-up (`rollup.tsx`) is the default and answers
+ * "which property"; opening one hands its units to the grid, which answers
+ * "which unit". One view trying to do both meant five hundred 44px tiles, and
+ * at that size nothing can be counted, compared or read.
+ *
  * Scope: ONE agency. `/reporting/portfolio-state` runs under RLS, so this is
  * the caller's own portfolio and there is no cross-agency variant by design —
  * a platform-wide roll-up would mean querying past tenant isolation.
@@ -19,13 +24,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Check, CircleAlert, Link2, RefreshCw, Wrench } from 'lucide-react';
+import { ArrowLeft, Building2, Check, CircleAlert, Link2, RefreshCw, Wrench } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { BentoTile, Button, Donut, GlassCard, PageHeader } from '@/components/ui';
 import { useLocale } from '@/components/locale-provider';
 import HaloGrid from '@/components/gods-eye/grid';
+import Rollup from '@/components/gods-eye/rollup';
 import UnitPanel from '@/components/gods-eye/unit-panel';
-import type { PortfolioState } from '@/components/gods-eye/state';
+import { STATE_STYLE, type PortfolioState, type UnitState } from '@/components/gods-eye/state';
 import {
   DEFAULT_VIEW_STATE,
   ViewState,
@@ -97,6 +103,27 @@ export default function GodsEyePage() {
     () => data?.units.find((u) => u.unitId === view.selected) ?? null,
     [data, view.selected],
   );
+
+  const propertyUnits = useMemo(
+    () => (view.property ? (data?.units.filter((u) => u.propertyId === view.property) ?? []) : []),
+    [data, view.property],
+  );
+
+  /**
+   * A link naming a property that is no longer in the payload falls back to the
+   * roll-up rather than an empty grid — the same rule `view-state.ts` follows
+   * for every other field: a stale link opens the portfolio, not an error.
+   */
+  const inProperty = view.property !== null && propertyUnits.length > 0;
+
+  /** The legend counts belong to the property on screen, not the whole book. */
+  const propertyByState = useMemo(() => {
+    const out = Object.fromEntries(
+      (Object.keys(STATE_STYLE) as UnitState[]).map((k) => [k, 0]),
+    ) as Record<UnitState, number>;
+    for (const u of propertyUnits) out[u.state] += 1;
+    return out;
+  }, [propertyUnits]);
 
   const copyLink = async () => {
     const url = `${window.location.origin}${viewStateUrl(PATH, view)}`;
@@ -180,16 +207,47 @@ export default function GodsEyePage() {
             </p>
           ) : (
             <>
-              <HaloGrid
-                units={data.units}
-                byState={data.summary.byState}
-                selectedId={view.selected}
-                onSelect={(u) => setView((v) => ({ ...v, selected: u.unitId }))}
-                filter={view.filter}
-                onFilter={(filter) => setView((v) => ({ ...v, filter, selected: null }))}
-                mode={view.mode}
-                onMode={(mode) => setView((v) => ({ ...v, mode }))}
-              />
+              {inProperty ? (
+                <>
+                  <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setView((v) => ({ ...v, property: null, selected: null }))
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--line)] px-3 py-1.5 text-xs transition hover:border-[var(--muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)]"
+                    >
+                      <ArrowLeft aria-hidden size={14} />
+                      {t('godsEye.backToPortfolio')}
+                    </button>
+                    <h2 className="text-base font-semibold">
+                      {propertyUnits[0].propertyName}{' '}
+                      <span className="font-normal text-[var(--muted)]">
+                        ({propertyUnits.length})
+                      </span>
+                    </h2>
+                  </div>
+                  <HaloGrid
+                    units={propertyUnits}
+                    byState={propertyByState}
+                    selectedId={view.selected}
+                    onSelect={(u) => setView((v) => ({ ...v, selected: u.unitId }))}
+                    filter={view.filter}
+                    onFilter={(filter) => setView((v) => ({ ...v, filter, selected: null }))}
+                    mode={view.mode}
+                    onMode={(mode) => setView((v) => ({ ...v, mode }))}
+                  />
+                </>
+              ) : (
+                <Rollup
+                  units={data.units}
+                  money={money}
+                  t={t}
+                  onOpen={(propertyId) =>
+                    setView((v) => ({ ...v, property: propertyId, selected: null }))
+                  }
+                />
+              )}
               <p className="mt-4 text-[11px] text-[var(--muted)]">
                 State as at {data.asOf}
                 {view.asOf ? ' (fixed by this link)' : ''}. Every unit is judged against the same

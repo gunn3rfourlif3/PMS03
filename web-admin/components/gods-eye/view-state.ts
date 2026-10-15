@@ -28,6 +28,12 @@ export interface ViewState {
   /** Active state filter, or null for everything. */
   filter: UnitState | null;
   mode: ViewMode;
+  /**
+   * The property being looked at, or null for the portfolio roll-up. The
+   * roll-up is the default view, so a link with no `property` opens on the ten
+   * properties rather than five hundred units.
+   */
+  property: string | null;
   /** Selected unit id, or null. */
   selected: string | null;
 }
@@ -36,6 +42,7 @@ export const DEFAULT_VIEW_STATE: ViewState = {
   asOf: undefined,
   filter: null,
   mode: 'grid',
+  property: null,
   selected: null,
 };
 
@@ -71,12 +78,14 @@ export function decodeViewState(search: string): ViewState {
   const rawAsOf = p.get('asOf');
   const rawFilter = p.get('state');
   const rawMode = p.get('mode');
+  const rawProperty = p.get('property');
   const rawSelected = p.get('unit');
 
   return {
     asOf: rawAsOf && isIsoDate(rawAsOf) ? rawAsOf : undefined,
     filter: rawFilter && isUnitState(rawFilter) ? rawFilter : null,
     mode: rawMode === 'table' ? 'table' : 'grid',
+    property: rawProperty && ID_SHAPE.test(rawProperty) ? rawProperty : null,
     selected: rawSelected && ID_SHAPE.test(rawSelected) ? rawSelected : null,
   };
 }
@@ -87,6 +96,7 @@ export function encodeViewState(s: ViewState): string {
   if (s.asOf && isIsoDate(s.asOf)) p.set('asOf', s.asOf);
   if (s.filter && isUnitState(s.filter)) p.set('state', s.filter);
   if (s.mode === 'table') p.set('mode', s.mode);
+  if (s.property && ID_SHAPE.test(s.property)) p.set('property', s.property);
   if (s.selected && ID_SHAPE.test(s.selected)) p.set('unit', s.selected);
   return p.toString();
 }
