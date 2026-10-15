@@ -136,8 +136,12 @@ Sometimes worth doing live — it makes the deployment options concrete.
 
 Then restart two of the open windows: press `Ctrl+C` in each, and run
 
-- `npm run start:dev` in the **PMS API (3000)** window
-- `npm run dev` in the **PMS Web (3001)** window
+- in the **PMS API (3000)** window: `npm run start:dev`
+- in the **PMS Web (3001)** window: `npm run dev`
+
+Each window is already in the right folder, so the commands work as written. If
+you are in a fresh PowerShell window instead, the web one needs `cd web-admin`
+first — `npm run dev` from the project root fails with *Missing script: "dev"*.
 
 The data is untouched across a switch — same agency, same units, same history.
 Allow about a minute, and say what you're doing while it restarts.
@@ -145,6 +149,11 @@ Allow about a minute, and say what you're doing while it restarts.
 ---
 
 ## If something goes wrong
+
+**An error mentioning `dockerDesktopLinuxEngine` or "cannot find the file
+specified".** Docker Desktop isn't running. Open it from the Start menu, wait
+until it says *Engine running*, then run `.\scripts\start-all.ps1` again. This
+is the most common cause of a demo not starting.
 
 **Nothing loads at localhost:3001.** Check the back office window is still open
 and hasn't stopped with an error. If it has, run `.\scripts\start-all.ps1`
