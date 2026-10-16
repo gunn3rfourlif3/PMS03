@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  DEFAULT_LOCALE, LOCALES, LOCALE_NAMES, Locale, MessageKey, TFunction, Vars,
+  DEFAULT_LOCALE, LOCALE_NAMES, Locale, MessageKey, TFunction, Vars,
   isRtl, resolveLocale, translate, translatePlural,
 } from '@shared/i18n';
 import * as fmt from '@shared/i18n/format';
@@ -55,28 +55,40 @@ export const useT = (): TFunction => useLocale().t;
  */
 export default function LocaleProvider({
   initial,
+  locales,
   children,
 }: {
   initial?: Locale;
+  /** The locales this DEPLOYMENT may serve, from `enabledLocales()` on the
+   * server. Not the catalogue list: a catalogue being in the build is not
+   * permission to show it. Omitted means English only, so a caller that
+   * forgets the prop under-serves rather than leaking a locale. */
+  locales?: readonly Locale[];
   children: React.ReactNode;
 }) {
   const serverLocale = initial ?? DEFAULT_LOCALE;
   const [locale, setLocaleState] = useState<Locale>(serverLocale);
+  const allowed = useMemo<readonly Locale[]>(
+    () => (locales && locales.length ? locales : [DEFAULT_LOCALE]),
+    [locales],
+  );
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const resolved = resolveLocale(stored);
-        if (resolved !== locale) setLocaleState(resolved);
-        return;
-      }
-      // No stored choice: a demo booted with DEPLOYMENT_LOCALE keeps that, and
-      // only a deployment with no opinion falls through to the browser's.
-      if (serverLocale === DEFAULT_LOCALE) {
-        const fromBrowser = resolveLocale(window.navigator?.language);
-        if (fromBrowser !== locale) setLocaleState(fromBrowser);
-      }
+      if (!stored) return;
+      const resolved = resolveLocale(stored);
+      // Checked against the deployment's enabled set, not merely against the
+      // catalogue: localStorage is per-origin, so a browser that stored
+      // `zh-Hans` during a demo must not keep Mandarin if that origin later
+      // serves the live deployment.
+      if (allowed.includes(resolved) && resolved !== locale) setLocaleState(resolved);
+      // There is deliberately NO fall-through to `navigator.language`. It used
+      // to be here, and it meant any visitor with a Chinese browser locale got
+      // the demo catalogue on the live site without touching anything --
+      // `resolveLocale` collapses every `zh*` tag onto zh-Hans, so zh-TW and
+      // zh-HK landed there too. A locale is now served only when the
+      // deployment names it or the viewer picks it from the switcher.
     } catch {
       // Private mode, blocked storage: the server-resolved locale stands.
     }
@@ -97,13 +109,16 @@ export default function LocaleProvider({
   }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
+    // A locale the deployment does not serve cannot be set, however the call
+    // arrives -- the switcher only offers `allowed`, but this is the invariant.
+    if (!allowed.includes(next)) return;
     setLocaleState(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // The switch still works for this session; it just will not be remembered.
     }
-  }, []);
+  }, [allowed]);
 
   const value = useMemo<LocaleContextValue>(
     () => ({
@@ -117,10 +132,10 @@ export default function LocaleProvider({
       date: (v) => fmt.date(locale, v),
       dateTime: (v) => fmt.dateTime(locale, v),
       monthLabel: (v) => fmt.monthLabel(locale, v),
-      locales: LOCALES,
+      locales: allowed,
       names: LOCALE_NAMES,
     }),
-    [locale, setLocale],
+    [locale, setLocale, allowed],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

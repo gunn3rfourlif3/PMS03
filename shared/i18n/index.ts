@@ -1,4 +1,7 @@
-export { LOCALES, DEFAULT_LOCALE, LOCALE_NAMES, RTL_LOCALES, isRtl, isLocale, resolveLocale } from './locales';
+export {
+  LOCALES, DEFAULT_LOCALE, LOCALE_NAMES, RTL_LOCALES,
+  isRtl, isLocale, resolveLocale, enabledLocales, isLocaleEnabled,
+} from './locales';
 export type { Locale } from './locales';
 export { en } from './en';
 export { translate, translatePlural, translatorFor, missingKeys } from './t';

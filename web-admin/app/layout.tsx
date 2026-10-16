@@ -8,6 +8,7 @@ import DeploymentProvider from '@/components/deployment-provider';
 import { resolveDeploymentProfile } from '@/lib/deployment';
 import LocaleProvider from '@/components/locale-provider';
 import { resolveRequestLocale } from '@/lib/locale';
+import { enabledLocales } from '@shared/i18n';
 
 // Title/description must carry the brand name: this is what crawlers (and
 // Google's OAuth brand-verification reviewer) see on app.<domain>. A generic
@@ -47,6 +48,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // Resolved per request like the brand above, so the first HTML is already in
   // the demo's language. DEPLOYMENT_LOCALE on the container is the whole switch.
   const locale = resolveRequestLocale(host, process.env.DEPLOYMENT_LOCALE);
+  // Which locales this deployment may serve at all, as opposed to which
+  // catalogues are in the build. DEPLOYMENT_LOCALE unset -- every production
+  // container -- means English alone: the switcher hides and a stored
+  // non-English preference is ignored.
+  const locales = enabledLocales(process.env.DEPLOYMENT_LOCALE);
 
   return (
     // `lang` is the server's best guess; LocaleProvider corrects it on mount if
@@ -56,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang={locale} suppressHydrationWarning>
       <body>
         <BrandProvider initial={brand}>
-          <LocaleProvider initial={locale}>
+          <LocaleProvider initial={locale} locales={locales}>
             <DeploymentProvider profile={deployment}>
               <Shell>{children}</Shell>
             </DeploymentProvider>

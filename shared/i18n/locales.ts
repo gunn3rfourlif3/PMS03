@@ -56,3 +56,32 @@ export function resolveLocale(value?: string | null): Locale {
   const byBase = LOCALES.find((l) => l.split('-')[0].toLowerCase() === base);
   return byBase ?? DEFAULT_LOCALE;
 }
+
+/**
+ * The locales a given DEPLOYMENT may serve, as opposed to the ones this repo
+ * ships a catalogue for.
+ *
+ * `LOCALES` above is the catalogue list and says nothing about any one
+ * deployment. This function is the gate: a deployment serves English plus
+ * whatever `DEPLOYMENT_LOCALE` names, and nothing else. With that var unset --
+ * which is every production container -- the answer is English alone, so the
+ * switcher has nothing to offer, a stored preference for another locale is
+ * ignored, and a locale subdomain resolves to English. A non-English catalogue
+ * therefore cannot surface anywhere it was not deliberately switched on, which
+ * is the whole point: the Mandarin catalogue exists for one client demo and
+ * must not appear on the live site because it happens to be in the build.
+ *
+ * Note what this does NOT do: it never drops the default, so a malformed or
+ * unknown value degrades to English-only rather than to an empty switcher.
+ */
+export function enabledLocales(deploymentLocale?: string | null): readonly Locale[] {
+  const raw = (deploymentLocale ?? '').trim();
+  if (!raw) return [DEFAULT_LOCALE];
+  const resolved = resolveLocale(raw);
+  return resolved === DEFAULT_LOCALE ? [DEFAULT_LOCALE] : [DEFAULT_LOCALE, resolved];
+}
+
+/** Whether `locale` may be served by a deployment with this `DEPLOYMENT_LOCALE`. */
+export function isLocaleEnabled(locale: Locale, deploymentLocale?: string | null): boolean {
+  return enabledLocales(deploymentLocale).includes(locale);
+}

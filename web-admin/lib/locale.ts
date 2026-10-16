@@ -7,7 +7,7 @@
  * `components/locale-provider.tsx`.
  */
 
-import { DEFAULT_LOCALE, Locale, isLocale, resolveLocale } from '@shared/i18n';
+import { DEFAULT_LOCALE, Locale, enabledLocales, isLocale, resolveLocale } from '@shared/i18n';
 
 /**
  * Order: the deployment's own setting, then the host.
@@ -26,9 +26,22 @@ export function resolveRequestLocale(host: string | null | undefined, envValue?:
   const fromEnv = (envValue ?? '').trim();
   if (fromEnv) return resolveLocale(fromEnv);
 
+  // Gated on `enabledLocales`, which makes the host rule below unreachable
+  // today -- deliberately. With DEPLOYMENT_LOCALE set we have already returned;
+  // with it unset the enabled set is English alone, so `zh-hans.` pointed at a
+  // production host resolves to English rather than serving a locale nobody
+  // turned on. The parsing is kept rather than deleted because serving a demo
+  // on a locale subdomain of the live container is still an option; taking it
+  // means adding a separate "which locales may this deployment serve" variable,
+  // since one variable cannot both name the boot locale and allow a second one
+  // chosen by host.
+  const enabled = enabledLocales(envValue);
+  if (enabled.length < 2) return DEFAULT_LOCALE;
+
   const first = (host ?? '').trim().toLowerCase().split(':')[0].split('.')[0];
   if (!first) return DEFAULT_LOCALE;
   const candidate = resolveLocale(first);
+  if (!enabled.includes(candidate)) return DEFAULT_LOCALE;
   // `resolveLocale` falls back to the default for anything unknown, so this
   // check is what stops `app.locare.co.za` being read as a locale request.
   if (candidate !== DEFAULT_LOCALE || isLocale(first)) return candidate;

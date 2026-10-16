@@ -15,6 +15,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^@shared/(.*)$': '<rootDir>/../shared/$1',
     '\\.(css|scss)$': '<rootDir>/jest.style-stub.js',
   },
   transform: {
