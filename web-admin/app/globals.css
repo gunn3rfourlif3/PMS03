@@ -110,3 +110,20 @@
   }
   .animate-fade-up { animation: fade-up .4s ease both; }
 }
+
+/* God's-eye skyline (components/gods-eye/skyline-css.tsx).
+   The drift stays OUTSIDE the towers: CSS 3D sorts per element rather than per
+   pixel, so a camera passing between them would show planes popping in front
+   of what they are behind. Swaying the whole world avoids that entirely. */
+@keyframes gods-eye-drift {
+  0%   { transform: rotateX(-24deg) rotateY(-34deg); }
+  50%  { transform: rotateX(-20deg) rotateY(-14deg); }
+  100% { transform: rotateX(-24deg) rotateY(-34deg); }
+}
+.gods-eye-drift {
+  transform: rotateX(-24deg) rotateY(-34deg);
+  animation: gods-eye-drift 26s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gods-eye-drift { animation: none; transform: rotateX(-22deg) rotateY(-26deg); }
+}

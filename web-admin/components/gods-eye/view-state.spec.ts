@@ -118,3 +118,33 @@ describe('viewStateUrl', () => {
     expect(viewStateUrl('/gods-eye', DEFAULT_VIEW_STATE)).toBe('/gods-eye');
   });
 });
+
+describe('the scene mode', () => {
+  it('round-trips', () => {
+    expect(decodeViewState('?mode=scene').mode).toBe('scene');
+    expect(encodeViewState({ ...DEFAULT_VIEW_STATE, mode: 'scene' })).toBe('mode=scene');
+  });
+
+  it('still omits the default mode, so an untouched view has a clean URL', () => {
+    expect(encodeViewState({ ...DEFAULT_VIEW_STATE, mode: 'grid' })).toBe('');
+  });
+
+  it('keeps table working alongside it', () => {
+    expect(decodeViewState('?mode=table').mode).toBe('table');
+    expect(encodeViewState({ ...DEFAULT_VIEW_STATE, mode: 'table' })).toBe('mode=table');
+  });
+
+  it('opens an unknown mode as the default rather than an error page', () => {
+    // Links outlive the modes they name: an old `mode=flythrough` bookmark
+    // must still open the portfolio.
+    expect(decodeViewState('?mode=flythrough').mode).toBe('grid');
+    expect(decodeViewState('?mode=SCENE').mode).toBe('grid');
+    expect(decodeViewState('?mode=').mode).toBe('grid');
+  });
+
+  it('survives a scene link that also carries a property and a date', () => {
+    const s = decodeViewState('?mode=scene&property=abc-1&asOf=2026-03-31');
+    expect(s).toMatchObject({ mode: 'scene', property: 'abc-1', asOf: '2026-03-31' });
+    expect(decodeViewState('?' + encodeViewState(s))).toEqual(s);
+  });
+});

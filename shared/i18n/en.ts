@@ -1480,4 +1480,13 @@ export const en = {
   'godsEye.inArrears': 'in arrears',
   'godsEye.backToPortfolio': 'Back to all properties',
   'godsEye.nothingOutstanding': 'Nothing outstanding',
+  'godsEye.rollupView': 'Roll-up',
+  'godsEye.sceneView': 'Skyline',
+  'godsEye.skylineHint':
+    'Every property at once. Height is unit count, lit windows are each unit\u2019s state, and the light at the base is money at risk. Position is the ranking below, not a map \u2014 open a tower for its units.',
+  'godsEye.mostAtRisk': 'Most at risk',
+  'godsEye.skylineNotDrawn':
+    '{properties} further properties ({units} units) are not drawn. The roll-up lists every one.',
+  'godsEye.skylineNarrow':
+    'The skyline needs a wider screen. The ranking below carries the same order.',
 } as const;

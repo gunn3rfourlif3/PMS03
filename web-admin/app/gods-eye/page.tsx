@@ -30,6 +30,7 @@ import { BentoTile, Button, Donut, GlassCard, PageHeader } from '@/components/ui
 import { useLocale } from '@/components/locale-provider';
 import HaloGrid from '@/components/gods-eye/grid';
 import Rollup from '@/components/gods-eye/rollup';
+import Skyline from '@/components/gods-eye/skyline';
 import UnitPanel from '@/components/gods-eye/unit-panel';
 import { STATE_STYLE, type PortfolioState, type UnitState } from '@/components/gods-eye/state';
 import {
@@ -239,14 +240,58 @@ export default function GodsEyePage() {
                   />
                 </>
               ) : (
-                <Rollup
-                  units={data.units}
-                  money={money}
-                  t={t}
-                  onOpen={(propertyId) =>
-                    setView((v) => ({ ...v, property: propertyId, selected: null }))
-                  }
-                />
+                <>
+                  {/* Portfolio-level view switch. It writes the same `mode`
+                      field the grid's grid/table toggle writes: one field in
+                      the URL, read by whichever level is on screen. Drilling
+                      into a property while `scene` is set shows the unit grid
+                      (the grid treats an unknown mode as its default), and
+                      coming back returns to the skyline. */}
+                  <div className="mb-4 flex justify-end">
+                    <div className="flex gap-1 rounded-full border border-[var(--line)] p-0.5">
+                      {([
+                        ['grid', t('godsEye.rollupView')],
+                        ['scene', t('godsEye.sceneView')],
+                      ] as const).map(([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setView((v) => ({ ...v, mode: value }))}
+                          aria-pressed={view.mode === value}
+                          className={
+                            'rounded-full px-3 py-1 text-xs transition ' +
+                            (view.mode === value
+                              ? 'bg-[var(--ink)] text-white'
+                              : 'text-[var(--muted)] hover:text-[var(--ink)]')
+                          }
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {view.mode === 'scene' ? (
+                    <Skyline
+                      units={data.units}
+                      activeId={view.property}
+                      money={money}
+                      number={number}
+                      t={t}
+                      onOpen={(propertyId) =>
+                        setView((v) => ({ ...v, property: propertyId, selected: null }))
+                      }
+                    />
+                  ) : (
+                    <Rollup
+                      units={data.units}
+                      money={money}
+                      t={t}
+                      onOpen={(propertyId) =>
+                        setView((v) => ({ ...v, property: propertyId, selected: null }))
+                      }
+                    />
+                  )}
+                </>
               )}
               <p className="mt-4 text-[11px] text-[var(--muted)]">
                 State as at {data.asOf}

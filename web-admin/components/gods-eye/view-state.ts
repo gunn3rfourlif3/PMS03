@@ -20,7 +20,13 @@
 
 import { STATE_STYLE, UnitState } from './state';
 
-export type ViewMode = 'grid' | 'table';
+/**
+ * `scene` is the skyline: the whole portfolio as towers. It belongs to the
+ * PORTFOLIO level, where `grid` means the roll-up; inside a property there is
+ * no scene, so the grid reads it as its own default. One field, interpreted by
+ * whichever level is on screen, keeps the URL contract to a single `mode`.
+ */
+export type ViewMode = 'grid' | 'table' | 'scene';
 
 export interface ViewState {
   /** Date the state is judged against; undefined means "today, server-side". */
@@ -84,7 +90,7 @@ export function decodeViewState(search: string): ViewState {
   return {
     asOf: rawAsOf && isIsoDate(rawAsOf) ? rawAsOf : undefined,
     filter: rawFilter && isUnitState(rawFilter) ? rawFilter : null,
-    mode: rawMode === 'table' ? 'table' : 'grid',
+    mode: rawMode === 'table' || rawMode === 'scene' ? rawMode : 'grid',
     property: rawProperty && ID_SHAPE.test(rawProperty) ? rawProperty : null,
     selected: rawSelected && ID_SHAPE.test(rawSelected) ? rawSelected : null,
   };
@@ -95,7 +101,7 @@ export function encodeViewState(s: ViewState): string {
   const p = new URLSearchParams();
   if (s.asOf && isIsoDate(s.asOf)) p.set('asOf', s.asOf);
   if (s.filter && isUnitState(s.filter)) p.set('state', s.filter);
-  if (s.mode === 'table') p.set('mode', s.mode);
+  if (s.mode !== 'grid') p.set('mode', s.mode);
   if (s.property && ID_SHAPE.test(s.property)) p.set('property', s.property);
   if (s.selected && ID_SHAPE.test(s.selected)) p.set('unit', s.selected);
   return p.toString();
