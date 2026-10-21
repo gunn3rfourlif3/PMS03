@@ -315,6 +315,59 @@ cofifi.com, www.cofifi.com {
 	respond @xmlrpc 403
 }
 
+
+
+
+# ── Xnith ────────────────────────────────────────────────────────────────
+# Ward-level campaign logistics for the 2026 municipal elections. A separate
+# project sharing this box and this Caddy, same arrangement as BuddhaPets
+# and COFiFi above.
+#
+# DNS: A record  xnith.zaaka.io  ->  169.58.46.223
+#
+# `xnith-app` is a network alias set in the xnith compose project; it resolves
+# over deploy_default. Xnith's Postgres is NOT on this network and publishes
+# no host port — only the app is reachable from here.
+#
+# This block must stay explicit. The on-demand `https://` block at the foot of
+# this file asks Locare's API whether to issue a certificate, and that endpoint
+# refuses any host that is not a vendor domain — so without this block,
+# xnith.zaaka.io never gets a certificate at all.
+
+xnith.zaaka.io {
+        encode zstd gzip
+
+        header {
+                Strict-Transport-Security "max-age=31536000"
+                X-Content-Type-Options nosniff
+                X-Frame-Options DENY
+                Referrer-Policy strict-origin-when-cross-origin
+        }
+
+        # The command board is server-sent events. Without flush_interval -1
+        # Caddy buffers the stream and the live updates appear frozen — the
+        # single most common way this deployment goes subtly wrong.
+        @live path /api/live
+        handle @live {
+                reverse_proxy xnith-app:8080 {
+                        flush_interval -1
+                }
+        }
+
+        # The paste endpoint takes a batch of marshal reports; nothing else
+        # here is large.
+        request_body {
+                max_size 2MB
+        }
+
+        handle {
+                reverse_proxy xnith-app:8080
+        }
+}
+
+
+
+
 # ── Agency domains, certificated on demand ───────────────────────────────
 # Everything above is an exact hostname, and Caddy matches the most specific
 # site address first — so these blocks keep their own config and their existing
