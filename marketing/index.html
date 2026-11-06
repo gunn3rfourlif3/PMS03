@@ -32,6 +32,10 @@
       "url": "https://locare.co.za/",
       "logo": "https://locare.co.za/locare-logo.png",
       "email": "hello@locare.co.za",
+      "sameAs": [
+        "https://www.youtube.com/@locarepms",
+        "https://www.instagram.com/locarepms/"
+      ],
       "areaServed": { "@type": "Country", "name": "South Africa" },
       "description": "White-label property-management software for South African rental agencies."
     },
@@ -337,6 +341,11 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:14px}
 .foot a{color:var(--ink-soft)}.foot a:hover{color:var(--ink)}
 .foot .links{display:flex;gap:24px;flex-wrap:wrap}
+/* Icons rather than another two words in the link row, and inline SVG rather
+   than an icon font: the 97 Lighthouse score came from dropping a font CDN. */
+.foot .social{display:flex;align-items:center;gap:4px;margin:-10px 0}
+.foot .social a{display:inline-flex;padding:10px;border-radius:8px;line-height:0}
+.foot .social a:hover{background:rgba(0,0,0,.05)}
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(16px);transition:.7s cubic-bezier(.2,.7,.2,1)}
@@ -607,6 +616,14 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="links">
       <a href="#features">Platform</a><a href="#pricing">Pricing</a><a href="/tools">Free tools</a><a href="/guides">Guides</a>
       <a href="#partners">Partners</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://app.locare.co.za">Sign in</a>
+    </div>
+    <div class="social">
+      <a href="https://www.youtube.com/@locarepms/shorts" target="_blank" rel="me noopener" aria-label="Locare on YouTube" title="Locare on YouTube">
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10.2 9.3 15 12l-4.8 2.7V9.3Z" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.instagram.com/locarepms/" target="_blank" rel="me noopener" aria-label="Locare on Instagram" title="Locare on Instagram">
+        <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.5" cy="6.5" r="1.15" fill="currentColor" stroke="none"/></svg>
+      </a>
     </div>
     <div>© <span id="yr"></span> Locare (Pty) Ltd · Reg. 2026/670864/07. Made for South African property.</div>
   </div>
