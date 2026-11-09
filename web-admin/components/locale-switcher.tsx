@@ -19,14 +19,17 @@ export default function LocaleSwitcher() {
   // saying "English" is clutter. It appears the moment a second lands.
   if (locales.length < 2) return null;
   return (
-    <label className="mx-1 flex items-center gap-2 rounded-xl px-2 py-2 text-white/60 transition hover:bg-white/10 hover:text-white">
-      <Languages size={18} className="shrink-0 opacity-70" aria-hidden />
+    // Bordered and full-contrast rather than a dim text row: on a demo where
+    // switching language is the thing being shown, a control nobody can find
+    // is a feature nobody sees.
+    <label className="mx-1 flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-white transition hover:border-white/35 hover:bg-white/15 focus-within:ring-2 focus-within:ring-white/50">
+      <Languages size={18} className="shrink-0" aria-hidden />
       <span className="sr-only">{t('locale.change')}</span>
       <select
         value={locale}
         onChange={(e) => setLocale(e.target.value as typeof locale)}
         aria-label={t('locale.label')}
-        className="w-full cursor-pointer bg-transparent text-sm font-medium text-current outline-none"
+        className="w-full cursor-pointer bg-transparent text-sm font-semibold text-current outline-none"
       >
         {locales.map((l) => (
           // Dark sidebar: the closed select inherits white, but the open option

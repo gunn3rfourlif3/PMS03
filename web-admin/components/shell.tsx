@@ -269,13 +269,20 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <IdleTimeout />
       {nav === PARTNER_NAV && <AssistantPanel />}
       {/* Desktop sidebar */}
-      <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between rounded-3xl p-4 lg:flex">
-        <div>
+      {/* The rail is a viewport-height panel and the nav outgrew it. With
+          `justify-between` and no scroll region, 21 links pushed the language
+          switcher and Sign out past the rounded surface onto the page behind —
+          present, but reading as missing. The nav scrolls; the footer stays
+          pinned inside the panel at any height. `min-h-0` is the load-bearing
+          part: without it a flex child will not shrink below its content and
+          the scroll never engages. */}
+      <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between overflow-hidden rounded-3xl p-4 lg:flex">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="px-2 py-3"><BrandMark dark /></div>
           <DeploymentChip />
           <div className="mt-4"><NavLinks items={nav} /></div>
         </div>
-        <div className="border-t border-white/10 pt-3">
+        <div className="shrink-0 border-t border-white/10 pt-3">
           <LocaleSwitcher />
           <SignOut />
         </div>
@@ -292,15 +299,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-up" onClick={() => setOpen(false)} />
-          <div className="sidebar-dark absolute inset-y-0 left-0 flex w-[80%] max-w-[300px] flex-col justify-between rounded-r-3xl p-4">
-            <div>
+          <div className="sidebar-dark absolute inset-y-0 left-0 flex w-[80%] max-w-[300px] flex-col justify-between overflow-hidden rounded-r-3xl p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="flex items-center justify-between px-2 py-2">
                 <BrandMark size={30} dark />
                 <button onClick={() => setOpen(false)} aria-label={t('shell.closeMenu')} className="grid h-9 w-9 place-items-center rounded-xl text-white hover:bg-white/10"><X size={18} /></button>
               </div>
               <div className="mt-4"><NavLinks items={nav} onNavigate={() => setOpen(false)} /></div>
             </div>
-            <div className="border-t border-white/10 pt-3">
+            <div className="shrink-0 border-t border-white/10 pt-3">
               <LocaleSwitcher />
               <SignOut onDone={() => setOpen(false)} />
             </div>
