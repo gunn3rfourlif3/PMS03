@@ -58,7 +58,7 @@
   "people": {
     "$comment": "Staff and the two app logins. Addresses are on the demo domain so Mailpit catches everything; the ones marked `watch` are the mailboxes opened on screen during the demo.",
     "staff": [
-      { "name": "Celeste Marais", "email": "celeste@midnightmasquerade.demo", "role": "vendor_owner" },
+      { "name": "Celeste Marais", "email": "yash@midnightmasquerade.demo", "role": "vendor_owner" },
       { "name": "Thabo Nkosi", "email": "thabo@midnightmasquerade.demo", "role": "property_manager" },
       { "name": "Riaan de Villiers", "email": "riaan@midnightmasquerade.demo", "role": "property_manager" }
     ],

@@ -32,7 +32,7 @@ npm run seed:prospect -- midnight-masquerade   # idempotent
 .\scripts\start-all.ps1
 ```
 
-Then `http://localhost:3001`, sign in as `celeste@midnightmasquerade.demo`.
+Then `http://localhost:3001`, sign in as `yash@midnightmasquerade.demo`.
 
 **Four differences from the VPS version of this script, all of them things that
 would otherwise trip you up mid-sentence:**
@@ -96,7 +96,7 @@ often what a client actually means by "on our own server".
 
 ### 1. The portfolio — about 5 minutes
 
-Sign in as `celeste@midnightmasquerade.demo`. OTP lands in Mailpit; open it on
+Sign in as `yash@midnightmasquerade.demo`. OTP lands in Mailpit; open it on
 screen. "This is the exact email your staff receive" is worth the ten seconds.
 
 Show the scale first: 500 units, ten buildings, twelve months of history. Then

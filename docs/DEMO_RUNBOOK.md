@@ -113,7 +113,7 @@ make the white-label point.
 
 | Who | Email | What they see |
 |---|---|---|
-| Celeste Marais — agency owner | `celeste@midnightmasquerade.demo` | Everything. Start here. |
+| Celeste Marais — agency owner | `yash@midnightmasquerade.demo` | Everything. Start here. |
 | Thabo Nkosi — property manager | `thabo@midnightmasquerade.demo` | Day-to-day management, no company settings |
 | Riaan de Villiers — property manager | `riaan@midnightmasquerade.demo` | Same as Thabo |
 | Sipho Dlamini — tenant | `tenant@demo.locare.co.za` | The tenant app. Lives at Masquerade Heights 304 |

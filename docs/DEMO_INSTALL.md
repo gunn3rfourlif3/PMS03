@@ -229,7 +229,7 @@ a prospect is expensive.
 
 1. **Back office loads** — http://localhost:3001 shows a sign-in page.
 2. **Mail works** — http://localhost:8025 opens Mailpit's inbox, empty.
-3. **Sign-in works end to end** — enter `celeste@midnightmasquerade.demo`, then
+3. **Sign-in works end to end** — enter `yash@midnightmasquerade.demo`, then
    check Mailpit. A branded email should arrive within a second or two. Use the
    code. You should land in the back office with the agency's branding, not
    another agency's.
