@@ -34,6 +34,29 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+<#
+  WHY NATIVE COMMANDS ARE WRAPPED.
+
+  PowerShell turns ANY stderr output from a native command into a
+  NativeCommandError record, and under ErrorActionPreference = 'Stop' that is a
+  terminating error — so a command that SUCCEEDED kills this script. Redirecting
+  with `*> $null` does not prevent it.
+
+  It is not hypothetical: `docker info` prints a warning when
+  DOCKER_INSECURE_NO_IPTABLES_RAW is set, and `npm install` writes every `npm
+  warn` line to stderr. Both would abort the launcher before the exit-code check
+  three lines below them ever ran.
+
+  Exit codes are what this script actually tests, so native calls run with
+  'Continue' and $LASTEXITCODE decides. Cmdlets keep 'Stop'.
+#>
+function Invoke-Native {
+  param([Parameter(Mandatory)][scriptblock]$Command)
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { & $Command } finally { $ErrorActionPreference = $prev }
+}
+
 # Repo root = parent of this script's folder, regardless of where it's run from.
 $Root = Split-Path -Parent $PSScriptRoot
 $Web  = Join-Path $Root 'web-admin'
@@ -72,7 +95,7 @@ Write-Host "root: $Root"
 # just retries connections forever and the real cause scrolls out of view.
 Write-Host "`nStarting Docker (Postgres :5433, Redis :6380)..." -ForegroundColor Green
 
-docker info *> $null
+Invoke-Native { docker info *> $null }
 if ($LASTEXITCODE -ne 0) {
   Write-Host ""
   Write-Host "Docker isn't running." -ForegroundColor Red
@@ -81,7 +104,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Push-Location $Root
-docker compose up -d
+Invoke-Native { docker compose up -d }
 $composeOk = ($LASTEXITCODE -eq 0)
 Pop-Location
 if (-not $composeOk) {
@@ -94,7 +117,7 @@ if (-not $composeOk) {
 Write-Host "Waiting for Postgres..." -NoNewline
 $ready = $false
 foreach ($i in 1..30) {
-  docker compose -f "$Root\docker-compose.yml" exec -T postgres pg_isready -U pms *> $null
+  Invoke-Native { docker compose -f "$Root\docker-compose.yml" exec -T postgres pg_isready -U pms *> $null }
   if ($LASTEXITCODE -eq 0) { $ready = $true; break }
   Write-Host "." -NoNewline
   Start-Sleep -Seconds 1
@@ -118,20 +141,20 @@ if (-not $NoKill) {
 if ($Setup) {
   Write-Host "`nSetup: installing deps, migrating, seeding..." -ForegroundColor Green
   Push-Location $Root
-  npm install
-  npm run migration:run
-  npm run seed
+  Invoke-Native { npm install }
+  Invoke-Native { npm run migration:run }
+  Invoke-Native { npm run seed }
   Pop-Location
 
-  Push-Location $Web;  npm install; Pop-Location
+  Push-Location $Web;  Invoke-Native { npm install }; Pop-Location
   if (-not $NoMobile) {
     Push-Location $Ten
-    npm install
-    npx expo install expo-blur expo-linear-gradient @expo-google-fonts/plus-jakarta-sans
+    Invoke-Native { npm install }
+    Invoke-Native { npx expo install expo-blur expo-linear-gradient @expo-google-fonts/plus-jakarta-sans }
     Pop-Location
     Push-Location $Land
-    npm install
-    npx expo install expo-blur expo-linear-gradient @expo-google-fonts/plus-jakarta-sans
+    Invoke-Native { npm install }
+    Invoke-Native { npx expo install expo-blur expo-linear-gradient @expo-google-fonts/plus-jakarta-sans }
     Pop-Location
   }
 }
