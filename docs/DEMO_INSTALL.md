@@ -6,6 +6,13 @@ Allow about 45 minutes, most of it downloads.
 This is the setup guide. Once the machine is built, day-to-day running is
 `docs/DEMO_RUNBOOK.md`, which is written for someone non-technical.
 
+**What this build is, as of 9 November.** The back office runs dark, on the
+console theme, carrying Midnight Masquerade's own colours. The sidebar offers
+English and 简体中文. Rent-roll rows with money outstanding carry a **Record
+payment** action, for an agency that takes only cash and EFT — available in the
+sealed on-site mode and in no other. Everything after step 3 reflects that; a
+machine built from an earlier copy of this document will not have it.
+
 > `LOCAL_SETUP.md` in the repo root predates this and is **out of date** for a
 > demo build: it names Postgres on 5432 and Redis on 6379 (they are 5433 and
 > 6380), and tells you to avoid PowerShell, when every script here is
@@ -120,23 +127,38 @@ Run it twice, paste one into each.
 
 ### 3.2 The back office — `web-admin\.env.local`
 
-Most of this file is written for you in step 5 by `demo-mode.ps1`, but one key
-is not, and its default is wrong for a demo:
-
 ```powershell
 notepad web-admin\.env.local
 ```
 
-Create it if it does not exist, and make sure it contains:
+Create it if it does not exist. It needs three keys that nothing writes for
+you:
 
 ```
-NEXT_PUBLIC_VENDOR_SLUG=locare.co.za
+NEXT_PUBLIC_VENDOR_SLUG=midnight-masquerade
+DEPLOYMENT_THEME=dark
+DEPLOYMENT_LOCALE=zh-Hans
 ```
 
-Without it the code falls back to `dantalan`, and the demo back office brands
-itself as a different agency. The value above is what the reference machine
-uses — confirm it against that machine rather than assuming, because brand
-resolution reads the request host first and this is only the local fallback.
+**`NEXT_PUBLIC_VENDOR_SLUG` decides whose brand localhost loads**, and the
+wrong value is subtle rather than obviously broken. On localhost there is no
+useful hostname, so brand resolution falls back to this slug — and if it is
+left at `locare.co.za` it matches `PLATFORM_DOMAIN`, the code concludes it is
+Locare's own platform rather than an agency, and it never looks the vendor up
+at all. You get Locare's green instead of Midnight Masquerade's, with nothing
+in the logs to say why. It must be the seeded vendor's slug.
+
+**`DEPLOYMENT_THEME=dark`** serves the dark console theme. Unset means light —
+which is every production container, deliberately, so no live agency gets a
+repainted back office because a demo needed one.
+
+**`DEPLOYMENT_LOCALE=zh-Hans`** is what makes the language switcher appear at
+all. A deployment serves English plus whatever this names and nothing else, so
+with it unset the switcher has only one locale to offer and hides itself.
+
+> **Never set `DEPLOYMENT_LOCALE` on the live site.** That gate is the only
+> thing keeping an unreviewed machine translation off the product; the
+> catalogue being in the build does not make it reachable.
 
 `DEPLOYMENT_PROFILE` and `DEMO_CONSOLE` are added automatically in step 5. Do
 not add them by hand.
@@ -159,8 +181,9 @@ This takes 10–20 minutes on a clean machine. In order it:
 3. waits for Postgres to accept queries, rather than racing it;
 4. runs `npm install` in the repo root, `web-admin`, and both Expo apps;
 5. applies every database migration;
-6. seeds the standard **Demo Agency**;
-7. opens a window each for the API, the back office and the two mobile apps.
+6. creates the `pms_app` database role the API signs in as;
+7. seeds the standard **Demo Agency**;
+8. opens a window each for the API, the back office and the two mobile apps.
 
 Add `-NoMobile` to skip the Expo apps — faster, fewer windows, and fine unless
 you are demonstrating the tenant and landlord apps.
@@ -170,6 +193,28 @@ clean machine that is nothing. On a developer's machine it may be their work.
 Pass `-NoKill` to leave those ports alone.
 
 Leave the windows open. They are the demo running.
+
+### Every start after the first
+
+Once the machine is built, one command does the whole bring-up:
+
+```powershell
+.\scripts\demo-up.ps1
+```
+
+It checks the seven settings this demo depends on and **refuses to start
+anything** if one is wrong, naming every file and key rather than leaving you to
+find out at the sign-in screen. Then it frees 3000 and 3001 — so a server left
+running from yesterday cannot cause `EADDRINUSE` — and opens each window
+already in the right folder.
+
+`-Mode a|b|c` sets the deployment mode before launch, which saves the restart
+a mode change otherwise forces. `-Seed` reloads the Midnight Masquerade world
+first; you need it after a profile change and not otherwise.
+
+Prefer this to running `npm run dev` by hand. Half the failures on this
+machine have been a stale server on a port or a command run from the wrong
+folder, and the launcher is immune to both.
 
 ---
 
@@ -197,10 +242,15 @@ Because this changes environment files, **restart the API and back-office
 windows**: Ctrl+C in each, then
 
 - in the **PMS API (3000)** window: `npm run start:dev`
-- in the **PMS Web (3001)** window: `npm run dev`
+- in the **PMS Web (3001)** window: `cd web-admin` then `npm run dev`
+
+`npm run dev` only exists in `web-admin`; run it in the repo root and npm
+reports `Missing script: "dev"`.
 
 Setting the mode before the first run avoids this; after the first run it is
-unavoidable, because `ts-node-dev` watches source files, not `.env`.
+unavoidable, because `ts-node-dev` watches source files, not `.env`. Simplest
+of all is `.\scripts\demo-up.ps1 -Mode a`, which sets the mode and then starts
+everything fresh.
 
 ---
 
@@ -238,23 +288,37 @@ a prospect is expensive.
 5. **The demo console renders** — http://localhost:3001/demo. A 404 here means
    `DEMO_CONSOLE` is missing from `web-admin\.env.local`; re-run
    `.\scripts\demo-mode.ps1` with a mode letter.
+6. **It is dark, and it is theirs** — near-black surfaces, and the sidebar
+   reads *Midnight Masquerade*. Light means `DEPLOYMENT_THEME` did not reach
+   the web server; Locare's green means the vendor slug did.
+7. **The language switcher is there** — bottom of the sidebar, offering
+   English and 简体中文. Switching should change the sidebar, dashboard and
+   portfolio map. Other screens stay English: the catalogue is filled outward
+   from what is on screen and a missing key renders English by design.
+8. **Recording a payment works** — on the dashboard, *Worst first* has a
+   **Record payment** action on any row with money outstanding. It exists only
+   in mode A; in B or C the column is absent and the route refuses. Record a
+   small amount against an invoice and check the API window logs no error.
 
 ---
 
-## 8. Optional — Mandarin, for this client only
+## 8. Mandarin, for this client only
 
 The Mandarin (zh-Hans) catalogue exists **solely for the Midnight Masquerade
 demo**. Non-English locales are off unless a deployment explicitly names one,
-so it cannot appear anywhere by accident.
+so it cannot appear anywhere by accident. `DEPLOYMENT_LOCALE=zh-Hans` in step
+3.2 is what switches it on, and `demo-up.ps1` refuses to start without it.
 
-To switch it on for this machine, add to `web-admin\.env.local`:
+The switcher sits at the foot of the sidebar. It covers the chrome, the
+navigation, the dashboard and the portfolio map — the screens this demo is
+presented on. **Deeper screens are still English**, because the catalogue is
+being filled outward from what gets shown, and any key without a translation
+renders its English text rather than a blank or a key name. Say so if asked:
+it degrades, it does not break.
 
-```
-DEPLOYMENT_LOCALE=zh-Hans
-```
-
-Restart the back-office window. A language switcher appears, offering English
-and Mandarin.
+The translation is unreviewed machine output. It is fine for showing an
+audience that the product speaks their language; it is not fine for a client
+to read as final copy.
 
 > **Never set `DEPLOYMENT_LOCALE` on the live site or any production
 > container.** With it unset — which is every production deployment — the app
@@ -309,6 +373,39 @@ script lives in `web-admin`; `cd web-admin` first.
 **The back office shows the wrong agency name** — `NEXT_PUBLIC_VENDOR_SLUG` is
 missing from `web-admin\.env.local`, so it fell back to `dantalan`.
 
+**`password authentication failed for user "pms_app"` at sign-in** — the
+database was reset without recreating the application role. `pms_app` is a role,
+not a table, so migrations do not restore it, and the seeds do not reveal the
+problem because they connect as the owner. With the containers up:
+
+```powershell
+Get-Content scripts/setup-app-role.sql | docker compose exec -T postgres psql -U pms -d pms
+```
+
+It prints `pms_app ready; superuser=false bypassrls=false`. Both must read
+`false` — a role that bypasses RLS would quietly disable tenant isolation.
+Restart the API window afterwards. `start-all.ps1 -Setup` does this step for
+you; you only need it after resetting the database by hand.
+
+**The back office is light, not dark** — `DEPLOYMENT_THEME=dark` is missing
+from `web-admin\.env.local`, or the back-office window was not restarted after
+it was added. The theme is read once, server-side, when the server boots.
+
+**The sidebar colours are green-and-white rather than Midnight Masquerade's** —
+the vendor slug is resolving to the platform rather than to the agency. See the
+wrong-agency-name entry above; it is the same cause.
+
+**No language switcher** — `DEPLOYMENT_LOCALE` is missing, and with only one
+locale to offer the switcher hides itself rather than showing a dead control.
+Add it, restart the back-office window.
+
+**No *Record payment* action on the rent roll** — three possible causes, in the
+order worth checking: the machine is not in mode A (`.\scripts\demo-mode.ps1`
+with no argument will say), the row has nothing outstanding, or the database is
+behind. For the last, `npm run migration:run` in the repo root adds the column
+the feature writes to; if it is missing, the action appears and then the API
+refuses the save.
+
 **A migration says a relation already exists** — the database is half-built.
 Reset it and start over:
 
@@ -335,7 +432,12 @@ Once section 7 passes end to end:
    is where you find out it is.
 2. Leave `docs/DEMO_RUNBOOK.md` open, or print it.
 3. Tell whoever is presenting that the **first start of the day is the slow
-   one**, and to do it before anyone is watching.
+   one**, and to do it before anyone is watching, and that
+   `.\scripts\demo-up.ps1` is the only command they need.
+4. Warn them about one honest gap: the rent roll's *outstanding* column counts
+   a part-paid invoice at its full value, so a payment recorded for less than
+   the invoice does not reduce it. The modal's figures are right; the column
+   behind it is not yet. Record full amounts in front of an audience.
 
 The machine needs no internet to run the demo once built — no map tiles, no
 external hosts, nothing to configure. It does need Docker Desktop started.
