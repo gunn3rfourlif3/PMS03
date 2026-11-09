@@ -47,6 +47,16 @@ export interface DeploymentCapabilities {
   eSignature: boolean;
   /** OTP codes can be delivered to a phone (SMS/WhatsApp) rather than internal mail. */
   otpToPhone: boolean;
+  /**
+   * Staff can record a payment by hand against an invoice.
+   *
+   * The one capability that is TRUE in the sealed mode and FALSE elsewhere,
+   * and not an inconsistency: where there is no gateway, cash and EFT are the
+   * rails, so somebody has to be able to say the money arrived. Where a
+   * gateway IS collecting, a hand-confirm is a way to mark an invoice paid for
+   * money that never came, so it is not served.
+   */
+  manualPayments: boolean;
 }
 
 const SEALED: DeploymentCapabilities = {
@@ -56,6 +66,7 @@ const SEALED: DeploymentCapabilities = {
   onlineRent: false,
   eSignature: false,
   otpToPhone: false,
+  manualPayments: true,
 };
 
 const CONNECTED: DeploymentCapabilities = {
@@ -65,6 +76,7 @@ const CONNECTED: DeploymentCapabilities = {
   onlineRent: true,
   eSignature: true,
   otpToPhone: true,
+  manualPayments: false,
 };
 
 const CAPABILITIES: Record<DeploymentProfile, DeploymentCapabilities> = {

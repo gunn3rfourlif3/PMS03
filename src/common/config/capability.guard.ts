@@ -13,8 +13,10 @@ export const CAPABILITY_KEY = 'requiredCapability';
  *
  *   @RequiresCapability('publicListings')
  *
- * Used for the routes an OUTSIDER reaches, which are the ones option A seals.
- * Staff routes carry no capability and are served in every mode.
+ * Mostly the routes an OUTSIDER reaches, which are the ones option A seals.
+ * `manualPayments` runs the other way — a staff route served ONLY in the
+ * sealed mode — so the refusal message below cannot assume which direction it
+ * is refusing in.
  */
 export const RequiresCapability = (cap: keyof DeploymentCapabilities) =>
   SetMetadata(CAPABILITY_KEY, cap);
@@ -41,7 +43,7 @@ export class CapabilityGuard implements CanActivate {
       statusCode: 403,
       code: 'DEPLOYMENT_PROFILE_FORBIDS_CAPABILITY',
       capability: required,
-      message: `This system is installed on-site for staff use only (${DEPLOYMENT_LABELS[profile]}), so this is not served here.`,
+      message: `This installation is ${DEPLOYMENT_LABELS[profile]}, which does not serve this.`,
     });
   }
 }

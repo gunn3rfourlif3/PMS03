@@ -42,16 +42,32 @@ describe('capabilities', () => {
     expect(c.onlineRent).toBe(false);
     expect(c.eSignature).toBe(false);
     expect(c.otpToPhone).toBe(false);
+    // The one that runs the other way: with no gateway, cash and EFT are the
+    // rails, so staff must be able to record that money arrived.
+    expect(c.manualPayments).toBe(true);
   });
 
-  it('serves everything in the connected on-site mode', () => {
+  const OUTWARD_FACING = [
+    'tenantLogins', 'landlordLogins', 'publicListings',
+    'onlineRent', 'eSignature', 'otpToPhone',
+  ] as const;
+
+  it('serves everything outward-facing in the connected on-site mode', () => {
     const c = capabilitiesFor('onsite_connected');
-    expect(Object.values(c).every(Boolean)).toBe(true);
+    for (const k of OUTWARD_FACING) expect(c[k]).toBe(true);
   });
 
-  it('serves everything on the private server', () => {
+  it('serves everything outward-facing on the private server', () => {
     const c = capabilitiesFor('private_server');
-    expect(Object.values(c).every(Boolean)).toBe(true);
+    for (const k of OUTWARD_FACING) expect(c[k]).toBe(true);
+  });
+
+  // A hand-confirm where a gateway is collecting is a way to mark an invoice
+  // paid for money that never arrived, so the connected modes do not serve it.
+  it('records payments by hand only in the sealed mode', () => {
+    expect(capabilitiesFor('onsite_backoffice').manualPayments).toBe(true);
+    expect(capabilitiesFor('onsite_connected').manualPayments).toBe(false);
+    expect(capabilitiesFor('private_server').manualPayments).toBe(false);
   });
 
   // B and C differ in where the data sits and who runs the machine, not in what

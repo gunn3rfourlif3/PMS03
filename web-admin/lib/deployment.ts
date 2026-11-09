@@ -20,15 +20,17 @@ export interface DeploymentCapabilities {
   onlineRent: boolean;
   eSignature: boolean;
   otpToPhone: boolean;
+  /** Staff may record a payment by hand. True only in the sealed mode. */
+  manualPayments: boolean;
 }
 
 const SEALED: DeploymentCapabilities = {
   tenantLogins: false, landlordLogins: false, publicListings: false,
-  onlineRent: false, eSignature: false, otpToPhone: false,
+  onlineRent: false, eSignature: false, otpToPhone: false, manualPayments: true,
 };
 const CONNECTED: DeploymentCapabilities = {
   tenantLogins: true, landlordLogins: true, publicListings: true,
-  onlineRent: true, eSignature: true, otpToPhone: true,
+  onlineRent: true, eSignature: true, otpToPhone: true, manualPayments: false,
 };
 
 export const CAPABILITIES: Record<DeploymentProfile, DeploymentCapabilities> = {

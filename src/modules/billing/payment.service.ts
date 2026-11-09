@@ -13,7 +13,7 @@ import type { PaymentProvider } from '@providers/payment/payment-provider.interf
 import { NotificationsService } from '@modules/notifications/notifications.service';
 import { SubscriptionBillingService } from '@modules/subscriptions/subscription-billing.service';
 import { Invoice } from './invoice.entity';
-import { Payment } from './payment.entity';
+import { Payment, PaymentMethod } from './payment.entity';
 import { applyPayment } from './payment-alloc';
 
 /**
@@ -85,6 +85,44 @@ export class PaymentService {
   }
 
   /**
+   * The unpaid invoices on a lease, oldest first, with what is actually still
+   * owed on each.
+   *
+   * OUTSTANDING HERE IS NOT THE RENT ROLL'S OUTSTANDING. `ReportingService`
+   * sums the FULL total of every invoice whose status is not 'paid', so a
+   * R12 000 invoice with R5 000 already received still reads R12 000 there.
+   * That is fine for a rough arrears figure and wrong for the screen where
+   * someone is about to type an amount, so this subtracts what has been
+   * allocated. The two definitions should be reconciled — see the note on the
+   * rent roll — but the one a human types against must be the honest one.
+   *
+   * Runs in the caller's vendor context, so RLS scopes it.
+   */
+  async listOutstandingForLease(leaseId: string): Promise<Array<{
+    id: string; period: string; dueDate: string; total: number;
+    status: string; outstanding: number;
+  }>> {
+    return this.tenant.getManager().query(
+      `SELECT i.id,
+              i.period,
+              i.due_date::text AS "dueDate",
+              i.total::float8  AS total,
+              i.status,
+              (i.total - COALESCE((
+                SELECT SUM((a->>'amount')::numeric)
+                FROM payments p, jsonb_array_elements(p.allocation) a
+                WHERE p.status = 'succeeded'
+                  AND (a->>'invoiceId') = i.id::text
+              ), 0))::float8 AS outstanding
+         FROM invoices i
+        WHERE i.lease_id = $1
+          AND i.status <> 'paid'
+        ORDER BY i.due_date ASC`,
+      [leaseId],
+    );
+  }
+
+  /**
    * Record a manual (off-gateway) payment — e.g. an accepted EFT proof of
    * payment — and settle it exactly like a gateway confirmation:
    *   Dr Bank / Cr AR, allocate, advance the invoice status, notify the tenant.
@@ -93,7 +131,14 @@ export class PaymentService {
   async recordManual(
     invoiceId: string,
     amount: number,
-    opts?: { reference?: string; method?: 'eft' | 'card' },
+    opts?: {
+      reference?: string;
+      method?: PaymentMethod;
+      /** Staff user recording it. Null for the gateway and reconciliation paths. */
+      confirmedBy?: string;
+      /** When the money actually arrived, which is not always today. */
+      receivedOn?: Date;
+    },
   ): Promise<{ paymentId: string; invoiceStatus: string }> {
     const invoices = this.tenant.getRepository(Invoice);
     const invoice = await invoices.findOne({ where: { id: invoiceId } });
@@ -109,6 +154,8 @@ export class PaymentService {
         method: opts?.method ?? 'eft',
         gatewayRef: `manual:${opts?.reference || randomUUID()}`,
         status: 'succeeded',
+        receivedAt: opts?.receivedOn ?? new Date(),
+        confirmedBy: opts?.confirmedBy,
         allocation: [{ invoiceId: invoice.id, amount }],
       }),
     );

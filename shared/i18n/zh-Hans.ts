@@ -141,4 +141,21 @@ export const zhHans: Catalogue = {
   'dashboard.aging.61-90': '61–90',
   'dashboard.aging.90plus': '90+',
   'dashboard.status.active': '生效中',
+
+  // ── Recording a payment by hand (sealed mode) ────────────────────────────
+  'payment.record': '登记收款',
+  'payment.recordFor': '登记收款 · {unit}',
+  'payment.invoice': '账单',
+  'payment.noOutstanding': '该租约没有未结账单。',
+  'payment.invoiceOption': '{period} · 到期 {due} · 未收 {amount}',
+  'payment.amount': '收到金额',
+  'payment.method': '付款方式',
+  'payment.method.cash': '现金',
+  'payment.method.eft': '电子转账',
+  'payment.reference': '凭证号',
+  'payment.referenceHint': '现金请填收据号，转账请填银行参考号。',
+  'payment.receivedOn': '收款日期',
+  'payment.confirm': '确认登记',
+  'payment.recorded': '已登记 {period} 的收款。',
+  'payment.cashWarning': '现金仅凭登记人确认入账——在存入银行之前不会出现在银行对账单上。',
 };

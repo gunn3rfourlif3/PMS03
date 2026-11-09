@@ -18,6 +18,8 @@ import { RefreshCw, TrendingUp } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { Button, EmptyState } from '@/components/ui';
 import { useLocale } from '@/components/locale-provider';
+import { useDeployment } from '@/components/deployment-provider';
+import RecordPaymentModal from '@/components/record-payment';
 
 const thisPeriod = () => new Date().toISOString().slice(0, 7);
 
@@ -32,6 +34,10 @@ function previousPeriod(period: string): string {
 export default function Dashboard() {
   const router = useRouter();
   const { t, tn, money, number } = useLocale();
+  // Recording a payment by hand exists only where no gateway is collecting.
+  // The API refuses it anyway; this keeps a button that would 403 off screen.
+  const { capabilities } = useDeployment();
+  const [payFor, setPayFor] = useState<any>(null);
   const [ready, setReady] = useState(false);
   const [rentRoll, setRentRoll] = useState<any[]>([]);
   const [arrears, setArrears] = useState<any>(null);
@@ -202,6 +208,7 @@ export default function Dashboard() {
                   <th scope="col" className="px-4 py-3 text-right font-semibold">{t('dashboard.th.rent')}</th>
                   <th scope="col" className="px-4 py-3 font-semibold">{t('dashboard.th.status')}</th>
                   <th scope="col" className="px-6 py-3 text-right font-semibold">{t('dashboard.th.outstanding')}</th>
+                  {capabilities.manualPayments && <th scope="col" className="px-4 py-3" />}
                 </tr>
               </thead>
               <tbody>
@@ -215,6 +222,15 @@ export default function Dashboard() {
                       style={{ color: Number(r.outstanding) > 0 ? 'var(--danger)' : 'var(--muted)' }}>
                       {Number(r.outstanding) > 0 ? money(Number(r.outstanding)) : '—'}
                     </td>
+                    {capabilities.manualPayments && (
+                      <td className="px-4 py-4 text-right">
+                        {Number(r.outstanding) > 0 && (
+                          <Button variant="ghost" onClick={() => setPayFor(r)}>
+                            {t('payment.record')}
+                          </Button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -222,6 +238,12 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      <RecordPaymentModal
+        row={payFor}
+        onClose={() => setPayFor(null)}
+        onRecorded={() => { setPayFor(null); void load(); }}
+      />
     </div>
   );
 }

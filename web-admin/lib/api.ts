@@ -290,6 +290,13 @@ export const api = {
     p.set('offset', String(q?.offset ?? 0));
     return req(`/properties/units?${p.toString()}`);
   },
+  // Sealed-mode manual payments. Both routes 403 with
+  // DEPLOYMENT_PROFILE_FORBIDS_CAPABILITY anywhere a gateway is collecting.
+  outstandingInvoices: (leaseId: string) => req(`/payments/leases/${leaseId}/outstanding`),
+  recordPayment: (
+    invoiceId: string,
+    body: { amount: number; method: 'cash' | 'eft'; reference?: string; receivedOn?: string },
+  ) => req(`/payments/invoices/${invoiceId}/record`, { method: 'POST', body: JSON.stringify(body) }),
   listProperties: () => req('/properties'),
   createProperty: (b: any) => req('/properties', { method: 'POST', body: JSON.stringify(b) }),
   updateProperty: (id: string, b: any) => req(`/properties/${id}`, { method: 'PUT', body: JSON.stringify(b) }),

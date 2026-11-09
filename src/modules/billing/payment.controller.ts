@@ -1,8 +1,13 @@
-import { Body, Controller, Logger, Param, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Param, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { PaymentService } from './payment.service';
 import { JwtAuthGuard } from '@modules/auth/jwt-auth.guard';
+import { RolesGuard } from '@modules/auth/roles.guard';
+import { Roles } from '@modules/auth/roles.decorator';
+import { CurrentTenant } from '@modules/auth/current-tenant.decorator';
+import { CapabilityGuard, RequiresCapability } from '@common/config/capability.guard';
+import type { PaymentMethod } from './payment.entity';
 import { WebhookSignatureGuard } from '@common/webhooks/webhook-signature.guard';
 import { PayfastPaymentProvider } from '@providers/payment/payfast.provider';
 import { IkhokhaPaymentProvider } from '@providers/payment/ikhokha.provider';
@@ -12,6 +17,61 @@ import { parseStitchWebhook, parseStitchRefundWebhook, isRefundWebhook } from '@
 @Controller('payments')
 export class PaymentController {
   constructor(private readonly payments: PaymentService) {}
+
+  /**
+   * The unpaid invoices on a lease, for the staff member about to record a
+   * payment against one. Same capability gate as the recording itself: it
+   * exists only to feed that action.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard, CapabilityGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @RequiresCapability('manualPayments')
+  @Get('leases/:leaseId/outstanding')
+  outstanding(@Param('leaseId') leaseId: string) {
+    return this.payments.listOutstandingForLease(leaseId);
+  }
+
+  /**
+   * Staff record a payment that arrived outside any gateway — cash over the
+   * counter, or an EFT they have seen land.
+   *
+   * SEALED DEPLOYMENTS ONLY (`manualPayments`). Where a gateway is collecting,
+   * a hand-confirm is a way to mark an invoice paid for money that never came,
+   * so the route is not served at all rather than hidden in the UI.
+   *
+   * It does not set a status: it posts a real payment through
+   * `recordManual` — Dr Bank / Cr AR, allocated, invoice advanced — because
+   * the ledger is the record and corrections are new postings, never edits.
+   * The amount defaults to nothing: a partial payment is the normal case and
+   * the caller states it.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard, CapabilityGuard)
+  @Roles('vendor_owner', 'property_manager')
+  @RequiresCapability('manualPayments')
+  @Post('invoices/:invoiceId/record')
+  record(
+    @Param('invoiceId') invoiceId: string,
+    @CurrentTenant() p: { userId: string },
+    @Body() body: { amount: number; method?: PaymentMethod; reference?: string; receivedOn?: string },
+  ) {
+    const amount = Number(body?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException('A positive amount is required');
+    }
+    // Cash and EFT are the sealed-mode rails; a card payment here would mean a
+    // gateway, which this mode does not have.
+    const method: PaymentMethod = body?.method === 'cash' ? 'cash' : 'eft';
+    const receivedOn = body?.receivedOn ? new Date(body.receivedOn) : undefined;
+    if (receivedOn && Number.isNaN(receivedOn.getTime())) {
+      throw new BadRequestException('receivedOn is not a date');
+    }
+    return this.payments.recordManual(invoiceId, amount, {
+      reference: body?.reference,
+      method,
+      confirmedBy: p.userId,
+      receivedOn,
+    });
+  }
 
   /** Tenant initiates payment for an invoice; returns a gateway redirect/ref. */
   @UseGuards(JwtAuthGuard)
