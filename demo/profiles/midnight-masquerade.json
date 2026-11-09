@@ -13,7 +13,7 @@
   "slug": "midnight-masquerade",
   "agency": {
     "name": "Midnight Masquerade",
-    "tradingName": "Midnight Masquerade Property",
+    "tradingName": "Midnight Masquerade",
     "email": "admin@midnightmasquerade.demo",
     "phone": "+27 21 555 0180",
     "city": "Cape Town",
@@ -21,10 +21,10 @@
   },
 
   "branding": {
-    "$comment": "Locare's own palette is the default. Replace brand/tint with theirs once we have the logo; logo is a path under demo/assets/ and may be null.",
-    "brand": "#0F6E56",
-    "tint": "#E1F5EE",
-    "accent": "#C9A227",
+    "$comment": "Built for the dark deployment (DEPLOYMENT_THEME=dark): the brand has to read on a near-black ground, so it is a luminous mint rather than a deep green. The same agency on a light deployment would need a darker value — which brand colour reads depends on the surface, and that is config, not a bug.",
+    "brand": "#2FD08A",
+    "tint": "#0F2A20",
+    "accent": "#FFB357",
     "logo": null
   },
 

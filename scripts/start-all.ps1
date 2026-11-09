@@ -143,6 +143,26 @@ if ($Setup) {
   Push-Location $Root
   Invoke-Native { npm install }
   Invoke-Native { npm run migration:run }
+
+  # The app connects as pms_app, which is a ROLE, not a table — migrations do
+  # not create it, so `docker compose down -v` leaves a database the API cannot
+  # log into ("password authentication failed for user pms_app"), and the
+  # failure only surfaces at sign-in because the seeds connect as the owner.
+  # Must run AFTER the migrations: it grants on tables that have to exist. Safe
+  # to repeat — the role is guarded by IF NOT EXISTS and the grants are
+  # idempotent.
+  Write-Host "Ensuring the pms_app role..." -ForegroundColor Green
+  Invoke-Native {
+    Get-Content (Join-Path $Root 'scripts\setup-app-role.sql') |
+      docker compose -f "$Root\docker-compose.yml" exec -T postgres psql -U pms -d pms -v ON_ERROR_STOP=1
+  }
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nCould not create the pms_app role — sign-in will fail." -ForegroundColor Red
+    Write-Host "Run it by hand and read the error:" -ForegroundColor Yellow
+    Write-Host "  Get-Content scripts/setup-app-role.sql | docker compose exec -T postgres psql -U pms -d pms"
+    exit 1
+  }
+
   Invoke-Native { npm run seed }
   Pop-Location
 

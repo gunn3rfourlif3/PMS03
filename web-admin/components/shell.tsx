@@ -308,7 +308,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-10">
+      <main className="mx-auto w-full max-w-[1760px] px-4 py-6 sm:px-8 sm:py-8">
         <ImpersonationBanner />
         {children}
         <Footer />

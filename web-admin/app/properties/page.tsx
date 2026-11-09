@@ -5,11 +5,20 @@ import { Plus, Building2, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Field, Badge, EmptyState, BentoTile, ConfirmModal } from '@/components/ui';
 import { useLocale } from '@/components/locale-provider';
+import Pager from '@/components/pager';
 import type { MessageKey, TFunction } from '@shared/i18n';
 
 type PendingDelete = { kind: 'property' | 'unit'; id: string; pid?: string; label: string };
 
 const PTYPES = ['building', 'complex', 'single_unit', 'co_living'] as const;
+
+/**
+ * Units per page inside an expanded property. The demo portfolio has a 96-unit
+ * block; unpaged, opening it rendered 96 editable rows in a drawer and pushed
+ * everything below it off the screen. `unitsPaged` already existed server-side
+ * and nothing was calling it.
+ */
+const UNIT_PAGE = 25;
 const USTATUS = ['vacant', 'occupied', 'maintenance', 'reserved', 'offline'] as const;
 
 /* These replace a `label()` helper that prettified the enum value with a string
@@ -35,6 +44,8 @@ export default function PropertiesPage() {
   const [pEdit, setPEdit] = useState<any>({});
   const [openId, setOpenId] = useState<string | null>(null);
   const [units, setUnits] = useState<any[]>([]);
+  const [uTotal, setUTotal] = useState(0);
+  const [uOffset, setUOffset] = useState(0);
   const [uForm, setUForm] = useState<any>({ status: 'vacant' });
   const [editUnit, setEditUnit] = useState<string | null>(null);
   const [uEdit, setUEdit] = useState<any>({});
@@ -75,12 +86,30 @@ export default function PropertiesPage() {
     } catch (e: any) { setErr(e.message); } finally { setDeleting(false); }
   };
 
+  const loadUnits = async (pid: string, offset: number) => {
+    const page = await api.unitsPaged({ propertyId: pid, limit: UNIT_PAGE, offset });
+    setUnits(page.rows ?? []);
+    setUTotal(page.total ?? 0);
+  };
+
   const toggle = async (p: any) => {
     if (openId === p.id) { setOpenId(null); return; }
     setOpenId(p.id); setEditUnit(null); setUForm({ status: 'vacant' });
-    try { setUnits(await api.unitsForProperty(p.id)); } catch (e: any) { setErr(e.message); }
+    // Each property opens at its first page rather than inheriting the page
+    // number of whichever one was open before.
+    setUOffset(0);
+    try { await loadUnits(p.id, 0); } catch (e: any) { setErr(e.message); }
   };
-  const reloadUnits = async (pid: string) => { setUnits(await api.unitsForProperty(pid)); };
+
+  // Paging an open property. Guarded on openId so collapsing one does not fire
+  // a load for a property that is no longer on screen.
+  useEffect(() => {
+    if (!openId) return;
+    loadUnits(openId, uOffset).catch((e: any) => setErr(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uOffset]);
+
+  const reloadUnits = async (pid: string) => { await loadUnits(pid, uOffset); };
   const setUF = (k: string, v: string) => setUForm((f: any) => ({ ...f, [k]: v }));
   const addUnit = async (pid: string) => {
     if (!uForm.label) return;
@@ -198,6 +227,13 @@ export default function PropertiesPage() {
                     {units.length === 0 && <tr><td colSpan={5}><EmptyState>{t('properties.noUnits')}</EmptyState></td></tr>}
                   </tbody>
                 </table>
+                <Pager
+                  total={uTotal}
+                  limit={UNIT_PAGE}
+                  offset={uOffset}
+                  onChange={setUOffset}
+                  noun={t('properties.pagerNoun')}
+                />
               </div>
             </div>
           )}

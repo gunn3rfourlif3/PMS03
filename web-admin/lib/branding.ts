@@ -47,23 +47,45 @@ export function applyTheme(b: Branding) {
   if (typeof document === 'undefined') return;
   const r = document.documentElement.style;
   const c = b.colors;
+  // Set by the server from DEPLOYMENT_THEME, before this ever runs.
+  const dark = document.documentElement.dataset.theme === 'dark';
+
+  // The agency's own colours always apply — that is the whole point of a
+  // white-label product.
   r.setProperty('--brand', c.brand);
   r.setProperty('--onbrand', c.onBrand);
-  r.setProperty('--tint', c.tint);
   r.setProperty('--accent', c.accent);
-  r.setProperty('--ink', c.ink);
-  r.setProperty('--muted', c.muted);
-  r.setProperty('--line', c.line);
-  r.setProperty('--bg', c.bg);
-  r.setProperty('--card', c.card);
-  r.setProperty('--danger', c.danger);
-  r.setProperty('--dangerbg', c.dangerBg);
-  r.setProperty('--success', c.success);
 
-  const body = b.font.family && b.font.family !== 'System' ? `"${b.font.family}", ${SYSTEM_STACK}` : SYSTEM_STACK;
-  const head = b.font.headingFamily && b.font.headingFamily !== 'System' ? `"${b.font.headingFamily}", ${SYSTEM_STACK}` : HEADING_STACK;
-  r.setProperty('--font', body);
-  r.setProperty('--font-heading', head);
+  // SURFACES BELONG TO THE THEME, NOT TO THE BRANDING RECORD.
+  //
+  // Every record carries a full light palette — ink #16181d, bg #f6f7f6, card
+  // #ffffff — and these are INLINE styles on :root, which outrank
+  // `:root[data-theme="dark"]` in the cascade no matter how that block is
+  // written. Setting them unconditionally repainted a dark deployment light
+  // the instant the branding fetch resolved, which looked like the theme flag
+  // being ignored rather than being overwritten a moment later.
+  //
+  // In dark, globals.css owns the surfaces and derives --tint from --brand.
+  if (!dark) {
+    r.setProperty('--tint', c.tint);
+    r.setProperty('--ink', c.ink);
+    r.setProperty('--muted', c.muted);
+    r.setProperty('--line', c.line);
+    r.setProperty('--bg', c.bg);
+    r.setProperty('--card', c.card);
+    r.setProperty('--danger', c.danger);
+    r.setProperty('--dangerbg', c.dangerBg);
+    r.setProperty('--success', c.success);
+  }
+
+  // Same rule for type: an agency that names a typeface gets it in either
+  // theme, but 'System' must not overwrite the theme's own stack.
+  const named = b.font.family && b.font.family !== 'System';
+  const namedHead = b.font.headingFamily && b.font.headingFamily !== 'System';
+  if (named) r.setProperty('--font', `"${b.font.family}", ${SYSTEM_STACK}`);
+  else if (!dark) r.setProperty('--font', SYSTEM_STACK);
+  if (namedHead) r.setProperty('--font-heading', `"${b.font.headingFamily}", ${SYSTEM_STACK}`);
+  else if (!dark) r.setProperty('--font-heading', HEADING_STACK);
 
   if (b.font.webUrl && !document.getElementById('brand-font')) {
     const link = document.createElement('link');

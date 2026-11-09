@@ -8,6 +8,7 @@ import DeploymentProvider from '@/components/deployment-provider';
 import { resolveDeploymentProfile } from '@/lib/deployment';
 import LocaleProvider from '@/components/locale-provider';
 import { resolveRequestLocale } from '@/lib/locale';
+import { resolveTheme } from '@/lib/theme';
 import { enabledLocales } from '@shared/i18n';
 
 // Title/description must carry the brand name: this is what crawlers (and
@@ -53,13 +54,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // container -- means English alone: the switcher hides and a stored
   // non-English preference is ignored.
   const locales = enabledLocales(process.env.DEPLOYMENT_LOCALE);
+  // Light unless a deployment opts in, so production is untouched. Resolved
+  // here rather than in the browser because a class applied on mount gives
+  // every load a white flash before the dark paint lands.
+  const theme = resolveTheme(process.env.DEPLOYMENT_THEME);
 
   return (
     // `lang` is the server's best guess; LocaleProvider corrects it on mount if
     // the viewer has a stored preference. `suppressHydrationWarning` covers
     // exactly that one attribute — without it React warns on every load where a
     // stored locale differs from the deployment's.
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} data-theme={theme} suppressHydrationWarning>
       <body>
         <BrandProvider initial={brand}>
           <LocaleProvider initial={locale} locales={locales}>
