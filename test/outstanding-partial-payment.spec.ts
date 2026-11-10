@@ -214,6 +214,56 @@ dbDescribe('a part-paid invoice reads the same everywhere', () => {
     expect(left).toBe(0);
   });
 
+  /**
+   * The second bug, and the one that reached money.
+   *
+   * `collectionSummary`, `incomeStatement` and the owner-statement payout all
+   * joined on `allocation->0` — the first invoice a payment touched — and then
+   * summed the payment's WHOLE amount against that invoice's period. A payment
+   * settling two months therefore counted twice over: in full, in the wrong
+   * month. Collected passed billed, the rate went over 100%, and the dashboard
+   * ring clamped it to a tidy "100.0%" that looked like good news.
+   */
+  it('a payment split across two periods is counted once in each', async () => {
+    const JAN = 4_000;
+    const FEB = 6_000;
+
+    const { jan, feb } = await asTenant(async (r, m) => {
+      const [a] = await m.query(
+        `INSERT INTO invoices (vendor_id, lease_id, period, due_date, status, total)
+         VALUES ($1, $2, '2098-01', CURRENT_DATE - 60, 'issued', $3) RETURNING id`,
+        [vendorId, leaseId, JAN],
+      );
+      const [b] = await m.query(
+        `INSERT INTO invoices (vendor_id, lease_id, period, due_date, status, total)
+         VALUES ($1, $2, '2098-02', CURRENT_DATE - 30, 'issued', $3) RETURNING id`,
+        [vendorId, leaseId, FEB],
+      );
+      // ONE payment settling both months.
+      await m.query(
+        `INSERT INTO payments (vendor_id, amount, method, gateway_ref, status, received_at, allocation)
+         VALUES ($1, $2, 'eft', $3, 'succeeded', now(), $4::jsonb)`,
+        [vendorId, JAN + FEB, `${TAG}-pay-split`,
+         JSON.stringify([
+           { invoiceId: a.id, amount: JAN },
+           { invoiceId: b.id, amount: FEB },
+         ])],
+      );
+      return {
+        jan: await r.collectionSummary('2098-01'),
+        feb: await r.collectionSummary('2098-02'),
+      };
+    });
+
+    // Before the fix January collected the whole 10,000 and February nothing.
+    expect(jan.collected).toBeCloseTo(JAN, 2);
+    expect(feb.collected).toBeCloseTo(FEB, 2);
+
+    // And the rate it feeds the ring can no longer exceed 100.
+    expect(jan.collectionRate).toBeCloseTo(100, 2);
+    expect(feb.collectionRate).toBeCloseTo(100, 2);
+  });
+
   it('a pending payment does not reduce what is owed', async () => {
     const left = await asTenant(async (r, m) => {
       await m.query(

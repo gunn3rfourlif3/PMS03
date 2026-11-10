@@ -4,6 +4,7 @@ import { collectionRate } from './reporting-calc';
 import {
   invoiceOutstanding,
   OWING_INVOICE_STATUSES,
+  COLLECTED_FOR_PERIOD,
 } from '@common/database/invoice-outstanding';
 import {
   PortfolioUnit,
@@ -95,10 +96,7 @@ export class ReportingService {
     const rows = await this.tenant.getManager().query(
       `
       SELECT
-        (SELECT COALESCE(SUM(p.amount),0)
-           FROM payments p
-           JOIN invoices i ON i.id = (p.allocation->0->>'invoiceId')::uuid
-          WHERE p.status = 'succeeded' AND i.period = $1) AS rent_collected,
+        (${COLLECTED_FOR_PERIOD}) AS rent_collected,
         (SELECT COALESCE(SUM(management_fee),0) FROM owner_statements WHERE period = $1) AS mgmt_fees,
         (SELECT COALESCE(SUM(amount),0) FROM expenses WHERE to_char(incurred_on,'YYYY-MM') = $1) AS expenses;
       `,
@@ -119,10 +117,7 @@ export class ReportingService {
       `
       SELECT
         (SELECT COALESCE(SUM(total),0) FROM invoices WHERE period = $1) AS billed,
-        (SELECT COALESCE(SUM(p.amount),0)
-           FROM payments p
-           JOIN invoices i ON i.id = (p.allocation->0->>'invoiceId')::uuid
-          WHERE p.status = 'succeeded' AND i.period = $1) AS collected;
+        (${COLLECTED_FOR_PERIOD}) AS collected;
       `,
       [period],
     );

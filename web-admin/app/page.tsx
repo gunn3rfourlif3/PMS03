@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw, TrendingUp } from 'lucide-react';
 import { api, auth } from '@/lib/api';
-import { Button, EmptyState } from '@/components/ui';
+import { Button, EmptyState, Ring, Bar } from '@/components/ui';
 import { useLocale } from '@/components/locale-provider';
 import { useDeployment } from '@/components/deployment-provider';
 import RecordPaymentModal from '@/components/record-payment';
@@ -258,28 +258,6 @@ function Stat({ label, value, note, tone }: { label: string; value: string; note
   );
 }
 
-/** The collection ring. Stroke is the agency's colour, track is the surface. */
-function Ring({ value }: { value: number }) {
-  const { t } = useLocale();
-  const pct = Math.max(0, Math.min(100, value));
-  const r = 52, c = 2 * Math.PI * r;
-  return (
-    <div className="relative" style={{ width: 168, height: 168 }}>
-      <svg width="168" height="168" viewBox="0 0 120 120" role="img"
-        aria-label={t('dashboard.collectionRateIs', { pct: `${pct.toFixed(1)}%` })}>
-        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="12"
-          stroke="color-mix(in srgb, var(--ink) 12%, transparent)" />
-        <circle cx="60" cy="60" r={r} fill="none" strokeWidth="12" strokeLinecap="round"
-          stroke="var(--brand)" strokeDasharray={`${(pct / 100) * c} ${c}`} transform="rotate(-90 60 60)" />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="tabular text-[30px] font-bold leading-none tracking-tight text-ink">{pct.toFixed(1)}%</span>
-        <span className="mt-1 text-[11px] text-muted">{t('dashboard.collected')}</span>
-      </div>
-    </div>
-  );
-}
-
 /**
  * Ageing as rows, not columns. Five vertical bars made the reader compare
  * heights across a baseline; a row per band puts the band, the bar, the amount
@@ -303,10 +281,8 @@ function AgeingRows({ arrears }: { arrears: any }) {
       {data.map((d) => (
         <div key={d.key} className="flex items-center gap-4">
           <span className="w-28 shrink-0 text-xs text-ink">{t(d.key)}</span>
-          <span className="h-3 min-w-0 flex-[999_1_6rem] rounded-full"
-            style={{ background: 'color-mix(in srgb, var(--ink) 8%, transparent)' }}>
-            <span aria-hidden className="block h-3 rounded-full"
-              style={{ width: `${Math.max(1, (d.value / max) * 100)}%`, background: d.fill }} />
+          <span className="min-w-0 flex-[999_1_6rem]">
+            <Bar value={d.value} max={max} tone={d.fill} />
           </span>
           <span className="tabular w-28 shrink-0 text-right text-sm font-medium text-ink">
             {d.value > 0 ? money(d.value) : t('common.none')}

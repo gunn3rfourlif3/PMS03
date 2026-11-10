@@ -65,3 +65,51 @@ export function invoiceOutstanding(alias = 'i'): string {
  * and so counted both — a second fault in the same line as the first.
  */
 export const OWING_INVOICE_STATUSES = "('issued', 'partly_paid', 'overdue')";
+
+/**
+ * One row per payment allocation line, joined to the invoice it paid.
+ *
+ * THE BUG THIS EXISTS TO KILL, round two. Four queries did this:
+ *
+ *     FROM payments p
+ *     JOIN invoices i ON i.id = (p.allocation->0->>'invoiceId')::uuid
+ *     WHERE p.status = 'succeeded' AND i.period = $1
+ *     -- then SUM(p.amount)
+ *
+ * Two faults. `allocation->0` reads only the FIRST invoice a payment touched,
+ * so a payment spread over two invoices is attributed wholly to one of them;
+ * and `SUM(p.amount)` adds the payment's ENTIRE value there rather than the
+ * part actually allocated. Together they inflate what counts as collected, and
+ * once collected passes billed the collection rate exceeds 100% — which the
+ * dashboard ring then clamped into a tidy, wrong "100.0%".
+ *
+ * In `grossCollected` it was worse than a display fault: that figure decides
+ * an owner's payout, and the first allocation line can belong to a different
+ * owner's property.
+ *
+ * Expanding the array fixes both: every line counted once, against its own
+ * invoice, at its own amount.
+ *
+ * Exposed aliases: `pay`, `alloc`, `i`. Add further joins after it, then a
+ * WHERE beginning with `SUCCEEDED_PAYMENT`.
+ */
+export const ALLOCATED_PAYMENTS_FROM = `
+  FROM payments pay
+  CROSS JOIN LATERAL jsonb_array_elements(
+         CASE WHEN jsonb_typeof(pay.allocation) = 'array'
+              THEN pay.allocation ELSE '[]'::jsonb END
+       ) alloc
+  JOIN invoices i ON i.id = (alloc->>'invoiceId')::uuid`;
+
+/** The amount on one allocation line — never the payment's whole value. */
+export const ALLOCATED_AMOUNT = `(alloc->>'amount')::numeric`;
+
+/** Goes first in the WHERE of any query built on ALLOCATED_PAYMENTS_FROM. */
+export const SUCCEEDED_PAYMENT = `pay.status = 'succeeded'`;
+
+/** What was collected against invoices of a 'YYYY-MM' period ($1). */
+export const COLLECTED_FOR_PERIOD = `
+  SELECT COALESCE(SUM(${ALLOCATED_AMOUNT}), 0)
+  ${ALLOCATED_PAYMENTS_FROM}
+   WHERE ${SUCCEEDED_PAYMENT}
+     AND i.period = $1`;

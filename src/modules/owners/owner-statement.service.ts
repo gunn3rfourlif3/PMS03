@@ -1,6 +1,11 @@
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import {
+  ALLOCATED_PAYMENTS_FROM,
+  ALLOCATED_AMOUNT,
+  SUCCEEDED_PAYMENT,
+} from '@common/database/invoice-outstanding';
 import { LedgerService } from '@modules/accounting/ledger.service';
 import { AccountingService } from '@modules/accounting/accounting.service';
 import { PAYOUT_PROVIDER } from '@providers/payment/payment-provider.interface';
@@ -30,17 +35,22 @@ export class OwnerStatementService {
     @Inject(PAYOUT_PROVIDER) private readonly provider: PaymentProvider,
   ) {}
 
-  /** Sum of succeeded payments for the owner's leases in the given period. */
+  /**
+   * What succeeded payments ALLOCATED to this owner's leases in the period.
+   *
+   * Not the sum of those payments: a payment settling two invoices counts here
+   * only for the part that landed on this owner's invoice. See
+   * `ALLOCATED_PAYMENTS_FROM` — getting this wrong paid the wrong landlord.
+   */
   private async grossCollected(ownerId: string, period: string): Promise<number> {
     const rows = await this.tenant.getManager().query(
       `
-      SELECT COALESCE(SUM(p.amount), 0) AS gross
-      FROM payments p
-      JOIN invoices i ON i.id = (p.allocation->0->>'invoiceId')::uuid
+      SELECT COALESCE(SUM(${ALLOCATED_AMOUNT}), 0) AS gross
+      ${ALLOCATED_PAYMENTS_FROM}
       JOIN leases l   ON l.id = i.lease_id
       JOIN units u    ON u.id = l.unit_id
       JOIN properties pr ON pr.id = u.property_id
-      WHERE p.status = 'succeeded'
+      WHERE ${SUCCEEDED_PAYMENT}
         AND i.period = $1
         AND pr.owner_id = $2
       `,

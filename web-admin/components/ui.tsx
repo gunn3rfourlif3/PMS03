@@ -185,35 +185,10 @@ export function BentoTile({ tone, icon, value, label, chip, className }: {
   );
 }
 
-export function Donut({ value, tone = 'teal', size = 108, sub }: { value: number; tone?: BentoTone; size?: number; sub?: string }) {
-  const { t, percent } = useLocale();
-  // The default was the literal 'on time'; it now comes from the catalogue so
-  // a caller that does not pass `sub` still gets a translated caption.
-  const caption = sub ?? t('ui.donut.onTime');
-  const c = BENTO[tone];
-  const r = size * 0.39, circ = 2 * Math.PI * r, dash = (Math.max(0, Math.min(100, value)) / 100) * circ, ctr = size / 2;
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <circle cx={ctr} cy={ctr} r={r} fill="none" stroke={c.chip} strokeWidth="12" />
-        <circle cx={ctr} cy={ctr} r={r} fill="none" stroke={c.bar} strokeWidth="12" strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} transform={`rotate(-90 ${ctr} ${ctr})`} />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-heading text-xl font-bold" style={{ color: c.text }}>{percent(Math.round(value) / 100, 0)}</span>
-        <span className="text-[11px]" style={{ color: c.sub }}>{caption}</span>
-      </div>
-    </div>
-  );
-}
-
-export function Progress({ value }: { value: number }) {
-  const v = Math.max(0, Math.min(100, value));
-  return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: 'color-mix(in srgb, var(--brand) 14%, transparent)' }}>
-      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${v}%`, background: 'linear-gradient(90deg, color-mix(in srgb, var(--brand) 80%, white), var(--brand))' }} />
-    </div>
-  );
-}
+/* The chart primitives live in components/charts.tsx, on theme tokens. They are
+   re-exported here so existing imports from '@/components/ui' keep working. */
+export { Ring, Bar, Progress, Donut, TRACK } from './charts';
+export type { ChartTone } from './charts';
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
   return <div className="py-10 text-center text-sm text-muted">{children}</div>;
