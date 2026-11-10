@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { collectionRate } from './reporting-calc';
 import {
+  invoiceOutstanding,
+  OWING_INVOICE_STATUSES,
+} from '@common/database/invoice-outstanding';
+import {
   PortfolioUnit,
   PortfolioUnitRow,
   PortfolioSummary,
@@ -21,14 +25,23 @@ export class ReportingService {
     return 'Reporting module ready';
   }
 
-  /** Active leases with unit, rent, and current outstanding balance. */
+  /**
+   * Active leases with unit, rent, and current outstanding balance.
+   *
+   * `outstanding` is the sum of what each unpaid invoice STILL owes, not the
+   * sum of their totals — see `invoiceOutstanding`. Staff capture cash against
+   * this column, so a figure that ignores a part-payment gets the same rent
+   * banked twice.
+   */
   rentRoll(): Promise<unknown[]> {
     return this.tenant.getManager().query(`
       SELECT l.id AS lease_id, u.label AS unit, l.tenant_id, l.rent_amount, l.status,
-             COALESCE(SUM(CASE WHEN i.status <> 'paid' THEN i.total ELSE 0 END), 0) AS outstanding
+             COALESCE(SUM(${invoiceOutstanding('i')}), 0) AS outstanding
       FROM leases l
       JOIN units u ON u.id = l.unit_id
-      LEFT JOIN invoices i ON i.lease_id = l.id
+      LEFT JOIN invoices i
+             ON i.lease_id = l.id
+            AND i.status IN ${OWING_INVOICE_STATUSES}
       WHERE l.status = 'active'
       GROUP BY l.id, u.label, l.tenant_id, l.rent_amount, l.status
       ORDER BY u.label;
@@ -43,15 +56,20 @@ export class ReportingService {
    */
   async arrearsAging(): Promise<Record<string, number>> {
     const rows = await this.tenant.getManager().query(`
+      WITH owing AS (
+        SELECT i.due_date,
+               ${invoiceOutstanding('i')} AS outstanding
+          FROM invoices i
+         WHERE i.status IN ${OWING_INVOICE_STATUSES}
+      )
       SELECT
-        COALESCE(SUM(CASE WHEN due_date > CURRENT_DATE THEN total ELSE 0 END),0) AS "not_due",
-        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 0 AND 30  THEN total ELSE 0 END),0) AS "d0_30",
-        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 31 AND 60 THEN total ELSE 0 END),0) AS "d31_60",
-        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 61 AND 90 THEN total ELSE 0 END),0) AS "d61_90",
-        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date > 90 THEN total ELSE 0 END),0) AS "d90_plus",
-        COALESCE(SUM(total),0) AS "total_outstanding"
-      FROM invoices
-      WHERE status IN ('issued','partly_paid','overdue');
+        COALESCE(SUM(CASE WHEN due_date > CURRENT_DATE THEN outstanding ELSE 0 END),0) AS "not_due",
+        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 0 AND 30  THEN outstanding ELSE 0 END),0) AS "d0_30",
+        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 31 AND 60 THEN outstanding ELSE 0 END),0) AS "d31_60",
+        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date BETWEEN 61 AND 90 THEN outstanding ELSE 0 END),0) AS "d61_90",
+        COALESCE(SUM(CASE WHEN CURRENT_DATE - due_date > 90 THEN outstanding ELSE 0 END),0) AS "d90_plus",
+        COALESCE(SUM(outstanding),0) AS "total_outstanding"
+      FROM owing;
     `);
     const r = rows[0] ?? {};
     const notYetDue = Number(r.not_due ?? 0);
@@ -120,11 +138,11 @@ export class ReportingService {
    * RLS scopes this to the caller's agency, so the result is one agency's whole
    * portfolio — there is no cross-vendor variant by design.
    *
-   * `outstanding` sums the TOTAL of unpaid invoices, which overstates a
-   * `partly_paid` one. That matches `arrearsAging()` and `rentRoll()`
-   * deliberately: three reports agreeing on a known simplification beats one
-   * of them quietly disagreeing. Fixing it properly means allocating payments
-   * against invoices, which is a change to all three at once.
+   * `outstanding` is what each unpaid invoice STILL owes, net of payments
+   * allocated to it, from the one definition in `invoiceOutstanding`. It used
+   * to sum invoice totals, agreeing with `arrearsAging()` and `rentRoll()` on
+   * a known overstatement; all three now agree on the real figure, and so does
+   * the record-payment modal.
    *
    * `today` is resolved once here and passed into the pure deriver so every
    * unit in one response is judged against the same date.
@@ -163,11 +181,11 @@ export class ReportingService {
          LIMIT 1
       ) l ON TRUE
       LEFT JOIN LATERAL (
-        SELECT COALESCE(SUM(i.total), 0) AS outstanding,
+        SELECT COALESCE(SUM(${invoiceOutstanding('i')}), 0) AS outstanding,
                COALESCE(MAX(GREATEST(CURRENT_DATE - i.due_date, 0)), 0) AS max_days_overdue
           FROM invoices i
          WHERE i.lease_id = l.id
-           AND i.status IN ('issued', 'partly_paid', 'overdue')
+           AND i.status IN ${OWING_INVOICE_STATUSES}
       ) inv ON TRUE
       LEFT JOIN LATERAL (
         SELECT COUNT(*) FILTER (WHERE t.status IN ('open', 'assigned')) AS open_tickets,

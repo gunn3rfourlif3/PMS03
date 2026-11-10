@@ -434,10 +434,11 @@ Once section 7 passes end to end:
 3. Tell whoever is presenting that the **first start of the day is the slow
    one**, and to do it before anyone is watching, and that
    `.\scripts\demo-up.ps1` is the only command they need.
-4. Warn them about one honest gap: the rent roll's *outstanding* column counts
-   a part-paid invoice at its full value, so a payment recorded for less than
-   the invoice does not reduce it. The modal's figures are right; the column
-   behind it is not yet. Record full amounts in front of an audience.
+4. Part-payments are safe to demonstrate. The rent roll, the arrears ageing,
+   the portfolio map and the record-payment modal all read what an invoice
+   still owes, net of payments already allocated to it, so recording R5,000
+   against a R12,000 invoice leaves R7,000 showing everywhere. Voided and
+   draft invoices are counted by none of them.
 
 The machine needs no internet to run the demo once built — no map tiles, no
 external hosts, nothing to configure. It does need Docker Desktop started.

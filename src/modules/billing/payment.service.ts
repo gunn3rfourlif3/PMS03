@@ -5,6 +5,10 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import {
+  invoiceOutstanding,
+  OWING_INVOICE_STATUSES,
+} from '@common/database/invoice-outstanding';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { LedgerService } from '@modules/accounting/ledger.service';
 import { AccountingService } from '@modules/accounting/accounting.service';
@@ -93,8 +97,9 @@ export class PaymentService {
    * R12 000 invoice with R5 000 already received still reads R12 000 there.
    * That is fine for a rough arrears figure and wrong for the screen where
    * someone is about to type an amount, so this subtracts what has been
-   * allocated. The two definitions should be reconciled — see the note on the
-   * rent roll — but the one a human types against must be the honest one.
+   * allocated. The rent roll, the ageing buckets and the portfolio state now
+   * use this same definition from `invoiceOutstanding`, so the figure a human
+   * types against and the figure they read beforehand are the same number.
    *
    * Runs in the caller's vendor context, so RLS scopes it.
    */
@@ -108,15 +113,10 @@ export class PaymentService {
               i.due_date::text AS "dueDate",
               i.total::float8  AS total,
               i.status,
-              (i.total - COALESCE((
-                SELECT SUM((a->>'amount')::numeric)
-                FROM payments p, jsonb_array_elements(p.allocation) a
-                WHERE p.status = 'succeeded'
-                  AND (a->>'invoiceId') = i.id::text
-              ), 0))::float8 AS outstanding
+              ${invoiceOutstanding('i')}::float8 AS outstanding
          FROM invoices i
         WHERE i.lease_id = $1
-          AND i.status <> 'paid'
+          AND i.status IN ${OWING_INVOICE_STATUSES}
         ORDER BY i.due_date ASC`,
       [leaseId],
     );
