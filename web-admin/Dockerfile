@@ -28,9 +28,14 @@ RUN npm run build
 
 # Fail the BUILD, not the container, if the entrypoint is not where the runtime
 # stage expects it. A missing server.js otherwise surfaces as a crash loop after
-# deploy, by which time the old image is already gone.
-RUN test -f .next/standalone/web-admin/server.js \
- || (echo "standalone layout changed — see outputFileTracingRoot in next.config.js" \
+# deploy, by which time the old image is already gone. This guard has earned its
+# keep once already: it caught a nested layout before it reached production.
+#
+# The layout is flat because `experimental.outputFileTracingRoot` in
+# next.config.js pins the tracing root to web-admin itself. Change that and this
+# path changes with it.
+RUN test -f .next/standalone/server.js \
+ || (echo "standalone layout changed — see experimental.outputFileTracingRoot in next.config.js" \
      && find .next/standalone -maxdepth 2 && exit 1)
 
 # ---- Runtime stage (Next.js standalone) ----
@@ -39,7 +44,7 @@ ENV NODE_ENV=production
 ENV PORT=3001
 WORKDIR /app
 COPY --from=build /app/web-admin/.next/standalone ./
-COPY --from=build /app/web-admin/.next/static ./web-admin/.next/static
-COPY --from=build /app/web-admin/public ./web-admin/public
+COPY --from=build /app/web-admin/.next/static ./.next/static
+COPY --from=build /app/web-admin/public ./public
 EXPOSE 3001
-CMD ["node", "web-admin/server.js"]
+CMD ["node", "server.js"]
