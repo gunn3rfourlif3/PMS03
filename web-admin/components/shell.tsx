@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck , Gauge, Globe2 } from 'lucide-react';
 import { auth, api, actorFromToken } from '@/lib/api';
 import { useBrand } from './brand-provider';
+import { isPlatformHost } from '@/lib/branding';
 import IdleTimeout from './idle-timeout';
 import AssistantPanel from './assistant/panel';
 import { cn } from '@/lib/cn';
@@ -189,13 +190,54 @@ function Footer() {
   const c = b.contact;
   return (
     <footer className="mt-10 border-t border-line pt-6 text-xs text-muted">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-        <span className="font-semibold text-ink">{b.name}</span>
-        {c.phone && <a href={`tel:${c.phone}`} className="hover:text-brand">{c.phone}</a>}
-        {c.email && <a href={`mailto:${c.email}`} className="hover:text-brand">{c.email}</a>}
-        {c.website && <a href={`https://${c.website}`} target="_blank" rel="noreferrer" className="hover:text-brand">{c.website}</a>}
+      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <span className="font-semibold text-ink">{b.name}</span>
+          {c.phone && <a href={`tel:${c.phone}`} className="hover:text-brand">{c.phone}</a>}
+          {c.email && <a href={`mailto:${c.email}`} className="hover:text-brand">{c.email}</a>}
+          {c.website && <a href={`https://${c.website}`} target="_blank" rel="noreferrer" className="hover:text-brand">{c.website}</a>}
+        </div>
+        <PoweredBy />
       </div>
     </footer>
+  );
+}
+
+/**
+ * Attribution, as a quiet chip rather than a line of stray text.
+ *
+ * NOT SHOWN EVERYWHERE, and the two exclusions are deliberate in a white-label
+ * product:
+ *
+ *   - On the platform's own hosts the brand already IS Locare, so "Powered by
+ *     Locare" under the Locare wordmark is noise.
+ *   - `NEXT_PUBLIC_HIDE_POWERED_BY=1` removes it for a deployment whose licence
+ *     includes de-branding. On-premise clients who have bought the software
+ *     outright often expect their system to carry their name alone, and that is
+ *     a commercial decision rather than something to hard-code either way.
+ *
+ * Styled from tokens, so it sits correctly on any agency's palette in both
+ * themes and needs no second colour to maintain.
+ */
+function PoweredBy() {
+  const t = useT();
+  if (isPlatformHost() || process.env.NEXT_PUBLIC_HIDE_POWERED_BY === '1') return null;
+  return (
+    <a
+      href="https://locare.co.za"
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[11px] leading-none
+                 transition-colors hover:border-brand/40 hover:text-brand"
+      style={{ background: 'color-mix(in srgb, var(--ink) 3%, transparent)' }}
+    >
+      <span
+        aria-hidden
+        className="inline-block h-1.5 w-1.5 rounded-full"
+        style={{ background: 'var(--brand)' }}
+      />
+      {t('shell.poweredBy', { brand: 'Locare' })}
+    </a>
   );
 }
 

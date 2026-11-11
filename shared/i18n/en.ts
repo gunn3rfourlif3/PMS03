@@ -23,6 +23,7 @@ export const en = {
   'locale.change': 'Change language',
 
   // --- Shell chrome --------------------------------------------------------
+  'shell.poweredBy': 'Powered by {brand}',
   'shell.signOut': 'Sign out',
   'shell.openMenu': 'Open menu',
   'shell.closeMenu': 'Close menu',
