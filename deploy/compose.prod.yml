@@ -179,8 +179,10 @@ services:
 
   web:
     build:
-      context: ../web-admin
-      dockerfile: Dockerfile
+      # Root context: web-admin imports @shared/i18n from the sibling shared/
+      # directory, which a web-admin-only context cannot see.
+      context: ..
+      dockerfile: web-admin/Dockerfile
       args:
         # Relative on purpose, and NOT from the env var. This one image serves
         # every brand host (app.dantalan, app.locare, agency custom domains), so

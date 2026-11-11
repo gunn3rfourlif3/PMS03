@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
@@ -11,9 +13,27 @@ module.exports = {
     optimizePackageImports: ['recharts', 'lucide-react'],
     // `shared/i18n/` lives above this app's root so the two Expo apps can import
     // the same catalogue. Next refuses files outside the project root without
-    // this flag. NOT YET CONFIRMED AGAINST A BUILD: `output: 'standalone'` traces
-    // its own file set, and whether it follows an externalDir import is the one
-    // thing a typecheck cannot tell us. `npm run build` in web-admin is the test.
+    // this flag.
     externalDir: true,
   },
+
+  /**
+   * Pin the tracing root to the REPO ROOT, and do not let Next infer it.
+   *
+   * `output: 'standalone'` emits its files at their path relative to this root.
+   * Left unset, Next guesses the root from where lockfiles sit, so the layout
+   * of `.next/standalone` depends on what the importing code happens to reach
+   * outside this directory — which changed the day `@shared/i18n` was imported
+   * here, and would change again silently.
+   *
+   * Pinned, the layout is a fact the Dockerfile can rely on:
+   *
+   *   .next/standalone/web-admin/server.js    <- the entrypoint
+   *   .next/standalone/shared/...             <- the catalogue, traced in
+   *   .next/standalone/web-admin/node_modules/...
+   *
+   * The runtime stage of web-admin/Dockerfile copies and starts exactly that.
+   * Change one and you must change the other.
+   */
+  outputFileTracingRoot: path.join(__dirname, '..'),
 };
