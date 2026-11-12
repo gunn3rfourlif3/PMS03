@@ -7,6 +7,8 @@ import { actorFromToken } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { contentFor, manualHref, MANUAL_PATH } from './content';
 import { useAssistantSignals } from './use-signals';
+import { agencyContentFor, STAFF_MANUAL_PATH } from './content-agency';
+import { useT } from '../locale-provider';
 
 /**
  * The route key the panel's content is keyed on. It is the partner pathname
@@ -38,6 +40,19 @@ export default function AssistantPanel() {
   // Fetched lazily on first open, capped at three, and empty whenever there is
   // nothing to say — see use-signals.ts for the blocked-upstream guard.
   const signals = useAssistantSignals(open);
+  const t = useT();
+
+  /**
+   * Which surface this is. The partner panel and the agency panel differ in
+   * three ways and nothing else: where the content comes from, whether the
+   * live signals apply, and which manual the pointer names.
+   *
+   * The signals hook queries partner endpoints, so it must not run for agency
+   * staff — they have no partner record, and in the sealed on-site mode the
+   * partner surface is not served at all, so every call would 404 on a box
+   * with no internet to explain itself.
+   */
+  const isPartner = path.startsWith('/partner');
 
   // Which help button opened the panel (desktop strip or mobile pill), so
   // closing can hand focus back to the control the reader actually used.
@@ -101,24 +116,33 @@ export default function AssistantPanel() {
   if (actorFromToken()) return null;
 
   const routeKey = routeKeyFor(path);
-  const entry = contentFor(routeKey);
+  const agencyEntry = isPartner ? null : agencyContentFor(path, t);
+  const entry = isPartner ? contentFor(routeKey) : agencyEntry;
+
+  // An agency route with no curated content renders NO button. The partner
+  // panel falls back to a generic entry because every partner route is
+  // curated and a missing one is a gap to notice; the agency back office has
+  // forty-odd routes and four curated ones, so a help button that opens
+  // "there is no guidance for this screen" on most of them advertises the
+  // absence instead of the feature.
+  if (!entry) return null;
 
   return (
     <>
       <button
         type="button"
         onClick={openFrom}
-        aria-label="Open help"
+        aria-label={t('assistant.openHelp')}
         aria-expanded={open}
         className="fixed right-4 top-3 z-20 hidden items-center gap-2 rounded-xl border border-line bg-white/90 px-3 py-2 text-sm font-medium text-ink shadow-soft backdrop-blur transition hover:text-brand lg:flex"
       >
-        <HelpCircle size={18} /> Help
+        <HelpCircle size={18} /> {t('assistant.heading')}
       </button>
 
       <button
         type="button"
         onClick={openFrom}
-        aria-label="Open help"
+        aria-label={t('assistant.openHelp')}
         aria-expanded={open}
         className="fixed bottom-5 right-4 z-20 grid h-12 w-12 place-items-center rounded-full text-onbrand shadow-soft lg:hidden"
         style={{ background: 'var(--brand)' }}
@@ -149,7 +173,7 @@ export default function AssistantPanel() {
                 ref={closeRef}
                 type="button"
                 onClick={close}
-                aria-label="Close help"
+                aria-label={t('assistant.closeHelp')}
                 className="grid h-9 w-9 place-items-center rounded-xl text-ink transition hover:bg-black/5"
               >
                 <X size={18} />
@@ -157,7 +181,7 @@ export default function AssistantPanel() {
             </div>
 
             <div className="mt-4 flex-1 overflow-y-auto text-sm text-muted">
-              {signals.length > 0 && (
+              {isPartner && signals.length > 0 && (
                 <ul className="mb-5 space-y-2">
                   {signals.map((s) => (
                     <li key={s.id}>
@@ -188,26 +212,38 @@ export default function AssistantPanel() {
               )}
 
               {/*
-                The pointer is a link as of Phase 2 Day 8: `/partner/manual`
-                serves the markdown with an anchor per section, so the reader
-                lands on the right section instead of being told a file path.
-                The path stays visible because the file, not this panel, is the
+                The pointer is a LINK for partners and PLAIN TEXT for agency
+                staff, and that asymmetry is the honest one: `/partner/manual`
+                serves the Partner Manual with an anchor per section, and there
+                is no equivalent route for the Staff Manual yet. Linking agency
+                staff to the partner route would send them somewhere they
+                cannot use — and in the sealed on-site mode, cannot reach.
+                The file path stays visible either way, because the file is the
                 source of truth and it is worth saying where it lives.
               */}
               <p className="mt-6 border-t border-line pt-3 text-xs">
-                Full detail is in the Partner Manual, under{' '}
-                <Link
-                  href={manualHref(entry)}
-                  onClick={close}
-                  className="font-medium text-ink underline decoration-line underline-offset-2 transition hover:decoration-ink"
-                >
-                  {entry.manualSection}
-                </Link>{' '}
-                <span className="font-mono">
-                  ({MANUAL_PATH}
-                  {entry.manualAnchor})
-                </span>
-                .
+                {isPartner ? (
+                  <>
+                    Full detail is in the Partner Manual, under{' '}
+                    <Link
+                      href={manualHref(entry)}
+                      onClick={close}
+                      className="font-medium text-ink underline decoration-line underline-offset-2 transition hover:decoration-ink"
+                    >
+                      {entry.manualSection}
+                    </Link>{' '}
+                    <span className="font-mono">
+                      ({MANUAL_PATH}
+                      {entry.manualAnchor})
+                    </span>
+                    .
+                  </>
+                ) : (
+                  <>
+                    {t('assistant.manualPointer', { section: entry.manualSection })}{' '}
+                    <span className="font-mono">({STAFF_MANUAL_PATH})</span>
+                  </>
+                )}
               </p>
             </div>
           </aside>

@@ -21,6 +21,14 @@ RUN npm ci
 COPY shared/ /app/shared/
 COPY web-admin/ ./
 
+# The manuals are READ FROM DISK AT RENDER TIME by the /partner/manual route —
+# `readManual()` looks for docs/manuals/ beside the working directory. They were
+# never copied into the image, so that route has been failing in production
+# while working locally, where the repo is simply there. Shipped here, and
+# copied into the runtime stage below, because the standalone bundle traces
+# imports and knows nothing about a file opened by name at request time.
+COPY docs/manuals/ /app/docs/manuals/
+
 # API base is baked into the client bundle at build time.
 ARG NEXT_PUBLIC_API_BASE=http://localhost:3000/api
 ENV NEXT_PUBLIC_API_BASE=$NEXT_PUBLIC_API_BASE
@@ -46,5 +54,6 @@ WORKDIR /app
 COPY --from=build /app/web-admin/.next/standalone ./
 COPY --from=build /app/web-admin/.next/static ./.next/static
 COPY --from=build /app/web-admin/public ./public
+COPY --from=build /app/docs/manuals/ ./docs/manuals/
 EXPOSE 3001
 CMD ["node", "server.js"]

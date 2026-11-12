@@ -18,6 +18,59 @@
  */
 
 export const en = {
+  // --- Assistant: agency help panel -----------------------------------------
+  // Sourced from docs/manuals/Staff-Web-Manual.md. An answer may lose words or
+  // change voice against the manual; it may never gain a fact the manual lacks.
+  'assistant.openHelp': 'Open help',
+  'assistant.closeHelp': 'Close help',
+  'assistant.heading': 'Help',
+  'assistant.manualPointer': 'Full detail is in the Staff Manual, under {section}',
+  'assistant.fallback.title': 'Help',
+  'assistant.fallback.purpose':
+    'There is no page-specific guidance for this screen yet. The Staff Manual covers the whole back office.',
+
+  'assistant.dashboard.title': 'Dashboard',
+  'assistant.dashboard.purpose':
+    'Your portfolio at a glance: what was collected this period, what is outstanding, and how occupancy is tracking.',
+  'assistant.dashboard.q1': 'What does the collection rate compare?',
+  'assistant.dashboard.a1':
+    'What was collected in the period against what was billed in it. The ring shows the share; the figure beside it is the amount.',
+  'assistant.dashboard.q2': 'Why is a lease shown as outstanding?',
+  'assistant.dashboard.a2':
+    'It has invoices that are not settled. The amount is what those invoices still owe, after any payment already recorded against them.',
+
+  'assistant.properties.title': 'Properties & Units',
+  'assistant.properties.purpose':
+    'Your buildings and the units inside them — status, market rent and bed and bath counts.',
+  'assistant.properties.q1': 'Why can I not delete this?',
+  'assistant.properties.a1':
+    'Deleting is blocked while a property still has units, or a unit still has an active lease, so records cannot be orphaned.',
+  'assistant.properties.q2': 'What do the unit statuses mean?',
+  'assistant.properties.a2':
+    'Vacant, occupied, maintenance, reserved and offline. Status is set per unit and drives the occupancy figures on the dashboard.',
+
+  'assistant.leases.title': 'Leases',
+  'assistant.leases.purpose':
+    'Every active lease with its unit, tenant, term and rent.',
+  'assistant.leases.q1': 'How do I renew a lease?',
+  'assistant.leases.a1':
+    'Select the lease, enter an escalation percentage and a new term, and the renewal is created for you.',
+  'assistant.leases.q2': 'What does “renewal due” mean?',
+  'assistant.leases.a2': 'The lease is approaching its end date.',
+
+  'assistant.utilities.title': 'Utilities',
+  'assistant.utilities.purpose':
+    'Municipal meters and their readings. Recorded only — nothing here bills a tenant.',
+  'assistant.utilities.q1': 'Why was my reading refused?',
+  'assistant.utilities.a1':
+    'A reading below the previous one is either a meter that wrapped past its last digit or a typing error, and the two cannot be told apart from the figure alone. If it wrapped, tick that the meter rolled over; otherwise correct the figure.',
+  'assistant.utilities.q2': 'Why does the first reading show no consumption?',
+  'assistant.utilities.a2':
+    'It is a baseline, not a measurement — there is no earlier reading to measure from. A baseline shown as zero would look identical to a tenant who used nothing.',
+  'assistant.utilities.q3': 'What is the recovery gap?',
+  'assistant.utilities.a3':
+    'A property’s bulk meter against the sum of the submeters beneath it for the same month: what you paid for and did not recover. Both sides are needed, so a missing reading on either side shows a dash rather than a number.',
+
   // --- Locale switcher -----------------------------------------------------
   'locale.label': 'Language',
   'locale.change': 'Change language',

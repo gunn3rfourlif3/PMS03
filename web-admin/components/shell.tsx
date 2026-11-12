@@ -309,7 +309,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen lg:pl-[264px]">
       <IdleTimeout />
-      {nav === PARTNER_NAV && <AssistantPanel />}
+      {/* Partner and agency staff both get the help panel; the panel itself
+          decides what to show and renders nothing on an uncurated route. Admin
+          and the owner portal are left out: neither has curated content, and
+          the portal is a read-mostly surface for owners rather than staff. */}
+      {(nav === PARTNER_NAV || nav === NAV) && <AssistantPanel />}
       {/* Desktop sidebar */}
       {/* The rail is a viewport-height panel and the nav outgrew it. With
           `justify-between` and no scroll region, 21 links pushed the language

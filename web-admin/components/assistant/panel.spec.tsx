@@ -8,7 +8,15 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AssistantPanel, { routeKeyFor } from './panel';
+import LocaleProvider from '../locale-provider';
 import type { Signal } from './signals';
+
+/**
+ * The panel reads the catalogue through `useT()`, which needs the provider.
+ * With no props it serves English only — the copy these assertions were
+ * written against — so wrapping changes nothing about what is tested.
+ */
+const renderPanel = () => render(<LocaleProvider><AssistantPanel /></LocaleProvider>);
 
 let pathname = '/partner';
 let actor: { id: string } | null = null;
@@ -51,21 +59,21 @@ describe('routeKeyFor', () => {
 describe('impersonation guard', () => {
   it('renders nothing at all when an actor is viewing', () => {
     actor = { id: 'support-1' };
-    const { container } = render(<AssistantPanel />);
+    const { container } = renderPanel();
     expect(container).toBeEmptyDOMElement();
   });
 });
 
 describe('open and close', () => {
   it('is closed by default and offers a trigger', () => {
-    render(<AssistantPanel />);
+    renderPanel();
     expect(sheet()).not.toBeInTheDocument();
     expect(triggers().length).toBeGreaterThan(0);
   });
 
   it('moves focus to the close button on open', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     expect(sheet()).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close help' })).toHaveFocus();
@@ -73,7 +81,7 @@ describe('open and close', () => {
 
   it('closes on Escape and returns focus to the trigger that opened it', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     const opener = triggers()[0];
     await user.click(opener);
     await user.keyboard('{Escape}');
@@ -83,7 +91,7 @@ describe('open and close', () => {
 
   it('returns focus to the mobile trigger when that is the one used', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     const mobile = triggers()[1];
     await user.click(mobile);
     await user.click(screen.getByRole('button', { name: 'Close help' }));
@@ -93,7 +101,7 @@ describe('open and close', () => {
 
   it('closes on a backdrop click', async () => {
     const user = userEvent.setup();
-    const { container } = render(<AssistantPanel />);
+    const { container } = renderPanel();
     await user.click(triggers()[0]);
     const backdrop = container.querySelector('[role="presentation"] > div');
     await user.click(backdrop as Element);
@@ -112,7 +120,7 @@ describe('focus trap', () => {
   it('wraps forward from the last stop to the first', async () => {
     const user = userEvent.setup();
     signals = [{ id: 'stale-deal', text: 'A deal has not moved', href: '/partner/pipeline' }];
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const inside = stops();
     inside[inside.length - 1].focus();
@@ -123,7 +131,7 @@ describe('focus trap', () => {
   it('wraps backward from the first stop to the last', async () => {
     const user = userEvent.setup();
     signals = [{ id: 'stale-deal', text: 'A deal has not moved', href: '/partner/pipeline' }];
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const inside = stops();
     inside[0].focus();
@@ -133,7 +141,7 @@ describe('focus trap', () => {
 
   it('never lands on the page behind the sheet', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     for (let i = 0; i < 6; i += 1) {
       await user.tab();
@@ -145,7 +153,7 @@ describe('focus trap', () => {
 describe('signals', () => {
   it('renders nothing rather than an empty state when there are none', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     expect(within(sheet() as HTMLElement).queryByRole('list')).not.toBeInTheDocument();
     expect(screen.queryByText(/no issues/i)).not.toBeInTheDocument();
@@ -158,7 +166,7 @@ describe('signals', () => {
       { id: 'stale-deal', text: 'A deal has not moved', href: '/partner/pipeline' },
       { id: 'banking-missing', text: 'Banking details are incomplete', href: '/partner/banking' },
     ];
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     // Scoped to the signal list: since Day 8 the manual pointer is a link too.
     const list = within(sheet() as HTMLElement).getByRole('list');
@@ -174,7 +182,7 @@ describe('signals', () => {
   it('closes the panel when a signal is followed', async () => {
     const user = userEvent.setup();
     signals = [{ id: 'banking-missing', text: 'Banking details are incomplete', href: '/partner/banking' }];
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const list = within(sheet() as HTMLElement).getByRole('list');
     await user.click(within(list).getByRole('link'));
@@ -185,7 +193,7 @@ describe('signals', () => {
 describe('manual pointer', () => {
   it('links the section to the manual route and closes the panel', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const link = within(sheet() as HTMLElement).getByRole('link', { name: 'Overview' });
     expect(link).toHaveAttribute('href', '/partner/manual#overview');
@@ -200,7 +208,7 @@ describe('curated content', () => {
   it('shows the route’s own questions', async () => {
     const user = userEvent.setup();
     pathname = '/partner/commissions';
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     expect(within(sheet() as HTMLElement).getByRole('heading', { name: 'Commissions' })).toBeInTheDocument();
     expect(screen.getByText('What is commission calculated on?')).toBeInTheDocument();
@@ -209,7 +217,7 @@ describe('curated content', () => {
   it('is never empty on an unknown route, and names the manual', async () => {
     const user = userEvent.setup();
     pathname = '/partner/something-new';
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     expect(sheet()).toBeInTheDocument();
     expect(screen.getByText(/Partner-Manual\.md/)).toBeInTheDocument();
@@ -218,7 +226,7 @@ describe('curated content', () => {
   it('states no rate, threshold or rand figure in the commissions copy', async () => {
     const user = userEvent.setup();
     pathname = '/partner/commissions';
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const body = (sheet() as HTMLElement).textContent ?? '';
     expect(body).not.toMatch(/R\s?\d/);
@@ -230,7 +238,7 @@ describe('curated content', () => {
 describe('mobile and reduced motion', () => {
   it('is a full-width sheet below lg and capped only from lg up', async () => {
     const user = userEvent.setup();
-    render(<AssistantPanel />);
+    renderPanel();
     await user.click(triggers()[0]);
     const el = sheet() as HTMLElement;
     expect(el).toHaveClass('w-full', 'max-w-none', 'lg:max-w-[420px]');
@@ -238,7 +246,7 @@ describe('mobile and reduced motion', () => {
 
   it('drops its animation under prefers-reduced-motion', async () => {
     const user = userEvent.setup();
-    const { container } = render(<AssistantPanel />);
+    const { container } = renderPanel();
     await user.click(triggers()[0]);
     expect(sheet()).toHaveClass('motion-reduce:animate-none');
     const backdrop = container.querySelector('[role="presentation"] > div');

@@ -10,7 +10,8 @@ owners sign into.
 
 **Contents**
 Signing in · Dashboard · Properties & Units · Leases · Listings · Applications ·
-Owners · Service Providers · Reports · Documents & e-sign · Inspections ·
+Owners · Service Providers · Utilities · Reports · Documents & e-sign ·
+Inspections ·
 API keys · Notifications · Messages · Settings (Branding) · Owner Portal
 
 ---
@@ -101,6 +102,44 @@ Your approved contractors — plumbers, electricians, landscapers, security, leg
 and cleaning. Add them here with a category and contact. Active providers become
 selectable when staff assign a maintenance ticket in the landlord app, with
 category-matched providers offered first.
+
+---
+
+## Utilities
+
+Municipal meters and the readings taken against them. **Recorded only — nothing
+here bills a tenant**; the figures feed the recovery gap and your own reporting.
+
+**Meters** attach either to a unit (a **submeter**) or to a property (a **bulk
+meter**). Electricity, water and gas are metered. Sewerage and refuse are not —
+there is no dial to read, so those need the cost for the period entered directly.
+
+**Capturing a reading.** Enter the dial value as found, and the date. Consumption
+is worked out for you and is never taken from the form: it is the difference from
+the previous reading, multiplied by the meter's **multiplier** (the CT ratio,
+which is 1 on every domestic meter).
+
+The first reading on a meter is a **baseline**. It records no consumption,
+because there is no earlier reading to measure from — and a baseline shown as
+zero would look identical to a tenant who used nothing.
+
+**A reading lower than the previous one is refused.** A dial that has gone
+backwards is either a meter that wrapped past its last digit or a typing error,
+and the two cannot be told apart from the figure alone; guessing either doubles a
+bill or hides a leak. If the meter did wrap, tick **The meter rolled over** and
+the wrap is computed properly. That calculation needs the meter's **dial
+digits**, so set those when you add the meter.
+
+Tick **Estimated, not read** when nobody attended the meter. Enter a **tariff per
+unit** and the cost is computed from consumption; enter a **cost** directly and
+your figure is used as given.
+
+**Recovery gap** compares a property's bulk meter against the sum of the
+submeters beneath it for the same month — what you paid the municipality for and
+did not recover, which is common-area usage, losses and leaks. Both sides are
+needed: with no bulk reading, or no submeter readings, the row shows a dash
+rather than a number, because treating either side as zero would report the whole
+of the other as a loss or a surplus.
 
 ---
 

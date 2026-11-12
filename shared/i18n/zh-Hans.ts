@@ -319,4 +319,43 @@ export const zhHans: Catalogue = {
   'utilities.baseline': '基准',
   'utilities.badge.estimated': '估算',
   'utilities.badge.rollover': '翻转',
+  // ── Assistant: agency help panel ─────────────────────────────────────────
+  // TERMS FOR THE REVIEWER: 总表/分表 (bulk/submeter), 回收差额 (recovery gap),
+  // 翻转 (rollover), 基准 (baseline), 递增 (escalation).
+  'assistant.openHelp': '打开帮助',
+  'assistant.closeHelp': '关闭帮助',
+  'assistant.heading': '帮助',
+  'assistant.manualPointer': '完整说明见《员工手册》中的「{section}」',
+  'assistant.fallback.title': '帮助',
+  'assistant.fallback.purpose': '此页面暂无专门说明。《员工手册》涵盖整个后台。',
+
+  'assistant.dashboard.title': '仪表板',
+  'assistant.dashboard.purpose': '一览您的投资组合：本期已收款项、尚欠款项，以及入住率走势。',
+  'assistant.dashboard.q1': '收款率对比的是什么？',
+  'assistant.dashboard.a1': '本期实收金额与本期开票金额之比。环形图显示占比，旁边的数字为金额。',
+  'assistant.dashboard.q2': '为什么某份租约显示为欠款？',
+  'assistant.dashboard.a2': '该租约存在尚未结清的账单。金额为这些账单在扣除已登记收款后仍欠的部分。',
+
+  'assistant.properties.title': '物业与单元',
+  'assistant.properties.purpose': '您的楼宇及其中的单元 — 状态、市场租金以及卧室与卫浴数量。',
+  'assistant.properties.q1': '为什么无法删除？',
+  'assistant.properties.a1': '若物业仍包含单元，或单元仍有生效中的租约，则禁止删除，以免产生孤立记录。',
+  'assistant.properties.q2': '各单元状态分别代表什么？',
+  'assistant.properties.a2': '空置、已入住、维修中、已预留与停用。状态按单元设置，并决定仪表板上的入住率数据。',
+
+  'assistant.leases.title': '租约',
+  'assistant.leases.purpose': '所有生效中的租约，含其单元、租户、租期与租金。',
+  'assistant.leases.q1': '如何办理续约？',
+  'assistant.leases.a1': '选择该租约，输入递增比例与新的租期，系统即会为您创建续约。',
+  'assistant.leases.q2': '“待续约”是什么意思？',
+  'assistant.leases.a2': '该租约即将到期。',
+
+  'assistant.utilities.title': '公用事业',
+  'assistant.utilities.purpose': '市政计量表及其读数。仅作记录 — 此处不会向租户计费。',
+  'assistant.utilities.q1': '为什么我的读数被拒绝？',
+  'assistant.utilities.a1': '低于上次读数的数值，可能是计量表越过最后一位发生翻转，也可能是录入错误，仅凭数字无法区分两者。若确为翻转，请勾选“计量表已翻转”；否则请更正该数值。',
+  'assistant.utilities.q2': '为什么首次读数不计用量？',
+  'assistant.utilities.a2': '首次读数是基准而非测量值 — 没有更早的读数可供比较。若将基准显示为零，则与租户完全未使用无法区分。',
+  'assistant.utilities.q3': '什么是回收差额？',
+  'assistant.utilities.a3': '同一月份内，物业的总表读数与其下各分表读数之和的对比：即您已付费但未回收的部分。两侧数据缺一不可，因此任一侧缺少读数时显示为短横线而非数字。',
 };
