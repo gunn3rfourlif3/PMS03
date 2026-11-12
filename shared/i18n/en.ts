@@ -18,6 +18,19 @@
  */
 
 export const en = {
+  // --- Portfolio size (Settings) --------------------------------------------
+  // TONE: this is the agency's own figure, shown because they want it. It is
+  // not a meter and must never read like one. No "usage", no "allowance", no
+  // "exceeded", no warning colours. Where they are over the covered count the
+  // copy says plainly that nothing is restricted, because nothing is.
+  'settings.portfolio.title': 'Units under management',
+  'settings.portfolio.across': 'Across {properties} properties.',
+  'settings.portfolio.covered': 'Your agreement covers {licenced} units.',
+  'settings.portfolio.nearing':
+    'Your agreement covers {licenced} units, so you are close to it. If you are still growing, let us know and we will extend it \u2014 nothing changes in the meantime.',
+  'settings.portfolio.above':
+    'That is more than the {licenced} units your agreement covers. Nothing is restricted and nothing will stop working \u2014 we will sort the paperwork whenever it suits you.',
+
   // --- Assistant: agency help panel -----------------------------------------
   // Sourced from docs/manuals/Staff-Web-Manual.md. An answer may lose words or
   // change voice against the manual; it may never gain a fact the manual lacks.

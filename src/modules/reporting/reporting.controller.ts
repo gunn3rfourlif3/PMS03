@@ -53,6 +53,12 @@ export class ReportingController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('vendor_owner', 'property_manager')
+  /** Portfolio size, and the licenced ceiling where one exists. Read-only. */
+  @Get('licence')
+  licence() {
+    return this.service.licenceState();
+  }
+
   @Get('collection/:period')
   collection(@Param('period') period: string) {
     return this.service.collectionSummary(period);

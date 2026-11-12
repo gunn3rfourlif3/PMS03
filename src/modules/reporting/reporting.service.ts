@@ -87,6 +87,43 @@ export class ReportingService {
   }
 
   /**
+   * How much the agency is managing, and what their agreement covers.
+   *
+   * DELIBERATELY NOT AN ENFORCEMENT MECHANISM. Nothing in the product reads
+   * this to block anything: a cap that stops an agency adding a unit stops
+   * them onboarding a tenant, and on a sealed on-site box there is no way to
+   * lift it remotely — so the failure would land on a Friday afternoon with a
+   * lease waiting and no remedy. The count is here because an agency wants to
+   * know its own size, and because a licence conversation is better had from a
+   * number both sides can see than from a surprise at renewal.
+   *
+   * `licencedUnits` is null unless `LICENCED_UNITS` is set, which is only on a
+   * perpetual on-site installation. Every other deployment gets the portfolio
+   * count alone and no licence language at all.
+   *
+   * Two cheap COUNTs rather than `portfolioState()`, which builds a row per
+   * unit and is far too much work for a figure on a settings page.
+   */
+  async licenceState(): Promise<{
+    units: number; properties: number; licencedUnits: number | null;
+  }> {
+    const rows = await this.tenant.getManager().query(`
+      SELECT
+        (SELECT COUNT(*) FROM units u
+           JOIN properties p ON p.id = u.property_id AND p.deleted_at IS NULL
+          WHERE u.deleted_at IS NULL)::int AS units,
+        (SELECT COUNT(*) FROM properties WHERE deleted_at IS NULL)::int AS properties
+    `);
+    const raw = process.env.LICENCED_UNITS;
+    const licenced = raw === undefined || raw.trim() === '' ? null : Number(raw);
+    return {
+      units: Number(rows[0]?.units ?? 0),
+      properties: Number(rows[0]?.properties ?? 0),
+      licencedUnits: Number.isFinite(licenced as number) && (licenced as number) > 0 ? (licenced as number) : null,
+    };
+  }
+
+  /**
    * Period income statement (cash basis): rent collected in the period, less
    * expenses incurred, plus management-fee income earned on owner statements.
    */

@@ -265,6 +265,9 @@ export const api = {
    * Per-unit portfolio state for the god's-eye view. RLS scopes it to the
    * caller's agency. `asOf` fixes the date the state is judged against.
    */
+  /** Portfolio size, plus the licenced ceiling where the deployment has one. */
+  licenceState: (): Promise<{ units: number; properties: number; licencedUnits: number | null }> =>
+    req('/reporting/licence'),
   portfolioState: (asOf?: string) =>
     req(`/reporting/portfolio-state${asOf ? `?asOf=${encodeURIComponent(asOf)}` : ''}`),
   rentRoll: () => req('/reporting/rent-roll'),

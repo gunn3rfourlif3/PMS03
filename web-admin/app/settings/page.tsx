@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink } from 'lucide-react';
+import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink, Building2 } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { applyTheme } from '@/lib/branding';
 import { GlassCard, PageHeader, Button, Field } from '@/components/ui';
@@ -77,6 +77,8 @@ export default function SettingsPage() {
         action={<Button onClick={save} loading={busy}><Save size={16} /> {t('settings.save')}</Button>} />
       {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
       {msg && <div className="mb-4 rounded-xl px-3 py-2 text-sm text-brand" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)' }}>{msg}</div>}
+
+      <PortfolioSize />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <GlassCard>
@@ -161,5 +163,54 @@ export default function SettingsPage() {
         </details>
       </GlassCard>
     </div>
+  );
+}
+
+/**
+ * The agency's own portfolio size.
+ *
+ * FRAMING IS THE FEATURE. This is the figure an agency owner wants about
+ * themselves — how much am I managing, across how many buildings — and it
+ * reads that way first. The covered count is a second line, additive, and only
+ * where the deployment actually has one: `licencedUnits` is null on every
+ * subscription deployment, and then there is no licence language on the page
+ * at all.
+ *
+ * Nowhere does this say "usage", "allowance" or "exceeded", and nothing here
+ * is styled with --danger. Above the covered count the copy states plainly
+ * that nothing is restricted, because nothing is — no code reads this number
+ * to block anything. A client who bought the software outright and finds a
+ * meter watching them has been given a reason to resent it.
+ */
+function PortfolioSize() {
+  const { t, number } = useLocale();
+  const [d, setD] = useState<{ units: number; properties: number; licencedUnits: number | null } | null>(null);
+
+  useEffect(() => {
+    // Silent on failure: this is a nice-to-have figure, and an error banner
+    // about a unit count on the branding page helps nobody.
+    api.licenceState().then(setD).catch(() => {});
+  }, []);
+
+  if (!d) return null;
+
+  const cap = d.licencedUnits;
+  const note =
+    cap === null ? null
+      : d.units > cap ? t('settings.portfolio.above', { licenced: number(cap) })
+      : d.units >= cap * 0.9 ? t('settings.portfolio.nearing', { licenced: number(cap) })
+      : t('settings.portfolio.covered', { licenced: number(cap) });
+
+  return (
+    <GlassCard className="mb-4">
+      <div className="mb-4 flex items-center gap-2 font-heading text-lg font-bold">
+        <Building2 size={18} /> {t('settings.portfolio.title')}
+      </div>
+      <div className="tabular text-[34px] font-bold leading-none text-ink">{number(d.units)}</div>
+      <p className="mt-2 text-sm text-muted">
+        {t('settings.portfolio.across', { properties: number(d.properties) })}
+      </p>
+      {note && <p className="mt-3 max-w-prose text-sm text-muted">{note}</p>}
+    </GlassCard>
   );
 }

@@ -319,6 +319,13 @@ export const zhHans: Catalogue = {
   'utilities.baseline': '基准',
   'utilities.badge.estimated': '估算',
   'utilities.badge.rollover': '翻转',
+  // ── Portfolio size (Settings) ────────────────────────────────────────────
+  'settings.portfolio.title': '管理中的单元',
+  'settings.portfolio.across': '分布于 {properties} 处物业。',
+  'settings.portfolio.covered': '您的协议涵盖 {licenced} 个单元。',
+  'settings.portfolio.nearing': '您的协议涵盖 {licenced} 个单元，目前已接近该数量。如果您仍在扩展，请告知我们，我们会为您调整 — 在此期间一切照常。',
+  'settings.portfolio.above': '这已超出您协议涵盖的 {licenced} 个单元。系统不会有任何限制，也不会停止运作 — 相关文件我们可以在您方便时再行处理。',
+
   // ── Assistant: agency help panel ─────────────────────────────────────────
   // TERMS FOR THE REVIEWER: 总表/分表 (bulk/submeter), 回收差额 (recovery gap),
   // 翻转 (rollover), 基准 (baseline), 递增 (escalation).
