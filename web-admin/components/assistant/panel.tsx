@@ -7,7 +7,8 @@ import { actorFromToken } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { contentFor, manualHref, MANUAL_PATH } from './content';
 import { useAssistantSignals } from './use-signals';
-import { agencyContentFor, STAFF_MANUAL_PATH } from './content-agency';
+import { agencyContentFor } from './content-agency';
+import AssistantChat from './chat';
 import { useT } from '../locale-provider';
 
 /**
@@ -176,7 +177,9 @@ export default function AssistantPanel() {
             aria-label="Help"
             className={cn(
               'absolute inset-y-0 right-0 flex w-full max-w-none flex-col lg:max-w-[420px]',
-              'border-l border-line bg-white p-5 shadow-soft',
+              // `bg-card`, not `bg-white`: the sheet was a white panel with
+              // near-white `text-ink` on it in the dark theme.
+              'border-l border-line bg-card p-5 shadow-soft',
               'animate-fade-up motion-reduce:animate-none',
             )}
           >
@@ -193,72 +196,67 @@ export default function AssistantPanel() {
               </button>
             </div>
 
-            <div className="mt-4 flex-1 overflow-y-auto text-sm text-muted">
-              {isPartner && signals.length > 0 && (
-                <ul className="mb-5 space-y-2">
-                  {signals.map((s) => (
-                    <li key={s.id}>
-                      <Link
-                        href={s.href}
-                        onClick={close}
-                        className="flex items-center justify-between gap-3 rounded-xl border border-line bg-black/[0.02] px-3 py-2.5 text-sm text-ink transition hover:border-brand"
-                      >
-                        <span>{s.text}</span>
-                        <ChevronRight size={16} className="flex-none text-muted" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <p>{entry.purpose}</p>
-
-              {entry.questions.length > 0 && (
-                <dl className="mt-5 space-y-4">
-                  {entry.questions.map((item) => (
-                    <div key={item.q}>
-                      <dt className="text-sm font-semibold text-ink">{item.q}</dt>
-                      <dd className="mt-1">{item.a}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
-
-              {/*
-                The pointer is a LINK for partners and PLAIN TEXT for agency
-                staff, and that asymmetry is the honest one: `/partner/manual`
-                serves the Partner Manual with an anchor per section, and there
-                is no equivalent route for the Staff Manual yet. Linking agency
-                staff to the partner route would send them somewhere they
-                cannot use — and in the sealed on-site mode, cannot reach.
-                The file path stays visible either way, because the file is the
-                source of truth and it is worth saying where it lives.
-              */}
-              <p className="mt-6 border-t border-line pt-3 text-xs">
-                {isPartner ? (
-                  <>
-                    Full detail is in the Partner Manual, under{' '}
-                    <Link
-                      href={manualHref(entry)}
-                      onClick={close}
-                      className="font-medium text-ink underline decoration-line underline-offset-2 transition hover:decoration-ink"
-                    >
-                      {entry.manualSection}
-                    </Link>{' '}
-                    <span className="font-mono">
-                      ({MANUAL_PATH}
-                      {entry.manualAnchor})
-                    </span>
-                    .
-                  </>
-                ) : (
-                  <>
-                    {t('assistant.manualPointer', { section: entry.manualSection })}{' '}
-                    <span className="font-mono">({STAFF_MANUAL_PATH})</span>
-                  </>
+            {isPartner ? (
+              <div className="mt-4 flex-1 overflow-y-auto text-sm text-muted">
+                {isPartner && signals.length > 0 && (
+                  <ul className="mb-5 space-y-2">
+                    {signals.map((s) => (
+                      <li key={s.id}>
+                        <Link
+                          href={s.href}
+                          onClick={close}
+                          className="flex items-center justify-between gap-3 rounded-xl border border-line bg-black/[0.02] px-3 py-2.5 text-sm text-ink transition hover:border-brand"
+                        >
+                          <span>{s.text}</span>
+                          <ChevronRight size={16} className="flex-none text-muted" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              </p>
-            </div>
+
+                <p>{entry.purpose}</p>
+
+                {entry.questions.length > 0 && (
+                  <dl className="mt-5 space-y-4">
+                    {entry.questions.map((item) => (
+                      <div key={item.q}>
+                        <dt className="text-sm font-semibold text-ink">{item.q}</dt>
+                        <dd className="mt-1">{item.a}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {/*
+                  The pointer is a LINK for partners and PLAIN TEXT for agency
+                  staff, and that asymmetry is the honest one: `/partner/manual`
+                  serves the Partner Manual with an anchor per section, and there
+                  is no equivalent route for the Staff Manual yet. Linking agency
+                  staff to the partner route would send them somewhere they
+                  cannot use — and in the sealed on-site mode, cannot reach.
+                  The file path stays visible either way, because the file is the
+                  source of truth and it is worth saying where it lives.
+                */}
+                <p className="mt-6 border-t border-line pt-3 text-xs">
+                  Full detail is in the Partner Manual, under{' '}
+                  <Link
+                    href={manualHref(entry)}
+                    onClick={close}
+                    className="font-medium text-ink underline decoration-line underline-offset-2 transition hover:decoration-ink"
+                  >
+                    {entry.manualSection}
+                  </Link>{' '}
+                  <span className="font-mono">
+                    ({MANUAL_PATH}
+                    {entry.manualAnchor})
+                  </span>
+                  .
+                </p>
+              </div>
+            ) : (
+              <AssistantChat entry={entry} />
+            )}
           </aside>
         </div>
       )}

@@ -29,6 +29,18 @@ export const en = {
   'assistant.fallback.purpose':
     'There is no page-specific guidance for this screen yet. The Staff Manual covers the whole back office.',
 
+  'assistant.chat.opener': 'Ask me about this page, or pick one of the questions below.',
+  'assistant.chat.placeholder': 'Ask a question\u2026',
+  'assistant.chat.send': 'Send',
+  'assistant.chat.suggestions': 'Suggested questions',
+  'assistant.chat.conversation': 'Help conversation',
+  'assistant.chat.thinking': 'Finding an answer',
+  'assistant.chat.fromSection': 'From \u201c{section}\u201d in the Staff Manual',
+  'assistant.chat.noMatch':
+    'I do not have an answer for that in the Staff Manual, and I would rather say so than guess. Try one of the suggested questions, or search the manual itself.',
+  'assistant.chat.curatedNote':
+    'Answers come from the Staff Manual, not from a language model \u2014 so nothing here is invented.',
+
   'assistant.dashboard.title': 'Dashboard',
   'assistant.dashboard.purpose':
     'Your portfolio at a glance: what was collected this period, what is outstanding, and how occupancy is tracking.',

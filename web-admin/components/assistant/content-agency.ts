@@ -103,3 +103,70 @@ export function agencyContentFor(
     manualSection: entry.manualSection,
   };
 }
+
+/**
+ * Find a curated answer for a typed question, or null.
+ *
+ * Word-overlap scoring across EVERY agency entry, not just the current page:
+ * someone on the dashboard asking about a meter reading should get the
+ * utilities answer rather than nothing. The section name travels with the hit
+ * so the reply can say where it came from.
+ *
+ * RETURNS NULL RATHER THAN THE BEST OF A BAD SET. A help panel that always
+ * answers is a help panel that sometimes answers wrongly, and a confident
+ * wrong answer about a rent ledger is worse than "I don't have that". The
+ * threshold below is deliberately blunt: at least two matching words, or one
+ * that is distinctive enough to be worth acting on.
+ */
+
+/** Words too common in this domain to carry meaning on their own. */
+const STOPWORDS = new Set([
+  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'do', 'does', 'did', 'how',
+  'what', 'why', 'when', 'where', 'which', 'who', 'can', 'i', 'my', 'me',
+  'it', 'this', 'that', 'to', 'of', 'in', 'on', 'for', 'and', 'or', 'not',
+  'be', 'have', 'has', 'with', 'from', 'at', 'by', 'about', 'page', 'screen',
+]);
+
+function tokenise(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
+}
+
+export type AgencyHit = { a: string; section: string };
+
+export function searchAgencyContent(
+  query: string,
+  t: (key: MessageKey, vars?: Record<string, string | number>) => string,
+): AgencyHit | null {
+  const wanted = tokenise(query);
+  if (wanted.length === 0) return null;
+
+  let best: { score: number; hit: AgencyHit } | null = null;
+
+  for (const entry of Object.values(AGENCY_CONTENT)) {
+    for (const q of entry.questions) {
+      const question = t(q.qKey);
+      const body = t(q.aKey);
+      // The question carries more signal than the answer, so it weighs more:
+      // an answer mentioning a word in passing should not beat a question
+      // that is about it.
+      const inQuestion = new Set(tokenise(question));
+      const inAnswer = new Set(tokenise(body));
+      let score = 0;
+      for (const w of wanted) {
+        if (inQuestion.has(w)) score += 3;
+        else if (inAnswer.has(w)) score += 1;
+      }
+      if (score > 0 && (!best || score > best.score)) {
+        best = { score, hit: { a: body, section: entry.manualSection } };
+      }
+    }
+  }
+
+  // Three is one question-word match, or three answer-word matches. Below
+  // that the overlap is incidental.
+  return best && best.score >= 3 ? best.hit : null;
+}

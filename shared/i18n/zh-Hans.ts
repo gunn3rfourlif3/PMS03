@@ -329,6 +329,16 @@ export const zhHans: Catalogue = {
   'assistant.fallback.title': '帮助',
   'assistant.fallback.purpose': '此页面暂无专门说明。《员工手册》涵盖整个后台。',
 
+  'assistant.chat.opener': '您可以询问本页相关问题，或从下方选择一个问题。',
+  'assistant.chat.placeholder': '输入您的问题…',
+  'assistant.chat.send': '发送',
+  'assistant.chat.suggestions': '建议问题',
+  'assistant.chat.conversation': '帮助对话',
+  'assistant.chat.thinking': '正在查找答案',
+  'assistant.chat.fromSection': '摘自《员工手册》中的「{section}」',
+  'assistant.chat.noMatch': '《员工手册》中没有相关答案，与其猜测，不如如实告知。请尝试下方的建议问题，或直接查阅手册。',
+  'assistant.chat.curatedNote': '答案摘自《员工手册》，并非由语言模型生成 — 因此内容均无杜撰。',
+
   'assistant.dashboard.title': '仪表板',
   'assistant.dashboard.purpose': '一览您的投资组合：本期已收款项、尚欠款项，以及入住率走势。',
   'assistant.dashboard.q1': '收款率对比的是什么？',
