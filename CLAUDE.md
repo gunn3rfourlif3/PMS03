@@ -113,6 +113,11 @@ Caddy config is mounted, so a Caddyfile change needs no rebuild — but
 
 ## Gotchas already paid for
 
+> The curated set lives here and is read every session, so it stays short.
+> The full accumulating log is `docs/GOTCHAS.md`, which the daily debug run
+> appends to. Promote an entry up here when it proves load-bearing.
+
+
 - **The Caddyfile is bind-mounted as a single FILE, so it pins an inode.**
   `git pull` does not edit in place — it writes a new file and renames it over
   the old one, creating a new inode the running container never sees. The
