@@ -127,6 +127,17 @@ export default function AssistantPanel() {
   // absence instead of the feature.
   if (!entry) return null;
 
+  /*
+   * BOTH TRIGGERS SIT BOTTOM-RIGHT, and are drawn from tokens.
+   *
+   * The desktop one used to be a `bg-white/90` pill at `top-3 right-4`. Two
+   * faults, both invisible on the surface it was written for and obvious on
+   * the ones it was not: hardcoded white against `text-ink`, which in the dark
+   * theme is near-white, so the button rendered white-on-white; and a fixed
+   * top-right position that lands on the agency dashboard's own period input
+   * and Run billing button. The partner surface has no header of its own,
+   * which is why neither showed up there.
+   */
   return (
     <>
       <button
@@ -134,7 +145,9 @@ export default function AssistantPanel() {
         onClick={openFrom}
         aria-label={t('assistant.openHelp')}
         aria-expanded={open}
-        className="fixed right-4 top-3 z-20 hidden items-center gap-2 rounded-xl border border-line bg-white/90 px-3 py-2 text-sm font-medium text-ink shadow-soft backdrop-blur transition hover:text-brand lg:flex"
+        className="fixed bottom-6 right-6 z-30 hidden items-center gap-2 rounded-full border border-line px-4 py-3
+                   text-sm font-medium shadow-soft backdrop-blur transition hover:border-brand/50 lg:flex"
+        style={{ background: 'var(--card)', color: 'var(--ink)' }}
       >
         <HelpCircle size={18} /> {t('assistant.heading')}
       </button>
@@ -144,7 +157,7 @@ export default function AssistantPanel() {
         onClick={openFrom}
         aria-label={t('assistant.openHelp')}
         aria-expanded={open}
-        className="fixed bottom-5 right-4 z-20 grid h-12 w-12 place-items-center rounded-full text-onbrand shadow-soft lg:hidden"
+        className="fixed bottom-6 right-6 z-30 grid h-12 w-12 place-items-center rounded-full text-onbrand shadow-soft lg:hidden"
         style={{ background: 'var(--brand)' }}
       >
         <HelpCircle size={20} />
