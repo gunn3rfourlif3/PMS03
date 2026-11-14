@@ -17,7 +17,10 @@
     "email": "admin@midnightmasquerade.demo",
     "phone": "+27 21 555 0180",
     "city": "Cape Town",
-    "addressText": "2nd Floor, The Foundry, Prestwich Street, Green Point, Cape Town, 8005"
+    "addressText": "2nd Floor, The Foundry, Prestwich Street, Green Point, Cape Town, 8005",
+    "emailDomain": "midnightmasquerade.demo",
+    "$commentManagementFee": "UNCONFIRMED. The client has not given us their management fee; 8% is a placeholder that nevertheless appears on the owner record during the demo. Replace it the moment they say a number, and do not quote it back to them as though it came from them.",
+    "managementFeePct": 0.08
   },
 
   "branding": {
@@ -56,14 +59,14 @@
   },
 
   "people": {
-    "$comment": "Staff and the two app logins. Addresses are on the demo domain so Mailpit catches everything; the ones marked `watch` are the mailboxes opened on screen during the demo.",
+    "$comment": "Staff and the two app logins. Every address in this world is on `agency.emailDomain` — Mailpit intercepts by SMTP host, not by domain, so it catches them all, and one domain means nothing on screen says Locare during a white-label demo. The ones marked `watch` are the mailboxes opened on screen.",
     "staff": [
       { "name": "Celeste Marais", "email": "yash@midnightmasquerade.demo", "role": "vendor_owner" },
       { "name": "Thabo Nkosi", "email": "thabo@midnightmasquerade.demo", "role": "property_manager" },
       { "name": "Riaan de Villiers", "email": "riaan@midnightmasquerade.demo", "role": "property_manager" }
     ],
-    "landlordDemoAccount": { "name": "Annelize Fourie", "email": "landlord@demo.locare.co.za", "watch": true, "ownsBuildings": ["Venetian Mews", "Volto Street Houses"] },
-    "tenantDemoAccount": { "name": "Sipho Dlamini", "email": "tenant@demo.locare.co.za", "watch": true, "unit": "Masquerade Heights 304" }
+    "landlordDemoAccount": { "name": "Annelize Fourie", "email": "landlord@midnightmasquerade.demo", "watch": true, "ownsBuildings": ["Venetian Mews", "Volto Street Houses"] },
+    "tenantDemoAccount": { "name": "Sipho Dlamini", "email": "tenant@midnightmasquerade.demo", "watch": true, "unit": "Masquerade Heights 304" }
   },
 
   "story": {
@@ -81,9 +84,14 @@
   },
 
   "history": {
-    "$comment": "How much past to generate. Twelve months gives the reports something to draw and makes the account look lived-in rather than created this morning.",
+    "$comment": [
+      "How much past to generate. Twelve months gives the reports something to draw and makes the account look lived-in rather than created this morning.",
+      "",
+      "arrearsRate is the share of leases OUTSIDE the story that carry an unpaid month (a quarter of those are two months behind). It exists because a book in which every invoice is paid is the tell that the data was generated. Set it to whatever arrears picture the room should see; 0.05 is a plausible figure for a managed book, not a measured one."
+    ],
     "monthsOfInvoices": 12,
     "monthsOfPayments": 12,
-    "rentDueDayOfMonth": 1
+    "rentDueDayOfMonth": 1,
+    "arrearsRate": 0.05
   }
 }

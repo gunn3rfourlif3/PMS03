@@ -4,6 +4,13 @@ import * as path from 'path';
 import { randomUUID } from 'node:crypto';
 import dataSource from '../src/common/database/data-source';
 import { assertBalanced, JournalLineInput } from '../src/modules/accounting/double-entry';
+import {
+  apportionVacancy,
+  isArrearsMonthUnpaid,
+  prng,
+  skipCurrentMonthFor,
+  unpaidMonthsFor,
+} from './demo-world';
 
 /**
  * Prospect seed — builds an entire agency from a profile in `demo/profiles/`.
@@ -47,7 +54,10 @@ import { assertBalanced, JournalLineInput } from '../src/modules/accounting/doub
 
 type Profile = {
   slug: string;
-  agency: { name: string; tradingName?: string; email: string; phone: string; city: string; addressText: string };
+  agency: {
+    name: string; tradingName?: string; email: string; phone: string; city: string;
+    addressText: string; emailDomain?: string; managementFeePct?: number;
+  };
   branding: { brand: string; tint: string; accent: string; logo: string | null };
   subscription: { tier: string; units: number; unitRateCents: number | null; status: string };
   portfolio: {
@@ -62,7 +72,7 @@ type Profile = {
     tenantDemoAccount: { name: string; email: string; unit: string };
   };
   story?: Record<string, any>;
-  history?: { monthsOfInvoices: number; monthsOfPayments: number; rentDueDayOfMonth: number };
+  history?: { monthsOfInvoices: number; monthsOfPayments: number; rentDueDayOfMonth: number; arrearsRate?: number };
 };
 
 /** Profile vocabulary -> PropertyType. See the header note. */
@@ -76,22 +86,6 @@ const PROPERTY_TYPE: Record<string, string> = {
 };
 
 const toRands = (cents: number) => Math.round(cents / 100);
-
-/** mulberry32, seeded off the slug so the generated world is stable per profile. */
-function prng(seed: string) {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  let a = h >>> 0;
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const FIRST = ['Lerato','Thabo','Nomvula','Sipho','Anelisa','Kagiso','Zanele','Johan','Michelle','Riaan','Naledi','Pieter','Ayanda','Chantal','Bongani','Elmarie','Tshepo','Jason','Refilwe','Dewald','Lindiwe','Marius','Palesa','Shaun','Nosipho','Werner','Kefilwe','Danielle','Mandla','Carina'];
 const LAST = ['Mokoena','Nkosi','Pillay','Adams','de Villiers','Dlamini','Fourie','Mahlangu','Botha','Sithole','Naidoo','van Wyk','Khumalo','Jacobs','Mthembu','Steyn','Moloi','September','Zulu','Erasmus','Maseko','Coetzee','Ndlovu','Williams','Radebe','Visser','Molefe','Abrahams','Ngcobo','Swart'];
@@ -134,6 +128,19 @@ async function main() {
   }
   const p: Profile = JSON.parse(fs.readFileSync(file, 'utf8'));
   const rnd = prng(p.slug);
+
+  // ONE email domain for the whole world. Generated addresses used to be built
+  // from the slug (`tenant001@midnight-masquerade.demo`) while the profile's own
+  // staff addresses had no hyphen (`@midnightmasquerade.demo`) — two domains in
+  // one demo, carried as an open item since the seeder was written. The profile
+  // states the domain; the slug is only the fallback.
+  const emailDomain = p.agency.emailDomain ?? `${p.slug}.demo`;
+
+  // The management fee shows on the owner, so it is a figure the prospect can
+  // see. It was the literal 0.08 in the INSERT below — a number nobody gave us,
+  // asserted on screen. Stated in the profile now, and the profile says there
+  // whether it is confirmed. Replace it with their own fee once they say it.
+  const managementFeePct = p.agency.managementFeePct ?? 0.08;
 
   await dataSource.initialize();
   const q = (sql: string, params: unknown[] = []) => dataSource.query(sql, params);
@@ -207,8 +214,8 @@ async function main() {
   if (!landlord) {
     landlord = await first(
       `INSERT INTO owners (vendor_id,name,management_fee_pct,payout_subaccount,user_id)
-       VALUES ($1,$2,0.08,$3,$4) RETURNING id`,
-      [V, p.people.landlordDemoAccount.name, 'ACC-' + p.people.landlordDemoAccount.name.replace(/\W/g, '').slice(0, 6).toUpperCase(), landlordUserId],
+       VALUES ($1,$2,$5,$3,$4) RETURNING id`,
+      [V, p.people.landlordDemoAccount.name, 'ACC-' + p.people.landlordDemoAccount.name.replace(/\W/g, '').slice(0, 6).toUpperCase(), landlordUserId, managementFeePct],
     );
   } else {
     await q(`UPDATE owners SET user_id=$2 WHERE id=$1`, [landlord.id, landlordUserId]);
@@ -298,14 +305,24 @@ async function main() {
   // the story always lands on a live lease — except the unit whose lease is
   // still awaiting signature, which has to be vacant for that to make sense.
   const targetOccupied = Math.round(p.portfolio.targetUnits * p.portfolio.occupancyRate);
+
+  // Vacancy is apportioned across the buildings — see `apportionVacancy` in
+  // ./demo-world.ts for what filling in list order did to the demo landlord's
+  // houses. Its own PRNG stream: `rnd` draws rents and names and must not shift.
+  const vacancyRate = 1 - p.portfolio.occupancyRate;
+  const vacant = apportionVacancy({
+    buildings: p.portfolio.buildings,
+    slots,
+    vacancyRate,
+    totalVacant: p.portfolio.targetUnits - targetOccupied,
+    alwaysVacant: awaitingSignatureLabel,
+    rnd: prng(`${p.slug}:occupancy`),
+  });
+
   const occupy = new Set<string>();
-  for (const s of slots) {
-    if (s.reserved && s.label !== awaitingSignatureLabel) occupy.add(s.label);
-  }
-  for (const s of slots) {
-    if (occupy.size >= targetOccupied) break;
-    if (s.label === awaitingSignatureLabel || occupy.has(s.label)) continue;
-    occupy.add(s.label);
+  for (const s of slots) if (!vacant.has(s.label)) occupy.add(s.label);
+  if (occupy.size !== targetOccupied) {
+    console.warn(`  ! occupied ${occupy.size}, profile asks ${targetOccupied} — building counts cannot carry the rate`);
   }
 
   const today = new Date();
@@ -316,7 +333,12 @@ async function main() {
 
   for (const s of slots) {
     const occupied = occupy.has(s.label);
-    const status = occupied ? 'occupied' : 'vacant';
+    // One place decides unit status. 'reserved' used to be set at the very end,
+    // inside the guard that creates the lease_agreement — so on a SECOND run
+    // the guard skipped, this loop had already reset the unit to 'vacant', and
+    // the awaiting-signature beat lost its reserved unit. The runbook tells you
+    // to re-seed before a demo, which is exactly when that bit.
+    const status = occupied ? 'occupied' : s.label === awaitingSignatureLabel ? 'reserved' : 'vacant';
 
     let u = await first(`SELECT id FROM units WHERE vendor_id=$1 AND label=$2`, [V, s.label]);
     if (!u) {
@@ -337,7 +359,7 @@ async function main() {
     const name = s.tenantName ?? personName(rnd);
     const email = isDemoTenant
       ? p.people.tenantDemoAccount.email
-      : `tenant${String(++tenantSeq).padStart(3, '0')}@${p.slug}.demo`;
+      : `tenant${String(++tenantSeq).padStart(3, '0')}@${emailDomain}`;
 
     const tenantId = await user(name, email, nextPhone());
     await membership(tenantId, 'tenant');
@@ -473,7 +495,7 @@ async function main() {
       arrearsByLabel.set(a.unit, { daysLate: a.daysLate, amount: toRands(a.amountCents), tenant: a.tenant });
     }
     for (const [label, a] of arrearsByLabel) {
-      const rentExcl = round2(a.amount / (1 + VAT_PCT / 100));
+      const rentExcl = round2(a.amount / unpaidMonthsFor(a.daysLate) / (1 + VAT_PCT / 100));
       await q(
         `UPDATE leases SET rent_amount=$3
            WHERE vendor_id=$1 AND unit_id=(SELECT id FROM units WHERE vendor_id=$1 AND label=$2)`,
@@ -487,9 +509,16 @@ async function main() {
         `SELECT l.id, l.unit_id AS "unitId", l.tenant_id AS "tenantId",
                 l.rent_amount::float8 AS rent, u.label, l.start_date::text AS start
            FROM leases l JOIN units u ON u.id = l.unit_id
-          WHERE l.vendor_id=$1 AND l.status='active'`,
+          WHERE l.vendor_id=$1 AND l.status='active'
+          ORDER BY u.label`,
         [V],
       );
+
+    // A book in which every invoice outside the story is paid is the tell that
+    // the data was generated. `history.arrearsRate` of the other leases carry
+    // an unpaid month, a quarter of those two months. Deterministic: drawn from
+    // the slug-seeded stream in a fixed lease order.
+    const arrearsRate = p.history?.arrearsRate ?? 0.05;
 
     const ym = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
     const dueOf = (d: Date) => {
@@ -498,6 +527,13 @@ async function main() {
       return `${ym(d)}-${String(day).padStart(2, '0')}`;
     };
     const todayMs = Date.now();
+
+    // On the first of the month the current invoice is due TODAY, so it is
+    // issued rather than late; the arrears window then starts one month back,
+    // which keeps "in arrears" true on every day of the month.
+    const nowUtc = new Date();
+    const curDue = dueOf(new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), 1)));
+    const skipCurrentMonth = skipCurrentMonthFor(curDue, nowUtc);
 
     type Row = unknown[];
     const invRows: Row[] = [], payRows: Row[] = [], ledRows: Row[] = [];
@@ -517,6 +553,10 @@ async function main() {
       const arrears = arrearsByLabel.get(L.label);
       const startMs = Date.parse(`${L.start}T00:00:00Z`);
 
+      // Leases outside the story: most are paid up, a few are behind.
+      const roll = arrears ? 1 : rnd();
+      const lateMonths = roll < arrearsRate * 0.25 ? 2 : roll < arrearsRate ? 1 : 0;
+
       for (let back = hist.monthsOfInvoices; back >= 0; back--) {
         const m = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() - back, 1));
         // Never invoice a month before the lease began.
@@ -532,7 +572,19 @@ async function main() {
 
         // Unpaid tail for the two arrears leases: the profile's `daysLate` says
         // how far back the unpaid run starts. Everything older is paid.
-        const unpaid = arrears ? daysLate <= arrears.daysLate : daysLate < 0;
+        // Unpaid is counted BACK FROM THE NEWEST INVOICE, not measured against
+        // the calendar. The old test (`daysLate <= arrears.daysLate`) compared
+        // the profile's stated age against a monthly due-date grid, and the two
+        // only lined up on one day of the month: seeded on the 14th with rent
+        // due on the 1st, the 11-day arrears record had NO unpaid invoice at all
+        // — the headline arrears tenant showed a clean account — and the 38-day
+        // one showed 13 days. `back` is already the invoice's age in months, so
+        // the window is exact on any day: the newest `unpaidMonths` invoices
+        // that are actually due are the unpaid ones, and they sum to the
+        // profile's stated amount because the rent was set from it above.
+        const unpaid = arrears
+          ? isArrearsMonthUnpaid(back, unpaidMonthsFor(arrears.daysLate), skipCurrentMonth)
+          : lateMonths > 0 && back < lateMonths;
         const invoiceId = randomUUID();
         const postedAt = `${dueDate}T08:00:00Z`;
 
@@ -652,7 +704,7 @@ async function main() {
       const ref = `${p.slug}-awaiting-signature`;
       const already = await first(`SELECT id FROM lease_agreements WHERE ref=$1`, [ref]);
       if (!already) {
-        const tenantId = await user(n.tenant, `${n.tenant.split(' ')[0].toLowerCase()}@${p.slug}.demo`, nextPhone());
+        const tenantId = await user(n.tenant, `${n.tenant.split(' ')[0].toLowerCase()}@${emailDomain}`, nextPhone());
         await membership(tenantId, 'tenant');
         const rentRow = await first(`SELECT market_rent::float8 AS rent FROM units WHERE id=$1`, [unitId]);
         const start = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
@@ -666,7 +718,6 @@ async function main() {
            VALUES ($1,$2,$3,$4,$5,'{}'::jsonb,'sent', now() - ($6 || ' days')::interval)`,
           [V, lease.id, tenantId, ref, `/media/${ref}.pdf`, String(n.sentDaysAgo)],
         );
-        await q(`UPDATE units SET status='reserved' WHERE id=$1`, [unitId]);
         storyMade++;
       }
     }
@@ -675,12 +726,25 @@ async function main() {
   console.log(`\n${p.agency.name} seeded (slug ${p.slug}, vendor ${V})`);
   console.log(`  tier      : ${p.subscription.tier}, ${p.subscription.units} units, status ${p.subscription.status}${mrr ? `, mrr ${mrr}` : ' — no rate set (CUSTOM_UNIT_RATE unset)'}`);
   console.log(`  buildings : ${p.portfolio.buildings.length}`);
+  console.log(`  mgmt fee  : ${(managementFeePct * 100).toFixed(2)}% on the owner${p.agency.managementFeePct == null ? ' — PLACEHOLDER, not given by the client' : ''}`);
   console.log(`  units     : ${slots.length} (${created} created this run), ${occupy.size} occupied`);
   console.log(`  leases    : ${leased} created this run`);
   console.log(`  invoices  : ${invoicesMade} created this run (${arrearsMade} overdue), through the ledger`);
   console.log(`  payments  : ${paymentsMade} created this run`);
   console.log(`  ledger    : ${ledgerRows} entries, every transaction assertBalanced()`);
   console.log(`  story     : ${storyMade} records created this run`);
+  for (const a of (p.story?.arrears ?? [])) {
+    const r = await first(
+      `SELECT count(*)::int AS n, COALESCE(sum(i.total),0)::float8 AS owed,
+              COALESCE(max(CURRENT_DATE - i.due_date),0)::int AS oldest
+         FROM invoices i JOIN units u ON u.id = (SELECT unit_id FROM leases WHERE id = i.lease_id)
+        WHERE i.vendor_id=$1 AND u.label=$2 AND i.status IN ('overdue','issued')`,
+      [V, a.unit],
+    );
+    console.log(
+      `  arrears   : ${a.unit} — ${r.n} unpaid, R${r.owed} owed (profile says R${toRands(a.amountCents)}), oldest ${r.oldest} days late (profile says ${a.daysLate})`,
+    );
+  }
   console.log(`  staff     : ${p.people.staff.map((s) => s.email).join(', ')}`);
   console.log(`  landlord  : ${p.people.landlordDemoAccount.email}`);
   console.log(`  tenant    : ${p.people.tenantDemoAccount.email} (${p.people.tenantDemoAccount.unit})`);
