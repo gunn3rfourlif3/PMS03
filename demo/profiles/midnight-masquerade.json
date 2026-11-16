@@ -20,7 +20,8 @@
     "addressText": "2nd Floor, The Foundry, Prestwich Street, Green Point, Cape Town, 8005",
     "emailDomain": "midnightmasquerade.demo",
     "$commentManagementFee": "UNCONFIRMED. The client has not given us their management fee; 8% is a placeholder that nevertheless appears on the owner record during the demo. Replace it the moment they say a number, and do not quote it back to them as though it came from them.",
-    "managementFeePct": 0.08
+    "managementFeePct": 0.08,
+    "managementFeeConfirmed": false
   },
 
   "branding": {
@@ -66,6 +67,14 @@
       { "name": "Riaan de Villiers", "email": "riaan@midnightmasquerade.demo", "role": "property_manager" }
     ],
     "landlordDemoAccount": { "name": "Annelize Fourie", "email": "landlord@midnightmasquerade.demo", "watch": true, "ownsBuildings": ["Venetian Mews", "Volto Street Houses"] },
+    "$commentOwners": "Invented, like everyone here. Between them and the demo landlord every building has an owner — without that there is no owner statement for most of the book. None of these has a login; only the demo landlord does.",
+    "owners": [
+      { "name": "Carnival Quarter Investments (Pty) Ltd", "ownsBuildings": ["Masquerade Heights", "The Carnival"] },
+      { "name": "Harlequin Property Holdings (Pty) Ltd", "ownsBuildings": ["Harlequin Court", "Columbine Lofts"] },
+      { "name": "Domino Residential Trust", "ownsBuildings": ["Domino Place", "Scaramouche Row"] },
+      { "name": "Hendrik Joubert", "ownsBuildings": ["Pierrot Gardens"] },
+      { "name": "Nomsa Zwane", "ownsBuildings": ["Bauta Villas"] }
+    ],
     "tenantDemoAccount": { "name": "Sipho Dlamini", "email": "tenant@midnightmasquerade.demo", "watch": true, "unit": "Masquerade Heights 304" }
   },
 

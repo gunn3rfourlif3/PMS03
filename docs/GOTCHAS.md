@@ -198,3 +198,57 @@ native command raises `NativeCommandError`. Docker writes warnings there.
 
 **Rule.** Wrap native calls in `Invoke-Native`, which drops to `Continue` for
 the call and restores after. A warning must not be able to stop a script.
+
+---
+
+## 2026-11-14 — Demo story data measured against the calendar instead of its own grid
+
+**Symptom.** The prospect demo's two arrears records are the beat the script
+opens on screen. Seeded on the 14th with rent due on the 1st, the 11-day arrears
+tenant had **no unpaid invoice at all** — a clean account where the script says
+"in arrears" — and the 38-day one showed 13 days. The story held on exactly one
+day of each month.
+
+**Cause.** `seed-prospect.ts` decided which invoices were unpaid with
+`daysLate <= profile.daysLate`, comparing an age stated in days against invoices
+due monthly on the 1st. The two only coincide when the profile's figure happens
+to equal today's distance from the last due date. The same arithmetic also made
+the stated outstanding amount unreachable: `daysLate` of 38 wants two unpaid
+months, but the amount was one month's rent.
+
+**Rule.** Seeded story data is anchored to the generated grid, not to the
+calendar. Count back from the newest record (`back < unpaidMonths`), derive the
+per-record amount from the stated total, and treat a stated age in days as
+approximate — then print both the stated and the actual figure at the end of the
+run so the operator sees the difference before the prospect does. The same rule
+covers vacancy: apportion it across the portfolio instead of filling occupancy
+in list order, which emptied the last buildings completely and left the demo
+landlord's own houses 0/16 occupied.
+
+---
+
+## 2026-11-15 — A seeder that has only been read has not been checked
+
+**Symptom.** After two careful review passes and a clean typecheck, the first
+real run of `seed-prospect.ts` against a database still turned up four faults
+nobody had seen: a second run added 20 inspections (and would have eroded the
+"never inspected" finding to nothing over a few re-seeds); 165 of 476 people
+shared a name with someone else, two of them colliding with records the demo
+script opens by name; a re-seed reset two units' rent so they disagreed with
+their own leases; and the book had one owner for ten buildings, with no deposit
+and no owner statement anywhere — under a script that says "statements
+reconcile".
+
+**Cause.** None of these is visible in the code. The inspection roll and the
+name draw are each correct on their own line; the fault is in what the data adds
+up to, and in what a second run does to a first.
+
+**Rule.** A seeder is proven by running it twice on a virgin database and
+comparing a fingerprint of the world before and after the second run — every
+table, ids and values. Identical means idempotent; anything else names the table
+that drifted. Then assert the invariants the demo claims (the ledger balances,
+receivables equal owing invoices, trust bank equals deposits held) as queries,
+not as reading. No Docker is not a reason to skip it: `embedded-postgres` gives a
+real Postgres in a scratch directory, and all 57 migrations run on it in half a
+minute. `npm run verify:prospect -- <slug>` keeps those assertions as a
+read-only command for the morning of a demo.

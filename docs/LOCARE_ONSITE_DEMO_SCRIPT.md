@@ -79,8 +79,15 @@ Then check two things that are easy to forget and visible from the back row:
   open item (b)). A demo branded Locare-green to a prospect called Midnight
   Masquerade undercuts the white-label pitch in the first ten seconds.
 - The **dates are current.** The profile generates everything as an offset from
-  the seed run, so a world seeded three weeks ago shows three-week-old arrears.
+  the seed run, so a world seeded three weeks ago shows three-week-old history.
   Re-seed if it has been sitting.
+- The **arrears are anchored to the profile, not to the seed date** (fixed
+  2026-11-14). Both records always carry at least one overdue invoice and always
+  total the profile's stated amount, whatever day of the month you seed on. The
+  days-late on screen is the real age of the oldest unpaid invoice on the monthly
+  due-date grid, so it is close to, not identical with, the profile's number —
+  the seeder prints both as `arrears:` lines. Read them before you present;
+  that is the check that the beat will land.
 
 Have open: the back office, Mailpit (`mail.demo.locare.co.za`), and a terminal
 on the VPS for the mode switch.
@@ -151,7 +158,7 @@ Reload. Now:
 
 Then the part that answers the question they have not asked yet: open the tenant
 app at `tenant.demo.locare.co.za` and **attempt to sign in as
-`tenant@demo.locare.co.za`**. It is refused by the server, naming the mode.
+`tenant@midnightmasquerade.demo`**. It is refused by the server, naming the mode.
 
 That is the whole demo in one gesture. The feature is not hidden behind a menu;
 the installation does not serve it.
@@ -206,6 +213,9 @@ Tick these off. Each one is a thing the build plan asserts and nobody has seen.
 - [ ] Stack comes up; `mode.sh` / `demo-mode.ps1` with no argument reports the live mode
       (locally it reports BOTH files and warns if they disagree).
 - [ ] Staff sign-in works; OTP arrives in Mailpit (VPS) or the API window (local).
+- [ ] `npm run verify:prospect -- midnight-masquerade` passes in full. It checks
+      the story records and that the books tie, read-only, in seconds — the
+      items below are what it cannot see.
 - [ ] All five story records open: both arrears, both maintenance jobs, the
       expiring lease, the awaiting-signature lease.
 - [ ] Tenant and landlord sign-in both work (Expo apps on :8081/:8082 locally).

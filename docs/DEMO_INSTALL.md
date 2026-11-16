@@ -261,11 +261,35 @@ npm run seed:prospect -- midnight-masquerade
 ```
 
 Builds the whole agency from `demo/profiles/midnight-masquerade.json`: ten
-properties, 500 units, staff, the two app logins, and twelve months of invoices
-and payments posted through the real double-entry ledger. A few minutes.
+properties each with an owner, 500 units, staff, the two app logins, twelve
+months of invoices and payments, a deposit in trust for every tenancy, and an
+owner statement per owner per completed month — all posted through the real
+double-entry ledger. Under a minute.
 
-It is idempotent on the `midnight-masquerade` slug, so running it again fills
-gaps rather than creating a second agency.
+It is idempotent on the `midnight-masquerade` slug: a second run changes nothing
+at all, which is checked, not assumed. On a machine seeded before 2026-11-15 a
+re-run ADDS what the older seeder never made (owners, deposits, statements) and
+corrects duplicate tenant names, but it does not regenerate invoices — for the
+corrected arrears and vacancy spread, reset first (`docker compose down -v`,
+then step 4, then this).
+
+**Set `PII_ENCRYPTION_KEY` (3.1) before you seed, and do not change it after.**
+Owner banking is encrypted with whichever key is in effect at seed time. Change
+the key afterwards and the owners screen fails to decrypt it; re-running the
+seed under the new key repairs it.
+
+Then prove it:
+
+```powershell
+npm run verify:prospect -- midnight-masquerade
+```
+
+Read-only — safe on the database you are about to present from. It checks what
+the demo script says out loud: every ledger transaction balances, receivables
+equal the invoices still owing, trust bank equals deposits held, owner payable
+equals unpaid statements, and each story record the script opens is present and
+in the state the script describes. **Run it again on the morning of the demo.**
+Anything other than a full pass means do not present until it is understood.
 
 This is separate from the `npm run seed` in step 4, which creates the generic
 Demo Agency. Both can coexist; the demo uses this one.
@@ -299,6 +323,21 @@ a prospect is expensive.
    **Record payment** action on any row with money outstanding. It exists only
    in mode A; in B or C the column is absent and the route refuses. Record a
    small amount against an invoice and check the API window logs no error.
+
+---
+
+### The automated version of this list
+
+```powershell
+npm run smoke
+```
+
+`scripts/smoke/smoke.mjs` walks the authenticated back-office routes with
+Playwright and exits non-zero on the first screen that stops rendering. It is
+six assertions, not a regression suite, and it does not replace steps 6-8 above
+— theme, language and the mode-gated payment action still need a human eye. It
+defaults to the Demo Agency login, so point `LOGIN_EMAIL` at the prospect's
+owner address to walk the demo world instead.
 
 ---
 
@@ -423,7 +462,57 @@ nothing on this machine is real.
 
 ---
 
-## 11. Handing the machine over
+## 11. On Linux instead
+
+Everything above assumes Windows, which is how the demo machine was built. The
+product itself has always run on Linux — production is a Linux VPS, the three
+containers are Linux images already (`postgres:16-alpine`, `redis:7-alpine`,
+`mailpit`), and the only native dependency, `sharp`, ships prebuilt Linux
+binaries. Nothing in the application needs porting.
+
+What needed porting was the launcher. `scripts/*.sh` are the equivalents:
+
+| Windows | Linux |
+| --- | --- |
+| `.\scripts\demo-up.ps1` | `./scripts/demo-up.sh` |
+| `.\scripts\demo-up.ps1 -Seed -Mode a` | `./scripts/demo-up.sh --seed --mode a` |
+| `.\scripts\start-all.ps1 -Setup` | `./scripts/start-all.sh --setup` |
+| `.\scripts\demo-mode.ps1 a` | `./scripts/demo-mode.sh a` |
+
+Same seven-setting preflight, same port freeing, same wait for Postgres to be
+ready for queries rather than merely listening, same `pms_app` role step after
+the migrations.
+
+**Prerequisites** are Docker Engine and the Compose plugin, Node 20 or newer,
+and `lsof` (or `psmisc`, or `iproute2`) so ports can be freed. On Debian or
+Ubuntu:
+
+```bash
+sudo apt install -y docker.io docker-compose-v2 lsof tmux
+sudo usermod -aG docker "$USER"   # log out and back in for this to take effect
+```
+
+**No windows, so tmux.** Where the Windows launcher opens a window per service,
+the Linux one starts a tmux session called `pms` with a window each for the API
+and the back office:
+
+```bash
+tmux attach -t pms      # Ctrl+B then N cycles windows, Ctrl+B then D detaches
+```
+
+Without tmux installed the services run in the background and log to
+`/tmp/pms-logs/`, which still works but is harder to watch.
+
+> **Prefer Linux for a client installation.** It removes the Docker Desktop
+> licensing question entirely — Desktop needs a paid subscription above a
+> revenue and headcount threshold, Engine on Linux does not. It also means the
+> sealed on-site box and the production server are the same platform, which
+> matters because mode A is already the expensive one to support. And there is
+> no Windows licence for the client to buy.
+
+---
+
+## 12. Handing the machine over
 
 Once section 7 passes end to end:
 

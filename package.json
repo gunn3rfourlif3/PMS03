@@ -25,9 +25,11 @@
     "seed": "ts-node -r tsconfig-paths/register scripts/seed.ts",
     "seed:partner": "ts-node -r tsconfig-paths/register scripts/seed-demo-partner.ts",
     "seed:prospect": "ts-node -r tsconfig-paths/register scripts/seed-prospect.ts",
+    "verify:prospect": "ts-node -r tsconfig-paths/register scripts/verify-prospect.ts",
     "marketing:i18n:extract": "node scripts/marketing-i18n/extract.mjs",
     "marketing:i18n:build": "node scripts/marketing-i18n/build.mjs",
-    "marketing:i18n:selftest": "node scripts/marketing-i18n/selftest.mjs"
+    "marketing:i18n:selftest": "node scripts/marketing-i18n/selftest.mjs",
+    "smoke": "node scripts/smoke/smoke.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",

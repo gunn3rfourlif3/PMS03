@@ -9,8 +9,12 @@ import {
   isArrearsMonthUnpaid,
   prng,
   skipCurrentMonthFor,
+  uniqueNames,
   unpaidMonthsFor,
 } from './demo-world';
+import { computeStatement } from '../src/modules/owners/statement-calc';
+import { encryptedJson } from '../src/common/security/pii-crypto';
+import { ALLOCATED_AMOUNT, ALLOCATED_PAYMENTS_FROM, SUCCEEDED_PAYMENT } from '../src/common/database/invoice-outstanding';
 
 /**
  * Prospect seed — builds an entire agency from a profile in `demo/profiles/`.
@@ -56,7 +60,7 @@ type Profile = {
   slug: string;
   agency: {
     name: string; tradingName?: string; email: string; phone: string; city: string;
-    addressText: string; emailDomain?: string; managementFeePct?: number;
+    addressText: string; emailDomain?: string; managementFeePct?: number; managementFeeConfirmed?: boolean;
   };
   branding: { brand: string; tint: string; accent: string; logo: string | null };
   subscription: { tier: string; units: number; unitRateCents: number | null; status: string };
@@ -69,6 +73,7 @@ type Profile = {
   people: {
     staff: { name: string; email: string; role: string }[];
     landlordDemoAccount: { name: string; email: string; ownsBuildings: string[] };
+    owners?: { name: string; ownsBuildings: string[] }[];
     tenantDemoAccount: { name: string; email: string; unit: string };
   };
   story?: Record<string, any>;
@@ -87,13 +92,12 @@ const PROPERTY_TYPE: Record<string, string> = {
 
 const toRands = (cents: number) => Math.round(cents / 100);
 
+/** As `za-vat.tax.ts` has it. One constant: the rent and the invoices must agree. */
+const VAT_RATE_PCT = 15;
+
 const FIRST = ['Lerato','Thabo','Nomvula','Sipho','Anelisa','Kagiso','Zanele','Johan','Michelle','Riaan','Naledi','Pieter','Ayanda','Chantal','Bongani','Elmarie','Tshepo','Jason','Refilwe','Dewald','Lindiwe','Marius','Palesa','Shaun','Nosipho','Werner','Kefilwe','Danielle','Mandla','Carina'];
 const LAST = ['Mokoena','Nkosi','Pillay','Adams','de Villiers','Dlamini','Fourie','Mahlangu','Botha','Sithole','Naidoo','van Wyk','Khumalo','Jacobs','Mthembu','Steyn','Moloi','September','Zulu','Erasmus','Maseko','Coetzee','Ndlovu','Williams','Radebe','Visser','Molefe','Abrahams','Ngcobo','Swart'];
 
-/** Deterministic, and distinct enough across 500 units not to collide. */
-function personName(rnd: () => number): string {
-  return `${FIRST[Math.floor(rnd() * FIRST.length)]} ${LAST[Math.floor(rnd() * LAST.length)]}`;
-}
 
 /**
  * Unit labels, floor-style: 8 per floor, so building 96 gives 101..1208.
@@ -189,7 +193,10 @@ async function main() {
 
   // ---------------- users ----------------
   async function user(name: string, email: string, phone: string): Promise<string> {
-    await q(`INSERT INTO users (name,email,phone) VALUES ($1,$2,$3) ON CONFLICT (email) DO NOTHING`, [name, email, phone]);
+    // `users` is global, not per vendor, so an existing row is only renamed when
+    // its address is on this world's own domain — never someone else's account.
+    const onConflict = email.endsWith(`@${emailDomain}`) ? 'DO UPDATE SET name = EXCLUDED.name' : 'DO NOTHING';
+    await q(`INSERT INTO users (name,email,phone) VALUES ($1,$2,$3) ON CONFLICT (email) ${onConflict}`, [name, email, phone]);
     return (await first(`SELECT id FROM users WHERE email=$1`, [email])).id;
   }
   async function membership(userId: string, role: string) {
@@ -207,18 +214,64 @@ async function main() {
     await membership(await user(s.name, s.email, nextPhone()), s.role);
   }
 
-  // ---------------- landlord ----------------
+  // ---------------- owners ----------------
+  // EVERY building has an owner. The seeder used to create one — the demo
+  // landlord, with two buildings — and leave the other eight ownerless: a
+  // managing agency with 436 units belonging to nobody, an owners screen with a
+  // single row, and no owner statement possible for 87% of the book.
+  //
+  // Banking is fictional and goes through the app's own `encryptedJson`
+  // transformer, so it is encrypted at rest exactly as real banking is. It is
+  // rewritten on every run: PII_ENCRYPTION_KEY changing after a seed makes the
+  // old ciphertext unreadable (the owners screen then fails), and a re-seed
+  // under the new key repairs it.
+  const BANKS = [
+    { bankName: 'FNB', branchCode: '250655' }, { bankName: 'Standard Bank', branchCode: '051001' },
+    { bankName: 'Absa', branchCode: '632005' }, { bankName: 'Nedbank', branchCode: '198765' },
+    { bankName: 'Capitec', branchCode: '470010' },
+  ];
+  function bankingFor(name: string) {
+    const r = prng(`${p.slug}:banking:${name}`);
+    const bank = BANKS[Math.floor(r() * BANKS.length)];
+    let acct = '62';
+    for (let i = 0; i < 9; i++) acct += Math.floor(r() * 10);
+    return { ...bank, accountHolder: name, accountNumber: acct, accountType: 'cheque' };
+  }
+  async function ensureOwner(name: string, userId: string | null): Promise<string> {
+    const banking = JSON.stringify(encryptedJson.to(bankingFor(name)));
+    let o = await first(`SELECT id FROM owners WHERE vendor_id=$1 AND name=$2`, [V, name]);
+    if (!o) {
+      o = await first(
+        `INSERT INTO owners (vendor_id,name,management_fee_pct,payout_subaccount,user_id,banking)
+         VALUES ($1,$2,$3,$4,$5,$6::jsonb) RETURNING id`,
+        [V, name, managementFeePct, 'ACC-' + name.replace(/\W/g, '').slice(0, 6).toUpperCase(), userId, banking],
+      );
+    } else {
+      await q(
+        `UPDATE owners SET user_id=COALESCE($2,user_id), management_fee_pct=$3, banking=$4::jsonb, updated_at=now() WHERE id=$1`,
+        [o.id, userId, managementFeePct, banking],
+      );
+    }
+    return o.id;
+  }
+
+  const ownerIdByBuilding = new Map<string, string>();
+  const ownerNames: string[] = [];
+
+  // The demo landlord: the one owner with a login, opened on screen.
   const landlordUserId = await user(p.people.landlordDemoAccount.name, p.people.landlordDemoAccount.email, nextPhone());
   await membership(landlordUserId, 'owner');
-  let landlord = await first(`SELECT id FROM owners WHERE vendor_id=$1 AND name=$2`, [V, p.people.landlordDemoAccount.name]);
-  if (!landlord) {
-    landlord = await first(
-      `INSERT INTO owners (vendor_id,name,management_fee_pct,payout_subaccount,user_id)
-       VALUES ($1,$2,$5,$3,$4) RETURNING id`,
-      [V, p.people.landlordDemoAccount.name, 'ACC-' + p.people.landlordDemoAccount.name.replace(/\W/g, '').slice(0, 6).toUpperCase(), landlordUserId, managementFeePct],
-    );
-  } else {
-    await q(`UPDATE owners SET user_id=$2 WHERE id=$1`, [landlord.id, landlordUserId]);
+  const landlordId = await ensureOwner(p.people.landlordDemoAccount.name, landlordUserId);
+  ownerNames.push(p.people.landlordDemoAccount.name);
+  for (const b of p.people.landlordDemoAccount.ownsBuildings) ownerIdByBuilding.set(b, landlordId);
+
+  for (const o of p.people.owners ?? []) {
+    const id = await ensureOwner(o.name, null);
+    ownerNames.push(o.name);
+    for (const b of o.ownsBuildings) ownerIdByBuilding.set(b, id);
+  }
+  for (const b of p.portfolio.buildings) {
+    if (!ownerIdByBuilding.has(b.name)) console.warn(`  ! ${b.name} has no owner in the profile — it will have no owner statement`);
   }
 
   // ---------------- reserved labels ----------------
@@ -258,13 +311,12 @@ async function main() {
   // ---------------- properties, units, leases ----------------
   const rentMin = toRands(p.portfolio.rentRangeCents.min);
   const rentMax = toRands(p.portfolio.rentRangeCents.max);
-  const ownedByLandlord = new Set(p.people.landlordDemoAccount.ownsBuildings);
 
   type Slot = { label: string; propertyId: string; rent: number; tenantName?: string; reserved: boolean };
   const slots: Slot[] = [];
 
   for (const b of p.portfolio.buildings) {
-    const ownerId = ownedByLandlord.has(b.name) ? landlord.id : null;
+    const ownerId = ownerIdByBuilding.get(b.name) ?? null;
     let prop = await first(`SELECT id FROM properties WHERE vendor_id=$1 AND name=$2`, [V, b.name]);
     if (!prop) {
       prop = await first(
@@ -300,6 +352,17 @@ async function main() {
   for (const s of slots) {
     s.rent = Math.round((rentMin + rnd() * (rentMax - rentMin)) / 50) * 50;
   }
+  // The arrears units' rent is DERIVED from the profile's stated outstanding
+  // amount, here, where every other rent is set. It used to be patched onto the
+  // lease and unit later, inside the history phase — so a re-seed, which skips
+  // that phase, reset the unit's market rent to the generated figure and left
+  // the unit disagreeing with its own lease.
+  for (const a of story.arrears ?? []) {
+    const slot = slots.find((x) => x.label === a.unit);
+    if (slot) {
+      slot.rent = Math.round((toRands(a.amountCents) / unpaidMonthsFor(a.daysLate) / (1 + VAT_RATE_PCT / 100)) * 100) / 100;
+    }
+  }
 
   // Occupancy: the profile's rate, rounded. Named units are occupied first so
   // the story always lands on a live lease — except the unit whose lease is
@@ -325,6 +388,19 @@ async function main() {
     console.warn(`  ! occupied ${occupy.size}, profile asks ${targetOccupied} — building counts cannot carry the rate`);
   }
 
+  // Generated tenant names: distinct from each other and from everyone the
+  // profile names. Own PRNG stream — see `uniqueNames` for what sharing cost.
+  const profileNames = [
+    ...p.people.staff.map((x) => x.name), ...ownerNames, p.people.tenantDemoAccount.name,
+    ...named.map((n) => n.tenantName).filter((n): n is string => !!n),
+  ];
+  const namePool = uniqueNames(FIRST, LAST, prng(`${p.slug}:names`), profileNames);
+  let nameIdx = 0;
+  const nextName = (): string => {
+    if (nameIdx >= namePool.length) throw new Error(`ran out of distinct tenant names at ${nameIdx} — extend FIRST/LAST`);
+    return namePool[nameIdx++];
+  };
+
   const today = new Date();
   const isoDate = (d: Date) => d.toISOString().slice(0, 10);
   let created = 0;
@@ -340,12 +416,15 @@ async function main() {
     // to re-seed before a demo, which is exactly when that bit.
     const status = occupied ? 'occupied' : s.label === awaitingSignatureLabel ? 'reserved' : 'vacant';
 
+    // Drawn whether or not the unit exists, so a re-run consumes `rnd` exactly
+    // as the first run did and the two cannot drift apart.
+    const bedrooms = 1 + Math.floor(rnd() * 3);
     let u = await first(`SELECT id FROM units WHERE vendor_id=$1 AND label=$2`, [V, s.label]);
     if (!u) {
       u = await first(
         `INSERT INTO units (vendor_id,property_id,label,status,market_rent,bedrooms,bathrooms)
          VALUES ($1,$2,$3,$4,$5,$6,1) RETURNING id`,
-        [V, s.propertyId, s.label, status, s.rent, 1 + Math.floor(rnd() * 3)],
+        [V, s.propertyId, s.label, status, s.rent, bedrooms],
       );
       created++;
     } else {
@@ -356,7 +435,7 @@ async function main() {
 
     // The tenant: the profile's name where it gives one, otherwise generated.
     const isDemoTenant = s.label === p.people.tenantDemoAccount.unit;
-    const name = s.tenantName ?? personName(rnd);
+    const name = s.tenantName ?? nextName();
     const email = isDemoTenant
       ? p.people.tenantDemoAccount.email
       : `tenant${String(++tenantSeq).padStart(3, '0')}@${emailDomain}`;
@@ -413,8 +492,13 @@ async function main() {
         ORDER BY l.unit_id`,
       [V],
     );
+    // Decided ONCE per world. The 5% left uninspected are the finding the
+    // portfolio map exists to surface; without this guard every re-seed rolled
+    // again for exactly those units and inspected most of them — a second run
+    // added 20 inspections and the finding eroded toward nothing.
+    const alreadyInspected = Number((await first(`SELECT count(*)::int AS n FROM inspections WHERE vendor_id=$1`, [V])).n) > 0;
     let inspected = 0;
-    for (const l of leasesForInspection) {
+    for (const l of alreadyInspected ? [] : leasesForInspection) {
       const roll = rnd();
       // 5% never inspected, 10% gone stale past the 365-day cadence, the rest current.
       if (roll < 0.05) continue;
@@ -448,7 +532,7 @@ async function main() {
   // as tax-EXCLUSIVE and the tax line is computed, exactly as
   // `buildRentInvoice` does — this must not drift from that file.
   const VAT_KEY = 'ZA_VAT';
-  const VAT_PCT = 15;
+  const VAT_PCT = VAT_RATE_PCT;
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const computeTax = (exclTax: number) => +(exclTax * (VAT_PCT / 100)).toFixed(2);
 
@@ -458,6 +542,12 @@ async function main() {
     BANK:    { code: '1100', name: 'Bank (operating)', type: 'asset' },
     VAT_OUT: { code: '2100', name: 'VAT Output (payable)', type: 'liability' },
     RENT_INC:{ code: '4000', name: 'Rental Income', type: 'income' },
+    // Deposits (DepositService.capture) and owner statements / payouts
+    // (OwnerStatementService) — same codes as STD_ACCOUNTS.
+    TRUST_BANK:    { code: '1200', name: 'Trust Bank (segregated)', type: 'asset', isTrust: true },
+    DEPOSIT_TRUST: { code: '2200', name: 'Tenant Deposits (trust)', type: 'liability', isTrust: true },
+    OWNER_PAYABLE: { code: '2300', name: 'Owner Payable', type: 'liability' },
+    MGMT_FEE:      { code: '4200', name: 'Management Fee Income', type: 'income' },
   };
   const accountId: Record<string, string> = {};
   for (const [key, a] of Object.entries(ACCOUNTS)) {
@@ -473,12 +563,48 @@ async function main() {
 
   const hist = p.history ?? { monthsOfInvoices: 12, monthsOfPayments: 12, rentDueDayOfMonth: 1 };
 
+  // ---- ledger staging, shared by every phase that posts ----
+  type Row = unknown[];
+  let ledRows: Row[] = [];
+  let ledgerRows = 0;
+
+  /** Validate with the ledger's own invariant, then stage the rows. */
+  const post = (lines: JournalLineInput[], postedAt: string): string => {
+    assertBalanced(lines);
+    const txnId = randomUUID();
+    for (const l of lines) {
+      ledRows.push([V, txnId, l.accountId, l.debit ?? 0, l.credit ?? 0, l.entityRef ?? null, postedAt]);
+      ledgerRows++;
+    }
+    return txnId;
+  };
+
+  // Batched: thousands of rows one at a time would be minutes of round trips.
+  // Chunked to stay well inside Postgres' 65535-parameter cap.
+  async function insertMany(table: string, cols: string[], rows: Row[], extra = '') {
+    if (rows.length === 0) return;
+    const perRow = cols.length;
+    const chunk = Math.max(1, Math.floor(60000 / perRow));
+    for (let i = 0; i < rows.length; i += chunk) {
+      const slice = rows.slice(i, i + chunk);
+      const values = slice
+        .map((_, r) => `(${cols.map((__, c) => `$${r * perRow + c + 1}`).join(',')})`)
+        .join(',');
+      await q(`INSERT INTO ${table} (${cols.join(',')}) VALUES ${values} ${extra}`, slice.flat());
+    }
+  }
+  const flushLedger = async () => {
+    await insertMany('ledger_entries',
+      ['vendor_id','transaction_id','account_id','debit','credit','entity_ref','posted_at'], ledRows);
+    ledRows = [];
+  };
+
   // Idempotency: the history is generated as one block with ids minted here, so
   // a re-run cannot match the rows it made last time. If any invoice exists for
   // this vendor the whole phase is skipped rather than half-repeated.
   const invCount = Number((await first(`SELECT count(*)::int AS n FROM invoices WHERE vendor_id=$1`, [V])).n);
 
-  let invoicesMade = 0, paymentsMade = 0, ledgerRows = 0, arrearsMade = 0;
+  let invoicesMade = 0, paymentsMade = 0, arrearsMade = 0;
 
   if (invCount > 0) {
     console.log(`\n  history: ${invCount} invoices already present — skipped (idempotent)`);
@@ -535,19 +661,7 @@ async function main() {
     const curDue = dueOf(new Date(Date.UTC(nowUtc.getUTCFullYear(), nowUtc.getUTCMonth(), 1)));
     const skipCurrentMonth = skipCurrentMonthFor(curDue, nowUtc);
 
-    type Row = unknown[];
-    const invRows: Row[] = [], payRows: Row[] = [], ledRows: Row[] = [];
-
-    /** Validate with the ledger's own invariant, then stage the rows. */
-    const post = (lines: JournalLineInput[], postedAt: string): string => {
-      assertBalanced(lines);
-      const txnId = randomUUID();
-      for (const l of lines) {
-        ledRows.push([V, txnId, l.accountId, l.debit ?? 0, l.credit ?? 0, l.entityRef ?? null, postedAt]);
-        ledgerRows++;
-      }
-      return txnId;
-    };
+    const invRows: Row[] = [], payRows: Row[] = [];
 
     for (const L of leases) {
       const arrears = arrearsByLabel.get(L.label);
@@ -633,28 +747,114 @@ async function main() {
     // ---- batched inserts: ~5.6k invoices and ~28k ledger rows one at a time
     // would take minutes of round trips. Chunked to stay well inside Postgres'
     // 65535-parameter cap.
-    async function insertMany(table: string, cols: string[], rows: Row[], extra = '') {
-      if (rows.length === 0) return;
-      const perRow = cols.length;
-      const chunk = Math.max(1, Math.floor(60000 / perRow));
-      for (let i = 0; i < rows.length; i += chunk) {
-        const slice = rows.slice(i, i + chunk);
-        const values = slice
-          .map((_, r) => `(${cols.map((__, c) => `$${r * perRow + c + 1}`).join(',')})`)
-          .join(',');
-        await q(`INSERT INTO ${table} (${cols.join(',')}) VALUES ${values} ${extra}`, slice.flat());
-      }
-    }
-
     await insertMany('invoices',
       ['id','vendor_id','lease_id','tenant_id','period','due_date','status','total','line_items','ledger_txn_id','late_fee_applied'],
       invRows, 'ON CONFLICT (vendor_id,lease_id,period) DO NOTHING');
     await insertMany('payments',
       ['id','vendor_id','tenant_id','amount','method','gateway_ref','status','received_at','allocation','ledger_txn_id'],
       payRows, 'ON CONFLICT (gateway_ref) DO NOTHING');
-    await insertMany('ledger_entries',
-      ['vendor_id','transaction_id','account_id','debit','credit','entity_ref','posted_at'],
-      ledRows);
+    await flushLedger();
+  }
+
+  // ======================= deposits =======================
+  // One deposit per active tenancy, captured into trust at the start of the
+  // lease in the shape `DepositService.capture` posts: Dr Trust Bank / Cr Tenant
+  // Deposits (trust), both lines carrying the lease. A year of rent with no
+  // deposit held anywhere left the trust accounts empty — the first place an
+  // agency principal looks. One month's rent, to the nearest R50. No interest is
+  // accrued: the rate is the agency's own and nobody has given us one.
+  let depositsMade = 0;
+  if (Number((await first(`SELECT count(*)::int AS n FROM deposits WHERE vendor_id=$1`, [V])).n) === 0) {
+    const tenancies: { id: string; rent: number; start: string }[] = await q(
+      `SELECT l.id, l.rent_amount::float8 AS rent, l.start_date::text AS start
+         FROM leases l JOIN units u ON u.id = l.unit_id
+        WHERE l.vendor_id=$1 AND l.status='active' ORDER BY u.label`,
+      [V],
+    );
+    const depRows: Row[] = [];
+    for (const l of tenancies) {
+      const amount = Math.round(l.rent / 50) * 50;
+      const at = `${l.start}T09:00:00Z`;
+      post(
+        [
+          { accountId: accountId.TRUST_BANK, debit: amount, entityRef: `lease:${l.id}` },
+          { accountId: accountId.DEPOSIT_TRUST, credit: amount, entityRef: `lease:${l.id}` },
+        ],
+        at,
+      );
+      depRows.push([V, l.id, amount, 'trust:default', 'held', at, at]);
+    }
+    await insertMany('deposits', ['vendor_id','lease_id','amount','held_in','status','proof_sent_at','created_at'], depRows);
+    await flushLedger();
+    depositsMade = depRows.length;
+  }
+
+  // ======================= owner statements and payouts =======================
+  // One statement per owner per COMPLETED month, computed the way
+  // `OwnerStatementService.generate` computes it: gross is what succeeded
+  // payments ALLOCATED to that owner's invoices in the period (the app's own SQL
+  // fragments, imported, not re-written), the figures come from the app's own
+  // `computeStatement`, and the posting is its reclassification — Dr Rental
+  // Income / Cr Management Fee Income / Cr Owner Payable. Every month but the
+  // latest is paid out (Dr Owner Payable / Cr Bank, as `payout` posts); the
+  // latest is left finalized and unpaid, which is what the day after a
+  // statement run looks like.
+  let statementsMade = 0, payoutsMade = 0;
+  if (Number((await first(`SELECT count(*)::int AS n FROM owner_statements WHERE vendor_id=$1`, [V])).n) === 0) {
+    const nowS = new Date();
+    const currentPeriod = `${nowS.getUTCFullYear()}-${String(nowS.getUTCMonth() + 1).padStart(2, '0')}`;
+    const collected: { ownerId: string; period: string; gross: number }[] = await q(
+      `SELECT pr.owner_id AS "ownerId", i.period, SUM(${ALLOCATED_AMOUNT})::float8 AS gross
+       ${ALLOCATED_PAYMENTS_FROM}
+         JOIN leases l ON l.id = i.lease_id
+         JOIN units u ON u.id = l.unit_id
+         JOIN properties pr ON pr.id = u.property_id
+        WHERE ${SUCCEEDED_PAYMENT}
+          AND pay.vendor_id = $1 AND pr.owner_id IS NOT NULL AND i.period < $2
+        GROUP BY pr.owner_id, i.period
+        ORDER BY i.period, pr.owner_id`,
+      [V, currentPeriod],
+    );
+    const latest = collected.reduce((m, r) => (r.period > m ? r.period : m), '');
+    const stRows: Row[] = [], poRows: Row[] = [];
+    for (const r of collected) {
+      const f = computeStatement(r.gross, managementFeePct, 0);
+      if (f.grossCollected <= 0) continue;
+      const [y, m] = r.period.split('-').map(Number);
+      // The 3rd of the following month, never in the future.
+      const stmtAt = new Date(Math.min(Date.UTC(y, m, 3, 8), nowS.getTime())).toISOString();
+      const statementId = randomUUID();
+      const txn = post(
+        [
+          { accountId: accountId.RENT_INC, debit: f.grossCollected, entityRef: `owner:${r.ownerId}` },
+          { accountId: accountId.MGMT_FEE, credit: f.managementFee },
+          { accountId: accountId.OWNER_PAYABLE, credit: f.netPayout, entityRef: `owner:${r.ownerId}` },
+        ],
+        stmtAt,
+      );
+      const paidOut = r.period !== latest;
+      stRows.push([statementId, V, r.ownerId, r.period, f.grossCollected, f.managementFee, f.expenses, f.netPayout,
+        paidOut ? 'paid_out' : 'finalized', txn, stmtAt]);
+      if (paidOut) {
+        const paidAt = new Date(Math.min(Date.UTC(y, m, 5, 10), nowS.getTime())).toISOString();
+        const ptxn = post(
+          [
+            { accountId: accountId.OWNER_PAYABLE, debit: f.netPayout, entityRef: `owner:${r.ownerId}` },
+            { accountId: accountId.BANK, credit: f.netPayout },
+          ],
+          paidAt,
+        );
+        poRows.push([V, r.ownerId, statementId, f.netPayout, `seed:${p.slug}:${r.ownerId}:${r.period}`, 'paid', ptxn, paidAt]);
+      }
+    }
+    await insertMany('owner_statements',
+      ['id','vendor_id','owner_id','period','gross_collected','management_fee','expenses','net_payout','status','ledger_txn_id','created_at'],
+      stRows, 'ON CONFLICT (vendor_id,owner_id,period) DO NOTHING');
+    await insertMany('payouts',
+      ['vendor_id','owner_id','statement_id','amount','gateway_ref','status','ledger_txn_id','created_at'],
+      poRows, 'ON CONFLICT (gateway_ref) DO NOTHING');
+    await flushLedger();
+    statementsMade = stRows.length; payoutsMade = poRows.length;
   }
 
   // ---- the story set: the records that get clicked on screen ----
@@ -690,7 +890,6 @@ async function main() {
         `UPDATE leases SET end_date=$3 WHERE vendor_id=$1 AND unit_id=$2 AND status='active'`,
         [V, unitId, end],
       );
-      storyMade++;
     }
   }
 
@@ -726,11 +925,14 @@ async function main() {
   console.log(`\n${p.agency.name} seeded (slug ${p.slug}, vendor ${V})`);
   console.log(`  tier      : ${p.subscription.tier}, ${p.subscription.units} units, status ${p.subscription.status}${mrr ? `, mrr ${mrr}` : ' — no rate set (CUSTOM_UNIT_RATE unset)'}`);
   console.log(`  buildings : ${p.portfolio.buildings.length}`);
-  console.log(`  mgmt fee  : ${(managementFeePct * 100).toFixed(2)}% on the owner${p.agency.managementFeePct == null ? ' — PLACEHOLDER, not given by the client' : ''}`);
+  console.log(`  mgmt fee  : ${(managementFeePct * 100).toFixed(2)}% on every owner${p.agency.managementFeeConfirmed === true ? '' : ' — PLACEHOLDER, not given by the client'}`);
+  console.log(`  owners    : ${ownerNames.length}, covering ${ownerIdByBuilding.size} of ${p.portfolio.buildings.length} buildings (banking fictional, encrypted with the PII key now in effect)`);
   console.log(`  units     : ${slots.length} (${created} created this run), ${occupy.size} occupied`);
   console.log(`  leases    : ${leased} created this run`);
   console.log(`  invoices  : ${invoicesMade} created this run (${arrearsMade} overdue), through the ledger`);
   console.log(`  payments  : ${paymentsMade} created this run`);
+  console.log(`  deposits  : ${depositsMade} captured into trust this run`);
+  console.log(`  statements: ${statementsMade} owner statements created this run, ${payoutsMade} paid out`);
   console.log(`  ledger    : ${ledgerRows} entries, every transaction assertBalanced()`);
   console.log(`  story     : ${storyMade} records created this run`);
   for (const a of (p.story?.arrears ?? [])) {

@@ -85,6 +85,15 @@ You only need this the first time on a machine, or after a `-Setup` run. It is
 safe to run again at any point — it tops up what's missing rather than creating
 a second copy.
 
+Then, every time before a prospect is in the room:
+
+```powershell
+npm run verify:prospect -- midnight-masquerade
+```
+
+It only reads. A full pass means the records the script opens are all there and
+the books tie; a `FAIL` line names exactly what is not.
+
 ---
 
 ## 4. Open your tabs
@@ -116,8 +125,8 @@ make the white-label point.
 | Celeste Marais — agency owner | `yash@midnightmasquerade.demo` | Everything. Start here. |
 | Thabo Nkosi — property manager | `thabo@midnightmasquerade.demo` | Day-to-day management, no company settings |
 | Riaan de Villiers — property manager | `riaan@midnightmasquerade.demo` | Same as Thabo |
-| Sipho Dlamini — tenant | `tenant@demo.locare.co.za` | The tenant app. Lives at Masquerade Heights 304 |
-| Annelize Fourie — landlord | `landlord@demo.locare.co.za` | The owner portal. Owns Venetian Mews and Volto Street Houses |
+| Sipho Dlamini — tenant | `tenant@midnightmasquerade.demo` | The tenant app. Lives at Masquerade Heights 304 |
+| Annelize Fourie — landlord | `landlord@midnightmasquerade.demo` | The owner portal. Owns Venetian Mews and Volto Street Houses |
 
 Codes expire after five minutes. If one lapses, just request another.
 
