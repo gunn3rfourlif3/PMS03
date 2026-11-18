@@ -11,7 +11,7 @@ import {
 
 export interface PreviewResult {
   mapping: Record<string, string>;
-  skipped: { row: number; reason: string }[];
+  skipped: { row: number; reason: string; text?: string }[];
   summary: ReturnType<typeof matchSummary>;
   matched: {
     lineId: string; date: string; description?: string; reference?: string;

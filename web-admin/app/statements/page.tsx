@@ -117,7 +117,9 @@ export default function StatementsPage() {
             {preview.skipped?.length > 0 && (
               <p className="mt-2 text-xs text-danger">
                 {tn('statements.skippedRows', preview.skipped.length)}
-                {' '}{preview.skipped.slice(0, 3).map((s: any) => t('statements.skippedRow', { row: s.row, reason: s.reason })).join(', ')}
+                {' '}{preview.skipped.slice(0, 3).map((s: any) => (s.text
+                  ? t('statements.skippedLine', { text: s.text, reason: s.reason })
+                  : t('statements.skippedRow', { row: s.row, reason: s.reason }))).join(', ')}
                 {preview.skipped.length > 3 ? '…' : ''}
               </p>
             )}

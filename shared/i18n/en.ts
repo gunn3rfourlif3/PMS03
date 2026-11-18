@@ -387,6 +387,7 @@ export const en = {
   'statements.skippedRows.one': '{count} row could not be read:',
   'statements.skippedRows.other': '{count} rows could not be read:',
   'statements.skippedRow': 'row {row} ({reason})',
+  'statements.skippedLine': '\u201c{text}\u201d ({reason})',
   'statements.willBeRecorded': 'Will be recorded',
   'statements.nothingMatched': 'Nothing matched. Check the column mapping above.',
   'statements.byReference': 'by reference',

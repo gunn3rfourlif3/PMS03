@@ -17,7 +17,7 @@ const norm = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
  * Header synonyms, in the order they are preferred. Exported because the PDF
  * reader finds a statement's table by the same names (see statement-pdf.ts).
  */
-export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'amount' | 'credit' | 'debit', string[]> = {
+export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'amount' | 'credit' | 'debit' | 'fee', string[]> = {
   date: ['date', 'transactiondate', 'postingdate', 'valuedate', 'effectivedate'],
   description: ['description', 'details', 'narrative', 'transactiondescription', 'memo'],
   reference: ['reference', 'ref', 'payerreference', 'yourreference', 'customerreference', 'paymentreference'],
@@ -26,13 +26,19 @@ export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'a
   // `payments` is matched whole, never by contains, so a "Payment reference"
   // column cannot be mistaken for money out.
   debit: ['debit', 'debitamount', 'moneyout', 'withdrawal', 'payments'],
+  // Bank charges in a column of their own (GoTyme: "Fees*(-)"). Always money out.
+  fee: ['fees', 'fee', 'charges', 'servicefee', 'bankcharges'],
 };
 const HEADERS = STATEMENT_HEADERS;
 
 export interface ParseResult {
   lines: StatementLine[];
-  /** Rows that could not be read, with the reason. Never silently dropped. */
-  skipped: { row: number; reason: string }[];
+  /**
+   * Rows that could not be read, with the reason. Never silently dropped.
+   * `text` is what the row said, so staff can find it on the statement — a row
+   * number means nothing to someone holding a PDF.
+   */
+  skipped: { row: number; reason: string; text?: string }[];
   /** Which column each field was taken from, so the screen can show its working. */
   mapping: Record<string, string>;
 }
@@ -149,7 +155,7 @@ export function parseDate(raw: string): string | null {
 }
 
 export function parseStatementRows(rows: string[][]): ParseResult {
-  const skipped: { row: number; reason: string }[] = [];
+  const skipped: { row: number; reason: string; text?: string }[] = [];
   if (!rows || rows.length < 2) {
     return { lines: [], skipped: [{ row: 0, reason: 'The file has no rows below its header' }], mapping: {} };
   }
@@ -162,7 +168,10 @@ export function parseStatementRows(rows: string[][]): ParseResult {
     amount: findColumn(headers, HEADERS.amount),
     credit: findColumn(headers, HEADERS.credit),
     debit: findColumn(headers, HEADERS.debit),
+    fee: findColumn(headers, HEADERS.fee),
   };
+  // A fees column is only a fees column if it is not one already claimed.
+  if ([col.date, col.description, col.reference, col.amount, col.credit, col.debit].includes(col.fee)) col.fee = -1;
 
   const mapping: Record<string, string> = {};
   for (const [field, idx] of Object.entries(col)) {
@@ -193,8 +202,9 @@ export function parseStatementRows(rows: string[][]): ParseResult {
   const lines: StatementLine[] = [];
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r] ?? [];
+    const text = row.map((c) => String(c ?? '').trim()).filter((c) => c && c !== '-').join(' · ').slice(0, 140);
     const date = parseDate(String(row[col.date] ?? ''));
-    if (!date) { skipped.push({ row: r + 1, reason: 'Unreadable date' }); continue; }
+    if (!date) { skipped.push({ row: r + 1, reason: 'Unreadable date', text }); continue; }
 
     let amount: number | null = null;
     if (col.amount >= 0) {
@@ -209,7 +219,11 @@ export function parseStatementRows(rows: string[][]): ParseResult {
       const d = parseMoney(String(row[col.debit] ?? ''));
       if (d !== null) amount = -Math.abs(d);
     }
-    if (amount === null) { skipped.push({ row: r + 1, reason: 'Unreadable amount' }); continue; }
+    if (amount === null && col.fee >= 0) {
+      const f = parseMoney(String(row[col.fee] ?? ''));
+      if (f !== null) amount = -Math.abs(f);
+    }
+    if (amount === null) { skipped.push({ row: r + 1, reason: 'Unreadable amount', text }); continue; }
 
     lines.push({
       id: `row-${r + 1}`,

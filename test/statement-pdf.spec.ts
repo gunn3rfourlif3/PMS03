@@ -15,7 +15,8 @@ import { matchStatement } from '../src/providers/payment/statement-import';
  * that defeats the reader should be added here as a case.
  */
 
-type Item = { x: number; y: number; t: string };
+/** `s` is the font size in points; 9 unless a layout prints smaller. */
+type Item = { x: number; y: number; t: string; s?: number };
 
 /** A minimal valid PDF: one Helvetica text object per item, one page per array. */
 function buildPdf(pages: Item[][]): Buffer {
@@ -24,7 +25,7 @@ function buildPdf(pages: Item[][]): Buffer {
   const pageIds: number[] = [];
   let id = 4;
   for (const items of pages) {
-    const content = items.map((i) => `BT /F1 9 Tf ${i.x.toFixed(1)} ${i.y.toFixed(1)} Td (${esc(i.t)}) Tj ET`).join('\n');
+    const content = items.map((i) => `BT /F1 ${i.s ?? 9} Tf ${i.x.toFixed(1)} ${i.y.toFixed(1)} Td (${esc(i.t)}) Tj ET`).join('\n');
     const pid = id++;
     const cid = id++;
     pageIds.push(pid);
@@ -158,6 +159,60 @@ describe('statement PDF: money in and money out', () => {
   });
 });
 
+// --- Layout 4: GoTyme style. Modelled on a real statement's LAYOUT; every
+// name and figure here is invented. A Fees column of its own, "-" in empty
+// cells, a summary box of balances above the table, and descriptions that wrap
+// ABOVE and below a vertically centred date and amount.
+describe('statement PDF: fees column and descriptions centred on the date', () => {
+  // GoTyme prints at about 5pt; positions are the real layout's, figures invented.
+  const g = (x: number, y: number, t: string): Item => ({ x, y, t, s: 5 });
+  const at = (edge: number, t: string, y: number): Item => g(edge - t.length * 2.8, y, t);
+  const FEE = 271, CR = 314, DR = 356, RB = 412;
+  const money = (y: number, fee: string, cr: string, dr: string, bal: string): Item[] =>
+    [at(FEE, fee, y), at(CR, cr, y), at(DR, dr, y), at(RB, bal, y)];
+  const pdf = buildPdf([[
+    g(213, 492.8, 'Opening balance'), g(395, 492.8, 'R500.00'),
+    g(213, 483.1, 'Total Credit'), g(398, 483.1, 'R11,800'),
+    g(18, 437.7, 'Period: 19 Oct 2026 - 17 Nov 2026'),
+    g(27, 409, 'Date'), g(79, 409, 'Details'), g(254, 409, 'Fees*(-)'),
+    g(291, 409, 'Credits(+)'), g(336, 409, 'Debits(-)'), g(377, 409, 'RunningBalance'),
+    // A fee whose description wraps above and below its date.
+    g(79, 391.4, 'Fee: Unsuccessful Online Purchase from SHOP'),
+    g(27, 387.4, '20 Oct 2026'), ...money(387.4, '3', '-', '-', '497.00'),
+    g(79, 383.5, 'Cape Town ZA 1234 - insufficient funds'),
+    // A tenant's payment on one line.
+    g(27, 367.8, '21 Oct 2026'), g(79, 367.8, 'EFT from L MOKOENA RENT'),
+    ...money(367.8, '-', '11,800', '-', '12,297.00'),
+    // A payment out whose description wraps above and below.
+    g(79, 352, 'Payment to J SMITH Standard Bank,'),
+    g(27, 348, '21 Oct 2026'), ...money(348, '-', '-', '1,200', '11,097.00'),
+    g(79, 344, 'VENTER'),
+    g(27, 332, '21 Oct 2026'), g(79, 332, 'Fee: SMS Notification'),
+    ...money(332, '0.50', '-', '-', '11,096.50'),
+    g(27, 128.5, '*All bank fees are inclusive of VAT at 15%.'),
+    g(386, 104.9, 'Page 1 of 1'),
+  ]]);
+
+  it('reads fees as money out instead of reporting them unreadable', async () => {
+    const r = await read(pdf);
+    expect(r.skipped).toEqual([]);
+    expect(r.mapping.fee).toBe('Fees*(-)');
+    expect(r.lines.map((l) => l.amount)).toEqual([-3, 11800, -1200, -0.5]);
+  });
+
+  it('puts each wrapped line on its own transaction, top to bottom', async () => {
+    const d = (await read(pdf)).lines.map((l) => l.description);
+    expect(d[0]).toBe('Fee: Unsuccessful Online Purchase from SHOP Cape Town ZA 1234 - insufficient funds');
+    expect(d[1]).toBe('EFT from L MOKOENA RENT');
+    expect(d[2]).toBe('Payment to J SMITH Standard Bank, VENTER');
+    expect(d[3]).toBe('Fee: SMS Notification');
+  });
+
+  it('ignores the summary box of balances above the table', async () => {
+    expect((await read(pdf)).lines.map((l) => Math.abs(l.amount))).not.toContain(500);
+  });
+});
+
 describe('statement PDF: a statement that spans the new year', () => {
   const pdf = buildPdf([[
     { x: 40, y: 785, t: 'Statement Period : 15 December 2026 to 14 January 2027' },
@@ -194,7 +249,9 @@ describe('statement PDF: what it refuses', () => {
     ]]);
     const r = await read(pdf);
     expect(r.lines).toHaveLength(1);
-    expect(r.skipped).toEqual([{ row: 3, reason: 'Unreadable date' }]);
+    expect(r.skipped).toMatchObject([{ row: 3, reason: 'Unreadable date' }]);
+    // The screen shows what the line said; a row number means nothing on a PDF.
+    expect(r.skipped[0].text).toContain('Credit with no date');
   });
 
   it('will not invent a year for "15 Nov" when the statement gives none', () => {

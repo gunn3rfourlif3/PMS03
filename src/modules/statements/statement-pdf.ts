@@ -49,9 +49,9 @@ export interface PdfItem {
 const LINE_TOLERANCE = 2.5;
 const CELL_GAP = 6;
 /**
- * How far below a transaction a wrapped description line can sit. Further than
- * this it is something else — a page footer, a notice — and gluing it onto the
- * last transaction would put "Page 1 of 2" in a tenant's payment description.
+ * How far from a transaction a wrapped description line can sit. Further than
+ * this it is something else — a page footer, a notice — and gluing it onto a
+ * transaction would put "Page 1 of 2" in a tenant's payment description.
  */
 const CONTINUATION_GAP = 20;
 
@@ -199,11 +199,22 @@ const NOT_A_TRANSACTION = /\b(opening|closing|brought forward|carried forward|ba
 /**
  * The statement as rows, heading row first — the shape `parseStatementRows`
  * reads. Pure: positions in, rows out.
+ *
+ * TWO PASSES, because a wrapped description does not always wrap DOWNWARD.
+ * Some banks (GoTyme) centre the date and amounts on a two-line description, so
+ * one line of it sits above the date and one below. Gluing every text line onto
+ * the transaction above it put the first half of each description on the
+ * previous transaction. So first every line is classified, then each line of
+ * plain text joins the transaction NEAREST to it on the page — above or below —
+ * and a description is read top to bottom.
  */
 export function rowsFromItems(items: PdfItem[]): string[][] {
   const lines = linesFromItems(items);
   const dates = datesInDocument(lines).sort();
   const latest = dates.length ? dates[dates.length - 1] : null;
+
+  type Entry = { page: number; y: number; out: string[]; descOut: number; parts: { y: number; text: string }[] };
+  type Text = { page: number; y: number; text: string };
 
   let headerNames: string[] | null = null;
   let cols: { name: string; lo: number; hi: number }[] = [];
@@ -211,9 +222,8 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
   let dateCol = -1;
   let descCol = -1;
   let moneyCols: number[] = [];
-  const rows: string[][] = [];
-  let current: string[] | null = null;
-  let currentAt: { page: number; y: number } | null = null;
+  const entries: Entry[] = [];
+  const texts: Text[] = [];
 
   for (const line of lines) {
     if (isHeader(line)) {
@@ -228,11 +238,11 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
         findColumn(names, STATEMENT_HEADERS.amount),
         findColumn(names, STATEMENT_HEADERS.credit),
         findColumn(names, STATEMENT_HEADERS.debit),
+        findColumn(names, STATEMENT_HEADERS.fee),
       ].filter((i) => i >= 0);
-      current = null;
       continue;
     }
-    if (!headerNames || cols.length === 0) continue; // above the table: bank details, address, period
+    if (!headerNames || cols.length === 0) continue; // above the table: bank details, address, summary
 
     const cellsByCol: string[] = cols.map(() => '');
     for (const cell of line.cells) {
@@ -242,43 +252,46 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
     // Money means a cell that READS as an amount. A centred page footer ("Page 1
     // of 2") falls under the amount column and has digits in it; it is not money.
     const hasMoney = moneyCols.some((i) => parseMoney(cellsByCol[i] ?? '') !== null);
-    const whole = cellsByCol.join(' ');
+    const whole = cellsByCol.join(' ').replace(/\s+/g, ' ').trim();
     const date = dateCol >= 0 ? statementDate(cellsByCol[dateCol], latest) : null;
 
-    if (date) {
-      const out = headerNames.map(() => '');
-      cellsByCol.forEach((v, i) => { if (toOutput[i] >= 0 && v) out[toOutput[i]] = v; });
-      out[toOutput[dateCol]] = date;
-      if (!hasMoney && NOT_A_TRANSACTION.test(whole)) { current = null; continue; }
-      rows.push(out);
-      current = out;
-      currentAt = { page: line.page, y: line.y };
+    if (NOT_A_TRANSACTION.test(whole) && !hasMoney) continue; // opening / closing balance lines
+    if (!date && !hasMoney) {
+      if (whole) texts.push({ page: line.page, y: line.y, text: whole });
       continue;
     }
 
-    if (NOT_A_TRANSACTION.test(whole)) { current = null; continue; }
-
-    if (!hasMoney) {
-      // A description that wrapped onto a second line belongs to the line above.
-      const close = currentAt && currentAt.page === line.page && currentAt.y - line.y <= CONTINUATION_GAP;
-      if (current && close && descCol >= 0 && toOutput[descCol] >= 0 && whole.trim()) {
-        const o = toOutput[descCol];
-        current[o] = current[o] ? `${current[o]} ${whole.trim()}` : whole.trim();
-        currentAt = { page: line.page, y: line.y };
-      }
-      continue;
-    }
-
-    // Money but no date we can read. Keep it, with the date cell as written, so
-    // the parser reports it as unreadable instead of it vanishing silently.
+    // A transaction — or money with no date we can read, kept so the parser
+    // reports it as unreadable instead of it vanishing silently.
     const out = headerNames.map(() => '');
     cellsByCol.forEach((v, i) => { if (toOutput[i] >= 0 && v) out[toOutput[i]] = v; });
-    rows.push(out);
-    current = null;
+    if (date) out[toOutput[dateCol]] = date;
+    const descOut = descCol >= 0 ? toOutput[descCol] : -1;
+    const own = descOut >= 0 ? out[descOut] : '';
+    entries.push({ page: line.page, y: line.y, out, descOut, parts: own ? [{ y: line.y, text: own }] : [] });
   }
 
   if (!headerNames) throw new StatementPdfError(PDF_NO_TABLE);
-  return [headerNames, ...rows];
+
+  // Each line of text joins the nearest transaction on its page, within reach.
+  // A tie goes to the transaction above: the ordinary downward wrap.
+  for (const t of texts) {
+    let best: Entry | null = null;
+    let bestDist = Infinity;
+    for (const e of entries) {
+      if (e.page !== t.page) continue;
+      const dist = Math.abs(e.y - t.y);
+      if (dist > CONTINUATION_GAP) continue;
+      if (dist < bestDist || (dist === bestDist && best && e.y > best.y)) { best = e; bestDist = dist; }
+    }
+    best?.parts.push({ y: t.y, text: t.text });
+  }
+
+  for (const e of entries) {
+    if (e.descOut < 0 || e.parts.length === 0) continue;
+    e.out[e.descOut] = [...e.parts].sort((p, q) => q.y - p.y).map((p) => p.text).join(' ');
+  }
+  return [headerNames, ...entries.map((e) => e.out)];
 }
 
 /** Read a statement PDF into rows for `parseStatementRows`. */
