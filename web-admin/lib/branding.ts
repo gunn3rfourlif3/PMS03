@@ -39,8 +39,11 @@ export async function fetchBranding(slug: string): Promise<Branding> {
 
 const SYSTEM_STACK =
   '"Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+// Headings share the body face at display weight, as on the marketing site.
+// Sora was dropped when the fonts were self-hosted; naming it here would fall
+// through to a system face and quietly mismatch the rest of the UI.
 const HEADING_STACK =
-  '"Sora", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+  '"Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 /** Push a resolved theme into CSS custom properties + inject the web font. */
 export function applyTheme(b: Branding) {

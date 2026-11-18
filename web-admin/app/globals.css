@@ -1,4 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+/* Plus Jakarta Sans is self-hosted (public/brand/fonts) — it is the primary
+   face on every surface, so it should not depend on a third-party request.
+   Space Grotesk and JetBrains Mono are still fetched: they are used only by the
+   dark demo theme below, and are not worth shipping as assets for that. */
+@font-face{font-family:"Plus Jakarta Sans";src:url("/brand/fonts/pjs-400.woff2") format("woff2");
+  font-weight:300 500;font-style:normal;font-display:swap}
+@font-face{font-family:"Plus Jakarta Sans";src:url("/brand/fonts/pjs-600.woff2") format("woff2");
+  font-weight:501 700;font-style:normal;font-display:swap}
+@font-face{font-family:"Plus Jakarta Sans";src:url("/brand/fonts/pjs-800.woff2") format("woff2");
+  font-weight:701 900;font-style:normal;font-display:swap}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +18,7 @@
   --ink: #16181d; --muted: #6b7280; --line: #e5e7eb; --bg: #f6f7f6; --card: #ffffff;
   --danger: #993C1D; --dangerbg: #FAECE7; --success: #0F6E56;
   --font: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-heading: "Sora", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --elev: 0 1px 2px rgba(16, 24, 40, .04), 0 12px 28px -20px rgba(16, 24, 40, .16);
@@ -38,7 +48,7 @@
      turns a deep green into sage, not the colour anyone signed off. Config,
      not cleverness. See demo/profiles/midnight-masquerade.json. */
   --font: "Space Grotesk", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Space Grotesk", "Sora", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Space Grotesk", "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Figures are mono on dark: the mock sets every amount in JetBrains Mono so
@@ -68,7 +78,23 @@
       var(--bg);
   }
   * { box-sizing: border-box; }
-  h1, h2, h3, .font-heading { font-family: var(--font-heading); letter-spacing: -0.015em; }
+  /* Display treatment shared with the marketing site: same face, heavier
+     weight, tighter tracking. Brand-neutral, so every host gets it. */
+  h1, h2, h3, .font-heading {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.027em;
+    text-wrap: balance;
+  }
+  h4, h5, .font-heading-sm { font-weight: 700; letter-spacing: -0.015em; }
+  /* Uppercase labels carry the wide tracking the creatives use. */
+  .eyebrow, .overline {
+    font-size: .72rem; font-weight: 600; letter-spacing: .24em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  /* Figures line up and read as assertively as the prices do on the site. */
+  .tabular, .figure { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  .figure { font-weight: 800; }
   ::selection { background: color-mix(in srgb, var(--brand) 24%, transparent); }
   /* Slim, subtle scrollbars for the premium feel */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -81,13 +107,13 @@
     background: var(--card);
     border: 1px solid var(--line);
     box-shadow: var(--elev);
-    border-radius: 1.25rem;
+    border-radius: 1.375rem;
   }
   .glass-strong {
     background: var(--card);
     border: 1px solid var(--line);
-    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.05), 0 20px 48px -28px rgba(16, 24, 40, 0.22);
-    border-radius: 1.25rem;
+    box-shadow: 0 2px 6px rgba(14, 34, 48, 0.05), 0 30px 60px -48px rgba(14, 34, 48, 0.5);
+    border-radius: 1.375rem;
   }
   /* Dark sidebar (desktop + mobile drawer). Deliberately derived from --brand
      rather than a fixed navy: every agency runs under its own colour, so a
@@ -116,7 +142,8 @@
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    font-weight: 600; font-size: .9rem; padding: .62rem 1.1rem; border-radius: .8rem;
+    font-weight: 700; font-size: .9rem; padding: .62rem 1.25rem; border-radius: 999px;
+    letter-spacing: -.01em;
     cursor: pointer; border: 1px solid transparent; transition: filter .15s ease, transform .1s ease, box-shadow .2s ease;
     white-space: nowrap;
   }
@@ -137,13 +164,13 @@
   .btn:disabled { opacity: .5; cursor: default; filter: none; }
 
   .input {
-    width: 100%; padding: .62rem .8rem; border-radius: .8rem; color: var(--ink);
+    width: 100%; padding: .68rem .85rem; border-radius: .75rem; color: var(--ink);
     background: var(--card);
     border: 1px solid var(--line);
     transition: border-color .15s ease, box-shadow .15s ease;
   }
   .input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent); }
-  .field-label { display: block; font-size: .8rem; color: var(--muted); margin: 0 0 .35rem; font-weight: 500; }
+  .field-label { display: block; font-size: .78rem; color: var(--muted); margin: 0 0 .35rem; font-weight: 600; letter-spacing: .02em; }
 }
 
 @layer utilities {
