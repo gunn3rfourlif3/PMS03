@@ -1,0 +1,58 @@
+/* Locare — shared design layer.
+   Loaded by every page AFTER its own stylesheet, so it restates the tokens and
+   the type treatment and leaves page-specific rules alone. The homepage keeps
+   its own section styling inline; this file is the part they all share.
+   Self-hosted type: no third-party font request anywhere on the site. */
+
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-400.woff2') format('woff2');
+  font-weight:300 500;font-style:normal;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-600.woff2') format('woff2');
+  font-weight:501 700;font-style:normal;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-800.woff2') format('woff2');
+  font-weight:701 900;font-style:normal;font-display:swap}
+
+:root{
+  --sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --serif:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --ink:#0E2230; --ink-soft:rgba(16,36,50,.78); --muted:rgba(16,36,50,.56);
+  --line:#dde7ee; --card:#ffffff;
+  --accent:#2D6A8F; --accent-dark:#1b4256; --accent-soft:#E7F0F6;
+}
+
+body{
+  font-family:var(--sans);
+  color:var(--ink-soft);
+  background:
+    radial-gradient(820px 560px at 76% 10%, #ffffff 0%, rgba(255,255,255,0) 68%),
+    linear-gradient(168deg,#F5F9FC 0%,#EAF2F7 46%,#DDE9F0 100%);
+  background-attachment:fixed;
+}
+
+h1,h2,h3,h4{font-family:var(--sans);color:var(--ink);letter-spacing:-.027em;text-wrap:balance}
+h1{font-weight:800;line-height:1.04}
+h2{font-weight:800;line-height:1.08}
+h3,h4{font-weight:700;letter-spacing:-.015em}
+
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(45,106,143,.86)}
+
+/* The name, wherever it appears in running copy. */
+.wm{font-family:var(--sans);font-weight:800;letter-spacing:-.03em;color:#0A1C28}
+.wm b{color:inherit;font-weight:inherit}
+
+/* Figures read as assertively as they do on the homepage. */
+.headline,.result b,.big,.n,.price{font-weight:800;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;color:#0A1C28}
+.headline small{font-weight:400;letter-spacing:0}
+
+/* Cards and controls picked up the homepage's radius and edge. */
+.calc,.card,.panel{border-radius:22px;border:1px solid var(--line);background:var(--card);
+  box-shadow:0 1px 2px rgba(14,34,48,.04),0 30px 60px -48px rgba(14,34,48,.5)}
+input[type=number],input[type=text],input[type=email],select,textarea{border-radius:12px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft)}
+button.go,.btn-primary{background:var(--ink);color:#fff;border-radius:999px;font-weight:700;
+  letter-spacing:-.01em}
+button.go:hover,.btn-primary:hover{background:#06121B}
+
+.logo img{height:30px}

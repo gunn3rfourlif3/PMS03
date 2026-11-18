@@ -96,6 +96,7 @@
      instantly with zero external requests. (Self-host General Sans/Satoshi later
      if the exact typography is wanted.) -->
 
+<link rel="stylesheet" href="/brand/site.css" />
 <style>
 :root{
   --ink:#15161b; --ink-soft:#3a3d47; --muted:#7a7e88; --line:#e6e8ec;
@@ -355,14 +356,6 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 /* Never hide content from crawlers / no-JS users */
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
 
-/* Self-hosted type — no third-party font request, so the Lighthouse work holds.
-   Declared as weight RANGES: three files cover 300-900 with nothing synthesised. */
-@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-400.woff2') format('woff2');
-  font-weight:300 500;font-style:normal;font-display:swap}
-@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-600.woff2') format('woff2');
-  font-weight:501 700;font-style:normal;font-display:swap}
-@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-800.woff2') format('woff2');
-  font-weight:701 900;font-style:normal;font-display:swap}
 
 /* ══ Design refresh, 2026-11 ══ */
 /* Styling upgrade: typography and colour taken from the daily creatives
@@ -559,7 +552,7 @@ h1 .wm,h2 .wm,h3 .wm{letter-spacing:inherit}
 
 /* Wider measure: 1120 left a lot of air on a 1440+ screen. Running text stays
    capped by its own max-widths, so only the grids and bands actually widen. */
-:root{--maxw:1280px}
+:root{--maxw:1320px}
 .wrap{padding-left:max(26px,env(safe-area-inset-left,0px));padding-right:max(26px,env(safe-area-inset-right,0px))}
 .pricing,.plan-custom{max-width:1180px}
 </style>
