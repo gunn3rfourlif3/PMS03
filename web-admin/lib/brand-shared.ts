@@ -55,7 +55,7 @@ export const DEFAULT_BRANDING: Branding = {
   logo: { text: 'Property Manager' },
   colors: {
     brand: '#0F6E56', onBrand: '#ffffff', tint: '#E1F5EE', accent: '#C9A227',
-    ink: '#16181d', muted: '#6b7280', line: '#e5e7eb', bg: '#f6f7f6', card: '#ffffff',
+    ink: '#0E2230', muted: 'rgba(16,36,50,.56)', line: '#dde7ee', bg: '#F1F5F8', card: '#ffffff',
     danger: '#993C1D', dangerBg: '#FAECE7', success: '#0F6E56',
   },
   font: { family: 'System', headingFamily: 'System' },
@@ -68,8 +68,8 @@ export const LOCARE_BRAND: Branding = {
   // wordmarkUrl: a wide logo rendered at natural size (no tile/name) in the shell.
   logo: { text: 'Locare', wordmarkUrl: '/brand/locare-logo-dot.svg', inverseUrl: '/brand/locare-logo-dot-white.svg' },
   colors: {
-    brand: '#2D6A8F', onBrand: '#ffffff', tint: '#E7EEF3', accent: '#1E4A63',
-    ink: '#121212', muted: '#6b7280', line: '#e5e7eb', bg: '#f6f7f9', card: '#ffffff',
+    brand: '#2D6A8F', onBrand: '#ffffff', tint: '#E7F0F6', accent: '#1E4A63',
+    ink: '#0E2230', muted: 'rgba(16,36,50,.56)', line: '#dde7ee', bg: '#F1F5F8', card: '#ffffff',
     danger: '#993C1D', dangerBg: '#FAECE7', success: '#1D9E75',
   },
   font: { family: 'System', headingFamily: 'System' },

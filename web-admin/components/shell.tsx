@@ -157,15 +157,14 @@ function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?
   // every mode, which is the whole premise of the sealed option.
   const visible = items.filter((i) => !i.requires || capabilities[i.requires]);
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className="flex flex-col">
       {visible.map(({ href, key, icon: Icon }) => {
         const active = path === href;
         return (
           <Link key={href} href={href} onClick={onNavigate}
-            className={cn('group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
-              active ? 'text-onbrand shadow-soft' : 'text-white/70 hover:text-white hover:bg-white/10')}
-            style={active ? { background: 'linear-gradient(135deg, color-mix(in srgb, var(--brand) 90%, white), var(--brand))' } : undefined}>
-            <Icon size={18} className={active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'} />
+            aria-current={active ? 'page' : undefined}
+            className={cn('group navrow rounded-lg', active && 'navrow-active')}>
+            <Icon size={17} className={active ? 'opacity-100' : 'opacity-65 group-hover:opacity-100'} />
             {t(key)}
           </Link>
         );
