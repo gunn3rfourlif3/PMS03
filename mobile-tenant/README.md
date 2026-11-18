@@ -1,4 +1,4 @@
-# PMS Tenant App (Expo / React Native)
+# Locare Tenant App (Expo / React Native)
 
 Mobile-first tenant app for the PMS platform: passwordless OTP login, rent
 dashboard, one-tap pay (Stitch), and lease view. White-label via `src/config.ts`.

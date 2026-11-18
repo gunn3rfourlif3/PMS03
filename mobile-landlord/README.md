@@ -1,4 +1,4 @@
-# PMS Landlord App (Expo / React Native)
+# Locare Landlord App (Expo / React Native)
 
 Pocket analytics + on-the-go approvals for property managers.
 

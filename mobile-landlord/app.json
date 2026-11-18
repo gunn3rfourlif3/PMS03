@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PMS Landlord",
+    "name": "Locare Landlord",
     "slug": "pms-landlord",
     "scheme": "pmslandlord",
     "version": "0.1.0",
@@ -15,17 +15,18 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F6E56"
+        "backgroundColor": "#2D6A8F"
       }
     },
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0F6E56"
+      "backgroundColor": "#2D6A8F"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "backgroundColor": "#2D6A8F"
   }
 }
