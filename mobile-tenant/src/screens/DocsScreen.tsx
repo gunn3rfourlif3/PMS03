@@ -123,7 +123,7 @@ function makeStyles(t: Branding) {
     muted: { color: t.colors.muted, fontSize: 13, fontFamily: fontFamily(t) },
     docIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.colors.tint, alignItems: 'center', justifyContent: 'center' },
     docTitle: { fontSize: 15, color: t.colors.ink, fontWeight: '700', fontFamily: fontFamily(t) },
-    btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, paddingVertical: 12, marginTop: 12 },
+    btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 999, paddingVertical: 12, marginTop: 12 },
     btnGhost: { backgroundColor: hexToRgba(t.colors.brand, 0.10) },
     btnText: { fontSize: 14, fontWeight: '700', fontFamily: fontFamily(t) },
     row: { flexDirection: 'row', justifyContent: 'space-between', padding: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.line },

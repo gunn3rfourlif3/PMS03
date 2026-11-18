@@ -113,7 +113,7 @@ export function Button({ label, onPress, busy, variant = 'primary', icon, style 
     <TouchableOpacity
       onPress={onPress} disabled={busy} activeOpacity={0.85}
       style={[{
-        flexDirection: 'row', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'row', borderRadius: 999, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden', opacity: busy ? 0.65 : 1,
         borderWidth: 1, borderColor: primary ? 'transparent' : hexToRgba('#ffffff', 0.5),
         backgroundColor: primary ? undefined : hexToRgba(t.colors.card, 0.5),
@@ -213,7 +213,7 @@ export function BentoTile({
       </View>
       <View style={{ marginTop: 14 }}>
         <Text style={{
-          fontSize: size === 'lg' ? 26 : 21, fontWeight: '700', color: c.text,
+          fontSize: size === 'lg' ? 26 : 21, fontWeight: '800', letterSpacing: -0.6, color: c.text,
           fontFamily: fontFamily(t, true),
         }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{value}</Text>
         <Text style={{ fontSize: 11, fontWeight: '600', color: c.sub, marginTop: 3, fontFamily: fontFamily(t) }}>

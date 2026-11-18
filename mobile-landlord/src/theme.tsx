@@ -36,7 +36,9 @@ export const DEFAULT_BRANDING: Branding = {
 export function fontFamily(t: Branding, heading = false): string | undefined {
   // Premium default typeface (loaded in App via expo-font). Custom vendor fonts
   // are a web feature; on native we always use the bundled premium family.
-  return heading ? 'PlusJakartaSans_700Bold' : 'PlusJakartaSans_500Medium';
+  // Display weight matches the marketing site and the social creatives,
+  // where headings are set at 800 rather than 700.
+  return heading ? 'PlusJakartaSans_800ExtraBold' : 'PlusJakartaSans_500Medium';
 }
 
 const ThemeContext = createContext<Branding>(DEFAULT_BRANDING);

@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import {
   PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
   PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { Ionicons } from '@expo/vector-icons';
 import { api, loadToken, setToken, clearToken, setUnauthorizedHandler } from './src/api';
@@ -33,6 +34,7 @@ function Shell() {
     ...Ionicons.font,
     PlusJakartaSans_400Regular, PlusJakartaSans_500Medium,
     PlusJakartaSans_600SemiBold, PlusJakartaSans_700Bold,
+    PlusJakartaSans_800ExtraBold,
   });
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
