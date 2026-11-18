@@ -555,6 +555,10 @@ h1 .wm,h2 .wm,h3 .wm{letter-spacing:inherit}
 :root{--maxw:1320px}
 .wrap{padding-left:max(26px,env(safe-area-inset-left,0px));padding-right:max(26px,env(safe-area-inset-right,0px))}
 .pricing,.plan-custom{max-width:1180px}
+
+/* Hero lead: measured to set on three lines at desktop. 960px is the threshold,
+   so 1000 keeps a line's worth of slack. Narrower screens wrap naturally. */
+.hero p.lead{max-width:1000px}
 </style>
 <noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
 </head>
