@@ -101,9 +101,9 @@
   --ink:#15161b; --ink-soft:#3a3d47; --muted:#7a7e88; --line:#e6e8ec;
   --bg:#f7f8fa; --card:#ffffff; --accent:#2D6A8F; --accent-dark:#1e4a63; --accent-soft:#e7eef3;
   --radius:18px; --maxw:1120px;
-  --serif:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --logo:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+ --serif:"Playfair Display",Georgia,"Times New Roman",serif;
+ --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ --logo:"Playfair Display",Georgia,"Times New Roman",serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -111,6 +111,8 @@ body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
 a{color:inherit;text-decoration:none}
 h1,h2,h3{font-family:var(--serif);font-weight:500;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.hero h1{font-weight:700}
+.hero h1 .hl{color:var(--accent);font-style:italic;font-weight:700}
 .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .muted{color:var(--muted)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 24px;border-radius:999px;font-weight:600;font-size:15px;line-height:1;letter-spacing:.005em;white-space:nowrap;cursor:pointer;border:1px solid transparent;text-decoration:none;
@@ -352,6 +354,208 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 .reveal.in{opacity:1;transform:none}
 /* Never hide content from crawlers / no-JS users */
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}}
+
+/* Self-hosted type — no third-party font request, so the Lighthouse work holds.
+   Declared as weight RANGES: three files cover 300-900 with nothing synthesised. */
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-400.woff2') format('woff2');
+  font-weight:300 500;font-style:normal;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-600.woff2') format('woff2');
+  font-weight:501 700;font-style:normal;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('/brand/fonts/pjs-800.woff2') format('woff2');
+  font-weight:701 900;font-style:normal;font-display:swap}
+
+/* ══ Design refresh, 2026-11 ══ */
+/* Styling upgrade: typography and colour taken from the daily creatives
+   (social/daily/render.mjs skins), with Sample B's restraint. */
+:root{
+  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ink:#0E2230; --ink-soft:rgba(16,36,50,.78); --muted:rgba(16,36,50,.56);
+  --line:#dde7ee; --bg:#EFF4F8; --card:#ffffff;
+  --accent:#2D6A8F; --accent-dark:#1b4256; --accent-soft:#E7F0F6;
+}
+body{
+  background:
+    radial-gradient(820px 560px at 76% 10%, #ffffff 0%, rgba(255,255,255,0) 68%),
+    linear-gradient(168deg,#F5F9FC 0%,#EAF2F7 46%,#DDE9F0 100%);
+  background-attachment:fixed;
+  color:var(--ink-soft);line-height:1.56;
+}
+h1,h2,h3{color:var(--ink)}
+.eyebrow{font-family:var(--sans);font-size:11.5px;font-weight:600;letter-spacing:.24em;color:rgba(45,106,143,.86)}
+.lead{line-height:1.56}
+.section-head h2{letter-spacing:-.027em}
+.screen-card,.feature,.plan,.doc,.p-card{border-radius:22px}
+.screen-card{box-shadow:0 1px 2px rgba(14,34,48,.04),0 30px 60px -46px rgba(14,34,48,.5)}
+.doc{box-shadow:none;border:1px solid var(--line)}
+.screen-card .n,.plan .price,.strip .n{font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.faq-item summary{letter-spacing:-.012em}
+.logo,.wm{font-family:var(--sans);font-weight:800;letter-spacing:-.045em;text-transform:lowercase}
+
+:root{--serif:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--logo:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+h1,h2,h3{font-weight:800;letter-spacing:-.027em;line-height:1.04}
+.hero h1{font-weight:800;letter-spacing:-.03em;line-height:1.02}
+.hero h1 .hl{color:var(--accent);font-style:normal;font-weight:800}
+.feature h3,.step h3,.plan h3,.doc h3{font-weight:700}
+.plan .price{font-weight:800}
+
+/* Heading: brand name dropped, the promise carries the line. */
+/* Wordmark: every mention of the name sets in the logo face, with the first
+   three letters in brand blue. */
+.wm{font-family:var(--logo);font-weight:800;letter-spacing:-.03em}
+.wm b{color:var(--accent);font-weight:inherit}
+h1 .wm,h2 .wm,h3 .wm{letter-spacing:inherit}
+
+/* Swapped: the partner band takes the Enterprise dark, Enterprise takes the blue. */
+#partners{background:var(--ink)}
+#partners .eyebrow{color:rgba(167,204,226,.92)}
+.plan-custom{background:linear-gradient(160deg,#2f7196 0%,var(--accent) 42%,var(--accent-dark) 100%)}
+
+/* Feature grid alternates the creatives' two skins, checkerboard across the rows. */
+#features .feature:nth-child(even){
+  background:linear-gradient(163deg,#0C2331 0%,#123043 34%,#1A425A 68%,#102B3B 100%);
+  border-color:rgba(255,255,255,.09);color:rgba(226,238,246,.80);
+}
+#features .feature:nth-child(even) h3{color:#fff}
+#features .feature:nth-child(even) .ic{background:rgba(255,255,255,.10);color:#8FD9BE;border-color:rgba(255,255,255,.14)}
+#features .feature:nth-child(odd){background:var(--card)}
+
+/* Brand blue is too dark on the dark skins. */
+#partners .wm b,.plan-custom .wm b,#features .feature:nth-child(even) .wm b{color:#8CBAD6}
+
+/* Loca-re, not Lo-care: the tint breaks after the fourth letter. */
+
+/* Figures read as assertively as the prices do. */
+.screen-card .n,.plan .price,.strip b,.plan .price small{
+  font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.screen-card .n,.plan .price,.strip b{color:#0A1C28}
+.plan .price small{color:rgba(10,28,40,.55)}
+
+/* The feature grid draws its own hairlines through a 1px gap, so the cards
+   must stay borderless or the two rules fight. */
+.feature{border:0}
+#features .features{background:var(--line);border-color:var(--line)}
+#features .feature:nth-child(even){
+  background:linear-gradient(163deg,#0C2331 0%,#123043 34%,#1A425A 68%,#102B3B 100%);
+  border:0;color:#E6F0F7;
+}
+#features .feature:nth-child(even) h3{color:#fff}
+#features .feature:nth-child(even) p{color:rgba(230,240,247,.88)}
+#features .feature:nth-child(even) .ic{
+  background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18)}
+#features .feature:nth-child(even) .ic svg{stroke:#fff}
+#features .feature:nth-child(odd){background:#fff;border:0}
+
+/* The name sets in the logo face at display weight, one colour, so it reads as
+   a name rather than as two-tone decoration. */
+.wm{font-family:var(--logo);font-weight:800;letter-spacing:-.03em;color:#0A1C28}
+.wm b{color:inherit;font-weight:inherit}
+#partners .wm,.plan-custom .wm,#features .feature:nth-child(even) .wm{color:#fff}
+
+/* ── FAQ: the dark 'flow' skin from the creatives, laid out as a rail of rows. */
+#faq{
+  background:
+    radial-gradient(700px 480px at 12% 90%, rgba(45,106,143,.30), transparent 68%),
+    linear-gradient(174deg,#070F16 0%,#0A1824 40%,#0C2030 74%,#08131C 100%);
+  color:rgba(219,233,242,.74);border:0;
+}
+#faq h2{color:#fff}
+#faq .eyebrow{color:rgba(140,186,214,.88)}
+#faq .lead,#faq .section-head p{color:rgba(219,233,242,.74)}
+#faq .faq-item{border-top:1px solid rgba(255,255,255,.09);position:relative;padding-left:36px}
+#faq .faq-item:first-of-type{border-top:0}
+#faq .faq-item:last-child{border-bottom:1px solid rgba(255,255,255,.09)}
+#faq .faq-item::before{content:"";position:absolute;left:5px;top:0;bottom:0;width:1px;
+  background:rgba(93,160,201,.38)}
+#faq .faq-item:first-of-type::before{top:28px}
+#faq .faq-item:last-child::before{bottom:auto;height:28px}
+#faq .faq-item summary{justify-content:flex-start;gap:0;color:#fff;font-weight:700;
+  font-family:var(--sans);font-size:18px;letter-spacing:-.02em;padding:22px 2px}
+#faq .faq-item summary::before{content:"";position:absolute;left:0;top:28px;width:11px;height:11px;
+  border-radius:50%;border:2px solid #5BA3CE;background:#0A1824;box-sizing:border-box}
+#faq .faq-item[open] summary::before{background:#5BA3CE}
+#faq .faq-item summary::after{margin-left:auto;color:#5BA3CE}
+#faq .faq-item p{color:rgba(219,233,242,.66);margin:-4px 2px 22px;font-size:15px}
+#faq .faq-item .wm{color:#fff}
+#faq .faq-item summary .wm{font-size:inherit;letter-spacing:inherit}
+
+/* ── How it works takes the partner band's dark ground. */
+#how{background:var(--ink);color:rgba(226,238,246,.80);border:0}
+#how h2{color:#fff}
+#how .eyebrow{color:rgba(167,204,226,.92)}
+#how .step h3{color:#fff}
+#how .step p{color:rgba(226,238,246,.76)}
+#how .step:before{color:#8CBAD6}
+#how .step{border-color:rgba(255,255,255,.12)}
+#how .wm{color:#fff}
+
+
+/* Guides & manuals: a brighter band, cards that respond, a brand rule on top. */
+#docs{background:linear-gradient(180deg,#FFFFFF 0%,#F4F8FB 100%)}
+.docs{gap:18px}
+.doc{position:relative;padding:30px 26px 26px;border-radius:22px;background:#fff;overflow:hidden;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.doc::before{content:"";position:absolute;inset:0 0 auto;height:3px;
+  background:linear-gradient(90deg,var(--accent),#8FD9BE)}
+.doc:hover{transform:translateY(-3px);border-color:rgba(45,106,143,.34);
+  box-shadow:0 24px 46px -34px rgba(14,34,48,.55)}
+.doc h3{font-size:19px;font-weight:700;letter-spacing:-.015em}
+.doc p{margin-top:10px}
+.doc a{margin-top:18px;font-weight:600}
+.doc a:hover{text-decoration:underline}
+
+/* Closing call to action: a considered card rather than a dark slab. */
+#start .band{
+  background:
+    radial-gradient(760px 520px at 84% 6%, rgba(45,106,143,.40), transparent 66%),
+    linear-gradient(163deg,#0C2331 0%,#123043 34%,#1A425A 68%,#102B3B 100%);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 1px 2px rgba(7,15,22,.28),0 50px 90px -62px rgba(7,15,22,.95);
+  padding:64px 44px 48px;
+}
+#start .band .wm{color:#fff}
+#start .band label{color:rgba(226,238,246,.70);font-size:12px;letter-spacing:.03em}
+#start .band input,#start .band select,#start .band textarea{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;border-radius:12px}
+#start .band input::placeholder,#start .band textarea::placeholder{color:rgba(226,238,246,.40)}
+#start .band input:focus,#start .band select:focus,#start .band textarea:focus{
+  border-color:#5BA3CE;background:rgba(255,255,255,.10)}
+#start .band select option{color:#0E2230}
+.band-ticks{list-style:none;display:flex;gap:22px;flex-wrap:wrap;justify-content:center;
+  margin:20px auto 0;padding:0;font-size:12.5px;color:rgba(226,238,246,.66);max-width:520px}
+.band-ticks li::before{content:"¹3";color:#8FD9BE;font-weight:700;margin-right:7px}
+#start .band p.band-foot{margin:24px auto 0;padding-top:18px;max-width:520px;
+  border-top:1px solid rgba(255,255,255,.10);font-size:13px;color:rgba(226,238,246,.58)}
+.band-foot a{color:#8CBAD6;font-weight:600;text-decoration:none}
+.band-foot a:hover{text-decoration:underline}
+
+/* Chat widget, brought up to the same finish as the rest. */
+#lc-fab{background:linear-gradient(135deg,#2D6A8F 0%,#1b4256 100%);border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 12px 30px -14px rgba(12,35,49,.85);font-weight:600;letter-spacing:-.01em}
+#lc-panel{border-radius:20px;border:1px solid rgba(14,34,48,.12);overflow:hidden;
+  box-shadow:0 2px 6px rgba(14,34,48,.08),0 44px 86px -54px rgba(14,34,48,.85)}
+#lc-head{background:linear-gradient(163deg,#0C2331 0%,#1A425A 100%);border-bottom:0;padding:16px 18px}
+#lc-head b{font-family:var(--sans);font-weight:700;letter-spacing:-.02em}
+.lc-chip{border-radius:999px;padding:7px 13px;font-weight:600;background:#fff;
+  border-color:rgba(45,106,143,.26)}
+.lc-chip:hover{background:var(--accent-soft)}
+#lc-input{border-radius:999px;padding:11px 15px}
+#lc-input:focus{border-color:var(--accent)}
+
+/* CTA fix: the form carries its own white card, which fought the dark band.
+   On this band it sits directly on the gradient. */
+#start .band form.lead{background:transparent;border:0;padding:0;border-radius:0}
+#start .band label{color:rgba(226,238,246,.78)}
+#start .band input,#start .band select,#start .band textarea{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.20);color:#fff}
+.band-ticks li::before{content:"✓"}
+
+/* Submit matches the navigation's primary button. */
+#start .band .btn-primary{width:100%;justify-content:center;margin-top:20px;font-weight:700;
+  background:var(--ink);color:#fff;border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 14px 30px -16px rgba(0,0,0,.85)}
+#start .band .btn-primary:hover{background:#06121B}
+#lc-head b{white-space:nowrap;display:flex;align-items:center}
+#lc-head img{display:inline-block;height:.9em}
 </style>
 <noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
 </head>
@@ -359,7 +563,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 
 <header>
   <div class="wrap"><nav>
-    <a class="logo" href="#top"><img src="/brand/locare-logo.svg" alt="Locare" /></a>
+    <a class="logo" href="#top"><img src="/brand/locare-logo-dot.svg" alt="Locare" /></a>
     <div class="nav-links">
       <a href="#features">Platform</a>
       <a href="#partners">Partners</a>
@@ -379,8 +583,8 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Property management software · South Africa</p>
-    <h1>Locare — run your whole agency<br />on one elegant platform</h1>
-    <p class="lead">Locare is a white-label property-management platform for South African rental agencies. It powers the entire rental lifecycle — leasing, rent collection, trust accounting, owner payouts, maintenance, and branded tenant &amp; landlord apps — all under your brand, on your own domain.</p>
+    <h1>Run <span class="hl">your whole agency</span><br />on one elegant platform</h1>
+    <p class="lead"><span class="wm"><b>Loca</b>re</span> is a white-label property-management platform for South African rental agencies. It powers the entire rental lifecycle — leasing, rent collection, trust accounting, owner payouts, maintenance, and branded tenant &amp; landlord apps — all under your brand, on your own domain.</p>
     <div class="cta-row reveal">
       <a class="btn btn-primary" href="#start">Start your agency</a>
       <a class="btn btn-ghost" href="#pricing">See pricing</a>
@@ -416,7 +620,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="section-head reveal">
       <p class="eyebrow">Everything, in one place</p>
       <h2>One platform for the entire rental lifecycle</h2>
-      <p>From the first listing to the monthly owner statement — Locare replaces the spreadsheets, the messaging apps and the accounting workarounds with a single, elegant system your whole agency runs on.</p>
+      <p>From the first listing to the monthly owner statement — <span class="wm"><b>Loca</b>re</span> replaces the spreadsheets, the messaging apps and the accounting workarounds with a single, elegant system your whole agency runs on.</p>
     </div>
     <div class="features reveal">
       <div class="feature"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-5h4v5"/></svg></div><h3>Leasing &amp; tenants</h3><p>Properties, units and leases with renewals, escalations and one-step tenant onboarding.</p></div>
@@ -437,7 +641,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     <div class="reveal">
       <p class="eyebrow">Partner programme</p>
       <h2 style="font-size:clamp(34px,5vw,54px);margin-top:16px;letter-spacing:-.025em">Earn with every agency you bring</h2>
-      <p class="p-lede">Refer property agencies to Locare and earn recurring commission on their subscription — for as long as they stay. Register as a partner and we’ll set you up with everything you need.</p>
+      <p class="p-lede">Refer property agencies to <span class="wm"><b>Loca</b>re</span> and earn recurring commission on their subscription — for as long as they stay. Register as a partner and we’ll set you up with everything you need.</p>
       <ul class="p-points">
         <li>Recurring commission on every agency you introduce</li>
         <li>Transparent tracking of your referrals &amp; earnings</li>
@@ -446,7 +650,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
     </div>
     <div class="p-card reveal">
       <h3>Become a partner</h3>
-      <p class="muted">Apply online to join the Locare partner programme. We vet every partner (KYC/KYB), so have your ID or company registration and banking details ready — it only takes a few minutes.</p>
+      <p class="muted">Apply online to join the <span class="wm"><b>Loca</b>re</span> partner programme. We vet every partner (KYC/KYB), so have your ID or company registration and banking details ready — it only takes a few minutes.</p>
       <a class="btn btn-primary" href="https://app.locare.co.za/partner-apply">Apply to become a partner</a>
       <p class="form-note">Approved partners get a login to the partner portal to track referrals and commission.</p>
     </div>
@@ -524,7 +728,21 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
   </div>
 </section>
 
-<section id="docs" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+<section id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">How it works</p>
+      <h2>Live in a week</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Brand it as your own</h3><p>Sign up your agency, add your logo, colours and domain — <span class="wm"><b>Loca</b>re</span> becomes your platform in minutes.</p></div>
+      <div class="step reveal"><h3>Onboard tenants &amp; collect</h3><p>Place tenants to a unit, auto-generate invoices, and collect rent online with instant reconciliation.</p></div>
+      <div class="step reveal"><h3>Give everyone their app</h3><p>Owners, landlords and tenants each get a branded portal — you stay in control from the back-office.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="docs">
   <div class="wrap">
     <div class="section-head reveal">
       <p class="eyebrow">Guides &amp; manuals</p>
@@ -539,21 +757,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
   </div>
 </section>
 
-<section id="how">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <p class="eyebrow">How it works</p>
-      <h2>Live in a week</h2>
-    </div>
-    <div class="steps">
-      <div class="step reveal"><h3>Brand it as your own</h3><p>Sign up your agency, add your logo, colours and domain — Locare becomes your platform in minutes.</p></div>
-      <div class="step reveal"><h3>Onboard tenants &amp; collect</h3><p>Place tenants to a unit, auto-generate invoices, and collect rent online with instant reconciliation.</p></div>
-      <div class="step reveal"><h3>Give everyone their app</h3><p>Owners, landlords and tenants each get a branded portal — you stay in control from the back-office.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="faq" style="background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+<section id="faq">
   <div class="wrap">
     <div class="section-head center reveal">
       <p class="eyebrow">FAQ</p>
@@ -561,13 +765,13 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
       <p>The essentials below — for anything else, tap the chat or book a demo.</p>
     </div>
     <div class="faq-list reveal">
-      <details class="faq-item"><summary>What is Locare?</summary><p>Locare is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.</p></details>
+      <details class="faq-item"><summary>What is <span class="wm"><b>Loca</b>re</span>?</summary><p><span class="wm"><b>Loca</b>re</span> is a white-label platform that runs your whole property operation — leasing, rent collection, trust accounting, owner payouts, and tenant &amp; landlord apps — all under your own brand and domain.</p></details>
       <details class="faq-item"><summary>Who is it for?</summary><p>Property agencies and landlords managing rentals in South Africa — from a handful of units to multi-branch portfolios.</p></details>
       <details class="faq-item"><summary>How much does it cost?</summary><p>Flat monthly pricing by portfolio size: <b>Starter</b> (70–199 units) R6,916/month, <b>Growth</b> (200–499 units) R14,490/month, and <b>Scale</b> (500+ units) R25,415/month. <b>All prices include VAT at 15%</b> — so Growth is R12,600 excluding VAT. Growth adds white-label, custom domain, online payments, owner portal, trust accounting, the branded rentals site, docs/e-sign and reports/API. Scale adds DebiCheck integration, which you use with your own debit-order bureau facility. Managing fewer than 70 units? We price smaller portfolios individually — talk to us. Larger or multi-country needs — an Enterprise plan.</p></details>
-      <details class="faq-item"><summary>Can I use my own brand and domain?</summary><p>Yes — Locare is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.</p></details>
+      <details class="faq-item"><summary>Can I use my own brand and domain?</summary><p>Yes — <span class="wm"><b>Loca</b>re</span> is fully white-label. Your logo, colours and your own domain, so tenants and owners only ever see your brand.</p></details>
       <details class="faq-item"><summary>What’s included?</summary><p>Leasing &amp; tenant onboarding, online rent collection with reconciliation, deposit trust accounting &amp; owner payouts, an owner portal, branded tenant &amp; landlord apps, your own rentals site, documents &amp; e-signature, and reports with CSV/API access.</p></details>
       <details class="faq-item"><summary>How do tenants pay rent?</summary><p>Tenants pay online and payments reconcile automatically to a proper double-entry ledger, using local South African payment methods.</p></details>
-      <details class="faq-item"><summary>Do you have mobile apps?</summary><p>Shared Locare tenant and landlord apps are included. A fully branded native app for your agency is available as an Enterprise add-on.</p></details>
+      <details class="faq-item"><summary>Do you have mobile apps?</summary><p>Shared <span class="wm"><b>Loca</b>re</span> tenant and landlord apps are included. A fully branded native app for your agency is available as an Enterprise add-on.</p></details>
       <details class="faq-item"><summary>How long does it take to get started?</summary><p>Most agencies are live within a week. Branding and domain go up on day one, then we load your properties, owners and active leases, and we watch your first rent run with you. An agency with nothing to migrate can be live far sooner — the data migration is what takes the time, and rushing it is how a wrong escalation date turns up in month four.</p></details>
       <details class="faq-item"><summary>Can I migrate my existing data?</summary><p>Yes — we help import your properties, units and owners during onboarding, so you’re not starting from scratch.</p></details>
       <details class="faq-item"><summary>Is my data secure?</summary><p>Each agency’s data is isolated, the platform is POPIA-aligned, and trust accounting is built to be audit-ready and PPRA-aware.</p></details>
@@ -578,8 +782,8 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
 <section id="start">
   <div class="wrap">
     <div class="band reveal">
-      <h2>Bring your agency to <img src="/brand/locare-logo-white.svg" alt="Locare" style="height:1.05em;vertical-align:baseline;display:inline-block;transform:translateY(.16em);margin-left:4px" /></h2>
-      <p>Start free, or book a 20-minute walkthrough — we’ll show you exactly how Locare fits your agency and get you live under your own brand.</p>
+      <h2>Bring your agency to <img src="/brand/locare-logo-dot-white.svg" alt="Locare" style="height:1.05em;vertical-align:baseline;display:inline-block;transform:translateY(.16em);margin-left:4px" /></h2>
+      <p>Start free, or book a 20-minute walkthrough — we’ll show you exactly how <span class="wm"><b>Loca</b>re</span> fits your agency and get you live under your own brand.</p>
       <form class="lead" style="max-width:520px;margin:36px auto 0;text-align:left" onsubmit="return submitLead(event,'demo')">
         <div class="row">
           <div><label>Name</label><input name="name" required placeholder="Your name" /></div>
@@ -604,15 +808,17 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
           </select>
         </div>
         <div><label>Anything specific you’d like to see?</label><textarea name="message"></textarea></div>
-        <button class="btn btn-accent" type="submit">Get started</button>
+        <button class="btn btn-primary" type="submit">Get started</button>
       </form>
+      <ul class="band-ticks"><li>No credit card</li><li>20-minute walkthrough</li><li>Live in a week</li></ul>
+      <p class="band-foot">Already with us? <a href="https://app.locare.co.za">Log in</a> &middot; Just looking? <a href="#pricing">See pricing</a></p>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap foot">
-    <a class="logo" href="#top"><img src="/brand/locare-logo.svg" alt="Locare" style="height:22px" /></a>
+    <a class="logo" href="#top"><img src="/brand/locare-logo-dot.svg" alt="Locare" style="height:22px" /></a>
     <div class="links">
       <a href="#features">Platform</a><a href="#pricing">Pricing</a><a href="/tools">Free tools</a><a href="/guides">Guides</a>
       <a href="#partners">Partners</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="https://app.locare.co.za">Sign in</a>
@@ -625,7 +831,7 @@ footer{border-top:1px solid var(--line);padding:48px 0;margin-top:40px}
         <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.5" cy="6.5" r="1.15" fill="currentColor" stroke="none"/></svg>
       </a>
     </div>
-    <div>© <span id="yr"></span> Locare (Pty) Ltd · Reg. 2026/670864/07. Made for South African property.</div>
+    <div>© <span id="yr"></span> <span class="wm"><b>Loca</b>re</span> (Pty) Ltd. Made for South African property.</div>
   </div>
 </footer>
 
@@ -738,7 +944,7 @@ async function submitLead(ev, type){
 
 <div id="lc-panel" role="dialog" aria-label="Locare assistant" hidden>
   <div id="lc-head">
-    <div><b>Locare assistant</b><small>Answers about the platform</small></div>
+    <div><b><img src="/brand/locare-logo-dot-white.svg" alt="Locare" style="margin-right:6px" />assistant</b><small>Answers about the platform</small></div>
     <button id="lc-x" aria-label="Close" onclick="lcClose()">&times;</button>
   </div>
   <div id="lc-msgs"></div>
