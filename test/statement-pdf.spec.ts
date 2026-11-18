@@ -265,6 +265,50 @@ describe('statement PDF: FNB style, description heading off to the right', () =>
   });
 });
 
+// --- Layout 6: Capitec style. Modelled on a real statement's LAYOUT, checked
+// line for line against the same statement's CSV; every name and figure here
+// is invented. A fee on the SAME row as the transaction it was charged for, an
+// asterisk on an amount pointing at a VAT footnote, a Category that wraps onto
+// a second line, and a declined card attempt with no money and no balance.
+describe('statement PDF: Capitec style, fees on the same row', () => {
+  const g = (x: number, y: number, t: string): Item => ({ x, y, t, s: 7.5 });
+  const at = (edge: number, t: string, y: number): Item => g(edge - t.length * 4.1, y, t);
+  const IN = 420, OUT = 474, FEE = 517, BAL = 559;
+  const tx = (y: number, date: string, desc: string, cat: string, money: [number, string][]): Item[] =>
+    [g(34, y, date), g(84, y, desc), g(300, y, cat), ...money.map(([e, t]) => at(e, t, y))];
+  const pdf = buildPdf([[
+    g(40, 700, 'Money In Summary'), g(235, 700, 'R11 800.00'),
+    g(35, 640, 'Date'), g(85, 640, 'Description'), g(301, 640, 'Category'), g(386, 640, 'Money In'),
+    g(433, 640, 'Money Out'), g(501, 640, 'Fee*'), g(530, 640, 'Balance'),
+    ...tx(620, '01/10/2026', 'PayShap Payment Received: L MOKOENA', 'Other Income', [[IN, '11 800.00'], [BAL, '11 821.91']]),
+    ...tx(608, '03/10/2026', 'ATM Cash Withdrawal: Shell Corner', 'Cash Withdrawal', [[OUT, '-100.00'], [FEE, '-10.00'], [BAL, '11 711.91']]),
+    ...tx(596, '04/10/2026', 'Spar Bryanston (Card 1234)', 'Other Personal &', [[OUT, '-55.05'], [BAL, '11 656.86']]),
+    g(300, 588, 'Family'),
+    ...tx(576, '20/10/2026', 'Exc W/lim Hosting Co De', '', []),
+    ...tx(564, '31/10/2026', 'Banking App Prepaid Purchase: Telkom', 'Cellphone', [[OUT, '-6.00*'], [FEE, '-0.50'], [BAL, '11 650.36']]),
+    g(479, 552, '* Includes VAT at 15%'),
+  ]]);
+
+  it('reads a fee on the same row as its own line, and an amount with an asterisk', async () => {
+    const r = await read(pdf);
+    expect(r.skipped).toEqual([]);
+    expect(r.lines.map((l) => l.amount)).toEqual([11800, -100, -10, -55.05, -6, -0.5]);
+    expect(r.lines[2].description).toBe('Fee: ATM Cash Withdrawal: Shell Corner');
+  });
+
+  it('keeps a wrapped category out of the description, and the VAT footnote out of everything', async () => {
+    const d = (await read(pdf)).lines.map((l) => l.description ?? '');
+    expect(d[3]).toBe('Spar Bryanston (Card 1234)');
+    expect(d.join(' ')).not.toMatch(/Family|Includes VAT/);
+  });
+
+  it('passes over a declined attempt that moved no money, without calling it unreadable', async () => {
+    const r = await read(pdf);
+    expect(r.lines.some((l) => /Exc W\/lim/.test(l.description ?? ''))).toBe(false);
+    expect(r.skipped).toEqual([]);
+  });
+});
+
 describe('statement PDF: a statement that spans the new year', () => {
   const pdf = buildPdf([[
     { x: 40, y: 785, t: 'Statement Period : 15 December 2026 to 14 January 2027' },
@@ -357,6 +401,34 @@ describe('figures and dates as statements print them', () => {
       ['03/11/2026', 'ABC', '100.00'],
     ]);
     expect(r.mapping.debit).toBeUndefined();
+  });
+
+  it('reads a fee on the same row as its own line of money out', () => {
+    const r = parseStatementRows([
+      ['Date', 'Description', 'Money In', 'Money Out', 'Fee', 'Balance'],
+      ['03/10/2026', 'ATM Cash Withdrawal', '', '-100.00', '-10.00', '1 202.95'],
+      ['04/10/2026', 'External Payment Fee', '', '', '-2.00', '1 200.95'],
+    ]);
+    expect(r.lines.map((l) => [l.id, l.amount, l.description])).toEqual([
+      ['row-2', -100, 'ATM Cash Withdrawal'],
+      ['row-2-fee', -10, 'Fee: ATM Cash Withdrawal'],
+      ['row-3', -2, 'External Payment Fee'],
+    ]);
+  });
+
+  it('passes over a line that moved nothing, but still reports one it cannot read', () => {
+    const r = parseStatementRows([
+      ['Date', 'Description', 'Money In', 'Money Out', 'Fee', 'Balance'],
+      ['20/10/2026', 'Exc W/lim declined', '', '', '', ''],
+      ['21/10/2026', 'Garbled', 'n/a', '', '', '1 000.00'],
+    ]);
+    expect(r.lines).toEqual([]);
+    expect(r.skipped).toMatchObject([{ row: 3, reason: 'Unreadable amount' }]);
+  });
+
+  it('reads an amount carrying a footnote mark', () => {
+    expect(parseMoney('-6.00*')).toBe(-6);
+    expect(parseMoney('R1 202.95**')).toBe(1202.95);
   });
 
   it('knows a PDF by name or by its first bytes', () => {

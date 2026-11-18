@@ -226,8 +226,10 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
   const dates = datesInDocument(lines).sort();
   const latest = dates.length ? dates[dates.length - 1] : null;
 
-  type Entry = { page: number; y: number; out: string[]; descOut: number; parts: { y: number; text: string }[] };
-  type Text = { page: number; y: number; text: string };
+  /** Text gathered per OUTPUT column, so wrapped lines stay in their own column. */
+  type Parts = Map<number, { y: number; text: string }[]>;
+  type Entry = { page: number; y: number; out: string[]; parts: Parts };
+  type Text = { page: number; y: number; byOut: Map<number, string> };
 
   let headerNames: string[] | null = null;
   let cols: { name: string; lo: number; hi: number }[] = [];
@@ -235,6 +237,7 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
   let dateCol = -1;
   let descCol = -1;
   let moneyCols: number[] = [];
+  let numericCols: number[] = []; // money and balance: continuation text never goes here
   let headerAt: { page: number; y: number } | null = null;
   let rowsInBlock = 0;
   const entries: Entry[] = [];
@@ -255,6 +258,7 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
         findColumn(names, STATEMENT_HEADERS.debit),
         findColumn(names, STATEMENT_HEADERS.fee),
       ].filter((i) => i >= 0);
+      numericCols = [...moneyCols, findColumn(names, STATEMENT_HEADERS.balance)].filter((i) => i >= 0);
       headerAt = { page: line.page, y: line.y };
       rowsInBlock = 0;
       continue;
@@ -281,6 +285,10 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
     const put = (i: number, text: string) => {
       cellsByCol[i] = cellsByCol[i] ? `${cellsByCol[i]} ${text}` : text;
     };
+    // Words found under a money column. On a transaction line they are part of
+    // the description; on any other line they are a footnote ("* Includes VAT
+    // at 15%" under the Fee column) and are dropped.
+    const stray: string[] = [];
     for (const cell of line.cells) {
       const i = columnFor(cell, cols);
       if (i === dateCol && descCol >= 0) {
@@ -294,7 +302,7 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
         continue;
       }
       if (moneyCols.includes(i) && descCol >= 0 && !PLACEHOLDER.test(cell.text) && parseMoney(cell.text) === null) {
-        put(descCol, cell.text);
+        stray.push(cell.text);
         continue;
       }
       put(i, cell.text);
@@ -304,10 +312,24 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
     const hasMoney = moneyCols.some((i) => parseMoney(cellsByCol[i] ?? '') !== null);
     const whole = cellsByCol.join(' ').replace(/\s+/g, ' ').trim();
     const date = dateCol >= 0 ? statementDate(cellsByCol[dateCol], latest) : null;
+    if (date || hasMoney) for (const w of stray) put(descCol, w);
 
     if (NOT_A_TRANSACTION.test(whole) && !hasMoney) continue; // opening / closing balance lines
+    // Text in the column it sits under: a Category that wraps ("Other Personal
+    // &" / "Family") belongs to the category, not glued onto the description.
+    // Never into a money or balance column — a footnote such as "* Includes
+    // VAT at 15%" under the Fee column would make the fee unreadable.
+    const textByOut = (): Map<number, string> => {
+      const m = new Map<number, string>();
+      cellsByCol.forEach((v, i) => {
+        if (v && i !== dateCol && !numericCols.includes(i) && toOutput[i] >= 0) m.set(toOutput[i], v);
+      });
+      return m;
+    };
+
     if (!date && !hasMoney) {
-      if (whole) texts.push({ page: line.page, y: line.y, text: whole });
+      const byOut = textByOut();
+      if (byOut.size) texts.push({ page: line.page, y: line.y, byOut });
       continue;
     }
 
@@ -316,9 +338,9 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
     const out = headerNames.map(() => '');
     cellsByCol.forEach((v, i) => { if (toOutput[i] >= 0 && v) out[toOutput[i]] = v; });
     if (date) out[toOutput[dateCol]] = date;
-    const descOut = descCol >= 0 ? toOutput[descCol] : -1;
-    const own = descOut >= 0 ? out[descOut] : '';
-    entries.push({ page: line.page, y: line.y, out, descOut, parts: own ? [{ y: line.y, text: own }] : [] });
+    const parts: Parts = new Map();
+    for (const [o, text] of textByOut()) parts.set(o, [{ y: line.y, text }]);
+    entries.push({ page: line.page, y: line.y, out, parts });
     rowsInBlock++;
   }
 
@@ -335,12 +357,18 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
       if (dist > CONTINUATION_GAP) continue;
       if (dist < bestDist || (dist === bestDist && best && e.y > best.y)) { best = e; bestDist = dist; }
     }
-    best?.parts.push({ y: t.y, text: t.text });
+    if (!best) continue;
+    for (const [o, text] of t.byOut) {
+      const list = best.parts.get(o) ?? [];
+      list.push({ y: t.y, text });
+      best.parts.set(o, list);
+    }
   }
 
   for (const e of entries) {
-    if (e.descOut < 0 || e.parts.length === 0) continue;
-    e.out[e.descOut] = [...e.parts].sort((p, q) => q.y - p.y).map((p) => p.text).join(' ');
+    for (const [o, list] of e.parts) {
+      e.out[o] = [...list].sort((p, q) => q.y - p.y).map((p) => p.text).join(' ');
+    }
   }
   return [headerNames, ...entries.map((e) => e.out)];
 }

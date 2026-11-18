@@ -17,7 +17,7 @@ const norm = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
  * Header synonyms, in the order they are preferred. Exported because the PDF
  * reader finds a statement's table by the same names (see statement-pdf.ts).
  */
-export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'amount' | 'credit' | 'debit' | 'fee', string[]> = {
+export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'amount' | 'credit' | 'debit' | 'fee' | 'balance', string[]> = {
   date: ['date', 'transactiondate', 'postingdate', 'valuedate', 'effectivedate'],
   description: ['description', 'details', 'narrative', 'transactiondescription', 'memo'],
   reference: ['reference', 'ref', 'payerreference', 'yourreference', 'customerreference', 'paymentreference'],
@@ -28,6 +28,9 @@ export const STATEMENT_HEADERS: Record<'date' | 'description' | 'reference' | 'a
   debit: ['debit', 'debitamount', 'moneyout', 'withdrawal', 'payments'],
   // Bank charges in a column of their own (GoTyme: "Fees*(-)"). Always money out.
   fee: ['fees', 'fee', 'charges', 'servicefee', 'bankcharges'],
+  // Never read as money; used to tell a line that moved nothing from one that
+  // could not be read.
+  balance: ['balance', 'runningbalance', 'closingbalance'],
 };
 const HEADERS = STATEMENT_HEADERS;
 
@@ -80,7 +83,9 @@ export function moneyMarker(raw: string): 'cr' | 'dr' | null {
  * "1500.00C", which is not a number, and the row was reported unreadable.
  */
 export function parseMoney(raw: string): number | null {
-  let s = (raw ?? '').trim();
+  // A footnote mark is not part of the figure: Capitec prints "-6.00*" against
+  // "* Includes VAT at 15%", and the asterisk made a R6 purchase unreadable.
+  let s = (raw ?? '').trim().replace(/[*\u2020\u2021]+$/, '').trim();
   if (!s) return null;
   const marker = moneyMarker(s);
   if (marker) s = s.replace(/\s*(cr|dr)\.?$/i, '');
@@ -169,6 +174,7 @@ export function parseStatementRows(rows: string[][]): ParseResult {
     credit: findColumn(headers, HEADERS.credit),
     debit: findColumn(headers, HEADERS.debit),
     fee: findColumn(headers, HEADERS.fee),
+    balance: findColumn(headers, HEADERS.balance),
   };
   // A fees column is only a fees column if it is not one already claimed.
   if ([col.date, col.description, col.reference, col.amount, col.credit, col.debit].includes(col.fee)) col.fee = -1;
@@ -223,19 +229,34 @@ export function parseStatementRows(rows: string[][]): ParseResult {
       const d = parseMoney(String(row[col.debit] ?? ''));
       if (d !== null) amount = -Math.abs(d);
     }
-    if (amount === null && col.fee >= 0) {
-      const f = parseMoney(String(row[col.fee] ?? ''));
-      if (f !== null) amount = -Math.abs(f);
-    }
-    if (amount === null) { skipped.push({ row: r + 1, reason: 'Unreadable amount', text }); continue; }
+    // A fee is its own line of money out, even when the bank prints it on the
+    // same row as the transaction it was charged for (Capitec: an ATM
+    // withdrawal of -100.00 with -10.00 in the Fee column). Reading one amount
+    // per row dropped every such fee.
+    const fee = col.fee >= 0 ? parseMoney(String(row[col.fee] ?? '')) : null;
 
-    lines.push({
-      id: `row-${r + 1}`,
-      date,
-      description: col.description >= 0 ? String(row[col.description] ?? '') : undefined,
-      reference: col.reference >= 0 ? String(row[col.reference] ?? '') : undefined,
-      amount,
-    });
+    if (amount === null && !fee) {
+      // Nothing moved and no balance printed: a declined card attempt or a
+      // notice ("Exc W/lim …"). Not a transaction, so not a failure either.
+      if (col.balance >= 0 && !/\d/.test(String(row[col.balance] ?? ''))) continue;
+      skipped.push({ row: r + 1, reason: 'Unreadable amount', text });
+      continue;
+    }
+
+    const description = col.description >= 0 ? String(row[col.description] ?? '') : undefined;
+    const reference = col.reference >= 0 ? String(row[col.reference] ?? '') : undefined;
+    if (amount !== null) {
+      lines.push({ id: `row-${r + 1}`, date, description, reference, amount });
+    }
+    if (fee) {
+      lines.push({
+        id: amount !== null ? `row-${r + 1}-fee` : `row-${r + 1}`,
+        date,
+        description: amount !== null ? `Fee: ${description ?? ''}`.trim() : description,
+        reference,
+        amount: -Math.abs(fee),
+      });
+    }
   }
 
   return { lines, skipped, mapping };
