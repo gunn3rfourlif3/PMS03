@@ -263,6 +263,7 @@ export const en = {
   'properties.edit': 'Edit',
   'properties.delete': 'Delete',
   'properties.occupiedOf': '{occupied}/{total} occupied',
+  'properties.occupancyRate': 'occupied',
 
   // The property `type` enum. Explicit keys, not a prettified enum value: the
   // old `label()` helper turned `single_unit` into "Single Unit" with a string

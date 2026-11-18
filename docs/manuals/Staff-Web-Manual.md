@@ -144,7 +144,7 @@ Your buildings and the units in them.
 
 **Is a deleted property or unit gone for good?** It disappears from your screens, but the record is kept.
 
-**What does the occupancy figure on this screen count?** Units whose status is occupied, out of all your units. It goes by the status you set, not by leases.
+**What does the occupancy figure on this screen count?** Units whose status is occupied, out of all units: for the whole portfolio at the top, and for each property as a percentage beside its name. It goes by the status you set, not by leases.
 
 **Can I record a property's address?** Not on this screen yet.
 

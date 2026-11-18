@@ -182,10 +182,13 @@ export default function PropertiesPage() {
                   <div className="mt-0.5 text-sm text-muted">{typeLabel(t, p.type)}{ownerName(p.owner_id) ? ` · ${ownerName(p.owner_id)}` : ''} · {t('properties.occupiedOf', { occupied: p.occupied_count, total: p.unit_count })}</div>
                 </div>
               </div>
+              <div className="flex flex-wrap items-center gap-5">
+              <OccupancyRate occupied={Number(p.occupied_count || 0)} total={Number(p.unit_count || 0)} label={t('properties.occupancyRate')} />
               <div className="flex gap-2">
                 <Button variant="ghost" onClick={() => toggle(p)}>{openId === p.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />} {t('properties.units')}</Button>
                 <Button variant="ghost" onClick={() => startEditProp(p)}><Pencil size={15} /> {t('properties.edit')}</Button>
                 <Button variant="ghost" onClick={() => setPendingDelete({ kind: 'property', id: p.id, label: p.name })}><Trash2 size={15} /> {t('properties.delete')}</Button>
+              </div>
               </div>
             </div>
           )}
@@ -257,6 +260,33 @@ export default function PropertiesPage() {
           ? t('properties.deleteUnitMessage')
           : t('properties.deletePropertyMessage')}
       />
+    </div>
+  );
+}
+
+/**
+ * A property's occupancy rate: occupied units out of all its units, by the
+ * status set on each unit — the same rule as the Occupied tile above, so the
+ * per-property figures add up to it. (The dashboard and portfolio map count
+ * by live lease instead; the Staff manual says so.) Nothing for a property
+ * with no units yet: 0% would read as a building standing empty.
+ */
+function OccupancyRate({ occupied, total, label }: { occupied: number; total: number; label: string }) {
+  if (!total) return null;
+  const pct = Math.round((occupied / total) * 100);
+  return (
+    <div className="w-36">
+      <div className="flex items-baseline justify-between">
+        <span className="font-heading text-base font-bold">{pct}%</span>
+        <span className="text-xs text-muted">{label}</span>
+      </div>
+      <div
+        className="mt-1 h-1.5 overflow-hidden rounded-full"
+        style={{ background: 'color-mix(in srgb, var(--brand) 15%, transparent)' }}
+        role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}
+      >
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--brand)' }} />
+      </div>
     </div>
   );
 }

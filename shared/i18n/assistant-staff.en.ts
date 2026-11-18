@@ -104,7 +104,7 @@ export const assistantStaffEn = {
   "assistant.staff.properties.q10": "Is a deleted property or unit gone for good?",
   "assistant.staff.properties.a10": "It disappears from your screens, but the record is kept.",
   "assistant.staff.properties.q11": "What does the occupancy figure on this screen count?",
-  "assistant.staff.properties.a11": "Units whose status is occupied, out of all your units. It goes by the status you set, not by leases.",
+  "assistant.staff.properties.a11": "Units whose status is occupied, out of all units: for the whole portfolio at the top, and for each property as a percentage beside its name. It goes by the status you set, not by leases.",
   "assistant.staff.properties.q12": "Can I record a property's address?",
   "assistant.staff.properties.a12": "Not on this screen yet.",
   // Leases

@@ -180,6 +180,7 @@ export const zhHans: Catalogue = {
   'properties.edit': '编辑',
   'properties.delete': '删除',
   'properties.occupiedOf': '{occupied}/{total} 已入住',
+  'properties.occupancyRate': '已入住',
   'properties.type.building': '楼宇',
   'properties.type.complex': '综合体',
   'properties.type.single_unit': '独立单元',
