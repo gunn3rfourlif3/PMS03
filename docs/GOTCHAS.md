@@ -252,3 +252,24 @@ not as reading. No Docker is not a reason to skip it: `embedded-postgres` gives 
 real Postgres in a scratch directory, and all 57 migrations run on it in half a
 minute. `npm run verify:prospect -- <slug>` keeps those assertions as a
 read-only command for the morning of a demo.
+
+---
+
+## 2026-11-18 — Both halves tested, the hand-off between them never
+
+**Symptom.** Every CSV and Excel bank statement failed on the Bank statement
+screen with "No date column found", even a clean Capitec export the parser read
+perfectly in its own tests.
+
+**Cause.** `readImportFile` returns a sheet as `{ headers, rows }`, with the
+heading row split OFF `rows`. The statements service passed the parser
+`sheet.rows` alone, so the parser took the first transaction for the heading.
+The reader's spec proved the reader; the parser's spec fed the parser
+hand-built arrays WITH a heading. Each was right; the seam between them was
+never exercised, so nothing failed until a real file went through the app.
+
+**Rule.** When one module's output feeds another's input, at least one test
+drives a REAL file through both — the real reader into the real parser — not
+hand-built input shaped the way the parser expects. A hand-built fixture
+encodes the author's assumption about the hand-off, which is exactly the thing
+that was wrong. `test/statement-file.spec.ts` is the pattern.

@@ -2,9 +2,10 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { invoiceOutstanding, OWING_INVOICE_STATUSES } from '@common/database/invoice-outstanding';
 import { PaymentService } from '@modules/billing/payment.service';
-import { readImportFile, MAX_IMPORT_BYTES } from '@modules/imports/import-reader';
+import { ImportReadError, MAX_IMPORT_BYTES } from '@modules/imports/import-reader';
 import { parseStatementRows } from './statement-parse';
-import { isPdf, readPdfStatementRows, StatementPdfError } from './statement-pdf';
+import { StatementPdfError } from './statement-pdf';
+import { readStatementRows } from './statement-file';
 import {
   matchStatement, matchSummary, OpenInvoice,
 } from '@providers/payment/statement-import';
@@ -72,19 +73,17 @@ export class StatementsService {
     if (!buf?.length) throw new BadRequestException('The file is empty');
     if (buf.length > MAX_IMPORT_BYTES) throw new BadRequestException('That file is too large');
 
-    // A PDF is read into the same rows a CSV gives, then everything below is
-    // shared: one parser, one matcher. See statement-pdf.ts.
-    let rows: unknown[][];
-    if (isPdf(filename, buf)) {
-      try {
-        rows = await readPdfStatementRows(buf);
-      } catch (e) {
-        if (e instanceof StatementPdfError) throw new BadRequestException(e.message);
-        throw e;
-      }
-    } else {
-      const sheets = await readImportFile(filename, buf);
-      rows = sheets?.[0]?.rows ?? [];
+    // PDF, CSV or Excel, read into rows WITH the heading row, then everything
+    // below is shared: one parser, one matcher. See statement-file.ts for the
+    // hand-off that used to drop the heading.
+    let rows: string[][];
+    try {
+      rows = await readStatementRows(filename, buf);
+    } catch (e) {
+      // A file we can't read is the uploader's to fix, so a 400 with the
+      // reason — not a 500 (an .xls used to surface as a server error).
+      if (e instanceof StatementPdfError || e instanceof ImportReadError) throw new BadRequestException(e.message);
+      throw e;
     }
     const parsed = parseStatementRows(rows as string[][]);
 
