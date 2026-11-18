@@ -54,6 +54,19 @@ const CELL_GAP = 6;
  * transaction would put "Page 1 of 2" in a tenant's payment description.
  */
 const CONTINUATION_GAP = 20;
+/**
+ * Headings that wrap onto a second line ("Accrued / Bank / Charges") leave a
+ * line of words just under the heading row. Closer than this, with no figures
+ * in it and before the first transaction, it is still the heading.
+ */
+const HEADER_WRAP = 10;
+
+/** A date at the START of a cell, and whatever follows it. */
+const LEADING_DATE =
+  /^(\d{1,2}[\s\-/]+[A-Za-z]{3,9}\.?(?:[\s\-/,]+\d{2,4})?|\d{4}[/\-.]\d{1,2}[/\-.]\d{1,2}|\d{1,2}[/\-.]\d{1,2}(?:[/\-.]\d{2,4})?)(?:\s+(.+))?$/;
+
+/** An empty money cell as banks print it. */
+const PLACEHOLDER = /^[-–—]$/;
 
 const norm = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -222,6 +235,8 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
   let dateCol = -1;
   let descCol = -1;
   let moneyCols: number[] = [];
+  let headerAt: { page: number; y: number } | null = null;
+  let rowsInBlock = 0;
   const entries: Entry[] = [];
   const texts: Text[] = [];
 
@@ -240,14 +255,49 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
         findColumn(names, STATEMENT_HEADERS.debit),
         findColumn(names, STATEMENT_HEADERS.fee),
       ].filter((i) => i >= 0);
+      headerAt = { page: line.page, y: line.y };
+      rowsInBlock = 0;
       continue;
     }
-    if (!headerNames || cols.length === 0) continue; // above the table: bank details, address, summary
+    if (!headerNames || cols.length === 0) continue; // outside the table: bank details, address, summaries
 
+    const lineText = line.cells.map((c) => c.text).join(' ');
+    // The table ends at its closing balance. What follows on FNB statements is a
+    // turnover summary ("No. Credit Transactions 1 · 50.00 Cr") printed under
+    // the Amount column — read as transactions, its Dr marker also flipped the
+    // sign rule and turned a R49 fee into a R49 credit.
+    if (/\bclosing balance\b/i.test(lineText)) { cols = []; continue; }
+    // The second line of a wrapped heading.
+    if (rowsInBlock === 0 && headerAt && headerAt.page === line.page
+      && headerAt.y - line.y <= HEADER_WRAP && !/\d/.test(lineText)) continue;
+
+    // Position first, then what the cell SAYS. A heading can sit far from its
+    // column's text: FNB centres "Description" well to the right of the
+    // descriptions, which start straight after the date, so by position alone
+    // the description fell under Date and the date became unreadable. Words
+    // under Date that are not a date, and words under a money column that are
+    // not money, belong in the description.
     const cellsByCol: string[] = cols.map(() => '');
+    const put = (i: number, text: string) => {
+      cellsByCol[i] = cellsByCol[i] ? `${cellsByCol[i]} ${text}` : text;
+    };
     for (const cell of line.cells) {
       const i = columnFor(cell, cols);
-      cellsByCol[i] = cellsByCol[i] ? `${cellsByCol[i]} ${cell.text}` : cell.text;
+      if (i === dateCol && descCol >= 0) {
+        const m = cell.text.match(LEADING_DATE);
+        if (m && statementDate(m[1], latest)) {
+          put(i, m[1]);
+          if (m[2]) put(descCol, m[2]);
+        } else {
+          put(descCol, cell.text);
+        }
+        continue;
+      }
+      if (moneyCols.includes(i) && descCol >= 0 && !PLACEHOLDER.test(cell.text) && parseMoney(cell.text) === null) {
+        put(descCol, cell.text);
+        continue;
+      }
+      put(i, cell.text);
     }
     // Money means a cell that READS as an amount. A centred page footer ("Page 1
     // of 2") falls under the amount column and has digits in it; it is not money.
@@ -269,6 +319,7 @@ export function rowsFromItems(items: PdfItem[]): string[][] {
     const descOut = descCol >= 0 ? toOutput[descCol] : -1;
     const own = descOut >= 0 ? out[descOut] : '';
     entries.push({ page: line.page, y: line.y, out, descOut, parts: own ? [{ y: line.y, text: own }] : [] });
+    rowsInBlock++;
   }
 
   if (!headerNames) throw new StatementPdfError(PDF_NO_TABLE);

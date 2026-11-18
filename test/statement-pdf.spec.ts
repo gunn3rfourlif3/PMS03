@@ -213,6 +213,58 @@ describe('statement PDF: fees column and descriptions centred on the date', () =
   });
 });
 
+// --- Layout 5: FNB business account style. Modelled on a real statement's
+// LAYOUT; every name and figure is invented. The Description heading sits far
+// right of the descriptions, which start straight after the date; a heading
+// that wraps over three lines; and a turnover summary under the Amount column
+// after the closing balance, carrying its own Cr and Dr markers.
+describe('statement PDF: FNB style, description heading off to the right', () => {
+  const g = (x: number, y: number, t: string): Item => ({ x, y, t, s: 7.5 });
+  const at = (edge: number, t: string, y: number): Item => g(edge - t.length * 4.1, y, t);
+  const AMT2 = 480, BAL2 = 544;
+  const pdf = buildPdf([[
+    g(380, 544, 'Statement Period : 30 September 2026 to 31 October 2026'),
+    g(20, 510, 'Opening Balance'), g(191, 510, '1 037.29 Dr'), g(227, 510, 'Service Fees'), g(398, 510, '49.00 Dr'),
+    g(548, 442.8, 'Accrued'),
+    g(16, 433.9, 'Date'), g(209, 433.9, 'Description'), g(437, 433.9, 'Amount'), g(499, 433.9, 'Balance'), g(554, 433.9, 'Bank'),
+    g(548, 425.0, 'Charges'),
+    // Description printed straight after the date, nowhere near its heading.
+    g(12, 411.6, '01 Oct'), g(42, 411.6, 'Payshap Credit L MOKOENA'), at(AMT2, '11 800.00Cr', 411.6), at(BAL2, '10 762.71Cr', 411.6),
+    // Date and description close enough to run together into one cell ("05 Oct"
+    // is ~22pt wide at 7.5pt, so a 3pt gap merges them, with a space).
+    g(12, 401.8, '05 Oct'), g(37, 401.8, 'Magtape Debit INSURANCE'), at(AMT2, '1 200.00', 401.8), at(BAL2, '9 562.71Cr', 401.8),
+    // A bank fee with no description at all.
+    g(12, 392.0, '31 Oct'), at(AMT2, '49.00', 392.0), at(BAL2, '9 513.71Cr', 392.0),
+    g(45, 378.3, 'Closing Balance'), at(BAL2, '9 513.71Cr', 378.3),
+    g(102, 369.4, 'Turnover for Statement Period'),
+    g(104, 359.8, 'No. Credit Transactions 1'), g(467, 359.8, '11 800.00 Cr'),
+    g(104, 350.4, 'No. Debit Transactions 2'), g(467, 350.4, '1 249.00 Dr'),
+    g(16, 56.6, 'Page 1 of 1'),
+  ]]);
+
+  it('reads every transaction with its date, and nothing after the closing balance', async () => {
+    const r = await read(pdf);
+    expect(r.skipped).toEqual([]);
+    expect(r.lines.map((l) => [l.date, l.amount])).toEqual([
+      ['2026-10-01', 11800],
+      ['2026-10-05', -1200],
+      ['2026-10-31', -49],
+    ]);
+  });
+
+  it('keeps the bare-figure rule although the summary below carries a Dr', async () => {
+    // Read as written, the R49 fee came out as a R49 CREDIT.
+    expect((await read(pdf)).lines.find((l) => l.date === '2026-10-31')?.amount).toBe(-49);
+  });
+
+  it('puts the description in the description, split from a date it ran into', async () => {
+    const d = (await read(pdf)).lines.map((l) => l.description ?? '');
+    expect(d[0]).toBe('Payshap Credit L MOKOENA');
+    expect(d[1]).toBe('Magtape Debit INSURANCE');
+    expect(d.join(' ')).not.toContain('Charges'); // the heading's third line
+  });
+});
+
 describe('statement PDF: a statement that spans the new year', () => {
   const pdf = buildPdf([[
     { x: 40, y: 785, t: 'Statement Period : 15 December 2026 to 14 January 2027' },

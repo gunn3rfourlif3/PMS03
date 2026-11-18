@@ -192,7 +192,11 @@ export function parseStatementRows(rows: string[][]): ParseResult {
   // matched to an invoice as if a tenant had paid it.
   let bareSign: 1 | -1 | null = null;
   if (col.amount >= 0) {
-    const markers = rows.slice(1).map((row) => moneyMarker(String(row?.[col.amount] ?? '')));
+    // Only rows that are transactions — a readable date — get a say. A summary
+    // line carrying "Dr" must not switch the rule off for the whole statement.
+    const markers = rows.slice(1)
+      .filter((row) => parseDate(String(row?.[col.date] ?? '')) !== null)
+      .map((row) => moneyMarker(String(row?.[col.amount] ?? '')));
     const hasCr = markers.includes('cr');
     const hasDr = markers.includes('dr');
     if (hasCr && !hasDr) bareSign = -1;
