@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
+import { invoiceOutstanding, OWING_INVOICE_STATUSES } from '@common/database/invoice-outstanding';
 import { PaymentService } from '@modules/billing/payment.service';
 import { readImportFile, MAX_IMPORT_BYTES } from '@modules/imports/import-reader';
 import { parseStatementRows } from './statement-parse';
+import { isPdf, readPdfStatementRows, StatementPdfError } from './statement-pdf';
 import {
-  matchStatement, matchSummary, OpenInvoice, StatementLine, StatementMatchResult,
+  matchStatement, matchSummary, OpenInvoice,
 } from '@providers/payment/statement-import';
 
 export interface PreviewResult {
@@ -41,24 +43,28 @@ export class StatementsService {
 
   /** Invoices with anything still owing, and what is owing on each. */
   private async openInvoices(): Promise<(OpenInvoice & { period: string; unit?: string })[]> {
+    // The shared fragment, not a local copy. The hand-rolled version here had
+    // no `jsonb_typeof` guard inside the set-returning call, so a payment whose
+    // allocation is a JSON object rather than an array would RAISE (GOTCHAS
+    // 2026-11-10), and it was the second copy of a definition that is supposed
+    // to exist exactly once (GOTCHAS 2026-11-11).
+    //
+    // It also carried `p.vendor_id = i.vendor_id`, which the fragment omits.
+    // That is not a behaviour change: this query runs on the tenant manager, so
+    // RLS already scopes `payments` to the same vendor as `invoices`, and the
+    // predicate was only ever restating what the policy enforces.
     return this.tenant.getManager().query(`
       SELECT i.id,
              i.tenant_id              AS "tenantId",
              i.period                 AS period,
              i.due_date::text         AS "dueDate",
              u.label                  AS unit,
-             (i.total - COALESCE((
-                SELECT SUM((a->>'amount')::numeric)
-                  FROM payments p, jsonb_array_elements(p.allocation) a
-                 WHERE p.vendor_id = i.vendor_id
-                   AND p.status = 'succeeded'
-                   AND (a->>'invoiceId')::uuid = i.id
-             ), 0))::float8           AS outstanding
+             ${invoiceOutstanding('i')}::float8 AS outstanding
         FROM invoices i
         LEFT JOIN leases l ON l.id = i.lease_id
         LEFT JOIN units  u ON u.id = l.unit_id
        WHERE i.vendor_id = $1
-         AND i.status IN ('issued', 'partly_paid', 'overdue')
+         AND i.status IN ${OWING_INVOICE_STATUSES}
     `, [this.tenant.vendorId]);
   }
 
@@ -66,8 +72,20 @@ export class StatementsService {
     if (!buf?.length) throw new BadRequestException('The file is empty');
     if (buf.length > MAX_IMPORT_BYTES) throw new BadRequestException('That file is too large');
 
-    const sheets = await readImportFile(filename, buf);
-    const rows = sheets?.[0]?.rows ?? [];
+    // A PDF is read into the same rows a CSV gives, then everything below is
+    // shared: one parser, one matcher. See statement-pdf.ts.
+    let rows: unknown[][];
+    if (isPdf(filename, buf)) {
+      try {
+        rows = await readPdfStatementRows(buf);
+      } catch (e) {
+        if (e instanceof StatementPdfError) throw new BadRequestException(e.message);
+        throw e;
+      }
+    } else {
+      const sheets = await readImportFile(filename, buf);
+      rows = sheets?.[0]?.rows ?? [];
+    }
     const parsed = parseStatementRows(rows as string[][]);
 
     const invoices = await this.openInvoices();

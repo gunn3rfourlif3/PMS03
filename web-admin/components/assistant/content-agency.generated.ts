@@ -139,6 +139,8 @@ export const AGENCY_CONTENT: Record<string, AgencyEntryKeys> = {
       { qKey: 'assistant.staff.statements.q7', aKey: 'assistant.staff.statements.a7' },
       { qKey: 'assistant.staff.statements.q8', aKey: 'assistant.staff.statements.a8' },
       { qKey: 'assistant.staff.statements.q9', aKey: 'assistant.staff.statements.a9' },
+      { qKey: 'assistant.staff.statements.q10', aKey: 'assistant.staff.statements.a10' },
+      { qKey: 'assistant.staff.statements.q11', aKey: 'assistant.staff.statements.a11' },
     ],
     manualSection: "Bank statement",
   },

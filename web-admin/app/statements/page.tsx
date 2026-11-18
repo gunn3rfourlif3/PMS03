@@ -81,7 +81,7 @@ export default function StatementsPage() {
 
       <GlassCard className="p-4">
         <label className="flex cursor-pointer items-center gap-3 text-sm">
-          <input type="file" accept=".csv,.xlsx,.xls" className="hidden"
+          <input type="file" accept=".pdf,.csv,.xlsx" className="hidden"
             onChange={(e) => upload(e.target.files?.[0])} />
           <span className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-onbrand shadow-soft"
             style={{ background: 'var(--brand)' }}>

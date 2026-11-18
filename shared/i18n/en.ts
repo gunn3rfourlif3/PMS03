@@ -376,7 +376,7 @@ export const en = {
   'statements.someFailed': '{count} could not be recorded.',
   'statements.chooseFile': 'Choose a statement file',
   'statements.reading': 'Reading…',
-  'statements.fileHint': 'CSV or Excel, as your bank exports it.',
+  'statements.fileHint': 'PDF, CSV or Excel (.xlsx), as your bank provides it.',
   'statements.matchedCount': '{matched} of {lines} lines matched',
   'statements.matchedPct': '({pct}%)',
   'statements.toRecord': '{amount} to record',

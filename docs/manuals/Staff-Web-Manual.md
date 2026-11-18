@@ -228,7 +228,11 @@ Upload your bank statement, match its incoming payments to open rent invoices, a
 
 **Is this where owner statements are made?** No. This screen matches your bank statement against tenants' invoices. Owner statements are made on the Owners screen.
 
-**What file can I upload?** A CSV or .xlsx file exported from your bank, up to 8 MB. Older .xls files can't be read; save them as .xlsx or CSV first.
+**What file can I upload?** Your bank statement as a PDF, CSV or .xlsx file, up to 8 MB. Older .xls files can't be read; save them as .xlsx or CSV first.
+
+**Why was my PDF statement refused?** A scanned statement has no text to read, and a password-protected one can't be opened: download the statement from online banking, or save a copy without the password. A PDF with no transactions table headed by a date and an amount can't be read either; use your bank's CSV or Excel download instead.
+
+**How do I check a PDF statement was read correctly?** Compare the dates and amounts in the preview with the statement before pressing **Record**. Money going out is never matched to an invoice, and nothing is recorded until you press Record.
 
 **Does uploading record anything?** No. Uploading only shows the proposed matches; nothing is recorded until you press **Record**.
 
