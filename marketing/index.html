@@ -556,6 +556,12 @@ h1 .wm,h2 .wm,h3 .wm{letter-spacing:inherit}
 #start .band .btn-primary:hover{background:#06121B}
 #lc-head b{white-space:nowrap;display:flex;align-items:center}
 #lc-head img{display:inline-block;height:.9em}
+
+/* Wider measure: 1120 left a lot of air on a 1440+ screen. Running text stays
+   capped by its own max-widths, so only the grids and bands actually widen. */
+:root{--maxw:1280px}
+.wrap{padding-left:max(26px,env(safe-area-inset-left,0px));padding-right:max(26px,env(safe-area-inset-right,0px))}
+.pricing,.plan-custom{max-width:1180px}
 </style>
 <noscript><style>.reveal{opacity:1 !important;transform:none !important}</style></noscript>
 </head>
