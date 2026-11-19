@@ -251,9 +251,10 @@ export default function Dashboard() {
 function Stat({ label, value, note, tone }: { label: string; value: string; note?: string; tone?: string }) {
   return (
     <div className="glass p-5">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted">{label}</span>
-      <div className="tabular mt-3 text-2xl font-bold leading-none" style={{ color: tone ?? 'var(--ink)' }}>{value}</div>
-      {note && <div className="mt-2 text-xs text-muted">{note}</div>}
+      <span className="eyebrow">{label}</span>
+      <div className="tabular mt-3 text-[28px] sm:text-[30px] font-extrabold leading-none tracking-[-0.035em]"
+        style={{ color: tone ?? 'var(--figure, var(--ink))' }}>{value}</div>
+      {note && <div className="mt-1.5 text-[12.5px] text-muted">{note}</div>}
     </div>
   );
 }

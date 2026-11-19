@@ -16,7 +16,7 @@
 :root {
   --brand: #0F6E56; --onbrand: #ffffff; --tint: #E1F5EE; --accent: #C9A227;
   --ink: #0E2230; --muted: rgba(16, 36, 50, .56); --line: #dde7ee; --bg: #F1F5F8; --card: #ffffff;
-  --ink-soft: rgba(16, 36, 50, .78);
+  --ink-soft: rgba(16, 36, 50, .78); --figure: #0A1C28;
   --danger: #993C1D; --dangerbg: #FAECE7; --success: #0F6E56;
   --font: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-heading: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -38,6 +38,7 @@
   --bg: #0B0D11;
   --card: #13171E;
   --tint: color-mix(in srgb, var(--brand) 20%, #0B0D11);
+  --figure: #F2F7FB;
   --danger: #FF8E8E;
   --dangerbg: rgba(255, 107, 107, .14);
   --success: #5BE5AB;
@@ -68,9 +69,14 @@
     line-height: 1.56;
     -webkit-font-smoothing: antialiased;
     /* Calm, near-white canvas so vibrant bento tiles and white cards read crisply. */
+    /* The marketing site's paper, so the product and the site read as one
+       surface. The vendor's --bg still tints the base stop. */
     background:
-      radial-gradient(1100px 520px at 100% -20%, color-mix(in srgb, var(--brand) 6%, transparent), transparent 60%),
-      var(--bg);
+      radial-gradient(820px 560px at 76% 10%, #ffffff 0%, rgba(255, 255, 255, 0) 68%),
+      linear-gradient(168deg,
+        color-mix(in srgb, var(--bg) 45%, #F5F9FC) 0%,
+        color-mix(in srgb, var(--bg) 45%, #EAF2F7) 46%,
+        color-mix(in srgb, var(--bg) 45%, #DDE9F0) 100%);
     background-attachment: fixed;
   }
   /* Tighter and dimmer than the light wash: at 6% on near-black the gradient
@@ -137,6 +143,77 @@
     box-shadow: 0 2px 6px rgba(7, 12, 26, 0.22), 0 20px 48px -24px rgba(7, 12, 26, 0.65);
     color: #fff;
   }
+
+  /* ── Form and data primitives, from the back-office samples ───────────── */
+
+  /* Two-column field grid; .wide spans both. */
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .fields .wide { grid-column: 1 / -1; }
+  @media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
+
+  .field-hint { font-size: .75rem; color: var(--muted); margin-top: .4rem; }
+  .field-error { font-size: .75rem; color: var(--danger); margin-top: .4rem; font-weight: 600; }
+  .field-req { color: var(--brand); }
+  .input[aria-invalid="true"] {
+    border-color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 4%, var(--card));
+  }
+  .input[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 16%, transparent);
+  }
+
+  /* A figure the system owns. Not an input, and visibly not one: corrections
+     to anything posted through the ledger are new postings, never edits. */
+  .derived {
+    padding: .68rem .85rem; border-radius: .75rem;
+    border: 1px dashed var(--line);
+    background: color-mix(in srgb, var(--brand) 4%, transparent);
+    display: flex; align-items: baseline; justify-content: space-between; gap: .6rem;
+  }
+  .derived b { font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+  /* Segmented control for a small closed set. */
+  .seg { display: inline-flex; background: color-mix(in srgb, var(--ink) 5%, transparent); border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg > button {
+    border: 0; background: transparent; font: inherit; font-size: .8125rem; font-weight: 600;
+    color: var(--muted); padding: .44rem .95rem; border-radius: 999px; cursor: pointer;
+  }
+  .seg > button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(14, 34, 48, .10); }
+
+  /* Switch. */
+  .switch {
+    width: 44px; height: 25px; border-radius: 999px; border: 0; cursor: pointer; position: relative; flex: none;
+    background: color-mix(in srgb, var(--ink) 14%, transparent); transition: background .15s ease;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 19px; height: 19px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 3px rgba(14, 34, 48, .3); transition: transform .16s ease;
+  }
+  .switch[aria-checked="true"] { background: var(--brand); }
+  .switch[aria-checked="true"]::after { transform: translateX(19px); }
+
+  /* Sticky save bar: a long form should not make you scroll to finish. */
+  .savebar {
+    position: fixed; left: 276px; right: 24px; bottom: 18px; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    padding: .75rem 1rem .75rem 1.25rem; border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 6px rgba(14, 34, 48, .06), 0 24px 50px -30px rgba(14, 34, 48, .6);
+  }
+  @media (max-width: 1023px) { .savebar { left: 14px; right: 14px; } }
+
+  /* Data tables. */
+  .dtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .dtable th {
+    text-align: left; font-size: .656rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); padding: 0 0 .625rem; border-bottom: 1px solid var(--line);
+  }
+  .dtable td { padding: .8rem 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); font-size: .875rem; }
+  .dtable tr:last-child td { border-bottom: 0; }
+  .dtable td.num, .dtable th.num { text-align: right; }
+  .dtable td.num { font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
 
   /* The homepage CTA, as a card. Used for the sign-in and apply screens, which
      are the product's equivalent of that moment on the site. Mixed from

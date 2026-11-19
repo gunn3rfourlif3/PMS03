@@ -29,12 +29,97 @@ export function Badge({ children, tone = 'brand' }: { children: React.ReactNode;
   return <span className={map}>{children}</span>;
 }
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, children, hint, error, required, wide }: {
+  label: string; children: React.ReactNode;
+  /** Shown under the control. Say what the value does, not what it is. */
+  hint?: string;
+  /** Replaces the hint when set. The control should also carry aria-invalid. */
+  error?: string;
+  required?: boolean;
+  /** Span both columns of a .fields grid. */
+  wide?: boolean;
+}) {
   return (
-    <label className="block">
-      <span className="field-label">{label}</span>
+    <label className={cn('block', wide && 'wide')}>
+      <span className="field-label">
+        {label}{required && <span className="field-req"> *</span>}
+      </span>
       {children}
+      {error ? <span className="field-error">{error}</span>
+        : hint ? <span className="field-hint">{hint}</span> : null}
     </label>
+  );
+}
+
+/** A figure the system owns — posted through the ledger, so not editable here.
+ *  Visibly not an input, because that distinction is the product. */
+export function Derived({ label, value, note, href, linkLabel }: {
+  label: string; value: React.ReactNode; note?: string; href?: string; linkLabel?: string;
+}) {
+  return (
+    <div className="block">
+      <span className="field-label">{label}</span>
+      <div className="derived">
+        {note && <span className="text-[13px] text-muted">{note}</span>}
+        <span className="ml-auto flex items-baseline gap-3.5">
+          <b>{value}</b>
+          {href && <a href={href} className="whitespace-nowrap text-xs font-semibold text-brand hover:underline">{linkLabel ?? 'View'}</a>}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** A small closed set — lease type, period, mode. */
+export function Segmented<T extends string>({ value, options, onChange, label }: {
+  value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label?: string;
+}) {
+  return (
+    <div className="seg" role="group" aria-label={label}>
+      {options.map((o) => (
+        <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} aria-label={label}
+      className="switch" onClick={() => onChange(!checked)} />
+  );
+}
+
+/** A titled form section. The subtitle is where the consequence goes. */
+export function Section({ title, subtitle, action, children, tone }: {
+  title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode;
+  tone?: 'danger';
+}) {
+  return (
+    <section className={cn('glass p-5 sm:p-6', tone === 'danger' && 'border-danger/25')}>
+      <div className="flex items-baseline justify-between gap-3.5">
+        <h2 className="font-heading text-base">{title}</h2>
+        {action}
+      </div>
+      {subtitle && <p className="mt-1 mb-4 max-w-[62ch] text-[12.5px] text-muted">{subtitle}</p>}
+      {children}
+    </section>
+  );
+}
+
+/** Sticky actions for a long form. Says what changed, not just "Save". */
+export function SaveBar({ state, children }: { state?: string; children: React.ReactNode }) {
+  return (
+    <div className="savebar">
+      {state && (
+        <span className="flex items-center gap-2.5 text-[13px] text-muted">
+          <span className="h-2 w-2 rounded-full bg-danger" aria-hidden /> {state}
+        </span>
+      )}
+      <span className="ml-auto flex gap-2.5">{children}</span>
+    </div>
   );
 }
 
@@ -137,19 +222,26 @@ export function ConfirmModal({
 
 export function Metric({
   label, value, icon, accent, tone,
-}: { label: string; value: React.ReactNode; icon?: React.ReactNode; accent?: boolean; tone?: 'danger' | 'success' }) {
+  note,
+}: {
+  label: string; value: React.ReactNode; icon?: React.ReactNode; accent?: boolean;
+  tone?: 'danger' | 'success';
+  /** One line under the figure: what it is measured against. */
+  note?: string;
+}) {
   const valueColor = tone === 'danger' ? 'text-danger' : tone === 'success' ? 'text-success' : accent ? 'text-brand' : 'text-ink';
   return (
     <GlassCard hover className={cn('!p-5', accent && 'ring-1 ring-brand/40')}>
       <div className="flex items-start justify-between">
-        <span className="text-[13px] text-muted">{label}</span>
+        <span className="eyebrow">{label}</span>
         {icon && (
           <span className="grid h-9 w-9 place-items-center rounded-xl" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)', color: 'var(--brand)' }}>
             {icon}
           </span>
         )}
       </div>
-      <div className={cn('mt-2 font-heading text-2xl sm:text-[26px] font-bold', valueColor)}>{value}</div>
+      <div className={cn('mt-2 font-heading text-[28px] sm:text-[30px] font-extrabold tabular-nums tracking-[-0.035em]', valueColor)}>{value}</div>
+      {note && <div className="mt-1.5 text-[12.5px] text-muted">{note}</div>}
     </GlassCard>
   );
 }

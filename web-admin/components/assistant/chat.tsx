@@ -170,7 +170,7 @@ export default function AssistantChat({ entry }: { entry: AssistantEntry }) {
 
       {remaining.length > 0 && (
         <div className="mt-3 shrink-0">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <p className="mb-2 eyebrow">
             {t('assistant.chat.suggestions')}
           </p>
           <div className="flex flex-wrap gap-2">
