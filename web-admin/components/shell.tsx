@@ -150,12 +150,16 @@ function DeploymentChip() {
 function NavLinks({ onNavigate, items = NAV }: { onNavigate?: () => void; items?: readonly NavItem[] }) {
   const path = usePathname();
   const t = useT();
-  const { capabilities } = useDeployment();
+  const { capabilities, hiddenNav } = useDeployment();
   // An entry tagged with a capability the mode does not serve is absent, not
   // disabled: the API refuses those routes, so a greyed-out link would be a
   // control that leads nowhere. Untagged entries are staff work and show in
   // every mode, which is the whole premise of the sealed option.
-  const visible = items.filter((i) => !i.requires || capabilities[i.requires]);
+  // A deployment can also drop entries outright (DEPLOYMENT_HIDE_NAV) — the
+  // on-site demo shows a prospect only what they are buying. Menu only: the
+  // routes still exist and the API still governs them.
+  const visible = items.filter((i) =>
+    (!i.requires || capabilities[i.requires]) && !hiddenNav.includes(i.href));
   return (
     <nav className="flex flex-col">
       {visible.map(({ href, key, icon: Icon }) => {
@@ -340,10 +344,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           part: without it a flex child will not shrink below its content and
           the scroll never engages. */}
       <aside className="sidebar-dark fixed inset-y-3 left-3 z-30 hidden w-[248px] flex-col justify-between overflow-hidden rounded-3xl p-4 lg:flex">
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* The brand and the mode chip sit OUTSIDE the scroll region. Inside
+            it, a long menu on a short window scrolled them out of view, and the
+            agency's own name looked like it had failed to load. */}
+        <div className="shrink-0">
           <div className="px-2 py-3"><BrandMark dark /></div>
           <DeploymentChip />
-          <div className="mt-4"><NavLinks items={nav} /></div>
+        </div>
+        <div className="mt-4 min-h-0 flex-1 overflow-y-auto">
+          <NavLinks items={nav} />
         </div>
         <div className="shrink-0 border-t border-white/10 pt-3">
           <LocaleSwitcher />

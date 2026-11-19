@@ -8,11 +8,14 @@ import {
 interface DeploymentContextValue {
   profile: DeploymentProfile;
   capabilities: DeploymentCapabilities;
+  /** Menu hrefs this deployment does not show. From DEPLOYMENT_HIDE_NAV. */
+  hiddenNav: readonly string[];
 }
 
 const DeploymentContext = createContext<DeploymentContextValue>({
   profile: DEFAULT_DEPLOYMENT_PROFILE,
   capabilities: capabilitiesFor(DEFAULT_DEPLOYMENT_PROFILE),
+  hiddenNav: [],
 });
 
 export const useDeployment = () => useContext(DeploymentContext);
@@ -24,10 +27,10 @@ export const useDeployment = () => useContext(DeploymentContext);
  * modes, which is what makes the demo's mode switch possible at all.
  */
 export default function DeploymentProvider({
-  profile, children,
-}: { profile: DeploymentProfile; children: React.ReactNode }) {
+  profile, hiddenNav = [], children,
+}: { profile: DeploymentProfile; hiddenNav?: readonly string[]; children: React.ReactNode }) {
   const [value, setValue] = useState<DeploymentContextValue>({
-    profile, capabilities: capabilitiesFor(profile),
+    profile, capabilities: capabilitiesFor(profile), hiddenNav,
   });
 
   // The server-rendered `profile` is a first paint that avoids a flash of the
@@ -37,7 +40,7 @@ export default function DeploymentProvider({
   // than a stale label.
   useEffect(() => {
     let alive = true;
-    fetchDeployment().then((d) => { if (alive && d) setValue(d); });
+    fetchDeployment().then((d) => { if (alive && d) setValue({ ...d, hiddenNav }); });
     return () => { alive = false; };
   }, []);
 

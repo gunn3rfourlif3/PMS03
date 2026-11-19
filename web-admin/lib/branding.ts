@@ -95,5 +95,5 @@ export function applyTheme(b: Branding) {
     link.id = 'brand-font'; link.rel = 'stylesheet'; link.href = b.font.webUrl;
     document.head.appendChild(link);
   }
-  document.title = `${b.name} · Back-office`;
+  document.title = `${b.name} — Back-office`;
 }

@@ -37,14 +37,20 @@ export class ReportingService {
   rentRoll(): Promise<unknown[]> {
     return this.tenant.getManager().query(`
       SELECT l.id AS lease_id, u.label AS unit, l.tenant_id, l.rent_amount, l.status,
+             tu.name AS tenant_name, p.name AS property_name,
              COALESCE(SUM(${invoiceOutstanding('i')}), 0) AS outstanding
       FROM leases l
       JOIN units u ON u.id = l.unit_id
+      -- Names for the dashboard's rent roll, which until now read a tenant field
+      -- this query never returned. Same joins mandates.service already makes
+      -- under the tenant-scoped manager.
+      LEFT JOIN users tu ON tu.id = l.tenant_id
+      LEFT JOIN properties p ON p.id = u.property_id
       LEFT JOIN invoices i
              ON i.lease_id = l.id
             AND i.status IN ${OWING_INVOICE_STATUSES}
       WHERE l.status = 'active'
-      GROUP BY l.id, u.label, l.tenant_id, l.rent_amount, l.status
+      GROUP BY l.id, u.label, l.tenant_id, l.rent_amount, l.status, tu.name, p.name
       ORDER BY u.label;
     `);
   }

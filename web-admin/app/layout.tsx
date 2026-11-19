@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import BrandProvider from '@/components/brand-provider';
 import Shell from '@/components/shell';
-import { brandForHost } from '@/lib/brand-shared';
+import { brandForHost, brandKeyFromHost, isPlatformHostFor } from '@/lib/brand-shared';
 import DeploymentProvider from '@/components/deployment-provider';
 import { resolveDeploymentProfile } from '@/lib/deployment';
 import LocaleProvider from '@/components/locale-provider';
@@ -14,8 +14,35 @@ import { enabledLocales } from '@shared/i18n';
 // Title/description must carry the brand name: this is what crawlers (and
 // Google's OAuth brand-verification reviewer) see on app.<domain>. A generic
 // "Back-office" title reads as a different app to the one on the consent screen.
-export function generateMetadata(): Metadata {
-  const brand = brandForHost(headers().get('host') ?? '');
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:3000/api';
+
+/**
+ * The agency's own name for <title>. brandForHost only knows "Locare" or the
+ * generic default, so on an agency host the server title said "Property
+ * Manager" — and Next re-applies the server title on navigation, overwriting
+ * the correct one applyTheme sets client-side. Same lookup and timeout as the
+ * favicon route; a slow or failed lookup falls back rather than holding the page.
+ */
+async function agencyName(host: string): Promise<string | null> {
+  if (isPlatformHostFor(host)) return null;
+  try {
+    const res = await fetch(`${API_BASE}/branding/${encodeURIComponent(brandKeyFromHost(host))}`, {
+      signal: AbortSignal.timeout(1500),
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const b = await res.json();
+    return typeof b?.name === 'string' && b.name.trim() ? b.name.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const host = headers().get('host') ?? '';
+  const base = brandForHost(host);
+  const name = (await agencyName(host)) ?? base.name;
+  const brand = { ...base, name };
   const description =
     brand.slug === 'locare'
       ? 'Locare is a white-label property-management platform for South African rental agencies — leasing, rent collection, trust accounting, and branded tenant & landlord apps. Sign in to your agency back-office.'
@@ -58,6 +85,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // here rather than in the browser because a class applied on mount gives
   // every load a white flash before the dark paint lands.
   const theme = resolveTheme(process.env.DEPLOYMENT_THEME);
+  // Comma-separated hrefs to leave out of the menu. Unset everywhere but the
+  // on-site demo, so production menus are untouched.
+  const hiddenNav = (process.env.DEPLOYMENT_HIDE_NAV ?? '')
+    .split(',').map((h) => h.trim()).filter((h) => h.startsWith('/'));
 
   return (
     // `lang` is the server's best guess; LocaleProvider corrects it on mount if
@@ -68,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <BrandProvider initial={brand}>
           <LocaleProvider initial={locale} locales={locales}>
-            <DeploymentProvider profile={deployment}>
+            <DeploymentProvider profile={deployment} hiddenNav={hiddenNav}>
               <Shell>{children}</Shell>
             </DeploymentProvider>
           </LocaleProvider>
