@@ -115,6 +115,14 @@ afterAll(async () => {
   if (owner?.isInitialized) await owner.destroy();
 });
 
+// These run as the owner, so RLS does not scope them and every rent-roll and
+// ageing call aggregates the whole database. invoiceOutstanding() is a
+// correlated scan of all payments per invoice, so the cost grows with the
+// square of what is seeded: on a machine carrying the on-site demo agency, the
+// voided-invoice case (two whole-database calls) outran Jest's 5s default while
+// asserting nothing wrong. The budget follows the data, not the logic.
+jest.setTimeout(30_000);
+
 dbDescribe('a part-paid invoice reads the same everywhere', () => {
   it('rent roll shows what is still owed, not the invoice total', async () => {
     const rows = await asTenant((r) => r.rentRoll() as Promise<Array<Record<string, unknown>>>);
