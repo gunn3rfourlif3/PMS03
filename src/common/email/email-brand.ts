@@ -7,6 +7,8 @@ export interface EmailBrand {
   brandColor?: string;
   logoUrl?: string;
   markUrl?: string;
+  /** From Branding settings → Contact. Printed in the email footer. */
+  contact?: { email?: string; phone?: string; address?: string };
 }
 
 /** Where the fallback mark is served from. Empty in dev unless configured. */
@@ -56,8 +58,38 @@ export async function emailBrandForVendor(
       brandColor: b.colors?.brand,
       logoUrl: mailSafeLogo(b.logo?.imageUrl),
       markUrl: emailMarkBase(),
+      contact: { email: b.contact?.email, phone: b.contact?.phone, address: b.contact?.address },
     };
   } catch {
     return { markUrl: emailMarkBase() };
   }
+}
+
+/**
+ * Who an agency's email is FROM: the agency's name over the platform's sending
+ * address, with replies going to the agency.
+ *
+ * The address stays the platform's own because that is the domain SPF, DKIM
+ * and DMARC are set up for — putting an agency's domain in From without
+ * those records gets the mail junked or rejected. The display name is what a
+ * tenant reads in their inbox, and before this it was one global
+ * SMTP_FROM_NAME: every agency's tenants saw the same sender. Reply-To is the
+ * agency's contact email, so a tenant answering an invoice reaches the agency,
+ * not a no-reply box.
+ *
+ * Platform mail (sign-in codes, partner and changelog emails) does not use
+ * this: it is Locare speaking, and keeps the platform sender.
+ */
+export function agencySender(brand: Pick<EmailBrand, 'agencyName' | 'contact'>): {
+  from?: { email: string; name: string };
+  replyTo?: { email: string; name?: string };
+} {
+  const address = process.env.SMTP_FROM ?? process.env.SENDGRID_FROM ?? 'no-reply@locare.co.za';
+  // A display name is a header: strip what could break out of it.
+  const name = (brand.agencyName ?? '').replace(/["<>\r\n\\]/g, '').replace(/\s+/g, ' ').trim().slice(0, 64);
+  const reply = (brand.contact?.email ?? '').trim();
+  return {
+    ...(name ? { from: { email: address, name } } : {}),
+    ...(/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(reply) ? { replyTo: { email: reply, ...(name ? { name } : {}) } } : {}),
+  };
 }

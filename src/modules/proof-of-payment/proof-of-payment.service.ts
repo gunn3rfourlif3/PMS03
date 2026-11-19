@@ -9,6 +9,7 @@ import { PaymentService } from '@modules/billing/payment.service';
 import { Invoice } from '@modules/billing/invoice.entity';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { ProofOfPayment } from './proof-of-payment.entity';
+import { agencySender, emailBrandForVendor } from '@common/email/email-brand';
 
 export interface SubmitProofInput {
   invoiceId: string;
@@ -92,7 +93,7 @@ export class ProofOfPaymentService {
     proof.reviewedAt = new Date();
     const saved = await repo.save(proof);
 
-    await this.notifyTenant(proof.tenantId,
+    await this.notifyTenant(proof.tenantId, proof.vendorId,
       'Payment confirmed',
       `Thank you — we've received and confirmed your payment${proof.reference ? ` (ref ${proof.reference})` : ''}. Your account has been updated.`,
     ).catch((e) => this.log.error(`notify accept failed: ${e.message}`));
@@ -112,14 +113,14 @@ export class ProofOfPaymentService {
     proof.reviewedAt = new Date();
     const saved = await repo.save(proof);
 
-    await this.notifyTenant(proof.tenantId,
+    await this.notifyTenant(proof.tenantId, proof.vendorId,
       'About your proof of payment',
       `We couldn't confirm your recent proof of payment${reason ? `: ${reason}` : '.'} Please check the details and resubmit, or contact us if you need help.`,
     ).catch((e) => this.log.error(`notify reject failed: ${e.message}`));
     return saved;
   }
 
-  private async notifyTenant(tenantId: string, subject: string, body: string): Promise<void> {
+  private async notifyTenant(tenantId: string, vendorId: string | undefined, subject: string, body: string): Promise<void> {
     if (!this.channels) return;
     const rows = await this.ds.query('SELECT email, phone FROM users WHERE id = $1', [tenantId]);
     const u = rows[0];
@@ -127,7 +128,9 @@ export class ProofOfPaymentService {
     if (!to) return;
     const provider = this.channels.get(u?.email ? 'email' : 'sms');
     if (!provider) return;
-    const res = await provider.send({ to, subject, body });
+    // Sent as the agency, with replies to it — see agencySender.
+    const sender = u?.email ? agencySender(await emailBrandForVendor(this.ds, vendorId)) : {};
+    const res = await provider.send({ to, subject, body, ...sender });
     if (!res.ok) this.log.error(`notify to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 }

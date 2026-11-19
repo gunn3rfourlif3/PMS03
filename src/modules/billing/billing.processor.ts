@@ -53,11 +53,18 @@ export class BillingProcessor extends WorkerHost {
   }
 
   private async generateInvoices(job: Job): Promise<number> {
-    const { period, dueDate } = job.data as { period: string; dueDate: string };
-    const rows: LeaseRow[] = await this.dataSource.query(
+    const data = (job.data ?? {}) as { period?: string; dueDate?: string; vendorId?: string };
+    // The monthly schedule sends no period: bill the month the job fires in.
+    const now = new Date();
+    const period = data.period ?? `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+    const dueDate = data.dueDate ?? `${period}-07`;
+    const all: LeaseRow[] = await this.dataSource.query(
       'SELECT * FROM billing_active_leases($1)',
       [period],
     );
+    // A run started from an agency's back office bills THAT agency only. Only
+    // the monthly schedule, which carries no vendorId, bills everyone.
+    const rows = data.vendorId ? all.filter((r) => r.vendor_id === data.vendorId) : all;
     const byVendor = this.groupBy(rows, (r) => r.vendor_id);
 
     let generated = 0;
@@ -75,7 +82,7 @@ export class BillingProcessor extends WorkerHost {
         }
       });
     }
-    this.logger.log(`Generated ${generated} invoices for ${period}`);
+    this.logger.log(`Generated ${generated} invoices for ${period}${data.vendorId ? ` (vendor ${data.vendorId})` : ' (all vendors)'}`);
     return generated;
   }
 

@@ -1,5 +1,5 @@
 import { renderEmail } from '../src/common/email/email';
-import { mailSafeLogo } from '../src/common/email/email-brand';
+import { agencySender, mailSafeLogo } from '../src/common/email/email-brand';
 import { emailMarkPng } from '../src/common/email/email-mark';
 
 const API = 'https://api.locare.co.za/api';
@@ -116,5 +116,30 @@ describe('email media block', () => {
   ])('omits an unsafe %s image', (_label, url) => {
     const html = renderEmail({ ...base, media: { imageUrl: url, alt: 'x' } });
     expect(html).not.toContain(url);
+  });
+});
+
+describe('agencySender', () => {
+  const OLD = process.env.SMTP_FROM;
+  beforeAll(() => { process.env.SMTP_FROM = 'no-reply@locare.co.za'; });
+  afterAll(() => { process.env.SMTP_FROM = OLD; });
+
+  it("sends as the agency's name over the platform address, replies to the agency", () => {
+    expect(agencySender({ agencyName: 'Midnight Masquerade', contact: { email: 'admin@mm.co.za' } })).toEqual({
+      from: { email: 'no-reply@locare.co.za', name: 'Midnight Masquerade' },
+      replyTo: { email: 'admin@mm.co.za', name: 'Midnight Masquerade' },
+    });
+  });
+
+  it('never puts the agency domain in From (it would fail SPF/DKIM)', () => {
+    expect(agencySender({ agencyName: 'X', contact: { email: 'a@agency.co.za' } }).from?.email).toBe('no-reply@locare.co.za');
+  });
+
+  it('strips characters that could break out of the header', () => {
+    expect(agencySender({ agencyName: 'Evil" <x@y.z>\r\nBcc: a@b.c' }).from?.name).toBe('Evil x@y.zBcc: a@b.c');
+  });
+
+  it('falls back to the platform sender when there is no name, and skips a bad reply address', () => {
+    expect(agencySender({ agencyName: '', contact: { email: 'not an email' } })).toEqual({});
   });
 });

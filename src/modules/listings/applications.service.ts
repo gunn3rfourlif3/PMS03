@@ -11,7 +11,7 @@ import { prorateFirstMonth } from '@modules/billing/invoice-calc';
 import { LeaseAgreementService } from '@modules/lease-agreement/lease-agreement.service';
 import { MediaService } from '@modules/media/media.service';
 import { renderEmail } from '@common/email/email';
-import { emailBrandForVendor } from '@common/email/email-brand';
+import { agencySender, emailBrandForVendor } from '@common/email/email-brand';
 import { buildMoveInLines, renderMoveInInvoice } from './move-in-invoice';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { Listing } from './listing.entity';
@@ -331,7 +331,10 @@ export class ApplicationsService {
       });
     }
 
-    const res = await provider.send({ to, subject, body, html });
+    const res = await provider.send({
+      to, subject, body, html,
+      ...(isEmail ? agencySender({ ...brand, agencyName: agency || brand.agencyName }) : {}),
+    });
     if (!res.ok) this.logger.error(`Approval notify to ${to} failed: ${res.error ?? 'unknown'}`);
   }
 

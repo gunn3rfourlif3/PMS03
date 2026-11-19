@@ -24,3 +24,24 @@ routes to `skip`, API calls to ignore (`ignoreApi`, regexes), and `allowWords`
 
 Flags: `--account`, `--locale`, `--viewport` (comma-separated, matching the
 config), `--max`, `--base`, `--api`, `--mailpit`.
+
+## Journeys — the part that clicks
+
+`npm run journey -- billrun` drives the bill run through the real dashboard
+button and checks the outcome end to end:
+
+1. picks the next month with nothing billed (or `--period 2027-01`)
+2. reads the expected rent from the active leases (and fails if a unit has two)
+3. types the month on the dashboard and clicks **Run billing**
+4. waits for the background run to settle
+5. billed ≥ rent; the excess (utilities + VAT) is reported
+6. one invoice email per tenant, nobody emailed twice
+7. every email adds up: lines + VAT = total due = amount due; greeting has a
+   name; utility lines present when the agency bills utilities
+8. the emails' totals = the billed total in the ledger
+9. clicks Run billing again: nothing new billed, no new emails
+
+**It changes data.** A bill run invoices every active lease of the signed-in
+agency for the month and emails its tenants, so it refuses any host but localhost unless
+given `--allow-remote`. Run it against the local stack only. Report:
+`.crawl/<timestamp>-billrun/report.html`, a screenshot per step.

@@ -6,7 +6,7 @@ import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { TenantRunner } from '@common/tenancy/tenant-runner.service';
 import { MediaService, UploadedFileLike } from '@modules/media/media.service';
 import { renderEmail } from '@common/email/email';
-import { emailBrandForVendor, emailMarkBase, mailSafeLogo } from '@common/email/email-brand';
+import { agencySender, emailBrandForVendor, emailMarkBase, mailSafeLogo } from '@common/email/email-brand';
 import { CHANNEL_PROVIDERS, ChannelProvider, Channel } from '@providers/notification/notification-provider.interface';
 import { cascadeSend, parseChannels } from '@providers/notification/cascade';
 import { toE164 } from '@common/phone/e164';
@@ -318,6 +318,7 @@ export class LeaseAgreementService {
         buttons: [{ label: 'Review & sign your lease', url: args.signUrl }],
         footerNote: "Once signed, we'll finalise everything. Thank you.",
       }),
+      agencySender({ agencyName: args.agencyName, contact: b.contact }),
     ).catch((e) => {
       this.log.error(`sign email failed: ${e.message}`);
       if (args.throwOnFailure) throw e;
@@ -405,11 +406,14 @@ export class LeaseAgreementService {
    * `{ ok: false }` throws nothing, so a caller that needs to know delivery
    * succeeded has to read the result, not just the absence of an exception.
    */
-  private async email(to: string | undefined, subject: string, body: string, html?: string): Promise<boolean> {
+  private async email(
+    to: string | undefined, subject: string, body: string, html?: string,
+    sender: ReturnType<typeof agencySender> = {},
+  ): Promise<boolean> {
     if (!to || !this.channels) return false;
     const provider = this.channels.get('email');
     if (!provider) return false;
-    const res = await provider.send({ to, subject, body, html });
+    const res = await provider.send({ to, subject, body, html, ...sender });
     if (!res.ok) this.log.error(`email to ${to} failed: ${res.error ?? 'unknown'}`);
     return !!res.ok;
   }

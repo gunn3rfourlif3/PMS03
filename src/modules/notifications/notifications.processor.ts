@@ -14,7 +14,7 @@ import {
   Channel,
   ChannelProvider,
 } from '@providers/notification/notification-provider.interface';
-import { emailBrandForVendor } from '@common/email/email-brand';
+import { emailBrandForVendor, agencySender } from '@common/email/email-brand';
 import { TEMPLATES, renderTemplate, TemplateKey } from './templates';
 import { allowedChannels, NotificationPrefs } from './preferences';
 import { Notification } from './notification.entity';
@@ -60,9 +60,14 @@ export class NotificationsProcessor extends WorkerHost {
       // read per send is not worth a cache-invalidation problem.
       const brand = await emailBrandForVendor(this.tenant.getManager(), input.vendorId);
 
+      // Every template greets "Hi {{name}}", and no caller puts a name in the
+      // payload — so every tenant was being greeted "Hi ,". Resolved here, once,
+      // from the recipient; a caller that does pass a name keeps it.
+      const payload = { ...input.payload, name: input.payload?.name || (await this.resolveName(input.userId)) || 'there' };
+
       const { subject, body, html } = renderTemplate(
         input.template as TemplateKey,
-        input.payload,
+        payload,
         brand,
       );
       const repo = this.tenant.getRepository(Notification);
@@ -83,7 +88,10 @@ export class NotificationsProcessor extends WorkerHost {
           row.status = 'failed';
           row.error = `No provider for channel ${channel}`;
         } else {
-          const res = await provider.send({ to: destination, subject, body, html: channel === 'email' ? html : undefined });
+          const res = await provider.send({
+            to: destination, subject, body,
+            ...(channel === 'email' ? { html, ...agencySender(brand) } : {}),
+          });
           row.status = res.ok ? 'sent' : 'failed';
           row.providerRef = res.providerRef;
           row.error = res.error;
@@ -94,6 +102,14 @@ export class NotificationsProcessor extends WorkerHost {
       }
       return { sent };
     });
+  }
+
+  /** First name only: "Hi Thandi," not "Hi Thandi Mokoena,". */
+  private async resolveName(userId?: string): Promise<string | undefined> {
+    if (!userId) return undefined;
+    const rows = await this.dataSource.query(`SELECT name FROM users WHERE id = $1`, [userId]);
+    const name = String(rows[0]?.name ?? '').trim();
+    return name ? name.split(/\s+/)[0] : undefined;
   }
 
   private async resolveDestination(userId?: string): Promise<string | undefined> {
