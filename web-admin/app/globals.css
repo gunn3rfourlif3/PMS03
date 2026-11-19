@@ -146,10 +146,11 @@
 
   /* ── Form and data primitives, from the back-office samples ───────────── */
 
-  /* Two-column field grid; .wide spans both. */
-  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  /* Field grid; .wide spans the row. Sized by the CONTAINER, not the viewport:
+     the same grid is used in a wide form card and inside a ~500px modal, and a
+     viewport media query would leave the modal with two cramped columns. */
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
   .fields .wide { grid-column: 1 / -1; }
-  @media (max-width: 640px) { .fields { grid-template-columns: 1fr; } }
 
   .field-hint { font-size: .75rem; color: var(--muted); margin-top: .4rem; }
   .field-error { font-size: .75rem; color: var(--danger); margin-top: .4rem; font-weight: 600; }

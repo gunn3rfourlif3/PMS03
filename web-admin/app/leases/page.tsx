@@ -120,16 +120,16 @@ export default function LeasesPage() {
 
       <GlassCard className="!p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-              <th className="px-5 py-3 font-semibold">{t('leases.th.unit')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.rent')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.type')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.start')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.end')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.status')}</th><th className="px-5 py-3 font-semibold">{t('leases.th.agreement')}</th><th className="px-5 py-3"></th>
+          <table className="dtable w-full">
+            <thead><tr>
+              <th className="px-5 py-3">{t('leases.th.unit')}</th><th className="num px-5 py-3">{t('leases.th.rent')}</th><th className="px-5 py-3">{t('leases.th.type')}</th><th className="px-5 py-3">{t('leases.th.start')}</th><th className="px-5 py-3">{t('leases.th.end')}</th><th className="px-5 py-3">{t('leases.th.status')}</th><th className="px-5 py-3">{t('leases.th.agreement')}</th><th className="px-5 py-3"></th>
             </tr></thead>
             <tbody>
               {rows.map((l) => (
                 <Fragment key={l.id}>
-                  <tr className="border-t border-line hover:bg-black/[0.02]">
+                  <tr className="hover:bg-black/[0.02]">
                     <td className="px-5 py-3 font-medium">{l.unit}</td>
-                    <td className="px-5 py-3">{money(l.rent_amount)}</td>
+                    <td className="num px-5 py-3">{money(l.rent_amount)}</td>
                     <td className="px-5 py-3 text-muted">{l.type}</td>
                     {/* Dates were printed as the API's raw ISO strings; they
                         now format per locale. */}
@@ -190,11 +190,11 @@ export default function LeasesPage() {
         </>}>
         {addErr && <div className="mb-3 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{addErr}</div>}
         <p className="mb-4 text-sm text-muted">{t('leases.addBlurb')}</p>
-        <div className="grid gap-3">
-          <Field label={t('leases.field.fullName')}><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('leases.field.fullNamePlaceholder')} /></Field>
-          <Field label={t('leases.field.email')}><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('leases.field.emailPlaceholder')} /></Field>
+        <div className="fields">
+          <Field label={t('leases.field.fullName')} required wide><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('leases.field.fullNamePlaceholder')} /></Field>
+          <Field label={t('leases.field.email')} required><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t('leases.field.emailPlaceholder')} /></Field>
           <Field label={t('leases.field.phone')}><input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t('leases.field.phonePlaceholder')} /></Field>
-          <Field label={t('leases.field.unit')}>
+          <Field label={t('leases.field.unit')} required wide>
             <select className="input" value={unitId} onChange={(e) => pickUnit(e.target.value)}>
               <option value="">{t('leases.field.unitPlaceholder')}</option>
               {units.map((u) => (
@@ -202,13 +202,11 @@ export default function LeasesPage() {
               ))}
             </select>
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={t('leases.field.rent')}><input className="input" inputMode="numeric" value={rent} onChange={(e) => setRent(e.target.value)} placeholder={t('leases.field.rentPlaceholder')} /></Field>
-            <Field label={t('leases.field.startDate')}><input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
-          </div>
+          <Field label={t('leases.field.rent')} required><input className="input" inputMode="numeric" value={rent} onChange={(e) => setRent(e.target.value)} placeholder={t('leases.field.rentPlaceholder')} /></Field>
+          <Field label={t('leases.field.startDate')} required><input className="input" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
           <Field label={t('leases.field.endDate')}><input className="input" type="date" value={end} onChange={(e) => setEnd(e.target.value)} /></Field>
           {agentsList.length > 0 && (
-            <Field label={t('leases.field.referredBy')}>
+            <Field label={t('leases.field.referredBy')} wide>
               <select className="input" value={referredBy} onChange={(e) => setReferredBy(e.target.value)}>
                 <option value="">{t('leases.referredNone')}</option>
                 {agentsList.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
