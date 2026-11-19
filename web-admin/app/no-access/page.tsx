@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { api, auth } from '@/lib/api';
+import { api, auth, device } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button } from '@/components/ui';
 
@@ -16,6 +16,10 @@ export default function NoAccessPage() {
   const signOut = async () => {
     await api.logout().catch(() => {});
     auth.clear();
+    // The remembered device must go too. Without this, /login's silent re-auth
+    // exchanges the device token for a fresh session and sends the person
+    // straight back here — "try another address" never reaches the OTP form.
+    device.clear();
     router.replace('/login');
   };
 
