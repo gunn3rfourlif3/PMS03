@@ -38,7 +38,7 @@
   --bg: #0B0D11;
   --card: #13171E;
   --tint: color-mix(in srgb, var(--brand) 20%, #0B0D11);
-  --figure: #F2F7FB;
+  --figure: #F2F7FB; --ink-soft: rgba(238, 241, 246, .78);
   --danger: #FF8E8E;
   --dangerbg: rgba(255, 107, 107, .14);
   --success: #5BE5AB;
@@ -63,7 +63,7 @@
   html, body { min-height: 100%; }
   body {
     margin: 0;
-    color: var(--ink);
+    color: var(--ink-soft);
     font-family: var(--font);
     font-size: 15px;
     line-height: 1.56;
@@ -91,6 +91,7 @@
      weight, tighter tracking. Brand-neutral, so every host gets it. */
   h1, h2, h3, .font-heading {
     font-family: var(--font-heading);
+    color: var(--ink);
     font-weight: 800;
     letter-spacing: -0.027em;
     text-wrap: balance;

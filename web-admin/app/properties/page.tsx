@@ -145,21 +145,25 @@ export default function PropertiesPage() {
       </div>
 
       <GlassCard>
-        <div className="mb-3 font-heading text-lg font-bold">{t('properties.add')}</div>
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1"><Field label={t('properties.field.name')}><input className="input" value={form.name ?? ''} onChange={(e) => setF('name', e.target.value)} placeholder={t('properties.field.namePlaceholder')} /></Field></div>
-          <div className="w-44"><Field label={t('properties.field.type')}>
+        <div className="mb-4 font-heading text-base">{t('properties.add')}</div>
+        {/* A field grid rather than fixed widths: the columns follow the card,
+            so this row no longer leaves the button stranded on a wide screen. */}
+        <div className="fields">
+          <div className="wide"><Field label={t('properties.field.name')} required><input className="input" value={form.name ?? ''} onChange={(e) => setF('name', e.target.value)} placeholder={t('properties.field.namePlaceholder')} /></Field></div>
+          <div><Field label={t('properties.field.type')}>
             {/* `pt`, not `t`: the map parameter would otherwise shadow the
                 translator. */}
             <select className="input" value={form.type} onChange={(e) => setF('type', e.target.value)}>{PTYPES.map((pt) => <option key={pt} value={pt}>{typeLabel(t, pt)}</option>)}</select>
           </Field></div>
-          <div className="w-52"><Field label={t('properties.field.ownerOptional')}>
+          <div><Field label={t('properties.field.ownerOptional')}>
             <select className="input" value={form.ownerId ?? ''} onChange={(e) => setF('ownerId', e.target.value)}>
               <option value="">{t('properties.ownerNone')}</option>
               {owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </Field></div>
-          <Button onClick={addProp} loading={busy} disabled={!form.name}><Plus size={16} /> {t('properties.addButton')}</Button>
+          <div className="wide flex justify-end">
+            <Button onClick={addProp} loading={busy} disabled={!form.name}><Plus size={16} /> {t('properties.addButton')}</Button>
+          </div>
         </div>
       </GlassCard>
 
@@ -205,9 +209,9 @@ export default function PropertiesPage() {
                 <Button onClick={() => addUnit(p.id)} loading={busy} disabled={!uForm.label}><Plus size={15} /> {t('properties.unit.addButton')}</Button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="text-left text-xs uppercase tracking-wide text-muted">
-                    <th className="py-2 pr-3 font-semibold">{t('properties.th.unit')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.status')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.rent')}</th><th className="py-2 pr-3 font-semibold">{t('properties.th.bedsBathsSize')}</th><th className="py-2"></th>
+                <table className="dtable w-full">
+                  <thead><tr>
+                    <th className="pr-3">{t('properties.th.unit')}</th><th className="pr-3">{t('properties.th.status')}</th><th className="pr-3">{t('properties.th.rent')}</th><th className="pr-3">{t('properties.th.bedsBathsSize')}</th><th className="py-2"></th>
                   </tr></thead>
                   <tbody>
                     {units.map((u) => editUnit === u.id ? (
