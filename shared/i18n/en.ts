@@ -182,6 +182,10 @@ export const en = {
   'payments.reasonPlaceholder': "e.g. Amount doesn't match the invoice / reference missing",
 
   // --- / (dashboard) -------------------------------------------------------
+  'dashboard.greetingMorning': 'Good morning',
+  'dashboard.greetingAfternoon': 'Good afternoon',
+  'dashboard.greetingEvening': 'Good evening',
+  'dashboard.recentActivity': 'Recent activity',
   'dashboard.title': 'Dashboard',
   'dashboard.subtitle': 'Portfolio overview — every figure scoped to your vendor',
   'dashboard.period': 'Period',

@@ -97,6 +97,10 @@ export const zhHans: Catalogue = {
   'godsEye.skylineNarrow': '天际线需要更宽的屏幕。下方排名顺序相同。',
 
   // ── Dashboard ────────────────────────────────────────────────────────────
+  'dashboard.greetingMorning': '早上好',
+  'dashboard.greetingAfternoon': '下午好',
+  'dashboard.greetingEvening': '晚上好',
+  'dashboard.recentActivity': '近期动态',
   'dashboard.title': '仪表板',
   'dashboard.subtitle': '投资组合总览——所有数据仅限本中介',
   'dashboard.period': '期间',

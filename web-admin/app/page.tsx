@@ -33,7 +33,7 @@ function previousPeriod(period: string): string {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { t, tn, money, number } = useLocale();
+  const { t, tn, money, number, locale } = useLocale();
   // Recording a payment by hand exists only where no gateway is collecting.
   // The API refuses it anyway; this keeps a button that would 403 off screen.
   const { capabilities } = useDeployment();
@@ -92,6 +92,19 @@ export default function Dashboard() {
   const summary = portfolio?.summary;
   const expiring = summary?.byState?.lease_expiring ?? null;
 
+  // The period is a 'YYYY-MM' string; render it as a month in the reader's own
+  // locale rather than showing them the key.
+  const periodLabel = (() => {
+    const [y, m] = period.split('-').map(Number);
+    if (!y || !m) return period;
+    return new Date(Date.UTC(y, m - 1, 1))
+      .toLocaleDateString(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  })();
+  const hour = new Date().getHours();
+  const greeting = t(hour < 12 ? 'dashboard.greetingMorning'
+    : hour < 18 ? 'dashboard.greetingAfternoon'
+    : 'dashboard.greetingEvening');
+
   // Worst first: the dashboard's job is triage, so the rows with money against
   // them lead. The old one listed in whatever order the query returned.
   const worstFirst = [...rentRoll]
@@ -103,8 +116,9 @@ export default function Dashboard() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-ink">{t('dashboard.title')}</h1>
-          <p className="text-sm text-muted">{t('dashboard.subtitle')}</p>
+          <p className="eyebrow">{periodLabel}</p>
+          <h1 className="mt-1.5 font-heading text-[26px] text-ink">{greeting}</h1>
+          <p className="mt-1.5 text-sm text-muted">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -125,50 +139,13 @@ export default function Dashboard() {
 
       {err && <div className="rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
-      {/* Hero: the month, once and large, with the rate beside it. */}
-      <div className="grid gap-3.5 lg:grid-cols-[1.6fr_1fr]">
-        <section className="glass min-w-0 p-6">
-          <span className="eyebrow">{t('dashboard.collectedFor', { period })}</span>
-          <div className="tabular mt-3 text-[40px] sm:text-[44px] font-extrabold leading-none tracking-[-0.035em]"
-            style={{ color: 'var(--figure)' }}>
-            {money(collected)}
-          </div>
-
-          {delta !== null && (
-            <span
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-              style={{
-                background: 'color-mix(in srgb, var(--brand) 16%, transparent)',
-                color: 'var(--brand)',
-              }}
-            >
-              <TrendingUp size={12} aria-hidden style={{ transform: delta < 0 ? 'scaleY(-1)' : undefined }} />
-              {t('dashboard.deltaOnPrevious', {
-                pct: `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%`,
-                period: previousPeriod(period),
-              })}
-            </span>
-          )}
-
-          <p className="mt-2 text-sm text-muted">
-            {t('dashboard.ofBilled', { amount: money(billed) })}
-            {stillOut > 0 && ` · ${t('dashboard.stillOut', { amount: money(stillOut) })}`}
-          </p>
-        </section>
-
-        <section className="glass grid min-w-0 place-items-center p-6">
-          <Ring value={rate} />
-        </section>
-      </div>
-
       {/* Four figures. Occupancy, expiring and open jobs come from
           /reporting/portfolio-state, which already computes them. */}
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
         <Stat label={t('dashboard.outstandingTotal')} value={money(arrears ? arrears.total : 0)}
           note={tn('dashboard.arrears', overdueUnits)} tone="var(--danger)" />
-        <Stat label={t('dashboard.occupancy')}
-          value={summary ? `${Math.round(summary.occupancyRate)}%` : '—'}
-          note={summary ? t('dashboard.occupiedOf', { occupied: number(summary.occupied), total: number(summary.units) }) : ''} />
+        <Stat label={t('dashboard.collectedFor', { period })} value={money(collected)}
+          note={t('dashboard.ofBilled', { amount: money(billed) })} />
         <Stat label={t('dashboard.expiringSoon')}
           value={expiring === null ? '—' : number(expiring)}
           note={t('dashboard.leasesToRenew')} tone="var(--accent)" />
@@ -177,66 +154,82 @@ export default function Dashboard() {
           note={t('dashboard.activeLeasesNote', { count: number(rentRoll.length) })} />
       </div>
 
-      {arrears && (
-        <section className="glass p-6">
-          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
-            <h2 className="font-heading text-base font-bold text-ink">{t('dashboard.outstandingByAge')}</h2>
-            <span className="tabular text-sm text-muted">{money(arrears.total)}</span>
-          </div>
-          <AgeingRows arrears={arrears} />
-        </section>
-      )}
 
-      <section className="glass overflow-hidden">
-        <div className="flex flex-wrap items-baseline justify-between gap-3 p-6 pb-4">
-          <h2 className="font-heading text-base font-bold text-ink">{t('dashboard.worstFirst')}</h2>
-          <a href="/leases" className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>
-            {t('dashboard.allLeases', { count: number(rentRoll.length) })}
-          </a>
-        </div>
-        {worstFirst.length === 0 ? (
-          <div className="p-6 pt-0"><EmptyState>{t('dashboard.noLeases')}</EmptyState></div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted"
-                  style={{ background: 'color-mix(in srgb, var(--ink) 4%, transparent)' }}>
-                  <th scope="col" className="px-6 py-3 font-semibold">{t('dashboard.th.unit')}</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">{t('dashboard.th.tenant')}</th>
-                  <th scope="col" className="px-4 py-3 text-right font-semibold">{t('dashboard.th.rent')}</th>
-                  <th scope="col" className="px-4 py-3 font-semibold">{t('dashboard.th.status')}</th>
-                  <th scope="col" className="px-6 py-3 text-right font-semibold">{t('dashboard.th.outstanding')}</th>
-                  {capabilities.manualPayments && <th scope="col" className="px-4 py-3" />}
-                </tr>
-              </thead>
-              <tbody>
-                {worstFirst.map((r) => (
-                  <tr key={r.lease_id} className="border-t border-line">
-                    <td className="px-6 py-4 font-medium text-ink">{r.unit}</td>
-                    <td className="px-4 py-4 text-muted">{r.tenant ?? '—'}</td>
-                    <td className="tabular px-4 py-4 text-right">{money(Number(r.rent_amount))}</td>
-                    <td className="px-4 py-4"><StatusPill status={r.status} /></td>
-                    <td className="tabular px-6 py-4 text-right font-bold"
-                      style={{ color: Number(r.outstanding) > 0 ? 'var(--danger)' : 'var(--muted)' }}>
-                      {Number(r.outstanding) > 0 ? money(Number(r.outstanding)) : '—'}
-                    </td>
-                    {capabilities.manualPayments && (
-                      <td className="px-4 py-4 text-right">
-                        {Number(r.outstanding) > 0 && (
-                          <Button variant="ghost" onClick={() => setPayFor(r)}>
-                            {t('payment.record')}
-                          </Button>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="grid gap-3.5 lg:grid-cols-[1.6fr_1fr] lg:items-start">
+        <section className="glass overflow-hidden">
+          <div className="flex flex-wrap items-baseline justify-between gap-3 p-6 pb-4">
+            <h2 className="font-heading text-base font-bold text-ink">{t('dashboard.worstFirst')}</h2>
+            <a href="/leases" className="text-sm font-semibold" style={{ color: 'var(--brand)' }}>
+              {t('dashboard.allLeases', { count: number(rentRoll.length) })}
+            </a>
           </div>
+          {worstFirst.length === 0 ? (
+            <div className="p-6 pt-0"><EmptyState>{t('dashboard.noLeases')}</EmptyState></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] uppercase tracking-[0.14em] text-muted"
+                    style={{ background: 'color-mix(in srgb, var(--ink) 4%, transparent)' }}>
+                    <th scope="col" className="px-6 py-3 font-semibold">{t('dashboard.th.unit')}</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">{t('dashboard.th.tenant')}</th>
+                    <th scope="col" className="px-4 py-3 text-right font-semibold">{t('dashboard.th.rent')}</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">{t('dashboard.th.status')}</th>
+                    <th scope="col" className="px-6 py-3 text-right font-semibold">{t('dashboard.th.outstanding')}</th>
+                    {capabilities.manualPayments && <th scope="col" className="px-4 py-3" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {worstFirst.map((r) => (
+                    <tr key={r.lease_id} className="border-t border-line">
+                      <td className="px-6 py-4 font-medium text-ink">{r.unit}</td>
+                      <td className="px-4 py-4 text-muted">{r.tenant ?? '—'}</td>
+                      <td className="tabular px-4 py-4 text-right">{money(Number(r.rent_amount))}</td>
+                      <td className="px-4 py-4"><StatusPill status={r.status} /></td>
+                      <td className="tabular px-6 py-4 text-right font-bold"
+                        style={{ color: Number(r.outstanding) > 0 ? 'var(--danger)' : 'var(--muted)' }}>
+                        {Number(r.outstanding) > 0 ? money(Number(r.outstanding)) : '—'}
+                      </td>
+                      {capabilities.manualPayments && (
+                        <td className="px-4 py-4 text-right">
+                          {Number(r.outstanding) > 0 && (
+                            <Button variant="ghost" onClick={() => setPayFor(r)}>
+                              {t('payment.record')}
+                            </Button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        <aside className="flex min-w-0 flex-col gap-3.5">
+          <section className="glass p-6">
+            <h2 className="mb-4 font-heading text-base">{t('dashboard.occupancy')}</h2>
+            <div className="flex items-center gap-5">
+              <Ring value={summary ? summary.occupancyRate : 0} />
+              <p className="text-sm text-muted">
+                {summary
+                  ? t('dashboard.occupiedOf', { occupied: number(summary.occupied), total: number(summary.units) })
+                  : '—'}
+              </p>
+            </div>
+          </section>
+        {arrears && (
+          <section className="glass p-6">
+            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-3">
+              <h2 className="font-heading text-base font-bold text-ink">{t('dashboard.outstandingByAge')}</h2>
+              <span className="tabular text-sm text-muted">{money(arrears.total)}</span>
+            </div>
+            <AgeingRows arrears={arrears} />
+          </section>
         )}
-      </section>
+        </aside>
+      </div>
 
       <RecordPaymentModal
         row={payFor}
