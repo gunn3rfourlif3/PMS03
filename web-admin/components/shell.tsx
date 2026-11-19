@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Building2, Tags, ClipboardList, ClipboardCheck, CalendarClock, Users, Wrench, BarChart3, FileText, KeyRound, Settings as SettingsIcon, LogOut, Menu, X, Bell, MessageSquare, LayoutGrid, Receipt, Landmark, FileUp, Handshake, Columns3, Activity, Trophy, CreditCard, Banknote, Rocket, Megaphone, FileSpreadsheet, ShieldCheck , Gauge, Globe2 } from 'lucide-react';
-import { auth, api, actorFromToken } from '@/lib/api';
+import { auth, api, actorFromToken, isPlatformAdmin } from '@/lib/api';
 import { useBrand } from './brand-provider';
 import { isPlatformHost } from '@/lib/branding';
 import IdleTimeout from './idle-timeout';
@@ -286,6 +286,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     path.startsWith('/l/') ||
     path.startsWith('/sign/');
 
+  // Platform admin, not currently impersonating an agency.
+  const platformAdminOnly = mounted && isPlatformAdmin() && !actorFromToken();
+
   // Gate every authed route: no token → straight to login. Runs on first paint
   // and on every navigation, so a signed-out/expired session can't view a page.
   useEffect(() => {
@@ -294,15 +297,30 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     }
   }, [path, isPublic, router]);
 
+  // Send a platform admin to their own area rather than a staff page that will
+  // refuse every request. /admin, /partner and /portal are left alone — the
+  // first is theirs, and the other two are reachable while impersonating.
+  useEffect(() => {
+    if (isPublic || !platformAdminOnly) return;
+    if (path.startsWith('/admin') || path.startsWith('/partner') || path.startsWith('/portal')) return;
+    router.replace('/admin/agencies');
+  }, [path, isPublic, platformAdminOnly, router]);
+
   if (isPublic) return <main className="min-h-screen">{children}</main>;
   // Never SSR the authed shell (see `mounted` above). Render a branded splash
   // rather than nothing: it's what crawlers and Google's OAuth brand-verification
   // reviewer see on this domain, so it must name the app and say what it does.
   if (!mounted) return <BrandSplash />;
   if (!auth.get()) return null; // avoid flashing protected content pre-redirect
+  // A platform admin's token carries no vendor, so every staff endpoint refuses
+  // it — the agency back-office is reached by impersonating, which re-mints the
+  // token with a vendor. Showing them the staff menu produced a screen of
+  // "Forbidden resource" on every page, so they get the admin menu instead
+  // unless they are actually impersonating.
   const nav = path.startsWith('/admin') ? ADMIN_NAV
     : path.startsWith('/partner') ? PARTNER_NAV
     : path.startsWith('/portal') ? PORTAL_NAV
+    : platformAdminOnly ? ADMIN_NAV
     : NAV;
 
   return (

@@ -264,15 +264,22 @@ export function BentoTile({ tone, icon, value, label, chip, className }: {
 }) {
   const c = BENTO[tone];
   return (
-    <div className={cn('flex min-h-[104px] flex-col justify-between rounded-3xl p-5', className)} style={{ background: c.bg }}>
-      <div className="flex items-center justify-between">
-        {icon && <span style={{ color: c.sub }}>{icon}</span>}
-        {chip && <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ background: c.chip, color: c.text }}>{chip}</span>}
+    <div className={cn('glass flex min-h-[112px] flex-col justify-between p-5', className)}>
+      <div className="flex items-start justify-between gap-3">
+        <span className="eyebrow">{label}</span>
+        <span className="flex items-center gap-2">
+          {chip && (
+            <span className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+              style={{ background: `color-mix(in srgb, ${c.bar} 14%, transparent)`, color: c.bar }}>{chip}</span>
+          )}
+          {icon && (
+            <span className="grid h-8 w-8 place-items-center rounded-[10px]"
+              style={{ background: `color-mix(in srgb, ${c.bar} 12%, transparent)`, color: c.bar }}>{icon}</span>
+          )}
+        </span>
       </div>
-      <div>
-        <div className="font-heading text-2xl font-bold leading-none" style={{ color: c.text }}>{value}</div>
-        <div className="mt-1 text-xs font-medium" style={{ color: c.sub }}>{label}</div>
-      </div>
+      <div className="mt-3 font-heading text-[28px] font-extrabold leading-none tracking-[-0.035em] tabular-nums"
+        style={{ color: 'var(--figure)' }}>{value}</div>
     </div>
   );
 }

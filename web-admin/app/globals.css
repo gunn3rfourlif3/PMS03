@@ -207,11 +207,13 @@
 
   /* Data tables. */
   .dtable { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  /* padding-BLOCK only: pages set their own horizontal padding with px-* and a
+     shorthand here would silently zero it, pushing the first column off-card. */
   .dtable th {
     text-align: left; font-size: .656rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--muted); padding: 0 0 .625rem; border-bottom: 1px solid var(--line);
+    color: var(--muted); padding-block: 0 .625rem; border-bottom: 1px solid var(--line);
   }
-  .dtable td { padding: .8rem 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); font-size: .875rem; }
+  .dtable td { padding-block: .8rem; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); font-size: .875rem; }
   .dtable tr:last-child td { border-bottom: 0; }
   .dtable td.num, .dtable th.num { text-align: right; }
   .dtable td.num { font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
