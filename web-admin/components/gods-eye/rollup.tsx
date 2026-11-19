@@ -10,10 +10,12 @@
  * "which property" here, "which unit" in the grid — instead of one view trying
  * to answer both at once.
  *
- * COLOUR. Here hue carries the FAMILY, the same three anchors `state.ts`
- * validated, because four segments on ten rows leaves room to read hue. Inside
- * a property, where tiles are 44px, the same palette has to carry severity
- * instead. That is deliberate: the channel follows the density.
+ * COLOUR. The skyline's palette, not a summary of it: each bar is that
+ * property's windows laid end to end, every unit in its own state colour from
+ * `state.ts` (amber arrears, blue occupancy, violet operations), grouped by
+ * family and worst first within each. Switching between the two views keeps
+ * every colour meaning the same thing. Family is still readable — the three
+ * hue ranges do not overlap — and severity now shows inside it.
  *
  * Every bar is also a row of numbers to its right, so the segment widths are
  * never the only carrier — the same rule the grid follows with its codes.
@@ -23,28 +25,38 @@ import React, { useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import {
   FAMILY_LABEL,
+  LEGEND_ORDER,
+  familySwatch,
   PortfolioUnit,
   STATE_STYLE,
   StateFamily,
   groupByProperty,
 } from './state';
 
-/** The fill for each family's segment — the anchor hue from `state.ts`. */
-const FAMILY_FILL: Record<StateFamily, string> = {
-  money: '#993C1D',
-  occupancy: '#185FA5',
-  operations: '#534AB7',
-  clear: 'var(--line)',
-};
-
 /** Worst family first, so the eye reads a row left to right as worst to best. */
 const FAMILY_ORDER: readonly StateFamily[] = ['money', 'occupancy', 'operations', 'clear'];
+
+type UnitState = keyof typeof STATE_STYLE;
+
+/** Segment order: by family, then worst state first inside it (LEGEND_ORDER is severity-ranked). */
+const SEGMENT_ORDER: readonly UnitState[] = FAMILY_ORDER.flatMap((fam) =>
+  LEGEND_ORDER.filter((st) => STATE_STYLE[st].family === fam),
+);
+
+/**
+ * A window's colour, as the skyline lights it: a problem in its state colour,
+ * a clear unit as an unlit slab (the page's own line colour, so it sits right
+ * on the light theme as well as the dark one).
+ */
+const fill = (st: UnitState) => (STATE_STYLE[st].family === 'clear' ? 'var(--line)' : STATE_STYLE[st].bg);
+
 
 interface Row {
   propertyId: string;
   propertyName: string;
   total: number;
   byFamily: Record<StateFamily, number>;
+  byState: Partial<Record<UnitState, number>>;
   arrearsUnits: number;
   outstanding: number;
 }
@@ -65,10 +77,12 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
         operations: 0,
         clear: 0,
       };
+      const byState: Partial<Record<UnitState, number>> = {};
       let arrearsUnits = 0;
       let outstanding = 0;
       for (const u of g.units) {
         byFamily[STATE_STYLE[u.state].family] += 1;
+        byState[u.state] = (byState[u.state] ?? 0) + 1;
         if (u.outstanding > 0) {
           arrearsUnits += 1;
           outstanding += u.outstanding;
@@ -79,6 +93,7 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
         propertyName: g.propertyName,
         total: g.units.length,
         byFamily,
+        byState,
         arrearsUnits,
         outstanding,
       };
@@ -99,8 +114,8 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
           <li key={fam} className="flex items-center gap-2">
             <span
               aria-hidden
-              className="h-3 w-3 shrink-0 rounded-[3px]"
-              style={{ background: FAMILY_FILL[fam] }}
+              className="h-3 w-5 shrink-0 rounded-[3px]"
+              style={{ background: familySwatch(fam) }}
             />
             {fam === 'clear' ? t('godsEye.nothingOutstanding') : FAMILY_LABEL[fam]}
           </li>
@@ -122,20 +137,23 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
                 </span>
               </span>
 
-              <span className="flex min-w-0 flex-[999_1_16rem] overflow-hidden rounded-md">
-                {FAMILY_ORDER.map((fam) =>
-                  r.byFamily[fam] > 0 ? (
+              <span className="flex min-w-0 flex-[999_1_16rem] gap-px overflow-hidden rounded-md">
+                {SEGMENT_ORDER.map((st) => {
+                  const n = r.byState[st] ?? 0;
+                  return n > 0 ? (
                     <span
-                      key={fam}
+                      key={st}
                       aria-hidden
-                      className="h-6"
+                      title={`${STATE_STYLE[st].label}: ${n}`}
+                      className="h-6 min-w-[3px]"
                       style={{
-                        background: FAMILY_FILL[fam],
-                        width: `${(r.byFamily[fam] / r.total) * 100}%`,
+                        background: fill(st),
+                        width: `${(n / r.total) * 100}%`,
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.14)',
                       }}
                     />
-                  ) : null,
-                )}
+                  ) : null;
+                })}
               </span>
 
               <span className="flex-1 text-right sm:w-36 sm:flex-none">

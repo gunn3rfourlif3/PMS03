@@ -27,7 +27,7 @@
 
 import React, { useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { FAMILY_LABEL, type PortfolioUnit, type StateFamily } from './state';
+import { FAMILY_LABEL, familySwatch, type PortfolioUnit, type StateFamily } from './state';
 import { buildSkyline, describeSkyline } from './skyline-layout';
 import SkylineCss from './skyline-css';
 
@@ -43,11 +43,12 @@ export interface SkylineProps {
 /** Legend order: worst family first, matching the roll-up's bars. */
 const FAMILIES: readonly StateFamily[] = ['money', 'occupancy', 'operations', 'clear'];
 
-const LEGEND_SWATCH: Record<StateFamily, { bg: string; glow: string }> = {
-  money: { bg: '#993C1D', glow: 'rgba(216,90,48,0.6)' },
-  occupancy: { bg: '#185FA5', glow: 'rgba(55,138,221,0.6)' },
-  operations: { bg: '#534AB7', glow: 'rgba(83,74,183,0.6)' },
-  clear: { bg: '#141C27', glow: 'transparent' },
+/** The glow each family's windows carry in the scene (skyline-css FAMILY_GLOW). */
+const LEGEND_GLOW: Record<StateFamily, string> = {
+  money: 'rgba(216,90,48,0.6)',
+  occupancy: 'rgba(55,138,221,0.6)',
+  operations: 'rgba(83,74,183,0.6)',
+  clear: 'transparent',
 };
 
 export default function Skyline({ units, onOpen, activeId, money, number, t }: SkylineProps) {
@@ -85,13 +86,13 @@ export default function Skyline({ units, onOpen, activeId, money, number, t }: S
           <li key={fam} className="flex items-center gap-2">
             <span
               aria-hidden
-              className="h-3 w-3 shrink-0 rounded-[3px]"
+              className="h-3 w-5 shrink-0 rounded-[3px]"
               style={{
-                background: LEGEND_SWATCH[fam].bg,
+                background: familySwatch(fam),
                 boxShadow:
                   fam === 'clear'
                     ? 'inset 0 0 0 1px rgba(22,24,29,0.25)'
-                    : `0 0 8px ${LEGEND_SWATCH[fam].glow}`,
+                    : `0 0 8px ${LEGEND_GLOW[fam]}`,
               }}
             />
             {fam === 'clear' ? t('godsEye.nothingOutstanding') : FAMILY_LABEL[fam]}

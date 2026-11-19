@@ -107,6 +107,18 @@ export const LEGEND_ORDER: readonly UnitState[] = [
   'ok',
 ];
 
+/**
+ * A family's legend swatch: its states as one strip, worst to mildest — the
+ * colours the skyline's windows and the roll-up's bars actually use, so a
+ * legend never shows a colour that appears nowhere on screen. Offline is left
+ * out (it is grey, and outside the operations range on purpose).
+ */
+export function familySwatch(fam: StateFamily): string {
+  if (fam === 'clear') return 'var(--line)';
+  const stops = LEGEND_ORDER.filter((st) => STATE_STYLE[st].family === fam && st !== 'offline').map((st) => STATE_STYLE[st].bg);
+  return `linear-gradient(90deg, ${stops.join(', ')})`;
+}
+
 export const FAMILY_LABEL: Record<StateFamily, string> = {
   money: 'Money',
   occupancy: 'Occupancy',
