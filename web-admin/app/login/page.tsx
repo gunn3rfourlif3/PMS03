@@ -20,12 +20,16 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [googleOn, setGoogleOn] = useState(false);
   const [remember, setRemember] = useState(true);
-  // Only show the "resuming" screen when there's actually a device token to try.
-  const [resuming, setResuming] = useState(() => (typeof window !== 'undefined' ? !!device.get() : false));
+  // null = not checked yet. The device token lives in the browser only, so it
+  // is read after mount: deciding during the first render made the server
+  // (login form) and the browser ("Signing you in…") disagree — a hydration
+  // error. Both now render the same blank frame first.
+  const [resuming, setResuming] = useState<boolean | null>(null);
 
   // Silent re-auth: if this device is remembered, exchange the device token for a
   // session and skip the OTP entirely.
   useEffect(() => {
+    setResuming(!!device.get());
     api.deviceLogin()
       .then((r) => { if (r?.accessToken) { auth.set(r.accessToken); router.replace(homeForRole()); } else setResuming(false); })
       .catch(() => setResuming(false));
@@ -64,6 +68,7 @@ export default function LoginPage() {
     } finally { setBusy(false); }
   };
 
+  if (resuming === null) return <div className="min-h-screen" />;
   if (resuming) {
     return <div className="grid min-h-screen place-items-center p-4"><div className="text-sm text-muted">Signing you in…</div></div>;
   }
