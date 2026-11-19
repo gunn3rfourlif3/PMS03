@@ -46,9 +46,33 @@ export function prorateFirstMonth(rentAmount: number, startDate: string): Prorat
   return { amount: round2((rentAmount * days) / daysInMonth), days, daysInMonth, prorated: true };
 }
 
+/**
+ * Whether VAT is charged on a lease's rent.
+ *
+ * Both must hold: the agency is VAT-registered, and the property is let
+ * commercially. Renting out a dwelling is an exempt supply in South Africa
+ * (VAT Act s12(c)), so residential rent carries no VAT whatever the agency's
+ * registration — the registration governs VAT on the agency's own fees. Before
+ * this, every invoice for every agency carried 15%, residential or not.
+ *
+ * Strict `=== true` on both: a missing setting, a string "true" from a form, or
+ * anything else unexpected must fall to "no VAT", never to charging it.
+ */
+export function vatApplies(
+  vat: { registered?: unknown } | null | undefined,
+  propertyAttributes: Record<string, unknown> | null | undefined,
+): boolean {
+  return vat?.registered === true && propertyAttributes?.commercial === true;
+}
+
+/**
+ * `tax` is null when VAT does not apply (see vatApplies): the invoice is then
+ * the charges alone, and the ledger posting has no VAT Output line.
+ */
 export function buildRentInvoice(
   charges: ChargeInput[],
-  tax: TaxProfile,
+  tax: TaxProfile | null,
+  opts: { vatNumber?: string } = {},
 ): RentInvoiceParts {
   const lineItems: InvoiceLineItem[] = charges.map((c) => ({
     kind: c.kind,
@@ -56,14 +80,17 @@ export function buildRentInvoice(
     amount: round2(c.amount),
   }));
 
-  const taxable = charges.reduce((s, c) => s + c.amount, 0);
-  const taxAmount = round2(tax.computeTax(taxable));
-  if (taxAmount > 0) {
-    lineItems.push({
-      kind: 'tax',
-      description: `${tax.key} @ ${tax.ratePct}%`,
-      amount: taxAmount,
-    });
+  if (tax) {
+    const taxable = charges.reduce((s, c) => s + c.amount, 0);
+    const taxAmount = round2(tax.computeTax(taxable));
+    if (taxAmount > 0) {
+      lineItems.push({
+        kind: 'tax',
+        description: `VAT @ ${tax.ratePct}%`,
+        amount: taxAmount,
+        ...(opts.vatNumber ? { vatNumber: opts.vatNumber } : {}),
+      });
+    }
   }
 
   const total = round2(lineItems.reduce((s, li) => s + li.amount, 0));

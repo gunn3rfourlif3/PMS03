@@ -105,7 +105,7 @@ export class PaymentService {
    */
   async listOutstandingForLease(leaseId: string): Promise<Array<{
     id: string; period: string; dueDate: string; total: number;
-    status: string; outstanding: number;
+    status: string; outstanding: number; vat: number; vatNumber: string | null;
   }>> {
     return this.tenant.getManager().query(
       `SELECT i.id,
@@ -113,7 +113,11 @@ export class PaymentService {
               i.due_date::text AS "dueDate",
               i.total::float8  AS total,
               i.status,
-              ${invoiceOutstanding('i')}::float8 AS outstanding
+              ${invoiceOutstanding('i')}::float8 AS outstanding,
+              COALESCE((SELECT SUM((li->>'amount')::numeric) FROM jsonb_array_elements(i.line_items) li
+                         WHERE li->>'kind' = 'tax'), 0)::float8 AS vat,
+              (SELECT li->>'vatNumber' FROM jsonb_array_elements(i.line_items) li
+                WHERE li->>'kind' = 'tax' LIMIT 1) AS "vatNumber"
          FROM invoices i
         WHERE i.lease_id = $1
           AND i.status IN ${OWING_INVOICE_STATUSES}

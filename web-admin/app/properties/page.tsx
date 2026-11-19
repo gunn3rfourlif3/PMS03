@@ -67,13 +67,13 @@ export default function PropertiesPage() {
   const addProp = async () => {
     if (!form.name) return;
     setBusy(true); setErr('');
-    try { await api.createProperty({ name: form.name, type: form.type, ownerId: form.ownerId || undefined }); setForm({ type: 'building' }); await load(); }
+    try { await api.createProperty({ name: form.name, type: form.type, ownerId: form.ownerId || undefined, attributes: { commercial: form.commercial === true } }); setForm({ type: 'building' }); await load(); }
     catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
-  const startEditProp = (p: any) => { setEditProp(p.id); setPEdit({ name: p.name, type: p.type, ownerId: p.owner_id ?? '' }); };
+  const startEditProp = (p: any) => { setEditProp(p.id); setPEdit({ name: p.name, type: p.type, ownerId: p.owner_id ?? '', commercial: p.commercial === true }); };
   const saveProp = async (id: string) => {
     setBusy(true); setErr('');
-    try { await api.updateProperty(id, pEdit); setEditProp(null); await load(); } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
+    try { const { commercial, ...rest } = pEdit; await api.updateProperty(id, { ...rest, attributes: { commercial } }); setEditProp(null); await load(); } catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   };
 
   const confirmDelete = async () => {
@@ -161,7 +161,8 @@ export default function PropertiesPage() {
               {owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </Field></div>
-          <div className="wide flex justify-end">
+          <div className="wide flex flex-wrap items-center justify-between gap-3">
+            <CommercialToggle checked={form.commercial === true} onChange={(v) => setForm((f: any) => ({ ...f, commercial: v }))} />
             <Button onClick={addProp} loading={busy} disabled={!form.name}><Plus size={16} /> {t('properties.addButton')}</Button>
           </div>
         </div>
@@ -174,6 +175,7 @@ export default function PropertiesPage() {
               <div className="min-w-[180px] flex-1"><Field label={t('properties.field.name')}><input className="input" value={pEdit.name} onChange={(e) => setPEdit({ ...pEdit, name: e.target.value })} /></Field></div>
               <div className="w-40"><Field label={t('properties.field.type')}><select className="input" value={pEdit.type} onChange={(e) => setPEdit({ ...pEdit, type: e.target.value })}>{PTYPES.map((pt) => <option key={pt} value={pt}>{typeLabel(t, pt)}</option>)}</select></Field></div>
               <div className="w-52"><Field label={t('properties.field.owner')}><select className="input" value={pEdit.ownerId} onChange={(e) => setPEdit({ ...pEdit, ownerId: e.target.value })}><option value="">{t('properties.ownerNone')}</option>{owners.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}</select></Field></div>
+              <CommercialToggle checked={pEdit.commercial === true} onChange={(v) => setPEdit({ ...pEdit, commercial: v })} />
               <Button onClick={() => saveProp(p.id)} loading={busy}>{t('common.save')}</Button>
               <Button variant="ghost" onClick={() => setEditProp(null)}>{t('common.cancel')}</Button>
             </div>
@@ -183,7 +185,7 @@ export default function PropertiesPage() {
                 <span className="grid h-10 w-10 place-items-center rounded-xl" style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)', color: 'var(--brand)' }}><Building2 size={18} /></span>
                 <div>
                   <div className="font-heading text-base font-bold">{p.name}</div>
-                  <div className="mt-0.5 text-sm text-muted">{typeLabel(t, p.type)}{ownerName(p.owner_id) ? ` · ${ownerName(p.owner_id)}` : ''} · {t('properties.occupiedOf', { occupied: p.occupied_count, total: p.unit_count })}</div>
+                  <div className="mt-0.5 text-sm text-muted">{typeLabel(t, p.type)}{p.commercial ? ` · ${t('properties.commercial.badge')}` : ''}{ownerName(p.owner_id) ? ` · ${ownerName(p.owner_id)}` : ''} · {t('properties.occupiedOf', { occupied: p.occupied_count, total: p.unit_count })}</div>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-5">
@@ -292,5 +294,23 @@ function OccupancyRate({ occupied, total, label }: { occupied: number; total: nu
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'var(--brand)' }} />
       </div>
     </div>
+  );
+}
+
+/**
+ * Marks a property as let commercially. Only commercial rent carries VAT, and
+ * only when the agency is VAT-registered (Settings → VAT); a dwelling is an
+ * exempt supply. Off unless someone ticks it.
+ */
+function CommercialToggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  const { t } = useLocale();
+  return (
+    <label className="flex cursor-pointer items-start gap-2 text-sm text-ink">
+      <input type="checkbox" className="mt-1" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span>
+        {t('properties.commercial.label')}
+        <span className="block text-xs text-muted">{t('properties.commercial.hint')}</span>
+      </span>
+    </label>
   );
 }

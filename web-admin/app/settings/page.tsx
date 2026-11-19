@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink, Building2 } from 'lucide-react';
+import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink, Building2, Receipt } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { applyTheme } from '@/lib/branding';
 import { GlassCard, PageHeader, Button, Field } from '@/components/ui';
@@ -127,6 +127,8 @@ export default function SettingsPage() {
         </div>
       </GlassCard>
 
+      <VatCard />
+
       <GlassCard className="mt-4">
         <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><FileText size={18} /> {t('settings.lease')}</div>
         <p className="mb-4 text-sm text-muted">{t('settings.leaseBlurb')}</p>
@@ -211,6 +213,47 @@ function PortfolioSize() {
         {t('settings.portfolio.across', { properties: number(d.properties) })}
       </p>
       {note && <p className="mt-3 max-w-prose text-sm text-muted">{note}</p>}
+    </GlassCard>
+  );
+}
+
+/**
+ * VAT registration. Saved on its own (not with the branding form) because it
+ * changes what tenants are charged, and the API lets only the owner change it.
+ * Registration alone puts no VAT on residential rent: only properties marked
+ * commercial carry it.
+ */
+function VatCard() {
+  const { t } = useLocale();
+  const [v, setV] = useState<{ registered: boolean; number?: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => { api.vatSettings().then(setV).catch(() => setV({ registered: false })); }, []);
+  if (!v) return null;
+
+  const save = async () => {
+    setBusy(true); setNote(null);
+    try { setV(await api.updateVatSettings({ registered: v.registered, number: v.number ?? '' })); setNote({ ok: true, text: t('settings.vat.saved') }); }
+    catch (e: any) { setNote({ ok: false, text: e.message }); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <GlassCard className="mt-4">
+      <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><Receipt size={18} /> {t('settings.vat.title')}</div>
+      <p className="mb-4 max-w-prose text-sm text-muted">{t('settings.vat.blurb')}</p>
+      {note && <div className={`mb-3 rounded-xl px-3 py-2 text-sm ${note.ok ? 'text-brand' : 'bg-dangerbg text-danger'}`} style={note.ok ? { background: 'color-mix(in srgb, var(--brand) 12%, transparent)' } : undefined}>{note.text}</div>}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input type="checkbox" checked={v.registered} onChange={(e) => setV({ ...v, registered: e.target.checked })} />
+          {t('settings.vat.registered')}
+        </label>
+        <Field label={t('settings.vat.number')}>
+          <input className="input" inputMode="numeric" value={v.number ?? ''} disabled={!v.registered} onChange={(e) => setV({ ...v, number: e.target.value })} placeholder="4123456789" />
+        </Field>
+      </div>
+      <div className="mt-3"><Button variant="ghost" onClick={save} loading={busy}><Save size={15} /> {t('settings.vat.save')}</Button></div>
     </GlassCard>
   );
 }

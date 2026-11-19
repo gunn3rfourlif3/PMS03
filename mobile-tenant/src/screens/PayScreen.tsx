@@ -96,6 +96,11 @@ export default function PayScreen() {
           // An unpaid invoice's status comes from the API and has no catalogue
           // on this screen, so it shows as sent.
           const isPaid = i.status === 'paid';
+          // A VAT invoice states its split; one without VAT shows as before.
+          const tax = (i.lineItems ?? []).find((li: any) => li.kind === 'tax');
+          const vatNote = tax
+            ? ` · ${tr('invoice.subtotal')} ${money(Number(i.total) - Number(tax.amount))} + ${tr('invoice.vat', { rate: Math.round((Number(tax.amount) / (Number(i.total) - Number(tax.amount))) * 100) })} ${money(Number(tax.amount))}`
+            : '';
           return (
             <Row
               key={i.id}
@@ -103,7 +108,7 @@ export default function PayScreen() {
               leftIcon={isPaid ? 'checkmark-circle' : 'time-outline'}
               leftTone={isPaid ? 'teal' : 'amber'}
               title={i.period}
-              subtitle={isPaid ? tr('tenant.pay.paid') : i.status}
+              subtitle={(isPaid ? tr('tenant.pay.paid') : i.status) + vatNote}
               right={money(i.total)}
             />
           );

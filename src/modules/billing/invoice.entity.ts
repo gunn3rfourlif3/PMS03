@@ -8,6 +8,13 @@ export interface InvoiceLineItem {
   kind: 'rent' | 'utility' | 'levy' | 'late_fee' | 'tax' | 'opening';
   description: string;
   amount: number;
+  /**
+   * On a tax line only: the agency's VAT number at the moment of issue. Stored
+   * on the invoice, not looked up when it is shown — a tax invoice states the
+   * details it was issued under, and a later change of number must not
+   * rewrite invoices already sent.
+   */
+  vatNumber?: string;
 }
 
 /**

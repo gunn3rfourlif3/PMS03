@@ -21,7 +21,9 @@
     "emailDomain": "midnightmasquerade.demo",
     "$commentManagementFee": "UNCONFIRMED. The client has not given us their management fee; 8% is a placeholder that nevertheless appears on the owner record during the demo. Replace it the moment they say a number, and do not quote it back to them as though it came from them.",
     "managementFeePct": 0.08,
-    "managementFeeConfirmed": false
+    "managementFeeConfirmed": false,
+    "$commentVat": "Client says they are VAT-registered. No number given yet: enter the real one in Settings > VAT, do not invent one (it prints on tax invoices). Every building below is residential, and residential rent is VAT-exempt (VAT Act s12(c)), so no rent invoice carries VAT unless a building is let commercially: set \"commercial\": true on that building.",
+    "vat": { "registered": true }
   },
 
   "branding": {

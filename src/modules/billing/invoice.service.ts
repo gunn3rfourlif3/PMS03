@@ -7,6 +7,7 @@ import { TaxProfile } from '@providers/policy/policy.interfaces';
 import { NotificationsService } from '@modules/notifications/notifications.service';
 import { Invoice } from './invoice.entity';
 import { buildRentInvoice } from './invoice-calc';
+import { VatSettingsService } from './vat-settings.service';
 
 export interface GenerateRentInvoiceInput {
   leaseId: string;
@@ -33,12 +34,17 @@ export class InvoiceService {
     private readonly accounting: AccountingService,
     private readonly notifications: NotificationsService,
     @Inject(TAX_PROFILE) private readonly tax: TaxProfile,
+    private readonly vatSettings: VatSettingsService,
   ) {}
 
   async generateRentInvoice(input: GenerateRentInvoiceInput): Promise<Invoice> {
+    // VAT only for a VAT-registered agency letting commercially; residential
+    // rent is exempt (see vatApplies). Decided here so no caller can forget.
+    const vatRule = await this.vatSettings.forLease(input.leaseId);
     const { lineItems, total } = buildRentInvoice(
       [{ kind: 'rent', description: input.description ?? `Rent ${input.period}`, amount: input.rentAmount }],
-      this.tax,
+      vatRule.applies ? this.tax : null,
+      { vatNumber: vatRule.vatNumber },
     );
 
     const [ar, income, vat] = await Promise.all([
@@ -74,12 +80,18 @@ export class InvoiceService {
     this.logger.debug(`Invoice ${saved.id} (${input.period}) total ${total} txn ${txnId}`);
 
     if (input.tenantId) {
+      // Empty unless VAT was charged; then the tenant sees the split and the
+      // agency's VAT number, as a tax invoice must state.
+      const vatBreakdown = taxLine
+        ? ` (subtotal ZAR ${(rentLine?.amount ?? 0).toFixed(2)} + VAT ZAR ${taxLine.amount.toFixed(2)}` +
+          (taxLine.vatNumber ? `, VAT no. ${taxLine.vatNumber})` : ')')
+        : '';
       await this.notifications.enqueue({
         vendorId: this.tenant.vendorId ?? '',
         userId: input.tenantId,
         template: 'RENT_INVOICE_ISSUED',
         payload: {
-          period: input.period, amount: total, dueDate: input.dueDate, currency: 'ZAR',
+          period: input.period, amount: total.toFixed(2), vatBreakdown, dueDate: input.dueDate, currency: 'ZAR',
           invoiceLink: input.documentUrl ? `\n\nView your invoice here: ${input.documentUrl}` : '',
           invoiceUrl: input.documentUrl ?? '',
         },

@@ -14,6 +14,7 @@ import {
 } from './demo-world';
 import { computeStatement } from '../src/modules/owners/statement-calc';
 import { encryptedJson } from '../src/common/security/pii-crypto';
+import { vatApplies } from '../src/modules/billing/invoice-calc';
 import { ALLOCATED_AMOUNT, ALLOCATED_PAYMENTS_FROM, SUCCEEDED_PAYMENT } from '../src/common/database/invoice-outstanding';
 
 /**
@@ -61,12 +62,15 @@ type Profile = {
   agency: {
     name: string; tradingName?: string; email: string; phone: string; city: string;
     addressText: string; emailDomain?: string; managementFeePct?: number; managementFeeConfirmed?: boolean;
+    /** Stored at vendors.config.vat. Absent → not registered. */
+    vat?: { registered: boolean; number?: string };
   };
   branding: { brand: string; tint: string; accent: string; logo: string | null };
   subscription: { tier: string; units: number; unitRateCents: number | null; status: string };
   portfolio: {
     targetUnits: number;
-    buildings: { name: string; suburb: string; type: string; units: number }[];
+    /** `commercial`: let commercially, so rent carries VAT if the agency is registered. */
+    buildings: { name: string; suburb: string; type: string; units: number; commercial?: boolean }[];
     rentRangeCents: { min: number; max: number };
     occupancyRate: number;
   };
@@ -157,22 +161,25 @@ async function main() {
     contact: { email: p.agency.email, phone: p.agency.phone, address: p.agency.addressText },
   };
 
+  // Written on every run, so the profile is the source of truth for the demo.
+  const vatSettings = { registered: p.agency.vat?.registered === true, ...(p.agency.vat?.number ? { number: p.agency.vat.number } : {}) };
+
   let vendor = await first(`SELECT id FROM vendors WHERE slug=$1`, [p.slug]);
   if (!vendor) {
     vendor = await first(
       `INSERT INTO vendors (name,slug,type,status,default_currency,has_valid_ffc,has_trust_account,config)
-       VALUES ($1,$2,'agency','active','ZAR',true,true, jsonb_build_object('branding',$3::jsonb))
+       VALUES ($1,$2,'agency','active','ZAR',true,true, jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb))
        RETURNING id`,
-      [p.agency.name, p.slug, JSON.stringify(branding)],
+      [p.agency.name, p.slug, JSON.stringify(branding), JSON.stringify(vatSettings)],
     );
   } else {
     await q(
       `UPDATE vendors
           SET name=$2,
-              config = COALESCE(config,'{}'::jsonb) || jsonb_build_object('branding',$3::jsonb),
+              config = COALESCE(config,'{}'::jsonb) || jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb),
               updated_at = now()
         WHERE id=$1`,
-      [vendor.id, p.agency.name, JSON.stringify(branding)],
+      [vendor.id, p.agency.name, JSON.stringify(branding), JSON.stringify(vatSettings)],
     );
   }
   const V: string = vendor.id;
@@ -315,6 +322,8 @@ async function main() {
   type Slot = { label: string; propertyId: string; rent: number; tenantName?: string; reserved: boolean };
   const slots: Slot[] = [];
 
+  const taxedProps = new Set<string>();
+  const vatDivisor = (propertyId: string) => (taxedProps.has(propertyId) ? 1 + VAT_RATE_PCT / 100 : 1);
   for (const b of p.portfolio.buildings) {
     const ownerId = ownerIdByBuilding.get(b.name) ?? null;
     let prop = await first(`SELECT id FROM properties WHERE vendor_id=$1 AND name=$2`, [V, b.name]);
@@ -325,12 +334,19 @@ async function main() {
         [
           V, b.name, PROPERTY_TYPE[b.type] ?? 'building', ownerId,
           JSON.stringify({ suburb: b.suburb, city: p.agency.city }),
-          JSON.stringify({ profileType: b.type }),
+          JSON.stringify({ profileType: b.type, commercial: b.commercial === true }),
         ],
       );
     } else {
-      await q(`UPDATE properties SET owner_id=$2 WHERE id=$1`, [prop.id, ownerId]);
+      await q(
+        `UPDATE properties SET owner_id=$2,
+                attributes = COALESCE(attributes,'{}'::jsonb) || jsonb_build_object('commercial',$3::boolean)
+          WHERE id=$1`,
+        [prop.id, ownerId, b.commercial === true],
+      );
     }
+    // The same rule the API applies when it issues an invoice.
+    if (vatApplies(vatSettings, { commercial: b.commercial === true })) taxedProps.add(prop.id);
 
     const reserved = reservedBy.get(b.name) ?? [];
     const taken = new Set(reserved.map((r) => r.suffix));
@@ -360,7 +376,7 @@ async function main() {
   for (const a of story.arrears ?? []) {
     const slot = slots.find((x) => x.label === a.unit);
     if (slot) {
-      slot.rent = Math.round((toRands(a.amountCents) / unpaidMonthsFor(a.daysLate) / (1 + VAT_RATE_PCT / 100)) * 100) / 100;
+      slot.rent = Math.round((toRands(a.amountCents) / unpaidMonthsFor(a.daysLate) / vatDivisor(slot.propertyId)) * 100) / 100;
     }
   }
 
@@ -531,7 +547,6 @@ async function main() {
   // VAT, as `src/providers/policy/za/za-vat.tax.ts` defines it. Rent is treated
   // as tax-EXCLUSIVE and the tax line is computed, exactly as
   // `buildRentInvoice` does — this must not drift from that file.
-  const VAT_KEY = 'ZA_VAT';
   const VAT_PCT = VAT_RATE_PCT;
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const computeTax = (exclTax: number) => +(exclTax * (VAT_PCT / 100)).toFixed(2);
@@ -621,7 +636,8 @@ async function main() {
       arrearsByLabel.set(a.unit, { daysLate: a.daysLate, amount: toRands(a.amountCents), tenant: a.tenant });
     }
     for (const [label, a] of arrearsByLabel) {
-      const rentExcl = round2(a.amount / unpaidMonthsFor(a.daysLate) / (1 + VAT_PCT / 100));
+      const propId = slots.find((x) => x.label === label)?.propertyId ?? '';
+      const rentExcl = round2(a.amount / unpaidMonthsFor(a.daysLate) / vatDivisor(propId));
       await q(
         `UPDATE leases SET rent_amount=$3
            WHERE vendor_id=$1 AND unit_id=(SELECT id FROM units WHERE vendor_id=$1 AND label=$2)`,
@@ -630,9 +646,9 @@ async function main() {
       await q(`UPDATE units SET market_rent=$3 WHERE vendor_id=$1 AND label=$2`, [V, label, rentExcl]);
     }
 
-    const leases: { id: string; unitId: string; tenantId: string; rent: number; label: string; start: string }[] =
+    const leases: { id: string; unitId: string; propertyId: string; tenantId: string; rent: number; label: string; start: string }[] =
       await q(
-        `SELECT l.id, l.unit_id AS "unitId", l.tenant_id AS "tenantId",
+        `SELECT l.id, l.unit_id AS "unitId", u.property_id AS "propertyId", l.tenant_id AS "tenantId",
                 l.rent_amount::float8 AS rent, u.label, l.start_date::text AS start
            FROM leases l JOIN units u ON u.id = l.unit_id
           WHERE l.vendor_id=$1 AND l.status='active'
@@ -680,7 +696,8 @@ async function main() {
         const dueDate = dueOf(m);
         const dueMs = Date.parse(`${dueDate}T00:00:00Z`);
         const rentExcl = round2(L.rent);
-        const tax = computeTax(rentExcl);
+        // Residential rent is VAT-exempt: only commercial lets of a registered agency carry it.
+        const tax = taxedProps.has(L.propertyId) ? computeTax(rentExcl) : 0;
         const total = round2(rentExcl + tax);
         const daysLate = Math.floor((todayMs - dueMs) / 86400000);
 
@@ -716,7 +733,7 @@ async function main() {
           invoiceId, V, L.id, L.tenantId, period, dueDate, status, total,
           JSON.stringify([
             { kind: 'rent', description: `Rent ${period}`, amount: rentExcl },
-            ...(tax > 0 ? [{ kind: 'tax', description: `${VAT_KEY} @ ${VAT_PCT}%`, amount: tax }] : []),
+            ...(tax > 0 ? [{ kind: 'tax', description: `VAT @ ${VAT_PCT}%`, amount: tax, ...(vatSettings.number ? { vatNumber: vatSettings.number } : {}) }] : []),
           ]),
           invTxn, status === 'overdue',
         ]);

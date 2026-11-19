@@ -26,6 +26,8 @@ interface Outstanding {
   total: number;
   status: string;
   outstanding: number;
+  vat: number;
+  vatNumber: string | null;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -122,6 +124,15 @@ export default function RecordPaymentModal({
               ))}
             </select>
           </Field>
+
+          {selected && selected.vat > 0 && (
+            <div className="rounded-xl border border-line px-4 py-3 text-sm">
+              <div className="flex justify-between text-muted"><span>{t('invoice.subtotal')}</span><span className="tabular">{money(selected.total - selected.vat)}</span></div>
+              <div className="flex justify-between text-muted"><span>{t('invoice.vat', { rate: Math.round((selected.vat / (selected.total - selected.vat)) * 100) })}</span><span className="tabular">{money(selected.vat)}</span></div>
+              <div className="mt-1 flex justify-between border-t border-line pt-1 font-semibold text-ink"><span>{t('invoice.total')}</span><span className="tabular">{money(selected.total)}</span></div>
+              {selected.vatNumber && <div className="mt-1 text-xs text-muted">{t('invoice.vatNumber', { number: selected.vatNumber })}</div>}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t('payment.amount')}>

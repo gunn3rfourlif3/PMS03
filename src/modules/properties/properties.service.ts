@@ -19,6 +19,7 @@ export class PropertiesService {
   listProperties(): Promise<unknown[]> {
     return this.tenant.getManager().query(`
       SELECT p.id, p.name, p.type, p.owner_id, p.address, o.name AS owner_name,
+             (p.attributes->>'commercial')::boolean IS TRUE AS commercial,
              COUNT(u.id) FILTER (WHERE u.deleted_at IS NULL) AS unit_count,
              COUNT(u.id) FILTER (WHERE u.status = 'occupied' AND u.deleted_at IS NULL) AS occupied_count
       FROM properties p
@@ -43,6 +44,10 @@ export class PropertiesService {
     if (data.type !== undefined) p.type = data.type;
     if (data.ownerId !== undefined) p.ownerId = data.ownerId || undefined;
     if (data.address !== undefined) p.address = data.address;
+    // Only `commercial` is editable here, merged so other attributes survive.
+    // It decides whether rent on this property carries VAT (see vatApplies).
+    const commercial = (data.attributes as { commercial?: unknown } | undefined)?.commercial;
+    if (commercial !== undefined) p.attributes = { ...(p.attributes ?? {}), commercial: commercial === true };
     return repo.save(p);
   }
 

@@ -9,6 +9,8 @@ import { PaymentController } from './payment.controller';
 import { DunningService } from './dunning.service';
 import { DepositService } from './deposit.service';
 import { DepositController } from './deposit.controller';
+import { VatSettingsService } from './vat-settings.service';
+import { VatSettingsController } from './vat-settings.controller';
 import { BillingProcessor } from './billing.processor';
 import { BillingScheduler } from './billing.scheduler';
 import { Invoice } from './invoice.entity';
@@ -29,7 +31,7 @@ import { QUEUE_BILLING } from '@common/queue/queue.constants';
     PaymentModule,
     SubscriptionsModule,
   ],
-  controllers: [BillingController, PaymentController, DepositController],
+  controllers: [BillingController, PaymentController, DepositController, VatSettingsController],
   providers: [
     BillingService,
     InvoiceService,
@@ -38,6 +40,7 @@ import { QUEUE_BILLING } from '@common/queue/queue.constants';
     DepositService,
     BillingProcessor,
     BillingScheduler,
+    VatSettingsService,
   ],
   exports: [InvoiceService, PaymentService, DepositService],
 })
