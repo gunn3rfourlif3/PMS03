@@ -62,7 +62,7 @@ export default function PartnerApplyPage() {
       </div>
 
       {sent ? (
-        <div className="glass-strong rounded-3xl p-8 text-center">
+        <div className="cta-card rounded-3xl p-8 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand/10 text-2xl">✓</div>
           <h1 className="mt-3 font-heading text-xl font-bold text-ink">Check your email</h1>
           <p className="mt-2 text-sm text-muted">
@@ -85,7 +85,7 @@ export default function PartnerApplyPage() {
 
           {err && <div className="mb-4 rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
-          <div className="glass-strong space-y-4 rounded-3xl p-6">
+          <div className="cta-card space-y-4 rounded-3xl p-6">
             <Field label="Your name">
               <input className="input" value={f.contactName ?? ''} onChange={(e) => set('contactName', e.target.value)} />
             </Field>

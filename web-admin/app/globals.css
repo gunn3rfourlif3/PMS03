@@ -138,6 +138,51 @@
     color: #fff;
   }
 
+  /* The homepage CTA, as a card. Used for the sign-in and apply screens, which
+     are the product's equivalent of that moment on the site. Mixed from
+     --brand rather than a fixed navy, so an agency's colour carries through.
+     Children opt in automatically: anything inside gets the dark treatment. */
+  .cta-card {
+    background:
+      radial-gradient(760px 520px at 84% 6%, color-mix(in srgb, var(--brand) 42%, transparent), transparent 66%),
+      linear-gradient(163deg,
+        color-mix(in srgb, var(--brand) 18%, #0C2331) 0%,
+        color-mix(in srgb, var(--brand) 26%, #123043) 34%,
+        color-mix(in srgb, var(--brand) 34%, #1A425A) 68%,
+        color-mix(in srgb, var(--brand) 16%, #102B3B) 100%);
+    border: 1px solid rgba(255, 255, 255, .10);
+    box-shadow: 0 1px 2px rgba(7, 15, 22, .28), 0 50px 90px -62px rgba(7, 15, 22, .95);
+    color: rgba(226, 238, 246, .82);
+  }
+  .cta-card h1, .cta-card h2, .cta-card h3, .cta-card .text-ink { color: #fff; }
+  .cta-card .text-muted, .cta-card .field-label { color: rgba(226, 238, 246, .68); }
+  .cta-card .border-line { border-color: rgba(255, 255, 255, .14) !important; }
+  .cta-card .bg-line { background: rgba(255, 255, 255, .14); }
+  .cta-card .bg-card { background: rgba(255, 255, 255, .07); }
+  .cta-card a:not(.btn) { color: #8CBAD6; font-weight: 600; }
+  .cta-card .input {
+    background: rgba(255, 255, 255, .07);
+    border-color: rgba(255, 255, 255, .20);
+    color: #fff;
+  }
+  .cta-card .input::placeholder { color: rgba(226, 238, 246, .40); }
+  .cta-card .input:focus {
+    background: rgba(255, 255, 255, .10);
+    border-color: #5BA3CE;
+    box-shadow: 0 0 0 4px rgba(91, 163, 206, .18);
+  }
+  .cta-card .btn-primary {
+    background: #fff; color: #0C2331; border-color: #fff;
+    box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .85);
+  }
+  .cta-card .btn-primary:hover { background: rgba(255, 255, 255, .88); filter: none; }
+  .cta-card .btn-ghost {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .22);
+    color: #fff;
+  }
+  .cta-card .btn-ghost:hover { background: rgba(255, 255, 255, .12); }
+
   /* Nav rows, built like the FAQ list: hairline between rows, a continuous rail
      down the left, a ring that fills on the active row. */
   .navrow {

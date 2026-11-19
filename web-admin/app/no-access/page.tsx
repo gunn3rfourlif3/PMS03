@@ -21,7 +21,7 @@ export default function NoAccessPage() {
 
   return (
     <div className="grid min-h-screen place-items-center p-4">
-      <div className="glass-strong w-full max-w-md rounded-3xl p-8 text-center animate-fade-up">
+      <div className="cta-card w-full max-w-md rounded-3xl p-8 text-center animate-fade-up">
         <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-tint text-brand">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3 4 6v5c0 4.5 3 7.6 8 9 5-1.4 8-4.5 8-9V6z" />

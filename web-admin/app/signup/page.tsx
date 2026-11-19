@@ -28,7 +28,7 @@ export default function SignupPage() {
 
   return (
     <main className="grid min-h-screen place-items-center px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-line bg-card p-7 shadow-soft">
+      <div className="cta-card w-full max-w-md rounded-3xl p-7">
         {done ? (
           <div className="text-center">
             <CheckCircle2 size={40} className="mx-auto text-success" />

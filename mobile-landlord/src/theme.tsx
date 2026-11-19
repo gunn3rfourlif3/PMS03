@@ -41,6 +41,31 @@ export function fontFamily(t: Branding, heading = false): string | undefined {
   return heading ? 'PlusJakartaSans_800ExtraBold' : 'PlusJakartaSans_500Medium';
 }
 
+/** Blend two hex colours. RN has no color-mix, and the CTA ground is the
+ *  brand mixed into a near-black navy, so the mix has to happen here. */
+export function mixHex(a: string, b: string, amount: number): string {
+  const h = (c: string) => {
+    const v = c.replace('#', '');
+    const f = v.length === 3 ? v.split('').map((x) => x + x).join('') : v;
+    return [parseInt(f.slice(0, 2), 16), parseInt(f.slice(2, 4), 16), parseInt(f.slice(4, 6), 16)];
+  };
+  const [r1, g1, b1] = h(a); const [r2, g2, b2] = h(b);
+  const m = (x: number, y: number) => Math.round(x * amount + y * (1 - amount));
+  return '#' + [m(r1, r2), m(g1, g2), m(b1, b2)]
+    .map((n) => n.toString(16).padStart(2, '0')).join('');
+}
+
+/** The homepage CTA's ground, tinted by whichever brand this build serves. */
+export function ctaGradient(t: Branding): [string, string, string, string] {
+  const b = t.colors.brand;
+  return [
+    mixHex(b, '#0C2331', 0.18),
+    mixHex(b, '#123043', 0.26),
+    mixHex(b, '#1A425A', 0.34),
+    mixHex(b, '#102B3B', 0.16),
+  ];
+}
+
 const ThemeContext = createContext<Branding>(DEFAULT_BRANDING);
 export const useTheme = () => useContext(ThemeContext);
 

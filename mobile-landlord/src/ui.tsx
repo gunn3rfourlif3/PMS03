@@ -102,13 +102,15 @@ export function Pill({ label, tone = 'brand' }: { label: string; tone?: 'brand' 
   );
 }
 
-export function Button({ label, onPress, busy, variant = 'primary', icon, style }: {
+export function Button({ label, onPress, busy, variant = 'primary', icon, style, onDark }: {
   label: string; onPress: () => void; busy?: boolean; variant?: 'primary' | 'secondary';
   icon?: keyof typeof Ionicons.glyphMap; style?: StyleProp<ViewStyle>;
+  /** On a CTA card the button inverts to white, the way it does on the site. */
+  onDark?: boolean;
 }) {
   const t = useTheme();
   const primary = variant === 'primary';
-  const fg = primary ? t.colors.onBrand : t.colors.ink;
+  const fg = onDark ? '#0C2331' : primary ? t.colors.onBrand : t.colors.ink;
   return (
     <TouchableOpacity
       onPress={onPress} disabled={busy} activeOpacity={0.85}
@@ -116,11 +118,11 @@ export function Button({ label, onPress, busy, variant = 'primary', icon, style 
         flexDirection: 'row', borderRadius: 999, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center',
         overflow: 'hidden', opacity: busy ? 0.65 : 1,
         borderWidth: 1, borderColor: primary ? 'transparent' : hexToRgba('#ffffff', 0.5),
-        backgroundColor: primary ? undefined : hexToRgba(t.colors.card, 0.5),
+        backgroundColor: onDark ? '#ffffff' : primary ? undefined : hexToRgba(t.colors.card, 0.5),
       }, style]}
     >
-      {primary && <LinearGradient colors={[shade(t.colors.brand, 1.14), t.colors.brand]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />}
-      {busy ? <ActivityIndicator color={primary ? t.colors.onBrand : t.colors.brand} /> : (
+      {primary && !onDark && <LinearGradient colors={[shade(t.colors.brand, 1.14), t.colors.brand]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />}
+      {busy ? <ActivityIndicator color={onDark ? '#0C2331' : primary ? t.colors.onBrand : t.colors.brand} /> : (
         <>
           {icon && <Ionicons name={icon} size={16} color={fg} style={{ marginRight: 8 }} />}
           <Text style={{ color: fg, fontSize: 14, fontWeight: '700', fontFamily: fontFamily(t) }}>{label}</Text>

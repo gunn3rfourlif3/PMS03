@@ -35,7 +35,12 @@ export default function LocaleSwitcher() {
           // Dark sidebar: the closed select inherits white, but the open option
           // list is painted by the OS, so each option needs its own colours or
           // it renders white-on-white on most platforms.
-          <option key={l} value={l} className="bg-white text-ink">
+          //
+          // Both from the theme, not one from the theme and one literal. This
+          // was `bg-white text-ink`, and in the dark theme --ink is #EEF1F6 —
+          // near-white text on a white list, which is the very thing the note
+          // above is trying to prevent (GOTCHAS 2026-11-12).
+          <option key={l} value={l} className="bg-card text-ink">
             {names[l]}
           </option>
         ))}

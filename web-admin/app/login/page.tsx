@@ -70,11 +70,13 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen place-items-center p-4">
-      <div className="glass-strong w-full max-w-md rounded-3xl p-8 animate-fade-up">
+      <div className="cta-card w-full max-w-md rounded-3xl p-8 animate-fade-up">
         <div className="mb-6">
           {b.logo.wordmarkUrl ? (
             <>
-              <img src={b.logo.wordmarkUrl} alt={b.name} className="h-9 w-auto" />
+              {/* Dark card, so prefer the brand's inverse mark — the ink one
+                  disappears against it. Same fallback the sidebar uses. */}
+              <img src={b.logo.inverseUrl || b.logo.wordmarkUrl} alt={b.name} className="h-9 w-auto" />
               <div className="mt-2 text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
             </>
           ) : (
