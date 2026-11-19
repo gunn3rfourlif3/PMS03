@@ -126,12 +126,11 @@ export default function Dashboard() {
       {err && <div className="rounded-xl bg-dangerbg px-3 py-2 text-sm text-danger">{err}</div>}
 
       {/* Hero: the month, once and large, with the rate beside it. */}
-      <div className="flex flex-wrap gap-4">
-        <section className="glass min-w-0 flex-[999_1_26rem] p-6">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted">
-            {t('dashboard.collectedFor', { period })}
-          </span>
-          <div className="tabular mt-3 text-[44px] font-bold leading-none tracking-tight text-ink">
+      <div className="grid gap-3.5 lg:grid-cols-[1.6fr_1fr]">
+        <section className="glass min-w-0 p-6">
+          <span className="eyebrow">{t('dashboard.collectedFor', { period })}</span>
+          <div className="tabular mt-3 text-[40px] sm:text-[44px] font-extrabold leading-none tracking-[-0.035em]"
+            style={{ color: 'var(--figure)' }}>
             {money(collected)}
           </div>
 
@@ -157,14 +156,14 @@ export default function Dashboard() {
           </p>
         </section>
 
-        <section className="glass grid min-w-0 flex-[1_1_16rem] place-items-center p-6">
+        <section className="glass grid min-w-0 place-items-center p-6">
           <Ring value={rate} />
         </section>
       </div>
 
       {/* Four figures. Occupancy, expiring and open jobs come from
           /reporting/portfolio-state, which already computes them. */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
         <Stat label={t('dashboard.outstandingTotal')} value={money(arrears ? arrears.total : 0)}
           note={tn('dashboard.arrears', overdueUnits)} tone="var(--danger)" />
         <Stat label={t('dashboard.occupancy')}

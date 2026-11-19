@@ -268,7 +268,7 @@
      down the left, a ring that fills on the active row. */
   .navrow {
     position: relative; display: flex; align-items: center; gap: .6rem;
-    padding: .62rem .55rem .62rem 1.85rem;
+    padding: .62rem .55rem .62rem 1.1rem;
     font-size: .875rem; font-weight: 600; letter-spacing: -.01em;
     color: rgba(255, 255, 255, .68);
     transition: color .15s ease, background .15s ease;
@@ -276,27 +276,18 @@
   .navrow + .navrow { border-top: 1px solid rgba(255, 255, 255, .07); }
   /* the rail */
   .navrow::before {
-    content: ""; position: absolute; left: .34rem; top: 0; bottom: 0; width: 1px;
+    content: ""; position: absolute; left: .3rem; top: 0; bottom: 0; width: 1px;
     background: color-mix(in srgb, var(--brand) 55%, rgba(255, 255, 255, .22));
   }
   .navrow:first-child::before { top: 50%; }
   .navrow:last-child::before { bottom: 50%; }
-  /* the marker */
-  .navrow::after {
-    content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box;
-    border: 2px solid color-mix(in srgb, var(--brand) 62%, rgba(255, 255, 255, .55));
-    background: transparent; transition: background .15s ease, border-color .15s ease;
-  }
+
   .navrow:hover { color: #fff; background: rgba(255, 255, 255, .06); }
   .navrow-active { color: #fff; background: rgba(255, 255, 255, .09); }
   /* The active row's fill already separates it; leaving the hairlines in makes
      them look half-drawn where the rounded fill crosses them. */
   .navrow-active, .navrow-active + .navrow { border-top-color: transparent; }
-  .navrow-active::after {
-    background: #fff; border-color: #fff;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, .12);
-  }
+
   .glass-hover { transition: transform .2s ease, box-shadow .2s ease; }
   .glass-hover:hover { transform: translateY(-2px); box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06), 0 24px 56px -28px rgba(16, 24, 40, 0.24); }
 
