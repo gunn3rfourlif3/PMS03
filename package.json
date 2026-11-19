@@ -11,7 +11,8 @@
     "start": "npm run start:dev",
     "start:dev": "ts-node-dev -r tsconfig-paths/register --respawn --transpile-only src/main.ts",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
     "video": "powershell -ExecutionPolicy Bypass -File scripts/video/make-video.ps1",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -29,7 +30,8 @@
     "marketing:i18n:extract": "node scripts/marketing-i18n/extract.mjs",
     "marketing:i18n:build": "node scripts/marketing-i18n/build.mjs",
     "marketing:i18n:selftest": "node scripts/marketing-i18n/selftest.mjs",
-    "smoke": "node scripts/smoke/smoke.mjs"
+    "smoke": "node scripts/smoke/smoke.mjs",
+    "crawl": "node scripts/crawl/crawl.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",

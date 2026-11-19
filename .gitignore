@@ -40,6 +40,7 @@ docs/video/music.mp3
 
 # Video pipeline service logs
 .video/
+.crawl/
 
 # Raw Cowork session logs — unredacted, may contain pasted credentials.
 # Regenerate a scrubbed transcript with scripts/export-transcript.py instead.

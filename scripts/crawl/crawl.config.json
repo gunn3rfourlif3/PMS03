@@ -1,0 +1,21 @@
+{
+  "$comment": "Crawler config. Defaults target the local Midnight Masquerade demo. Every key can be overridden on the command line; see README.md.",
+  "baseUrl": "http://localhost:3001",
+  "apiBase": "http://localhost:3000/api",
+  "mailpit": "http://localhost:8025",
+  "accounts": [
+    { "label": "owner", "email": "yash@midnightmasquerade.demo" },
+    { "label": "manager", "email": "thabo@midnightmasquerade.demo" }
+  ],
+  "locales": ["zh-Hans", "en"],
+  "viewports": { "desktop": [1440, 900], "mobile": [390, 844] },
+  "maxPages": 60,
+  "samplesPerPattern": 2,
+  "slowMs": 4000,
+  "skip": ["/login", "/no-access", "/pay", "/auth"],
+  "ignoreApi": [],
+  "allowWords": [
+    "Locare", "PDF", "CSV", "Excel", "xlsx", "SWIFT", "EFT", "VAT", "OTP", "SMS", "Google", "ID",
+    "kWh", "kL", "m3", "AI", "OCR", "HTML", "URL", "API", "ZAR", "SARS", "FFC", "KYC", "YYYY", "MM", "DD"
+  ]
+}
