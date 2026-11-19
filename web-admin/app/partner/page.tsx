@@ -53,11 +53,20 @@ export default function PartnerOverview() {
         <BentoTile tone="green" value={money(ov?.commissionMtd ?? 0)} label={t('partner.tile.commissionMtd')} />
         <BentoTile tone="amber" value={money(ov?.commissionPending ?? 0)} label={t('partner.tile.pending')} />
         <BentoTile tone="blue" value={money(ov?.commissionPaid ?? 0)} label={t('partner.tile.paid')} />
-        <div className="flex min-h-[104px] flex-col justify-between rounded-3xl border border-line bg-card p-5">
-          <Trophy size={20} className="text-brand" />
+        {/* Hand-rolled because it carries a rank rather than a figure; the
+            shape follows BentoTile so the row reads as one set. */}
+        <div className="glass flex min-h-[112px] flex-col justify-between p-5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="eyebrow">{t('partner.leaderboardRank')}</span>
+            <span className="grid h-8 w-8 place-items-center rounded-[10px]"
+              style={{ background: 'color-mix(in srgb, var(--brand) 12%, transparent)', color: 'var(--brand)' }}>
+              <Trophy size={16} />
+            </span>
+          </div>
           <div>
-            <div className="font-heading text-2xl font-bold text-ink">{rank ? t('partner.rank', { pos: rank.pos }) : t('common.none')}</div>
-            <div className="mt-1 text-xs font-medium text-muted">{rank ? t('partner.rankOf', { total: rank.total }) : t('partner.leaderboardRank')}</div>
+            <div className="font-heading text-[28px] font-extrabold leading-none tracking-[-0.035em] tabular-nums"
+              style={{ color: 'var(--figure)' }}>{rank ? t('partner.rank', { pos: rank.pos }) : t('common.none')}</div>
+            {rank && <div className="mt-1.5 text-[12.5px] text-muted">{t('partner.rankOf', { total: rank.total })}</div>}
           </div>
         </div>
       </div>
