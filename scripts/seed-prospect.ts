@@ -64,6 +64,8 @@ type Profile = {
     addressText: string; emailDomain?: string; managementFeePct?: number; managementFeeConfirmed?: boolean;
     /** Stored at vendors.config.vat. Absent → not registered. */
     vat?: { registered: boolean; number?: string };
+    /** Stored at vendors.config.invoicing. `billUtilities` also seeds submeters and a reading per unit. */
+    invoicing?: { billUtilities?: boolean };
   };
   branding: { brand: string; tint: string; accent: string; logo: string | null };
   subscription: { tier: string; units: number; unitRateCents: number | null; status: string };
@@ -163,23 +165,24 @@ async function main() {
 
   // Written on every run, so the profile is the source of truth for the demo.
   const vatSettings = { registered: p.agency.vat?.registered === true, ...(p.agency.vat?.number ? { number: p.agency.vat.number } : {}) };
+  const invoicingSettings = { billUtilities: p.agency.invoicing?.billUtilities === true };
 
   let vendor = await first(`SELECT id FROM vendors WHERE slug=$1`, [p.slug]);
   if (!vendor) {
     vendor = await first(
       `INSERT INTO vendors (name,slug,type,status,default_currency,has_valid_ffc,has_trust_account,config)
-       VALUES ($1,$2,'agency','active','ZAR',true,true, jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb))
+       VALUES ($1,$2,'agency','active','ZAR',true,true, jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb,'invoicing',$5::jsonb))
        RETURNING id`,
-      [p.agency.name, p.slug, JSON.stringify(branding), JSON.stringify(vatSettings)],
+      [p.agency.name, p.slug, JSON.stringify(branding), JSON.stringify(vatSettings), JSON.stringify(invoicingSettings)],
     );
   } else {
     await q(
       `UPDATE vendors
           SET name=$2,
-              config = COALESCE(config,'{}'::jsonb) || jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb),
+              config = COALESCE(config,'{}'::jsonb) || jsonb_build_object('branding',$3::jsonb,'vat',$4::jsonb,'invoicing',$5::jsonb),
               updated_at = now()
         WHERE id=$1`,
-      [vendor.id, p.agency.name, JSON.stringify(branding), JSON.stringify(vatSettings)],
+      [vendor.id, p.agency.name, JSON.stringify(branding), JSON.stringify(vatSettings), JSON.stringify(invoicingSettings)],
     );
   }
   const V: string = vendor.id;
@@ -541,6 +544,61 @@ async function main() {
       inspected++;
     }
     if (inspected) console.log(`  inspections: ${inspected} recorded`);
+  }
+
+  // ---------------- utilities ----------------
+  // Only when the profile bills utilities: an electricity and a water submeter
+  // on every let unit, and one costed reading per meter for this month, unbilled,
+  // so the next invoice run puts Electricity and Water lines on each invoice.
+  // Its own random stream, so turning this on does not shift anything else the
+  // seeder generates. Idempotent: a meter is created once per unit and kind, and
+  // a reading once per meter per day (the table's own unique index).
+  if (invoicingSettings.billUtilities) {
+    const ur = prng(`${p.slug}:utilities`);
+    await q(
+      `INSERT INTO utility_meters (vendor_id, unit_id, kind, metered, unit_of_measure, serial, label)
+       SELECT $1, l.unit_id, k.kind, true, k.uom,
+              k.code || '-' || upper(substr(replace(l.unit_id::text, '-', ''), 1, 8)), k.label
+         FROM leases l
+        CROSS JOIN (VALUES ('electricity','kWh','E','Electricity submeter'),
+                           ('water','kL','W','Water submeter')) AS k(kind, uom, code, label)
+        WHERE l.vendor_id = $1 AND l.status = 'active'
+          AND NOT EXISTS (SELECT 1 FROM utility_meters m
+                           WHERE m.unit_id = l.unit_id AND m.kind = k.kind AND m.deleted_at IS NULL)`,
+      [V],
+    );
+    const meters: { id: string; kind: string }[] = await q(
+      `SELECT m.id, m.kind FROM utility_meters m
+         JOIN leases l ON l.unit_id = m.unit_id AND l.status = 'active'
+        WHERE m.vendor_id = $1 AND m.deleted_at IS NULL ORDER BY m.serial`,
+      [V],
+    );
+    // City of Cape Town-ish domestic rates, rounded. Demo figures, not a tariff.
+    const RATE: Record<string, number> = { electricity: 3.95, water: 42.5 };
+    const now = new Date();
+    const readingDate = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+    const rows = meters.map((m) => {
+      const used = m.kind === 'electricity' ? 220 + Math.floor(ur() * 400) : 7 + Math.floor(ur() * 12);
+      const reading = (m.kind === 'electricity' ? 18000 : 900) + Math.floor(ur() * 5000) + used;
+      return [m.id, readingDate, reading, used, RATE[m.kind], Math.round(used * RATE[m.kind] * 100) / 100];
+    });
+    let added = 0;
+    for (let i = 0; i < rows.length; i += 500) {
+      const part = rows.slice(i, i + 500);
+      const params: unknown[] = [V];
+      const values = part.map((r) => {
+        const b = params.length;
+        params.push(...r);
+        return `($1,$${b + 1},$${b + 2}::date,$${b + 3},$${b + 4},$${b + 5},$${b + 6},'import')`;
+      });
+      const res = await q(
+        `INSERT INTO utility_readings (vendor_id, meter_id, reading_date, reading, consumption, tariff_rate, cost, source)
+         VALUES ${values.join(',')} ON CONFLICT DO NOTHING RETURNING id`,
+        params,
+      );
+      added += res.length;
+    }
+    console.log(`  utilities: ${meters.length} submeters, ${added} new readings for ${readingDate}`);
   }
 
   // ======================= Day 2: history and story =======================

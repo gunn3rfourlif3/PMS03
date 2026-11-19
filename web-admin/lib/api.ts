@@ -540,5 +540,7 @@ export const api = {
   brandingSettings: () => req('/settings/branding'),
   updateBranding: (body: any) => req('/settings/branding', { method: 'PUT', body: JSON.stringify(body) }),
   vatSettings: () => req('/settings/vat'),
+  invoicingSettings: () => req('/settings/invoicing'),
+  updateInvoicingSettings: (body: { billUtilities: boolean }) => req('/settings/invoicing', { method: 'PUT', body: JSON.stringify(body) }),
   updateVatSettings: (body: { registered: boolean; number?: string }) => req('/settings/vat', { method: 'PUT', body: JSON.stringify(body) }),
 };

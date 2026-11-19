@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink, Building2, Receipt } from 'lucide-react';
+import { Palette, Type, Phone, ImageIcon, Save, FileText, Upload, Trash2, ExternalLink, Building2, Receipt, Zap } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { applyTheme } from '@/lib/branding';
 import { GlassCard, PageHeader, Button, Field } from '@/components/ui';
@@ -128,6 +128,7 @@ export default function SettingsPage() {
       </GlassCard>
 
       <VatCard />
+      <UtilitiesBillingCard />
 
       <GlassCard className="mt-4">
         <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><FileText size={18} /> {t('settings.lease')}</div>
@@ -254,6 +255,39 @@ function VatCard() {
         </Field>
       </div>
       <div className="mt-3"><Button variant="ghost" onClick={save} loading={busy}><Save size={15} /> {t('settings.vat.save')}</Button></div>
+    </GlassCard>
+  );
+}
+
+/**
+ * Utilities on rent invoices. Off unless the owner turns it on: it starts
+ * charging tenants. Saves immediately on toggle — one switch, one meaning.
+ */
+function UtilitiesBillingCard() {
+  const { t } = useLocale();
+  const [on, setOn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+
+  useEffect(() => { api.invoicingSettings().then((r) => setOn(!!r.billUtilities)).catch(() => setOn(false)); }, []);
+  if (on === null) return null;
+
+  const toggle = async (next: boolean) => {
+    setBusy(true); setNote(null);
+    try { const r = await api.updateInvoicingSettings({ billUtilities: next }); setOn(!!r.billUtilities); setNote({ ok: true, text: t('settings.utilities.saved') }); }
+    catch (e: any) { setNote({ ok: false, text: e.message }); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <GlassCard className="mt-4">
+      <div className="mb-1 flex items-center gap-2 font-heading text-lg font-bold"><Zap size={18} /> {t('settings.utilities.title')}</div>
+      <p className="mb-4 max-w-prose text-sm text-muted">{t('settings.utilities.blurb')}</p>
+      {note && <div className={`mb-3 rounded-xl px-3 py-2 text-sm ${note.ok ? 'text-brand' : 'bg-dangerbg text-danger'}`} style={note.ok ? { background: 'color-mix(in srgb, var(--brand) 12%, transparent)' } : undefined}>{note.text}</div>}
+      <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+        <input type="checkbox" checked={on} disabled={busy} onChange={(e) => toggle(e.target.checked)} />
+        {t('settings.utilities.bill')}
+      </label>
     </GlassCard>
   );
 }

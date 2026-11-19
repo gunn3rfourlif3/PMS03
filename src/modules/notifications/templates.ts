@@ -1,5 +1,5 @@
 import { Channel } from '@providers/notification/notification-provider.interface';
-import { renderEmail } from '@common/email/email';
+import { EmailOptions, renderEmail } from '@common/email/email';
 import { EmailBrand } from '@common/email/email-brand';
 
 /**
@@ -23,6 +23,87 @@ export interface Template {
     label: string; // button label
     urlKey: string; // payload key holding the button URL (button omitted if absent)
   };
+  /**
+   * A purpose-built HTML layout, used instead of `email` when the payload has
+   * what it needs. Returns null to fall back to the simple layout (e.g. a job
+   * queued before the payload carried line items).
+   */
+  buildEmail?: (payload: Record<string, unknown>, brand: EmailBrand) => EmailOptions | null;
+}
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December'];
+
+/** "R 10 500.00" — space-grouped thousands, point decimals, as SA invoices print. */
+export function zar(n: unknown): string {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '';
+  const [whole, cents] = Math.abs(v).toFixed(2).split('.');
+  return `${v < 0 ? '−' : ''}R ${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}.${cents}`;
+}
+/** "2026-11" → "November 2026". Unparseable input is returned as given. */
+export function periodLabel(p: unknown): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(p ?? ''));
+  return m ? `${MONTHS[Number(m[2]) - 1]} ${m[1]}` : String(p ?? '');
+}
+/** "2026-11-07" → "7 November 2026". */
+export function dateLabel(d: unknown): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d ?? ''));
+  return m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : String(d ?? '');
+}
+
+interface InvoiceEmailLine { kind: string; description: string; amount: number; vatNumber?: string }
+
+/**
+ * The rent invoice email. Built from the invoice's own stored lines, so the
+ * email and the invoice cannot disagree. "Tax invoice" only when VAT was
+ * actually charged; a residential rent invoice is an ordinary invoice.
+ */
+function rentInvoiceEmail(p: Record<string, unknown>, brand: EmailBrand): EmailOptions | null {
+  const items = Array.isArray(p.lines) ? (p.lines as InvoiceEmailLine[]) : null;
+  if (!items || items.length === 0) return null;
+
+  const tax = items.find((l) => l.kind === 'tax');
+  const charges = items.filter((l) => l.kind !== 'tax');
+  const subtotal = charges.reduce((s, l) => s + Number(l.amount), 0);
+  const total = items.reduce((s, l) => s + Number(l.amount), 0);
+  const period = periodLabel(p.period);
+  const unit = String(p.unitLabel ?? '');
+  const prop = String(p.propertyName ?? '');
+  // Unit labels usually already lead with the building ("Masquerade Heights 204").
+  const where = unit && prop && unit.startsWith(prop) ? unit : [prop, unit].filter(Boolean).join(', ');
+  const rate = tax && subtotal > 0 ? Math.round((Number(tax.amount) / subtotal) * 100) : 0;
+
+  const meta = [
+    { label: 'Reference', value: String(p.reference ?? '') },
+    { label: 'Period', value: period },
+    { label: 'Issued', value: dateLabel(p.issuedOn) },
+  ].filter((m) => m.value);
+
+  const url = p.invoiceUrl ? String(p.invoiceUrl) : '';
+  return {
+    eyebrow: tax ? 'Tax invoice' : 'Invoice',
+    preheader: `${zar(total)} due ${dateLabel(p.dueDate)} · ${period}`,
+    heading: `Rent for ${period}`,
+    paragraphs: [
+      `Hi ${p.name || 'there'},`,
+      `Here is your rent invoice${where ? ` for ${where}` : ''}.`,
+    ],
+    invoice: {
+      amountDue: zar(total),
+      dueLabel: `Due ${dateLabel(p.dueDate)}`,
+      meta,
+      // Stored descriptions carry the raw period ("Water 2026-11"); the email spells it out.
+      lines: charges.map((l) => ({ description: String(l.description).replace(/\b\d{4}-\d{2}\b/, (m) => periodLabel(m)), amount: zar(l.amount) })),
+      ...(tax ? { subtotal: zar(subtotal), vat: { label: `VAT (${rate}%)`, amount: zar(tax.amount) } } : {}),
+      total: zar(total),
+      ...(tax?.vatNumber ? { taxNote: `${brand.agencyName ?? ''} · VAT no. ${tax.vatNumber}`.replace(/^ · /, '') } : {}),
+    },
+    buttons: url ? [{ label: 'View invoice', url }] : [],
+    footerNote: brand.contact?.email
+      ? `Questions about this invoice? Email ${brand.contact.email}.`
+      : undefined,
+  };
 }
 
 export const TEMPLATES: Record<TemplateKey, Template> = {
@@ -37,6 +118,7 @@ export const TEMPLATES: Record<TemplateKey, Template> = {
       label: 'View your invoice',
       urlKey: 'invoiceUrl',
     },
+    buildEmail: rentInvoiceEmail,
   },
   PAYMENT_RECEIVED: {
     key: 'PAYMENT_RECEIVED',
@@ -109,7 +191,10 @@ export function renderTemplate(
   const subject = render(t.subject, payload);
   const body = render(t.body, payload);
   let html: string | undefined;
-  if (t.email) {
+  const built = t.buildEmail?.(payload, brand) ?? null;
+  if (built) {
+    html = renderEmail({ ...brand, ...built });
+  } else if (t.email) {
     const url = payload[t.email.urlKey];
     html = renderEmail({
       ...brand,

@@ -2,6 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { TenantContextService } from '@common/tenancy/tenant-context.service';
 import { vatApplies } from './invoice-calc';
 
+/** Stored at vendors.config.invoicing. Absent means every option off. */
+export interface InvoicingSettings {
+  /** Add the unit's unbilled submeter readings to each rent invoice, at cost. */
+  billUtilities: boolean;
+}
+
 /** Stored at vendors.config.vat. Absent means not registered. */
 export interface VatSettings {
   registered: boolean;
@@ -47,10 +53,34 @@ export class VatSettingsService {
     return next;
   }
 
-  /** Whether rent on this lease carries VAT, and the number to print if so. */
-  async forLease(leaseId: string): Promise<{ applies: boolean; vatNumber?: string }> {
+  async getInvoicing(): Promise<InvoicingSettings> {
     const rows = await this.tenant.getManager().query(
-      `SELECT v.config->'vat' AS vat, p.attributes AS attributes
+      `SELECT config->'invoicing' AS inv FROM vendors WHERE id = $1`,
+      [this.tenant.vendorId],
+    );
+    if (rows.length === 0) throw new NotFoundException('Vendor not found');
+    return normaliseInvoicing(rows[0].inv);
+  }
+
+  async updateInvoicing(body: Partial<InvoicingSettings>): Promise<InvoicingSettings> {
+    const next: InvoicingSettings = { billUtilities: body.billUtilities === true };
+    await this.tenant.getManager().query(
+      `UPDATE vendors
+          SET config = COALESCE(config, '{}'::jsonb) || jsonb_build_object('invoicing', $1::jsonb),
+              updated_at = now()
+        WHERE id = $2`,
+      [JSON.stringify(next), this.tenant.vendorId],
+    );
+    return next;
+  }
+
+  /**
+   * What a rent invoice for this lease must include: whether VAT applies (and
+   * the number to print), and whether utilities are billed on it.
+   */
+  async forLease(leaseId: string): Promise<{ applies: boolean; vatNumber?: string; billUtilities: boolean; unitId?: string }> {
+    const rows = await this.tenant.getManager().query(
+      `SELECT v.config->'vat' AS vat, v.config->'invoicing' AS inv, l.unit_id AS "unitId", p.attributes AS attributes
          FROM leases l
          JOIN units u ON u.id = l.unit_id
          JOIN properties p ON p.id = u.property_id
@@ -59,12 +89,23 @@ export class VatSettingsService {
       [leaseId],
     );
     const row = rows[0];
-    if (!row) return { applies: false };
+    if (!row) return { applies: false, billUtilities: false };
     const vat = normalise(row.vat);
     const attrs = typeof row.attributes === 'string' ? JSON.parse(row.attributes) : row.attributes;
     const applies = vatApplies(vat, attrs);
-    return applies ? { applies, ...(vat.number ? { vatNumber: vat.number } : {}) } : { applies };
+    const billUtilities = normaliseInvoicing(row.inv).billUtilities;
+    return {
+      applies,
+      ...(applies && vat.number ? { vatNumber: vat.number } : {}),
+      billUtilities,
+      unitId: row.unitId,
+    };
   }
+}
+
+function normaliseInvoicing(raw: unknown): InvoicingSettings {
+  const v = (typeof raw === 'string' ? JSON.parse(raw) : raw) as Partial<InvoicingSettings> | null;
+  return { billUtilities: v?.billUtilities === true };
 }
 
 function normalise(raw: unknown): VatSettings {

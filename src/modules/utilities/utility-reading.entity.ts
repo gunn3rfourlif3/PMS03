@@ -54,4 +54,7 @@ export class UtilityReading extends TenantEntity {
   @Column('jsonb', { default: [] }) media: string[];
 
   @Column({ type: 'text', nullable: true }) note?: string | null;
+
+  /** The invoice that recovered this reading. Null until billed; set once. */
+  @Column('uuid', { name: 'invoice_id', nullable: true }) invoiceId?: string | null;
 }

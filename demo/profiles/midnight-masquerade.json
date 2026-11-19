@@ -23,7 +23,8 @@
     "managementFeePct": 0.08,
     "managementFeeConfirmed": false,
     "$commentVat": "Client says they are VAT-registered. No number given yet: enter the real one in Settings > VAT, do not invent one (it prints on tax invoices). Every building below is residential, and residential rent is VAT-exempt (VAT Act s12(c)), so no rent invoice carries VAT unless a building is let commercially: set \"commercial\": true on that building.",
-    "vat": { "registered": true }
+    "vat": { "registered": true },
+    "invoicing": { "billUtilities": true }
   },
 
   "branding": {

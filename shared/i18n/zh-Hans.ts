@@ -329,6 +329,10 @@ export const zhHans: Catalogue = {
   'utilities.badge.estimated': '估算',
   'utilities.badge.rollover': '翻转',
   // ── Portfolio size (Settings) ────────────────────────────────────────────
+  'settings.utilities.title': '水电费',
+  'settings.utilities.blurb': '开启后，每张租金发票将按实际费用加入该单元自上次开票以来记录的电、水及其他分表费用。每个读数仅计费一次。总表费用不会向租户收取。',
+  'settings.utilities.bill': '在租金发票中收取水电费',
+  'settings.utilities.saved': '已保存，适用于此后开具的发票。',
   'settings.vat.title': '增值税',
   'settings.vat.blurb': '如果贵机构已登记增值税，标记为商业用途的物业租金将加收增值税，发票将显示小计、增值税及您的增值税号。住宅租金免征增值税，不会被收取。',
   'settings.vat.registered': '已登记增值税',
