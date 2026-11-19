@@ -206,3 +206,21 @@ export function groupByProperty(
   }
   return out;
 }
+
+/**
+ * Display labels, translated. The English constants above stay the source the
+ * tests read; anything a person sees goes through these, so a Mandarin
+ * deployment never shows an English state name.
+ */
+type Translate = (key: any, vars?: any) => string;
+export const stateLabel = (t: Translate, st: UnitState): string => t(`godsEye.state.${st}`);
+export const familyLabel = (t: Translate, fam: StateFamily): string => t(`godsEye.family.${fam}`);
+export const flagLabel = (t: Translate, f: UnitFlag): string => t(`godsEye.flag.${f}`);
+
+/** describeUnit in the reader's language. */
+export function describeUnitT(u: PortfolioUnit, t: Translate): string {
+  const parts = [`${u.propertyName} ${u.label}`, stateLabel(t, u.state)];
+  const extra = u.flags.filter((f) => FLAG_LABEL[f] !== STATE_STYLE[u.state].label);
+  if (extra.length) parts.push(extra.map((f) => flagLabel(t, f)).join(', '));
+  return parts.join(' — ');
+}

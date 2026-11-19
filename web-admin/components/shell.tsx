@@ -95,7 +95,7 @@ function ImpersonationBanner() {
       <span><b>{t('shell.impersonating', { agency: actor.agency, platform: b.name })}</b></span>
       <button onClick={exit} disabled={busy}
         style={{ borderRadius: 8, background: '#92400E', color: '#fff', padding: '7px 14px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', opacity: busy ? 0.6 : 1, border: 0 }}>
-        {busy ? 'Exiting…' : 'Exit impersonation'}
+        {busy ? t('shell.exiting') : t('shell.exitImpersonation')}
       </button>
     </div>
   );

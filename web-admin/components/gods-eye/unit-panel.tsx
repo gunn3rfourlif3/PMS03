@@ -17,7 +17,14 @@ import React from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { FLAG_LABEL, PortfolioUnit, STATE_STYLE } from './state';
+import { PortfolioUnit, STATE_STYLE, flagLabel, stateLabel } from './state';
+import { useLocale } from '@/components/locale-provider';
+
+/** A server status code in the reader's language; the code itself when there is no label for it. */
+const tOr = (t: (k: any, v?: any) => string, key: string, fallback: string) => {
+  const r = t(key);
+  return r === key ? fallback : r;
+};
 
 /** Whole days from `from` to `to` ('YYYY-MM-DD'); mirrors the server helper. */
 function daysBetween(from: string, to: string): number {
@@ -59,6 +66,7 @@ export default function UnitPanel({
   money: (n: number) => string;
   onClose: () => void;
 }) {
+  const { t } = useLocale();
   const s = STATE_STYLE[unit.state];
   const daysToEnd = unit.leaseEndDate ? daysBetween(asOf, unit.leaseEndDate) : null;
   const sinceInspection = unit.lastInspectionOn
@@ -78,7 +86,7 @@ export default function UnitPanel({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close unit detail"
+          aria-label={t('godsEye.panel.close')}
           className="rounded-full p-1 text-[var(--muted)] hover:bg-[var(--bg)] hover:text-[var(--ink)]"
         >
           <X size={16} />
@@ -92,7 +100,7 @@ export default function UnitPanel({
         style={{ background: s.bg, color: s.fg }}
       >
         {s.code && <span aria-hidden>{s.code}</span>}
-        {s.label}
+        {stateLabel(t, unit.state)}
       </p>
 
       {unit.flags.length > 1 && (
@@ -102,62 +110,62 @@ export default function UnitPanel({
               key={f}
               className="rounded-full border border-[var(--line)] px-2 py-0.5 text-[11px] text-[var(--muted)]"
             >
-              {FLAG_LABEL[f]}
+              {flagLabel(t, f)}
             </li>
           ))}
         </ul>
       )}
 
-      <Section title="Occupancy">
-        <Row label="Unit status" value={unit.unitStatus} />
-        <Row label="Let" value={unit.occupied ? 'Yes' : 'No'} />
-        {unit.leaseStatus && <Row label="Lease" value={unit.leaseStatus} />}
+      <Section title={t('godsEye.panel.occupancy')}>
+        <Row label={t('godsEye.panel.unitStatus')} value={tOr(t, `properties.status.${unit.unitStatus}`, unit.unitStatus)} />
+        <Row label={t('godsEye.panel.let')} value={unit.occupied ? t('godsEye.panel.yes') : t('godsEye.panel.no')} />
+        {unit.leaseStatus && <Row label={t('godsEye.panel.lease')} value={tOr(t, `leases.status.${unit.leaseStatus}`, unit.leaseStatus)} />}
         {unit.leaseEndDate && (
           <Row
-            label="Lease ends"
+            label={t('godsEye.panel.leaseEnds')}
             value={
               <span className={cn(daysToEnd !== null && daysToEnd < 0 && 'text-[var(--danger)]')}>
                 {unit.leaseEndDate}
                 {daysToEnd !== null && (
                   <span className="ml-1 font-normal text-[var(--muted)]">
-                    ({daysToEnd < 0 ? `${-daysToEnd} days ago` : `in ${daysToEnd} days`})
+                    ({daysToEnd < 0 ? t('godsEye.panel.daysAgo', { days: -daysToEnd }) : t('godsEye.panel.inDays', { days: daysToEnd })})
                   </span>
                 )}
               </span>
             }
           />
         )}
-        {unit.rentAmount > 0 && <Row label="Rent" value={money(unit.rentAmount)} />}
+        {unit.rentAmount > 0 && <Row label={t('godsEye.panel.rent')} value={money(unit.rentAmount)} />}
       </Section>
 
-      <Section title="Money">
+      <Section title={t('godsEye.family.money')}>
         <Row
-          label="Outstanding"
-          value={unit.outstanding > 0 ? money(unit.outstanding) : 'Nothing owing'}
+          label={t('godsEye.th.outstanding')}
+          value={unit.outstanding > 0 ? money(unit.outstanding) : t('godsEye.panel.nothingOwing')}
         />
         {unit.maxDaysOverdue > 0 && (
           <>
-            <Row label="Oldest unpaid" value={`${unit.maxDaysOverdue} days past due`} />
-            {unit.arrearsBucket && <Row label="Aging bucket" value={unit.arrearsBucket} />}
+            <Row label={t('godsEye.panel.oldestUnpaid')} value={t('godsEye.panel.daysPastDue', { days: unit.maxDaysOverdue })} />
+            {unit.arrearsBucket && <Row label={t('godsEye.panel.agingBucket')} value={t('godsEye.panel.bucketDays', { bucket: unit.arrearsBucket })} />}
           </>
         )}
       </Section>
 
-      <Section title="Work">
-        <Row label="Open jobs" value={unit.openTickets || 'None'} />
-        {unit.urgentTickets > 0 && <Row label="Of those, urgent" value={unit.urgentTickets} />}
+      <Section title={t('godsEye.panel.work')}>
+        <Row label={t('godsEye.th.openJobs')} value={unit.openTickets || t('godsEye.panel.none')} />
+        {unit.urgentTickets > 0 && <Row label={t('godsEye.panel.ofThoseUrgent')} value={unit.urgentTickets} />}
         <Row
-          label="Last inspection"
+          label={t('godsEye.panel.lastInspection')}
           value={
             unit.lastInspectionOn ? (
               <span>
                 {unit.lastInspectionOn}
                 <span className="ml-1 font-normal text-[var(--muted)]">
-                  ({sinceInspection} days ago)
+                  ({t('godsEye.panel.daysAgo', { days: sinceInspection ?? 0 })})
                 </span>
               </span>
             ) : (
-              'Never'
+              t('godsEye.panel.never')
             )
           }
         />
@@ -169,13 +177,13 @@ export default function UnitPanel({
           follow-up item. */}
       <nav className="flex flex-wrap gap-2 border-t border-[var(--line)] pt-3 text-xs">
         <Link href="/leases" className="rounded-full border border-[var(--line)] px-3 py-1 hover:border-[var(--ink)]">
-          Leases
+          {t('nav.leases')}
         </Link>
         <Link href="/payments" className="rounded-full border border-[var(--line)] px-3 py-1 hover:border-[var(--ink)]">
-          Payments
+          {t('nav.payments')}
         </Link>
         <Link href="/inspections" className="rounded-full border border-[var(--line)] px-3 py-1 hover:border-[var(--ink)]">
-          Inspections
+          {t('nav.inspections')}
         </Link>
       </nav>
     </aside>

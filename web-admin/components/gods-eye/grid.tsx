@@ -19,15 +19,17 @@
 import React, { useMemo } from 'react';
 import { cn } from '@/lib/cn';
 import {
-  FAMILY_LABEL,
   LEGEND_ORDER,
   PortfolioUnit,
   STATE_STYLE,
   StateFamily,
   UnitState,
-  describeUnit,
+  describeUnitT,
+  stateLabel,
+  familyLabel,
   groupByProperty,
 } from './state';
+import { useLocale } from '@/components/locale-provider';
 import type { ViewMode } from './view-state';
 
 export interface GridProps {
@@ -58,6 +60,7 @@ function LegendItem({
   active: boolean;
   onClick: () => void;
 }) {
+  const { t } = useLocale();
   const s = STATE_STYLE[state];
   return (
     <button
@@ -77,7 +80,7 @@ function LegendItem({
       >
         {s.code}
       </span>
-      <span>{s.label}</span>
+      <span>{stateLabel(t, state)}</span>
       <span className="tabular-nums text-[var(--muted)]">{count}</span>
     </button>
   );
@@ -88,6 +91,7 @@ function Legend({
   filter,
   onFilter,
 }: Pick<GridProps, 'byState' | 'filter' | 'onFilter'>) {
+  const { t } = useLocale();
   const families: StateFamily[] = ['money', 'occupancy', 'operations', 'clear'];
   return (
     <div className="flex flex-col gap-3">
@@ -96,7 +100,7 @@ function Legend({
         return (
           <div key={fam} className="flex flex-wrap items-center gap-2">
             <span className="w-20 shrink-0 text-[11px] font-semibold uppercase tracking-wide text-[var(--muted)]">
-              {FAMILY_LABEL[fam]}
+              {familyLabel(t, fam)}
             </span>
             {states.map((s) => (
               <LegendItem
@@ -134,14 +138,15 @@ function Tile({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const { t } = useLocale();
   const s = STATE_STYLE[unit.state];
   return (
     <button
       type="button"
       onClick={onSelect}
-      aria-label={describeUnit(unit)}
+      aria-label={describeUnitT(unit, t)}
       aria-pressed={selected}
-      title={describeUnit(unit)}
+      title={describeUnitT(unit, t)}
       className={cn(
         'grid h-11 w-11 place-items-center rounded-lg text-[11px] font-bold leading-none transition',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ink)] focus-visible:ring-offset-1',
@@ -162,17 +167,18 @@ function TableView({
   units: PortfolioUnit[];
   onSelect: (u: PortfolioUnit) => void;
 }) {
+  const { t } = useLocale();
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase tracking-wide text-[var(--muted)]">
           <tr>
-            <th scope="col" className="py-2 pr-4">Unit</th>
-            <th scope="col" className="py-2 pr-4">Property</th>
-            <th scope="col" className="py-2 pr-4">State</th>
-            <th scope="col" className="py-2 pr-4 text-right">Days late</th>
-            <th scope="col" className="py-2 pr-4 text-right">Outstanding</th>
-            <th scope="col" className="py-2 pr-4 text-right">Open jobs</th>
+            <th scope="col" className="py-2 pr-4">{t('godsEye.th.unit')}</th>
+            <th scope="col" className="py-2 pr-4">{t('godsEye.th.property')}</th>
+            <th scope="col" className="py-2 pr-4">{t('godsEye.th.state')}</th>
+            <th scope="col" className="py-2 pr-4 text-right">{t('godsEye.th.daysLate')}</th>
+            <th scope="col" className="py-2 pr-4 text-right">{t('godsEye.th.outstanding')}</th>
+            <th scope="col" className="py-2 pr-4 text-right">{t('godsEye.th.openJobs')}</th>
           </tr>
         </thead>
         <tbody>
@@ -191,7 +197,7 @@ function TableView({
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ background: STATE_STYLE[u.state].bg }}
                   />
-                  {STATE_STYLE[u.state].label}
+                  {stateLabel(t, u.state)}
                 </span>
               </td>
               <td className="py-2 pr-4 text-right tabular-nums">
@@ -221,6 +227,7 @@ export default function HaloGrid({
   mode,
   onMode,
 }: GridProps) {
+  const { t } = useLocale();
 
   const shown = useMemo(
     () => (filter ? units.filter((u) => u.state === filter) : units),
@@ -241,8 +248,8 @@ export default function HaloGrid({
       <div className="flex items-center justify-between gap-3 border-t border-[var(--line)] pt-4">
         <p className="text-xs text-[var(--muted)]" role="status">
           {filter
-            ? `${shown.length} of ${units.length} units — ${STATE_STYLE[filter].label}`
-            : `${units.length} units`}
+            ? t('godsEye.shownOf', { shown: shown.length, total: units.length, state: stateLabel(t, filter) })
+            : t('godsEye.unitCount', { count: units.length })}
         </p>
         <div className="flex gap-1 rounded-full border border-[var(--line)] p-0.5">
           {(['grid', 'table'] as const).map((v) => (
@@ -256,7 +263,7 @@ export default function HaloGrid({
                 mode === v ? 'bg-[var(--ink)] text-white' : 'text-[var(--muted)] hover:text-[var(--ink)]',
               )}
             >
-              {v}
+              {t(`godsEye.mode.${v}`)}
             </button>
           ))}
         </div>
@@ -264,7 +271,7 @@ export default function HaloGrid({
 
       {shown.length === 0 ? (
         <p className="py-8 text-center text-sm text-[var(--muted)]">
-          No units in this state.
+          {t('godsEye.noUnitsInState')}
         </p>
       ) : mode === 'table' ? (
         <TableView units={tableRows} onSelect={onSelect} />

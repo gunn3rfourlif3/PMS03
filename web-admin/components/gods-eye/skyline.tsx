@@ -27,7 +27,7 @@
 
 import React, { useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
-import { FAMILY_LABEL, familySwatch, type PortfolioUnit, type StateFamily } from './state';
+import { familyLabel, familySwatch, type PortfolioUnit, type StateFamily } from './state';
 import { buildSkyline, describeSkyline } from './skyline-layout';
 import SkylineCss from './skyline-css';
 
@@ -57,7 +57,7 @@ export default function Skyline({ units, onOpen, activeId, money, number, t }: S
   if (!skyline.towers.length) {
     return (
       <p className="py-10 text-center text-sm text-[var(--muted)]">
-        No properties to show.
+        {t('godsEye.noProperties')}
       </p>
     );
   }
@@ -95,7 +95,7 @@ export default function Skyline({ units, onOpen, activeId, money, number, t }: S
                     : `0 0 8px ${LEGEND_GLOW[fam]}`,
               }}
             />
-            {fam === 'clear' ? t('godsEye.nothingOutstanding') : FAMILY_LABEL[fam]}
+            {fam === 'clear' ? t('godsEye.nothingOutstanding') : familyLabel(t, fam)}
           </li>
         ))}
       </ul>

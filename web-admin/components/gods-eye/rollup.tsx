@@ -24,7 +24,8 @@
 import React, { useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import {
-  FAMILY_LABEL,
+  familyLabel,
+  stateLabel,
   LEGEND_ORDER,
   familySwatch,
   PortfolioUnit,
@@ -117,7 +118,7 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
               className="h-3 w-5 shrink-0 rounded-[3px]"
               style={{ background: familySwatch(fam) }}
             />
-            {fam === 'clear' ? t('godsEye.nothingOutstanding') : FAMILY_LABEL[fam]}
+            {fam === 'clear' ? t('godsEye.nothingOutstanding') : familyLabel(t, fam)}
           </li>
         ))}
       </ul>
@@ -144,7 +145,7 @@ export default function Rollup({ units, onOpen, money, t }: RollupProps) {
                     <span
                       key={st}
                       aria-hidden
-                      title={`${STATE_STYLE[st].label}: ${n}`}
+                      title={`${stateLabel(t, st)}: ${n}`}
                       className="h-6 min-w-[3px]"
                       style={{
                         background: fill(st),

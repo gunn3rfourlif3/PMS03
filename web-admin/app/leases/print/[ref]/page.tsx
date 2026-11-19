@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Printer, ExternalLink, Upload } from 'lucide-react';
 import { api, auth } from '@/lib/api';
 import { GlassCard, PageHeader, Button, Badge } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
+import type { MessageKey } from '@shared/i18n';
 
 /**
  * Print and sign — the mode A signature path.
@@ -23,6 +25,7 @@ import { GlassCard, PageHeader, Button, Badge } from '@/components/ui';
 export default function LeasePrintPage() {
   const { ref } = useParams<{ ref: string }>();
   const router = useRouter();
+  const { t } = useLocale();
   const [ready, setReady] = useState(false);
   const [agreement, setAgreement] = useState<any>(null);
   const [err, setErr] = useState('');
@@ -42,8 +45,8 @@ export default function LeasePrintPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader
-        title="Print and sign"
-        subtitle="This installation does not serve e-signature. The lease is printed, signed by hand, and the countersigned scan is uploaded back."
+        title={t('leasePrint.title')}
+        subtitle={t('leasePrint.subtitle')}
       />
 
       {err && <GlassCard className="border-danger/40 p-3 text-sm text-danger">{err}</GlassCard>}
@@ -53,43 +56,42 @@ export default function LeasePrintPage() {
           <GlassCard className="space-y-4 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase tracking-wide text-muted">Agreement</p>
+                <p className="text-xs uppercase tracking-wide text-muted">{t('leasePrint.agreement')}</p>
                 <p className="font-mono text-sm text-ink">{String(ref)}</p>
               </div>
-              <Badge tone={signed ? 'success' : 'brand'}>{agreement.status}</Badge>
+              <Badge tone={signed ? 'success' : 'brand'}>{(() => { const k = `leasePrint.status.${agreement.status}`; const r = t(k as MessageKey); return r === k ? agreement.status : r; })()}</Badge>
             </div>
 
             {signed && agreement.signerName && (
               <p className="text-sm text-muted">
-                Already signed by {agreement.signerName}
-                {agreement.signedAt ? ` on ${String(agreement.signedAt).slice(0, 10)}` : ''}.
+                {agreement.signedAt
+                  ? t('leasePrint.signedByOn', { name: agreement.signerName, date: String(agreement.signedAt).slice(0, 10) })
+                  : t('leasePrint.signedBy', { name: agreement.signerName })}
               </p>
             )}
 
             <div className="flex flex-wrap gap-2">
               <a href={agreement.fileUrl} target="_blank" rel="noreferrer">
-                <Button><ExternalLink size={16} /> Open the lease</Button>
+                <Button><ExternalLink size={16} /> {t('leasePrint.open')}</Button>
               </a>
               <Button variant="ghost" onClick={() => window.print()}>
-                <Printer size={16} /> Print this signature page
+                <Printer size={16} /> {t('leasePrint.print')}
               </Button>
             </div>
             <p className="text-xs text-muted">
-              Open the lease and print it, then print this page as the signature sheet. The document is the one
-              already stored against this lease — nothing is re-rendered here, so what is signed is what the
-              system holds.
+              {t('leasePrint.how')}
             </p>
           </GlassCard>
 
           <GlassCard className="space-y-4 p-4">
-            <h2 className="text-sm font-semibold text-ink">What happens next</h2>
+            <h2 className="text-sm font-semibold text-ink">{t('leasePrint.next')}</h2>
             <ol className="space-y-2 text-sm text-ink">
-              <li>1. Print the lease and this signature sheet.</li>
-              <li>2. The tenant signs both copies by hand; a staff member witnesses and countersigns.</li>
-              <li>3. Scan the signed pages and upload them against this lease.</li>
+              <li>1. {t('leasePrint.step1')}</li>
+              <li>2. {t('leasePrint.step2')}</li>
+              <li>3. {t('leasePrint.step3')}</li>
             </ol>
             <a href={`/documents?lease=${encodeURIComponent(String(ref))}`}>
-              <Button variant="ghost"><Upload size={16} /> Upload the signed scan</Button>
+              <Button variant="ghost"><Upload size={16} /> {t('leasePrint.upload')}</Button>
             </a>
           </GlassCard>
 

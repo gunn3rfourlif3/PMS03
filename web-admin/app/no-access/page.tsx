@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { api, auth, device } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
 /**
  * Shown after a successful sign-in when the account has no agency membership
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui';
 export default function NoAccessPage() {
   const router = useRouter();
   const b = useBrand();
+  const { t } = useLocale();
 
   const signOut = async () => {
     await api.logout().catch(() => {});
@@ -33,21 +35,19 @@ export default function NoAccessPage() {
           </svg>
         </div>
 
-        <h1 className="font-heading text-2xl font-bold text-ink">You&rsquo;re signed in — but not linked yet</h1>
+        <h1 className="font-heading text-2xl font-bold text-ink">{t('noAccess.title')}</h1>
         <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-muted">
-          This account isn&rsquo;t connected to an agency on {b.name}. Ask your agency
-          administrator to add you, or if you&rsquo;re a tenant, use the link in your
-          welcome email once your lease is signed.
+          {t('noAccess.body', { brand: b.name })}
         </p>
 
         {b.contact?.email && (
           <a href={`mailto:${b.contact.email}?subject=Account%20access`} className="mt-4 inline-block text-sm font-medium text-brand hover:underline">
-            Contact {b.name}
+            {t('noAccess.contact', { brand: b.name })}
           </a>
         )}
 
         <div className="mt-7">
-          <Button variant="ghost" onClick={signOut} className="w-full">Sign out &amp; try another address</Button>
+          <Button variant="ghost" onClick={signOut} className="w-full">{t('noAccess.signOut')}</Button>
         </div>
       </div>
     </div>

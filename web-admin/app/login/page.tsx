@@ -4,10 +4,12 @@ import { useRouter } from 'next/navigation';
 import { api, auth, device, homeForRole } from '@/lib/api';
 import { useBrand } from '@/components/brand-provider';
 import { Button, Field } from '@/components/ui';
+import { useLocale } from '@/components/locale-provider';
 
 export default function LoginPage() {
   const router = useRouter();
   const b = useBrand();
+  const { t } = useLocale();
   const [stage, setStage] = useState<'request' | 'verify'>('request');
   const [destination, setDestination] = useState('');
   const [code, setCode] = useState('');
@@ -70,7 +72,7 @@ export default function LoginPage() {
 
   if (resuming === null) return <div className="min-h-screen" />;
   if (resuming) {
-    return <div className="grid min-h-screen place-items-center p-4"><div className="text-sm text-muted">Signing you in…</div></div>;
+    return <div className="grid min-h-screen place-items-center p-4"><div className="text-sm text-muted">{t('login.signingIn')}</div></div>;
   }
 
   return (
@@ -82,7 +84,7 @@ export default function LoginPage() {
               {/* Dark card, so prefer the brand's inverse mark — the ink one
                   disappears against it. Same fallback the sidebar uses. */}
               <img src={b.logo.inverseUrl || b.logo.wordmarkUrl} alt={b.name} className="h-9 w-auto" />
-              <div className="mt-2 text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
+              <div className="mt-2 text-sm text-muted">{b.tagline ?? t('login.backOffice')}</div>
             </>
           ) : (
             <div className="flex items-center gap-3">
@@ -96,7 +98,7 @@ export default function LoginPage() {
               )}
               <div>
                 <div className="font-heading text-xl font-bold text-ink">{b.logo.text}</div>
-                <div className="text-sm text-muted">{b.tagline ?? 'Back-office'}</div>
+                <div className="text-sm text-muted">{b.tagline ?? t('login.backOffice')}</div>
               </div>
             </div>
           )}
@@ -108,11 +110,11 @@ export default function LoginPage() {
             {signPending && (
               <div className="mt-2.5 border-t border-danger/20 pt-2.5">
                 {resent === 'done' ? (
-                  <span className="font-medium">Sent. Check your email for the signing link.</span>
+                  <span className="font-medium">{t('login.linkSent')}</span>
                 ) : (
                   <button type="button" onClick={resendSignLink} disabled={resent === 'busy'}
                     className="font-semibold underline underline-offset-2 hover:no-underline disabled:opacity-60">
-                    {resent === 'busy' ? 'Sending\u2026' : 'Email me the signing link again'}
+                    {resent === 'busy' ? t('login.sending') : t('login.resendLink')}
                   </button>
                 )}
               </div>
@@ -122,17 +124,17 @@ export default function LoginPage() {
 
         {stage === 'request' ? (
           <div className="space-y-4">
-            <Field label="Email or mobile number">
-              <input className="input" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="you@example.com or +27…" />
+            <Field label={t('login.destination')}>
+              <input className="input" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder={t('login.destinationPlaceholder')} />
             </Field>
-            <p className="-mt-2 text-xs text-muted">We’ll send a one-time code to your email or by SMS. Use the international format for phone numbers (e.g. +27…).</p>
-            <Button className="w-full" onClick={request} loading={busy} disabled={!destination.trim()}>Send code</Button>
+            <p className="-mt-2 text-xs text-muted">{t('login.codeHint')}</p>
+            <Button className="w-full" onClick={request} loading={busy} disabled={!destination.trim()}>{t('login.sendCode')}</Button>
 
             {googleOn && (
               <>
                 <div className="flex items-center gap-3 py-1">
                   <span className="h-px flex-1 bg-line" />
-                  <span className="text-xs text-muted">or</span>
+                  <span className="text-xs text-muted">{t('login.or')}</span>
                   <span className="h-px flex-1 bg-line" />
                 </div>
                 <button type="button" onClick={google}
@@ -143,28 +145,28 @@ export default function LoginPage() {
                     <path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.82.96 4.05l3.01-2.33z"/>
                     <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
                   </svg>
-                  Continue with Google
+                  {t('login.google')}
                 </button>
                 <p className="text-center text-xs leading-relaxed text-muted">
-                  By continuing with Google you agree to share your name and email with {b.name}
+                  {t('login.googleConsent', { agency: b.name })}
                   {b.contact?.website ? (
-                    <> and to our <a href={`https://${b.contact.website}/privacy`} className="text-brand hover:underline">privacy policy</a></>
-                  ) : null}.
+                    <> {t('login.andOur')} <a href={`https://${b.contact.website}/privacy`} className="text-brand hover:underline">{t('login.privacyPolicy')}</a></>
+                  ) : null}{t('login.fullStop')}
                 </p>
               </>
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            <Field label="6-digit code (sent to your email or phone)">
+            <Field label={t('login.codeLabel')}>
               <input className="input tracking-[0.4em] text-center text-lg" value={code} maxLength={6} onChange={(e) => setCode(e.target.value)} />
             </Field>
             <label className="flex items-center gap-2.5 text-sm text-ink">
               <input type="checkbox" className="h-4 w-4 rounded border-line accent-brand" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-              Remember this device (skip the code next time)
+              {t('login.remember')}
             </label>
-            <Button className="w-full" onClick={verify} loading={busy}>Verify &amp; sign in</Button>
-            <button className="w-full text-center text-sm text-muted hover:text-brand" onClick={() => setStage('request')}>Use a different address</button>
+            <Button className="w-full" onClick={verify} loading={busy}>{t('login.verify')}</Button>
+            <button className="w-full text-center text-sm text-muted hover:text-brand" onClick={() => setStage('request')}>{t('login.differentAddress')}</button>
           </div>
         )}
       </div>

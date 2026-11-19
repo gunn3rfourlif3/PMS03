@@ -45,7 +45,7 @@ const PATH = '/gods-eye';
 
 export default function GodsEyePage() {
   const router = useRouter();
-  const { t, money, number } = useLocale();
+  const { t, tn, money, number } = useLocale();
   const [ready, setReady] = useState(false);
   const [data, setData] = useState<PortfolioState | null>(null);
   const [view, setView] = useState<ViewState>(DEFAULT_VIEW_STATE);
@@ -135,7 +135,7 @@ export default function GodsEyePage() {
     } catch {
       // Clipboard access can be refused outright (insecure origin, denied
       // permission). Say so rather than silently appearing to have worked.
-      setErr('Could not copy — the link is in the address bar.');
+      setErr(t('godsEye.copyFailed'));
     }
   };
 
@@ -152,14 +152,14 @@ export default function GodsEyePage() {
           <div className="flex gap-2">
             <Button onClick={() => void copyLink()}>
               {copied ? <Check size={16} /> : <Link2 size={16} />}
-              {copied ? 'Copied' : isDefaultViewState(view) ? 'Copy link' : 'Copy this view'}
+              {copied ? t('godsEye.copied') : isDefaultViewState(view) ? t('godsEye.copyLink') : t('godsEye.copyView')}
             </Button>
             <Button onClick={() => void load(view.asOf)} disabled={loading}>
               <RefreshCw
                 className={loading ? 'animate-spin motion-reduce:animate-none' : ''}
                 size={16}
               />
-              Refresh
+              {t('godsEye.refresh')}
             </Button>
           </div>
         }
@@ -175,27 +175,27 @@ export default function GodsEyePage() {
             tone="blue"
             icon={<Building2 size={18} />}
             value={number(s.units)}
-            label={`units across ${s.properties} ${s.properties === 1 ? 'property' : 'properties'}`}
+            label={tn('godsEye.kpi.unitsAcross', s.properties)}
           />
           <GlassCard className="flex items-center justify-center p-4">
-            <Donut value={s.occupancyRate} sub="occupied" />
+            <Donut value={s.occupancyRate} sub={t('godsEye.kpi.occupied')} />
           </GlassCard>
           <BentoTile
             tone="coral"
             icon={<CircleAlert size={18} />}
             value={number(s.unitsInArrears)}
-            label="units in arrears"
+            label={t('godsEye.kpi.inArrears')}
           />
           <BentoTile
             tone="amber"
             value={money(s.arrearsOutstanding)}
-            label="outstanding on unpaid invoices"
+            label={t('godsEye.kpi.outstanding')}
           />
           <BentoTile
             tone="purple"
             icon={<Wrench size={18} />}
             value={number(s.openTickets)}
-            label="open maintenance jobs"
+            label={t('godsEye.kpi.openJobs')}
           />
         </div>
       )}
@@ -204,7 +204,7 @@ export default function GodsEyePage() {
         <GlassCard className="min-w-0 flex-1 p-5">
           {!data ? (
             <p className="py-10 text-center text-sm text-[var(--muted)]">
-              {loading ? 'Reading the portfolio…' : 'No data.'}
+              {loading ? t('godsEye.reading') : t('godsEye.noData')}
             </p>
           ) : (
             <>
@@ -294,9 +294,7 @@ export default function GodsEyePage() {
                 </>
               )}
               <p className="mt-4 text-[11px] text-[var(--muted)]">
-                State as at {data.asOf}
-                {view.asOf ? ' (fixed by this link)' : ''}. Every unit is judged against the same
-                date.
+                {t(view.asOf ? 'godsEye.asOfFixed' : 'godsEye.asOf', { date: data.asOf })}
               </p>
             </>
           )}

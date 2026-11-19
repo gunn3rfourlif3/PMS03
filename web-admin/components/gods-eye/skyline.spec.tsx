@@ -166,7 +166,7 @@ describe('a portfolio bigger than the scene', () => {
 describe('an empty portfolio', () => {
   it('says so rather than drawing an empty ground plane', () => {
     draw([]);
-    expect(screen.getByText('No properties to show.')).toBeInTheDocument();
+    expect(screen.getByText('godsEye.noProperties')).toBeInTheDocument();
     expect(screen.queryByRole('button')).toBeNull();
   });
 });

@@ -174,7 +174,7 @@ export default function AssistantPanel() {
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
-            aria-label="Help"
+            aria-label={t('assistant.heading')}
             className={cn(
               'absolute inset-y-0 right-0 flex w-full max-w-none flex-col lg:max-w-[420px]',
               // `bg-card`, not `bg-white`: the sheet was a white panel with

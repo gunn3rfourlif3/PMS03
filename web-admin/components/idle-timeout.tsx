@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { auth, api } from '@/lib/api';
 import { Modal, Button } from './ui';
+import { useLocale } from './locale-provider';
 
 /**
  * Idle auto-logout with a warning modal. After IDLE minutes of no interaction a
@@ -21,6 +22,7 @@ const REFRESH_EVERY = Math.floor(IDLE_MS / 2);
 const EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
 
 export default function IdleTimeout() {
+  const { t } = useLocale();
   const [warning, setWarning] = useState(false);
   const [remaining, setRemaining] = useState(0);
   const lastActive = useRef(Date.now());
@@ -73,14 +75,13 @@ export default function IdleTimeout() {
   }, []);
 
   return (
-    <Modal open={warning} onClose={stay} title="Still there?" size="sm"
+    <Modal open={warning} onClose={stay} title={t('idle.title')} size="sm"
       footer={<>
-        <Button variant="ghost" onClick={logout}>Log out</Button>
-        <Button onClick={stay}>Stay signed in</Button>
+        <Button variant="ghost" onClick={logout}>{t('idle.logOut')}</Button>
+        <Button onClick={stay}>{t('idle.stay')}</Button>
       </>}>
       <p className="text-sm text-muted">
-        You've been inactive for a while. For your security you'll be signed out in{' '}
-        <b className="text-ink">{remaining}s</b>.
+        {t('idle.body', { seconds: remaining })}
       </p>
     </Modal>
   );
