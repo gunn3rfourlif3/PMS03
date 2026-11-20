@@ -29,6 +29,7 @@
 
 import { chromium } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { CFG, esc, signIn, signedInContext, sleep } from './lib.mjs';
 
@@ -162,6 +163,36 @@ async function readInvoiceEmail(browser, id) {
   return { ...data, to: msg.To?.[0]?.Address || '' };
 }
 
+/**
+ * When a run bills nothing, the reason is in Redis: BullMQ keeps each failed
+ * job's error. Read it here so the report names the cause instead of guessing.
+ * Uses the local stack's own redis container; says so when it cannot reach it.
+ */
+function billingQueueDiagnosis() {
+  const lua = [
+    "local o={}",
+    "o[1]='waiting '..redis.call('LLEN','bull:billing:wait')",
+    "o[2]='active '..redis.call('LLEN','bull:billing:active')",
+    "o[3]='failed '..redis.call('ZCARD','bull:billing:failed')",
+    "o[4]='completed '..redis.call('ZCARD','bull:billing:completed')",
+    "for _,id in ipairs(redis.call('ZREVRANGE','bull:billing:failed',0,0)) do",
+    "  o[#o+1]='last failure: '..tostring(redis.call('HGET','bull:billing:'..id,'failedReason'))",
+    "  local st=redis.call('HGET','bull:billing:'..id,'stacktrace')",
+    "  if st then o[#o+1]='at: '..string.sub(st,1,600) end",
+    "end",
+    "for _,id in ipairs(redis.call('ZREVRANGE','bull:billing:completed',0,1)) do",
+    "  o[#o+1]='completed job '..id..' '..tostring(redis.call('HGET','bull:billing:'..id,'data'))..' -> '..tostring(redis.call('HGET','bull:billing:'..id,'returnvalue'))",
+    "end",
+    "return o",
+  ].join(' ');
+  try {
+    const out = execFileSync('docker', ['compose', 'exec', '-T', 'redis', 'redis-cli', 'EVAL', lua, '0'], { encoding: 'utf8', timeout: 20000 });
+    return out.split('\n').map((l) => l.trim()).filter(Boolean).join(' | ');
+  } catch (e) {
+    return `could not read the queue from redis (${String(e.message).split('\n')[0]})`;
+  }
+}
+
 // ------------------------------------------------------------ the bill run
 async function billrun(browser) {
   const ctx = await signedInContext(browser, { base: BASE, token: TOKEN, locale: 'en', viewport: { width: 1440, height: 900 } });
@@ -239,7 +270,7 @@ async function billrun(browser) {
       last = after;
       if (stable >= 3) return `R ${after.toFixed(2)} billed`;
     }
-    if (after === 0) fail('nothing billed after 2 minutes — is the API worker processing the billing queue?');
+    if (after === 0) fail(`nothing billed after 2 minutes. Queue: ${billingQueueDiagnosis()}`);
     return `still moving after 2 minutes; R ${after.toFixed(2)} so far`;
   });
 

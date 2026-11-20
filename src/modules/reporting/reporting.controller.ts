@@ -59,6 +59,14 @@ export class ReportingController {
     return this.service.licenceState();
   }
 
+  /**
+   * Was unguarded: with no signed-in user the agency context was empty, RLS
+   * hid every invoice, and it answered billed = collected = 0 to everyone —
+   * the dashboard's collection figures included. It leaked nothing (RLS
+   * fails closed) but showed every agency an empty month.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('vendor_owner', 'property_manager')
   @Get('collection/:period')
   collection(@Param('period') period: string) {
     return this.service.collectionSummary(period);
